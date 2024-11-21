@@ -3,4 +3,4 @@ project(ex_motion)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(ex_motion main.cpp)
+add_executable(ex_motion src/main.cpp)
