@@ -75,11 +75,11 @@ set(KERNEL_FILES
 )
 
 set(HEADER_FILES
-        # TODO
+        src/headers/imgui/gui_boot.h
 )
 
 set(SOURCE_FILES
-        # TODO
+        src/sources/imgui/gui_boot.cpp
 )
 
 if (UNIX AND NOT APPLE)
