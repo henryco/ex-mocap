@@ -31,17 +31,35 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(GNUInstallDirs)
 
+add_library(imgui
+        external/imgui/imgui.cpp
+        external/imgui/imgui_draw.cpp
+        external/imgui/imgui_widgets.cpp
+        external/imgui/imgui_tables.cpp
+        external/imgui/misc/cpp/imgui_stdlib.cpp
+        external/imgui/backends/imgui_impl_opengl3.cpp
+        external/imgui/backends/imgui_impl_glfw.cpp)
+
+target_include_directories(imgui PUBLIC
+        external/imgui
+        external/imgui/misc/cpp
+        external/imgui/backends)
+
 find_package(PkgConfig REQUIRED)
 find_package(OpenCLHeaders REQUIRED)
+find_package(OpenCL 3.0 REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(spdlog REQUIRED)
+find_package(glfw3 REQUIRED)
+
+target_link_libraries(imgui PUBLIC OpenGL::GL glfw)
 
 if (UNIX AND NOT APPLE)
     pkg_check_modules(V4L2 REQUIRED libv4l2)
+    # TODO
 endif ()
 
-find_package(OpenCL 3.0 REQUIRED)
 if (OpenCL_FOUND)
     add_definitions("-DCL_HPP_TARGET_OPENCL_VERSION=300")
     add_definitions("-DCL_TARGET_OPENCL_VERSION=300")
@@ -119,6 +137,7 @@ if (UNIX AND NOT APPLE)
             PRIVATE ${V4L2_LIBRARIES}
             PRIVATE nlohmann_json::nlohmann_json
             PRIVATE argparse
+            PRIVATE imgui
             PRIVATE glm)
     target_compile_options(${PROJECT_NAME}
             PRIVATE ${V4L2_CFLAGS_OTHER})
