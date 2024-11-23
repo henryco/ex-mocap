@@ -1,7 +1,7 @@
 ### How to clone properly
 ```shell
 git clone \
-    --recursive-submodules \
+    --recurse-submodules \
     git@github.com:henryco/ex-mocap.git
   ```
 
