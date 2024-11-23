@@ -49,20 +49,24 @@ namespace ex::gl {
         glfwTerminate();
     }
 
-    void Render::loop(void (*func)(const float delta)) {
-        while (!glfwWindowShouldClose(this->window)) {
-            glfwPollEvents();
+    bool Render::render(void (*func)(float delta)) {
+        if (glfwWindowShouldClose(window))
+            return true;
 
+        glfwPollEvents();
+
+        int display_w, display_h;
+        glfwGetFramebufferSize(this->window, &display_w, &display_h);
+        glViewport(0, 0, display_w, display_h);
+        glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        if (func != nullptr)
             func(0.f);
 
-            int display_w, display_h;
-            glfwGetFramebufferSize(this->window, &display_w, &display_h);
-            glViewport(0, 0, display_w, display_h);
-            glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
-            glClear(GL_COLOR_BUFFER_BIT);
+        glfwSwapBuffers(this->window);
 
-            glfwSwapBuffers(this->window);
-        }
+        return false;
     }
 }
 

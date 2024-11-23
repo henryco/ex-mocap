@@ -2,14 +2,13 @@
 // Created by henryco on 22/11/24.
 //
 
-#include "../../headers/imgui/gui_boot.h"
 #include "../../headers/gl/render.h"
+#include "../../headers/imgui/gui.h"
 
 #include <GLFW/glfw3.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
-#include <iostream>
 
 namespace ex::gui {
 
@@ -25,7 +24,7 @@ namespace ex::gui {
         ImGui::Render();
     }
 
-    void GUI::draw_gui() {
+    void GUI::draw_gui(const float delta) {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 
@@ -48,38 +47,6 @@ namespace ex::gui {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
-    }
-
-    int boot(const int argc, char **argv, const char *project_path) {
-
-        if (!glfwInit()) {
-            std::cerr << "Failed to initialize GLFW";
-            return 1;
-        }
-
-        auto window = ex::gl::create_window("ExMoCap");
-        if (!window) {
-            glfwTerminate();
-            return 1;
-        }
-
-        struct ex::State state;
-        auto render = ex::gl::Render(window);
-        {
-            auto gui = ex::gui::GUI(window);
-
-
-            while (!glfwWindowShouldClose(window)) {
-
-                gui.update_gui(state);
-
-
-                gui.draw_gui();
-
-            }
-        };
-
-        return 0;
     }
 }
 

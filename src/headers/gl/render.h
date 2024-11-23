@@ -20,7 +20,11 @@ namespace ex::gl {
 
         ~Render();
 
-        void loop(void (*func)(float delta));
+        /**
+         * @param func render callback
+         * @return whether rendering should stop
+         */
+        bool render(void (*func)(float delta));
 
     };
 }

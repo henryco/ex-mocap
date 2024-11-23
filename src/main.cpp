@@ -1,8 +1,9 @@
 #include <argparse/argparse.hpp>
-#include <spdlog/spdlog.h>
 #include <filesystem>
+#include <spdlog/spdlog.h>
 
-#include "headers/imgui/gui_boot.h"
+#include "headers/boot.h"
+#include "headers/imgui/gui.h"
 
 int main(const int argc, char **argv) {
 
@@ -39,10 +40,8 @@ int main(const int argc, char **argv) {
     }
 
     const auto path = program.get<std::string>("--project");
-    if (program.get<bool>("--terminal")) {
-        // TODO NON GUI MODE
-    } else {
-        return ex::gui::boot(argc, argv, path.c_str());
-    }
-    return 0;
+
+    if (program.get<bool>("--terminal"))
+        return ex::boot::ttui(argc, argv, path.c_str());
+    return ex::boot::gui(argc, argv, path.c_str());
 }

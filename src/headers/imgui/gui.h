@@ -19,12 +19,10 @@ namespace ex::gui {
 
         ~GUI();
 
-        void draw_gui();
-
         void update_gui(ex::State &state);
-    };
 
-    int boot(int argc, char **argv, const char *project_path);
+        static void draw_gui(float delta);
+    };
 } // namespace ex::gui
 
 #endif // GUI_BOOT_H
