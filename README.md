@@ -2,7 +2,7 @@
 ```shell
 git clone \
     --recursive-submodules \
-    git@github.com:henryco/ex-motion.git
+    git@github.com:henryco/ex-mocap.git
   ```
 
 ### Dependencies
