@@ -1,9 +1,13 @@
 ### How to clone properly
 ```shell
-git clone \
-    --recurse-submodules \
-    git@github.com:henryco/ex-mocap.git
-  ```
+    git clone \
+        --recurse-submodules \
+        git@github.com:henryco/ex-mocap.git
+    
+    cd external/imgui
+    
+    git checkout docking
+```
 
 ### Dependencies
 - [OnnxRuntime](https://github.com/microsoft/onnxruntime) (external/onnxruntime)
@@ -21,15 +25,15 @@ git clone \
 
 #### How to install dependencies (Debian/Nvidia)
 ```shell
-apt install -y          \
-    opencl-headers      \
-    ocl-icd-libopencl1  \
-    nvidia-opencl-dev   \
-    libopencv-dev       \
-    libspdlog-dev       \
-    nvidia-cuda-toolkit \
-    cudnn-cuda-12       \
-    libglfw3-dev        \
-    libglfw3            \
-    libv4l-dev
+    apt install -y          \
+        opencl-headers      \
+        ocl-icd-libopencl1  \
+        nvidia-opencl-dev   \
+        libopencv-dev       \
+        libspdlog-dev       \
+        nvidia-cuda-toolkit \
+        cudnn-cuda-12       \
+        libglfw3-dev        \
+        libglfw3            \
+        libv4l-dev
 ```
