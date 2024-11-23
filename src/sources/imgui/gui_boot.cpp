@@ -62,6 +62,9 @@ namespace ex::gui {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
         ImGui::StyleColorsLight();
 
         ImGui_ImplGlfw_InitForOpenGL(window, true);
