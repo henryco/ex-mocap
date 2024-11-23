@@ -75,11 +75,17 @@ set(KERNEL_FILES
 )
 
 set(HEADER_FILES
+        src/headers/state.h
+
         src/headers/imgui/gui_boot.h
+        src/headers/logic/logic.h
+        src/headers/gl/render.h
 )
 
 set(SOURCE_FILES
         src/sources/imgui/gui_boot.cpp
+        src/sources/logic/logic.cpp
+        src/sources/gl/render.cpp
 )
 
 if (UNIX AND NOT APPLE)

@@ -5,8 +5,26 @@
 #ifndef GUI_BOOT_H
 #define GUI_BOOT_H
 
-namespace ex::gui {
-    int boot(int argc, char **argv, const char *project_path);
-}
+#include <GLFW/glfw3.h>
+#include "../state.h"
 
-#endif //GUI_BOOT_H
+namespace ex::gui {
+    class GUI {
+
+    private:
+        GLFWwindow *window;
+
+    public:
+        explicit GUI(GLFWwindow *window);
+
+        ~GUI();
+
+        void draw_gui();
+
+        void update_gui(ex::State &state);
+    };
+
+    int boot(int argc, char **argv, const char *project_path);
+} // namespace ex::gui
+
+#endif // GUI_BOOT_H

@@ -2,7 +2,8 @@
 // Created by henryco on 22/11/24.
 //
 
-#include "../../src/headers/imgui/gui_boot.h"
+#include "../../headers/imgui/gui_boot.h"
+#include "../../headers/gl/render.h"
 
 #include <GLFW/glfw3.h>
 #include <backends/imgui_impl_glfw.h>
@@ -12,52 +13,24 @@
 
 namespace ex::gui {
 
-    GLFWwindow* create_window(const char* title) {
-        GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
-        if (!primaryMonitor) {
-            std::cerr << "Failed to get primary monitor\n";
-            return nullptr;
-        }
+    void GUI::update_gui(ex::State &state) {
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
 
-        const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
-        if (!videoMode) {
-            std::cerr << "Failed to get video mode\n";
-            return nullptr;
-        }
+        ImGui::Begin("Hello, ImGui!");
+        ImGui::Text("This is a simple example");
+        ImGui::End();
 
-        GLFWwindow* window = glfwCreateWindow(
-            videoMode->width,
-            videoMode->height,
-            title,
-            nullptr,
-            nullptr);
-
-        if (!window) {
-            std::cerr << "Failed to create GLFW window\n";
-            return nullptr;
-        }
-
-        int monitorX, monitorY;
-        glfwGetMonitorPos(primaryMonitor, &monitorX, &monitorY);
-        glfwSetWindowPos(window, monitorX, monitorY);
-
-        return window;
+        ImGui::Render();
     }
 
-    int boot(const int argc, char **argv, const char *project_path) {
+    void GUI::draw_gui() {
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    }
 
-        if (!glfwInit()) {
-            std::cerr << "Failed to initialize GLFW";
-            return 1;
-        }
-
-        auto window = create_window("Example Application");
-        if (!window) {
-            glfwTerminate();
-            return 1;
-        }
-
-        glfwMakeContextCurrent(window);
+    GUI::GUI(GLFWwindow *window) {
+        this->window = window;
 
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -69,37 +42,42 @@ namespace ex::gui {
 
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init("#version 130");
+    }
 
-        while (!glfwWindowShouldClose(window)) {
-            glfwPollEvents();
-
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplGlfw_NewFrame();
-            ImGui::NewFrame();
-
-            // Example ImGui window
-            ImGui::Begin("Hello, ImGui!");
-            ImGui::Text("This is a simple example");
-            ImGui::End();
-
-
-            ImGui::Render();
-            int display_w, display_h;
-            glfwGetFramebufferSize(window, &display_w, &display_h);
-            glViewport(0, 0, display_w, display_h);
-            glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
-            glClear(GL_COLOR_BUFFER_BIT);
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-            glfwSwapBuffers(window);
-        }
-
+    GUI::~GUI() {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
+    }
 
-        glfwDestroyWindow(window);
-        glfwTerminate();
+    int boot(const int argc, char **argv, const char *project_path) {
+
+        if (!glfwInit()) {
+            std::cerr << "Failed to initialize GLFW";
+            return 1;
+        }
+
+        auto window = ex::gl::create_window("ExMoCap");
+        if (!window) {
+            glfwTerminate();
+            return 1;
+        }
+
+        struct ex::State state;
+        auto render = ex::gl::Render(window);
+        {
+            auto gui = ex::gui::GUI(window);
+
+
+            while (!glfwWindowShouldClose(window)) {
+
+                gui.update_gui(state);
+
+
+                gui.draw_gui();
+
+            }
+        };
 
         return 0;
     }
