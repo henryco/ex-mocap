@@ -10,14 +10,22 @@ namespace ex::gui {
 
     static float offset_px = 16.f;
 
-    static float left_pane_width  = 200.0f;
-    static float right_pane_width = 200.0f;
+    static float left_pane_width    = 200.0f;
+    static float right_pane_width   = 200.0f;
     static float bottom_pane_height = 150.0f;
-    static float main_width = 0.f;
+    static float main_width         = 0.f;
 
     static bool show_right = true;
-    static bool show_left = true;
-    static bool show_logs = true;
+    static bool show_left  = true;
+    static bool show_logs  = true;
+
+    static inline float left_offset() { return show_left ? left_pane_width : 0; }
+
+    static inline float right_offset() { return show_right ? (right_pane_width + offset_px) : 0; }
+
+    static inline ImVec2 main_size() { return { main_width - left_offset() - right_offset(), 0 }; }
+
+    static inline ImVec2 content_size() { return { 0, -(bottom_pane_height + 8) }; }
 
     void show_left_pane(ex::State &state) {
         if (!show_left)
@@ -50,16 +58,9 @@ namespace ex::gui {
     }
 
     void show_main_content(ex::State &state) {
-
-        const auto main_size = ImVec2(
-                main_width - (show_left ? left_pane_width : 0) - (show_right ? (right_pane_width + offset_px) : 0),
-                0);
-
-        ImGui::BeginChild("MainContainer",main_size,true);
+        ImGui::BeginChild("MainContainer", main_size(), true);
         {
-            const auto content_size = ImVec2(0, -(bottom_pane_height + 8));
-            ImGui::BeginChild("ContentBox",content_size,true);
-
+            ImGui::BeginChild("ContentBox", content_size(), true);
             if (ImGui::BeginTabBar("MainTabs")) {
                 if (ImGui::BeginTabItem("Tab 1")) {
                     ImGui::Text("Content for Tab 1");
@@ -79,9 +80,7 @@ namespace ex::gui {
 
     void GUI::layout(ex::State &state) {
         ImGui::Begin("main", nullptr,
-                     ImGuiWindowFlags_NoResize |
-                             ImGuiWindowFlags_NoMove |
-                             ImGuiWindowFlags_NoTitleBar |
+                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar |
                              ImGuiWindowFlags_NoScrollWithMouse);
 
         main_width = ImGui::GetContentRegionAvail().x;
@@ -92,4 +91,4 @@ namespace ex::gui {
 
         ImGui::End();
     }
-}
+} // namespace ex::gui
