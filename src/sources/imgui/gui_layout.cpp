@@ -8,12 +8,14 @@
 
 namespace ex::gui {
 
-    static float offset_px = 16.f;
+    static float offset_main_h = 16.f;
+    static float offset_main_v = 4.f;
 
     static float left_pane_width    = 200.0f;
     static float right_pane_width   = 200.0f;
     static float bottom_pane_height = 150.0f;
     static float main_width         = 0.f;
+    static float main_height        = 0.f;
 
     static bool show_right = true;
     static bool show_left  = true;
@@ -21,11 +23,13 @@ namespace ex::gui {
 
     static inline float left_offset() { return show_left ? left_pane_width : 0; }
 
-    static inline float right_offset() { return show_right ? (right_pane_width + offset_px) : 0; }
+    static inline float right_offset() { return show_right ? (right_pane_width + offset_main_h) : 0; }
+
+    static inline float bottom_offset() { return show_logs ? (bottom_pane_height + offset_main_v) : 0; }
 
     static inline ImVec2 main_size() { return { main_width - left_offset() - right_offset(), 0 }; }
 
-    static inline ImVec2 content_size() { return { 0, -(bottom_pane_height + 8) }; }
+    static inline ImVec2 content_size() { return { 0, main_height - bottom_offset() }; }
 
     void show_left_pane(ex::State &state) {
         if (!show_left)
@@ -57,22 +61,31 @@ namespace ex::gui {
         ImGui::EndChild();
     }
 
-    void show_main_content(ex::State &state) {
-        ImGui::BeginChild("MainContainer", main_size(), true);
-        {
-            ImGui::BeginChild("ContentBox", content_size(), true);
-            if (ImGui::BeginTabBar("MainTabs")) {
-                if (ImGui::BeginTabItem("Tab 1")) {
-                    ImGui::Text("Content for Tab 1");
-                    ImGui::EndTabItem();
-                }
-                if (ImGui::BeginTabItem("Tab 2")) {
-                    ImGui::Text("Content for Tab 2");
-                    ImGui::EndTabItem();
-                }
-                ImGui::EndTabBar();
+    void show_content(ex::State &state) {
+        ImGui::BeginChild("ContentBox", content_size(), true);
+        if (ImGui::BeginTabBar("MainTabs")) {
+            if (ImGui::BeginTabItem("Tab 1")) {
+                ImGui::Text("Content for Tab 1");
+                ImGui::EndTabItem();
             }
-            ImGui::EndChild();
+            if (ImGui::BeginTabItem("Tab 2")) {
+                ImGui::Text("Content for Tab 2");
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+        }
+        ImGui::EndChild();
+    }
+
+    void show_main_container(ex::State &state) {
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));   // Remove padding
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));    // Remove item spacing
+        ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
+
+        ImGui::BeginChild("MainContainer", main_size());
+        ImGui::PopStyleVar(3);
+        {
+            show_content(state);
             show_logs_pane(state);
         }
         ImGui::EndChild();
@@ -86,7 +99,7 @@ namespace ex::gui {
         main_width = ImGui::GetContentRegionAvail().x;
 
         show_left_pane(state);
-        show_main_content(state);
+        show_main_container(state);
         show_right_pane(state);
 
         ImGui::End();
