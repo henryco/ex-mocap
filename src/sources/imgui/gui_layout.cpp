@@ -20,6 +20,7 @@ namespace ex::gui {
     static bool show_right = true;
     static bool show_left  = true;
     static bool show_logs  = true;
+    static bool show_menu  = true;
 
     static inline float left_offset() { return show_left ? left_pane_width : 0; }
 
@@ -30,6 +31,8 @@ namespace ex::gui {
     static inline ImVec2 main_size() { return { main_width - left_offset() - right_offset(), 0 }; }
 
     static inline ImVec2 content_size() { return { 0, main_height - bottom_offset() }; }
+
+    static inline int menu_flag() { return show_menu ? ImGuiWindowFlags_MenuBar : 0; }
 
     void show_left_pane(ex::State &state) {
         if (!show_left)
@@ -91,13 +94,49 @@ namespace ex::gui {
         ImGui::EndChild();
     }
 
+    void show_menu_bar(ex::State &state) {
+        if (!show_menu)
+            return;
+
+        if (ImGui::BeginMenuBar()) {
+            if (ImGui::BeginMenu("File")) {
+                if (ImGui::MenuItem("New")) { /* Handle "New" action */ }
+                if (ImGui::MenuItem("Open")) { /* Handle "Open" action */ }
+                if (ImGui::MenuItem("Save")) { /* Handle "Save" action */ }
+                ImGui::Separator();
+                if (ImGui::MenuItem("Exit")) { /* Handle "Exit" action */ }
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Edit")) {
+                if (ImGui::MenuItem("Undo", "Ctrl+Z")) { /* Handle "Undo" action */ }
+                if (ImGui::MenuItem("Redo", "Ctrl+Y", false, false)) {
+                    /* Disabled item example */
+                }
+                ImGui::Separator();
+                if (ImGui::MenuItem("Cut", "Ctrl+X")) { /* Handle "Cut" action */ }
+                if (ImGui::MenuItem("Copy", "Ctrl+C")) { /* Handle "Copy" action */ }
+                if (ImGui::MenuItem("Paste", "Ctrl+V")) { /* Handle "Paste" action */ }
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Help")) {
+                if (ImGui::MenuItem("About")) { /* Handle "About" action */ }
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMenuBar();
+        }
+    }
+
     void GUI::layout(ex::State &state) {
         ImGui::Begin("main", nullptr,
                      ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar |
-                             ImGuiWindowFlags_NoScrollWithMouse);
+                             ImGuiWindowFlags_NoScrollWithMouse | menu_flag());
 
         main_width = ImGui::GetContentRegionAvail().x;
 
+        show_menu_bar(state);
         show_left_pane(state);
         show_main_container(state);
         show_right_pane(state);
