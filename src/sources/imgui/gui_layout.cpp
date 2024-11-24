@@ -56,12 +56,14 @@ namespace ex::gui {
     void show_logs_pane(ex::State &state) {
         if (!show_logs)
             return;
-        ImGui::BeginChild("BottomPane", ImVec2(0, bottom_pane_height), true);
-        ImGui::Text("Log Output:");
-        ImGui::Separator();
-        ImGui::Text("This is a log message.");
-        ImGui::Text("Another log message.");
-        ImGui::EndChild();
+
+        if (ImGui::CollapsingHeader("Log Output")) {
+            ImGui::BeginChild("BottomPane", ImVec2(0, bottom_pane_height), true);
+            ImGui::Text("This is a log message.");
+            ImGui::Text("Another log message.");
+            ImGui::EndChild();
+        }
+
     }
 
     void show_content(ex::State &state) {
