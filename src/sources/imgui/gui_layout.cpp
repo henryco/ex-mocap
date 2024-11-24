@@ -78,8 +78,8 @@ namespace ex::gui {
     }
 
     void show_main_container(ex::State &state) {
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));   // Remove padding
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));    // Remove item spacing
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
         ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
 
         ImGui::BeginChild("MainContainer", main_size());
