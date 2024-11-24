@@ -6,8 +6,14 @@
 #define EX_MOTION_STATE_H
 
 namespace ex {
-    struct State {
+    struct GUI {
+        bool show_logs = true;
+        bool show_left = true;
+        bool show_right = true;
+    };
 
+    struct State {
+        GUI gui{};
     };
 }
 
