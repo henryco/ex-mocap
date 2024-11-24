@@ -90,6 +90,7 @@ set(SOURCE_FILES
 
         src/sources/boot_gui.cpp
         src/sources/boot_terminal.cpp
+        src/sources/imgui/gui_layout.cpp
 )
 
 if (UNIX AND NOT APPLE)

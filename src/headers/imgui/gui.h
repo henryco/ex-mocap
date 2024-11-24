@@ -19,9 +19,12 @@ namespace ex::gui {
 
         ~GUI();
 
-        void update_gui(ex::State &state);
+        void update_gui(ex::State &state) const;
 
         static void draw_gui(float delta);
+
+    protected:
+        static void layout(ex::State &state);
     };
 } // namespace ex::gui
 
