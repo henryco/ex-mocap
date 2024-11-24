@@ -13,8 +13,12 @@ namespace ex::gui {
     static float bottom_pane_height = 150.0f;
     static float main_width = 0.f;
 
+    static bool show_right = true;
+    static bool show_left = true;
+    static bool show_logs = true;
+
     void show_left_pane(ex::State &state) {
-        if (!state.gui.show_left)
+        if (!show_left)
             return;
         ImGui::BeginChild("LeftPane", ImVec2(left_pane_width, 0), true);
         ImGui::Text("Left Pane (e.g., File Explorer)");
@@ -24,7 +28,7 @@ namespace ex::gui {
     }
 
     void show_right_pane(ex::State &state) {
-        if (!state.gui.show_right)
+        if (!show_right)
             return;
         ImGui::SameLine();
         ImGui::BeginChild("RightPane", ImVec2(right_pane_width, 0), true);
@@ -32,8 +36,8 @@ namespace ex::gui {
         ImGui::EndChild();
     }
 
-    void show_logs(ex::State &state) {
-        if (!state.gui.show_logs)
+    void show_logs_pane(ex::State &state) {
+        if (!show_logs)
             return;
         ImGui::BeginChild("BottomPane", ImVec2(0, bottom_pane_height), true);
         ImGui::Text("Log Output:");
@@ -44,7 +48,9 @@ namespace ex::gui {
     }
 
     void show_main_content(ex::State &state) {
-        ImGui::BeginChild("MainContainer", ImVec2(main_width - (state.gui.show_left ? left_pane_width : 0) - (state.gui.show_right ? right_pane_width : 0), -bottom_pane_height), true);
+        ImGui::BeginChild("MainContainer",
+                          ImVec2(main_width - (show_left ? left_pane_width : 0) - (show_right ? right_pane_width : 0), -bottom_pane_height),
+                          true);
         if (ImGui::BeginTabBar("MainTabs")) {
             if (ImGui::BeginTabItem("Tab 1")) {
                 ImGui::Text("Content for Tab 1");
@@ -71,7 +77,7 @@ namespace ex::gui {
         show_left_pane(state);
         show_main_content(state);
         show_right_pane(state);
-        show_logs(state);
+        show_logs_pane(state);
 
         ImGui::End();
     }
