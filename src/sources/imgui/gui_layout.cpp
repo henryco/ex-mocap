@@ -49,8 +49,11 @@ namespace ex::gui {
 
     void show_main_content(ex::State &state) {
         ImGui::BeginChild("MainContainer",
-                          ImVec2(main_width - (show_left ? left_pane_width : 0) - (show_right ? right_pane_width : 0), -bottom_pane_height),
+                          ImVec2(
+                                  main_width - (show_left ? left_pane_width : 0) - (show_right ? (right_pane_width + 16) : 0),
+                                  -bottom_pane_height),
                           true);
+
         if (ImGui::BeginTabBar("MainTabs")) {
             if (ImGui::BeginTabItem("Tab 1")) {
                 ImGui::Text("Content for Tab 1");
@@ -60,8 +63,10 @@ namespace ex::gui {
                 ImGui::Text("Content for Tab 2");
                 ImGui::EndTabItem();
             }
+            ImGui::EndTabBar();
         }
-        ImGui::EndTabBar();
+
+        show_logs_pane(state);
         ImGui::EndChild();
     }
 
@@ -77,7 +82,6 @@ namespace ex::gui {
         show_left_pane(state);
         show_main_content(state);
         show_right_pane(state);
-        show_logs_pane(state);
 
         ImGui::End();
     }
