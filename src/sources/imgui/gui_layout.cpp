@@ -50,25 +50,30 @@ namespace ex::gui {
     }
 
     void show_main_content(ex::State &state) {
-        ImGui::BeginChild("MainContainer",
-                          ImVec2(
-                                  main_width - (show_left ? left_pane_width : 0) - (show_right ? (right_pane_width + offset_px) : 0),
-                                  -(bottom_pane_height + offset_px)),
-                          true);
 
-        if (ImGui::BeginTabBar("MainTabs")) {
-            if (ImGui::BeginTabItem("Tab 1")) {
-                ImGui::Text("Content for Tab 1");
-                ImGui::EndTabItem();
+        const auto main_size = ImVec2(
+                main_width - (show_left ? left_pane_width : 0) - (show_right ? (right_pane_width + offset_px) : 0),
+                0);
+
+        ImGui::BeginChild("MainContainer",main_size,true);
+        {
+            const auto content_size = ImVec2(0, -(bottom_pane_height + 8));
+            ImGui::BeginChild("ContentBox",content_size,true);
+
+            if (ImGui::BeginTabBar("MainTabs")) {
+                if (ImGui::BeginTabItem("Tab 1")) {
+                    ImGui::Text("Content for Tab 1");
+                    ImGui::EndTabItem();
+                }
+                if (ImGui::BeginTabItem("Tab 2")) {
+                    ImGui::Text("Content for Tab 2");
+                    ImGui::EndTabItem();
+                }
+                ImGui::EndTabBar();
             }
-            if (ImGui::BeginTabItem("Tab 2")) {
-                ImGui::Text("Content for Tab 2");
-                ImGui::EndTabItem();
-            }
-            ImGui::EndTabBar();
+            ImGui::EndChild();
+            show_logs_pane(state);
         }
-
-        show_logs_pane(state);
         ImGui::EndChild();
     }
 
