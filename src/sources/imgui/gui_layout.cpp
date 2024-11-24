@@ -8,6 +8,8 @@
 
 namespace ex::gui {
 
+    static float offset_px = 16.f;
+
     static float left_pane_width  = 200.0f;
     static float right_pane_width = 200.0f;
     static float bottom_pane_height = 150.0f;
@@ -50,8 +52,8 @@ namespace ex::gui {
     void show_main_content(ex::State &state) {
         ImGui::BeginChild("MainContainer",
                           ImVec2(
-                                  main_width - (show_left ? left_pane_width : 0) - (show_right ? (right_pane_width + 16) : 0),
-                                  -bottom_pane_height),
+                                  main_width - (show_left ? left_pane_width : 0) - (show_right ? (right_pane_width + offset_px) : 0),
+                                  -(bottom_pane_height + offset_px)),
                           true);
 
         if (ImGui::BeginTabBar("MainTabs")) {
