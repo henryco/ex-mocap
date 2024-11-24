@@ -130,17 +130,14 @@ namespace ex::gui {
     }
 
     void GUI::layout(ex::State &state) {
-        ImGui::Begin("main", nullptr,
-                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar |
-                             ImGuiWindowFlags_NoScrollWithMouse | menu_flag());
-
-        main_width = ImGui::GetContentRegionAvail().x;
-
-        show_menu_bar(state);
-        show_left_pane(state);
-        show_main_container(state);
-        show_right_pane(state);
-
+        ImGui::Begin("main", nullptr,ImGuiWindowFlags_NoDecoration | menu_flag());
+        {
+            main_width = ImGui::GetContentRegionAvail().x;
+            show_menu_bar(state);
+            show_left_pane(state);
+            show_main_container(state);
+            show_right_pane(state);
+        }
         ImGui::End();
     }
 } // namespace ex::gui
