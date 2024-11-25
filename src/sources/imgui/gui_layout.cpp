@@ -20,6 +20,7 @@ namespace ex::gui {
     static float left_pane_width    = 200.0f;
     static float right_pane_width   = 200.0f;
     static float main_width         = 0.f;
+    static float main_free_x        = 0.f;
 
     static bool show_right = true;
     static bool show_left  = true;
@@ -36,7 +37,7 @@ namespace ex::gui {
 
     static inline float logs_expanded_offset() { return expanded_logs ? 200 : 0; }
 
-    static inline ImVec2 main_size() { return { - left_offset() - right_offset(), 0 }; }
+    static inline ImVec2 main_size() { return { main_free_x - left_offset() - right_offset(), 0 }; }
 
     static inline ImVec2 content_size() { return { 0, -(bottom_offset() + logs_expanded_offset())}; }
 
@@ -167,13 +168,12 @@ namespace ex::gui {
         const auto old_width = main_width;
 
         ImGui::BeginChild("MainContainer", main_size(),
-                          0 | (show_right ? ImGuiChildFlags_ResizeX : 0),
-                          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-
-        ImGui::Text("main: %s", std::to_string(main_width).c_str());
-        ImGui::Text("size: %s", std::to_string(main_size().x).c_str());
+                          0
+                                  | (show_right ? ImGuiChildFlags_ResizeX : 0)
+                                  | (re_size.inc_x ? ImGuiChildFlags_AutoResizeX : 0),
+                          ImGuiWindowFlags_NoScrollbar
+                                  | ImGuiWindowFlags_NoScrollWithMouse);
         ImGui::Text("upd : %s", std::to_string(re_size.inc_x).c_str());
-
         {
             show_content(state, re_size);
             show_logs_pane(state, re_size);
@@ -190,6 +190,7 @@ namespace ex::gui {
 
         ImGui::Begin("main", nullptr,ImGuiWindowFlags_NoDecoration | menu_flag());
         {
+            main_free_x = ImGui::GetContentRegionAvail().x;
             show_menu_bar(state);
             show_left_pane(state, re_size);
             show_main_container(state, re_size);
