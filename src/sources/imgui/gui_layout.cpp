@@ -96,12 +96,11 @@ namespace ex::gui {
             return;
         const auto old_width = left_pane_width;
 
-        ImGui::BeginChild("LeftPane", ImVec2(left_pane_width, 0),
+        ImGui::BeginChild("LeftPane",
+                          ImVec2(left_pane_width, 0),
                           ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
         {
             // TODO CONTENT
-            ImGui::Text("Left Pane (e.g., File Explorer)");
-            ImGui::Text("old: %s", std::to_string(left_pane_width).c_str());
         }
 
         left_pane_width = ImGui::GetWindowWidth();
@@ -117,14 +116,11 @@ namespace ex::gui {
         const auto old_width = right_pane_width;
 
         ImGui::SameLine();
-        ImGui::BeginChild("RightPane", ImVec2(re_size.inc_x ? 0 : right_pane_width, 0),
+        ImGui::BeginChild("RightPane",
+                          ImVec2(re_size.inc_x ? 0 : right_pane_width, 0),
                           ImGuiChildFlags_Borders);
         {
             // TODO CONTENT
-            ImGui::Text("Right Pane (e.g., Properties)");
-            ImGui::Text("old: %s", std::to_string(old_width).c_str());
-            ImGui::Text("new: %s", std::to_string(right_pane_width).c_str());
-            ImGui::Text("upd : %s", std::to_string(re_size.inc_x).c_str());
         }
 
         right_pane_width = ImGui::GetWindowWidth();
@@ -134,9 +130,9 @@ namespace ex::gui {
     }
 
     void show_content(ex::State &state, ReSize &re_size) {
-        ImGui::BeginChild("ContentBox", content_size(),
-                          ImGuiChildFlags_Borders |
-                                  content_resize_flag());
+        ImGui::BeginChild("ContentBox",
+                          content_size(),
+                          ImGuiChildFlags_Borders | content_resize_flag());
         if (ImGui::BeginTabBar("MainTabs")) {
             if (ImGui::BeginTabItem("Tab 1")) {
                 ImGui::Text("Content for Tab 1");
@@ -167,13 +163,13 @@ namespace ex::gui {
     void show_main_container(ex::State &state, ReSize &re_size) {
         const auto old_width = main_width;
 
-        ImGui::BeginChild("MainContainer", main_size(),
+        ImGui::BeginChild("MainContainer",
+                          main_size(),
                           0
                                   | (show_right ? ImGuiChildFlags_ResizeX : 0)
                                   | (re_size.inc_x ? ImGuiChildFlags_AutoResizeX : 0),
                           ImGuiWindowFlags_NoScrollbar
                                   | ImGuiWindowFlags_NoScrollWithMouse);
-        ImGui::Text("upd : %s", std::to_string(re_size.inc_x).c_str());
         {
             show_content(state, re_size);
             show_logs_pane(state, re_size);
