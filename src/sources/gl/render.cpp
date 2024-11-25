@@ -58,7 +58,7 @@ namespace ex::gl {
         int display_w, display_h;
         glfwGetFramebufferSize(this->window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
-        glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
+        glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT);
 
         if (func != nullptr)

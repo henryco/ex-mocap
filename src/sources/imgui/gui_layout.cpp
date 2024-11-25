@@ -14,6 +14,8 @@ namespace ex::gui {
         bool inc_y = false;
     };
 
+    static bool window_resized = false;
+
     static float offset_main_h = 16.f;
     static float offset_main_v = 23.f;
 
@@ -181,12 +183,24 @@ namespace ex::gui {
         re_size.inc_x = (!re_size.inc_x) && (old_width != main_width);
     }
 
+    bool is_window_resized() {
+        static ImVec2 last_size = {};
+        const auto current_size = ImGui::GetWindowSize();
+        if (current_size.x != last_size.x || current_size.y != last_size.y) {
+            last_size = current_size;
+            return true;
+        }
+        return false;
+    }
+
     void GUI::layout(ex::State &state) {
         struct ReSize re_size = {};
 
         ImGui::Begin("main", nullptr,ImGuiWindowFlags_NoDecoration | menu_flag());
         {
+            window_resized = is_window_resized();
             main_free_x = ImGui::GetContentRegionAvail().x;
+
             show_menu_bar(state);
             show_left_pane(state, re_size);
             show_main_container(state, re_size);
