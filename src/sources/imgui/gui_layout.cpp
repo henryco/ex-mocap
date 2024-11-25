@@ -36,6 +36,19 @@ namespace ex::gui {
 
     static inline int menu_flag() { return show_menu ? ImGuiWindowFlags_MenuBar : 0; }
 
+    static inline int content_resize_flag() {
+        static bool content_resize_flag_first = true;
+        if (!expanded_logs) {
+            content_resize_flag_first = true;
+            return 1;
+        }
+        if (content_resize_flag_first) {
+            content_resize_flag_first = false;
+            return 1;
+        }
+        return ImGuiChildFlags_ResizeY;
+    }
+
     void show_menu_bar(ex::State &state) {
         if (!show_menu)
             return;
@@ -95,8 +108,7 @@ namespace ex::gui {
         ImGui::BeginChild("ContentBox", content_size(),
                           ImGuiChildFlags_Borders |
                                   ImGuiChildFlags_ResizeX |
-                                  (expanded_logs ? ImGuiChildFlags_ResizeY
-                                                 : ImGuiChildFlags_AutoResizeY)
+                                  content_resize_flag()
                           );
         if (ImGui::BeginTabBar("MainTabs")) {
             if (ImGui::BeginTabItem("Tab 1")) {
@@ -126,12 +138,10 @@ namespace ex::gui {
     }
 
     void show_main_container(ex::State &state) {
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-        ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
-
-        ImGui::BeginChild("MainContainer", main_size());
-        ImGui::PopStyleVar(3);
+        ImGui::BeginChild("MainContainer", main_size(),
+                          0,
+                          ImGuiWindowFlags_NoScrollbar
+                                  | ImGuiWindowFlags_NoScrollWithMouse);
         {
             show_content(state);
             show_logs_pane(state);
