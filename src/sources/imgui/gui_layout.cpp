@@ -185,10 +185,10 @@ namespace ex::gui {
     }
 
     bool is_window_resized() {
-        static ImVec2 last_size = {};
+        static ImVec2 iwr_last_size = {};
         const auto current_size = ImGui::GetWindowSize();
-        if (current_size.x != last_size.x || current_size.y != last_size.y) {
-            last_size = current_size;
+        if (current_size.x != iwr_last_size.x || current_size.y != iwr_last_size.y) {
+            iwr_last_size = current_size;
             return true;
         }
         return false;
