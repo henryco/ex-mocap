@@ -137,7 +137,12 @@ namespace ex::gui {
     void show_content(ex::State &state, ReSize &re_size) {
         ImGui::BeginChild("ContentBox",
                           content_size(),
-                          ImGuiChildFlags_Borders | content_resize_flag());
+                          0
+                                  | ImGuiChildFlags_Borders
+                                  | content_resize_flag()
+//                                  | ((re_size.inc_x || window_resized) ? ImGuiChildFlags_AutoResizeX : 0)
+                                  | ((re_size.inc_y || window_resized) ? ImGuiChildFlags_AutoResizeY : 0)
+                          );
         if (ImGui::BeginTabBar("MainTabs")) {
             if (ImGui::BeginTabItem("Tab 1")) {
                 ImGui::Text("Content for Tab 1");
@@ -155,18 +160,30 @@ namespace ex::gui {
     void show_logs_pane(ex::State &state, ReSize &re_size) {
         if (!show_logs)
             return;
+        const auto old_height = pane_height_bottom;
 
         if ((expanded_logs = ImGui::CollapsingHeader("Log Output"))) {
-            ImGui::BeginChild("BottomPane", ImVec2(0, 0), true);
-            ImGui::Text("This is a log message.");
-            ImGui::Text("Another log message.");
+            ImGui::BeginChild("BottomPane",
+                              ImVec2(0, (re_size.inc_y || window_resized) ? 0 : pane_height_bottom),
+                              0 | ImGuiChildFlags_Borders
+                              );
+            {
+                // TODO LOGS
+                ImGui::Text("This is a log message.");
+                ImGui::Text("Another log message.");
+                ImGui::Text("height: %f", pane_height_bottom);
+            }
+
+            pane_height_bottom = ImGui::GetWindowHeight();
             ImGui::EndChild();
         }
 
+        re_size.inc_y = (!re_size.inc_y) && (old_height != pane_height_bottom);
     }
 
     void show_main_container(ex::State &state, ReSize &re_size) {
         const auto old_width = main_width;
+        const auto old_height = main_height;
 
         ImGui::BeginChild("MainContainer",
                           main_size(),
@@ -185,9 +202,11 @@ namespace ex::gui {
         }
 
         main_width = ImGui::GetWindowWidth();
+        main_height = ImGui::GetWindowHeight();
         ImGui::EndChild();
 
         re_size.inc_x = (!re_size.inc_x) && (old_width != main_width);
+        re_size.inc_y = (!re_size.inc_y) && (old_height != main_height);
     }
 
     bool is_window_resized() {
