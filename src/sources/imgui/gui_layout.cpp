@@ -34,21 +34,21 @@ namespace ex::gui {
 
     static bool expanded_logs = false;
 
-    static inline float left_offset() { return show_left ? pane_width_left : 0; }
+    inline float left_offset() { return show_left ? pane_width_left : 0; }
 
-    static inline float right_offset() { return show_right ? (pane_width_right + offset_main_h) : 0; }
+    inline float right_offset() { return show_right ? (pane_width_right + offset_main_h) : 0; }
 
-    static inline float bottom_offset() { return show_logs ? (offset_main_v) : 0; }
+    inline float bottom_offset() { return show_logs ? (offset_main_v) : 0; }
 
-    static inline float logs_expanded_offset() { return expanded_logs ? pane_height_bottom : 0; }
+    inline float logs_expanded_offset() { return expanded_logs ? pane_height_bottom : 0; }
 
-    static inline ImVec2 main_size() { return { main_free_x - left_offset() - right_offset(), 0 }; }
+    inline ImVec2 main_size() { return { main_free_x - left_offset() - right_offset(), 0 }; }
 
-    static inline ImVec2 content_size() { return { 0, -(bottom_offset() + logs_expanded_offset())}; }
+    inline ImVec2 content_size() { return { 0, -(bottom_offset() + logs_expanded_offset())}; }
 
-    static inline int menu_flag() { return show_menu ? ImGuiWindowFlags_MenuBar : 0; }
+    inline int menu_flag() { return show_menu ? ImGuiWindowFlags_MenuBar : 0; }
 
-    static inline int content_resize_flag() {
+    inline int content_resize_flag() {
         static bool content_resize_flag_first = true;
         if (!expanded_logs) {
             content_resize_flag_first = true;
