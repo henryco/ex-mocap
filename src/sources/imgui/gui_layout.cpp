@@ -22,6 +22,7 @@ namespace ex::gui {
     static float right_pane_width   = 200.0f;
     static float main_width         = 0.f;
     static float main_free_x        = 0.f;
+    static float main_free_y        = 0.f;
 
     static bool show_right = true;
     static bool show_left  = true;
@@ -171,8 +172,10 @@ namespace ex::gui {
                                   | ((re_size.inc_x || window_resized) ? ImGuiChildFlags_AutoResizeX : 0)
                                   | ((re_size.inc_y || window_resized) ? ImGuiChildFlags_AutoResizeY : 0)
                                   ,
-                          ImGuiWindowFlags_NoScrollbar
-                                  | ImGuiWindowFlags_NoScrollWithMouse);
+                          0
+                                  | ImGuiWindowFlags_NoScrollWithMouse
+                                  | ImGuiWindowFlags_NoScrollbar
+                          );
         {
             show_content(state, re_size);
             show_logs_pane(state, re_size);
@@ -201,6 +204,7 @@ namespace ex::gui {
         {
             window_resized = is_window_resized();
             main_free_x = ImGui::GetContentRegionAvail().x;
+            main_free_y = ImGui::GetContentRegionAvail().y;
 
             show_menu_bar(state);
             show_left_pane(state, re_size);
