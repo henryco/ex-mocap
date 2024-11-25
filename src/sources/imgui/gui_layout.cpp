@@ -107,9 +107,7 @@ namespace ex::gui {
     void show_content(ex::State &state) {
         ImGui::BeginChild("ContentBox", content_size(),
                           ImGuiChildFlags_Borders |
-                                  ImGuiChildFlags_ResizeX |
-                                  content_resize_flag()
-                          );
+                                  content_resize_flag());
         if (ImGui::BeginTabBar("MainTabs")) {
             if (ImGui::BeginTabItem("Tab 1")) {
                 ImGui::Text("Content for Tab 1");
@@ -139,9 +137,8 @@ namespace ex::gui {
 
     void show_main_container(ex::State &state) {
         ImGui::BeginChild("MainContainer", main_size(),
-                          0,
-                          ImGuiWindowFlags_NoScrollbar
-                                  | ImGuiWindowFlags_NoScrollWithMouse);
+                          0 | (show_right ? ImGuiChildFlags_ResizeX : 0),
+                          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         {
             show_content(state);
             show_logs_pane(state);
