@@ -108,7 +108,7 @@ namespace ex::gui {
         ImGui::EndChild();
         ImGui::SameLine();
 
-        re_size.inc_x = old_width != left_pane_width;
+        re_size.inc_x = (!re_size.inc_x) && (old_width != left_pane_width);
     }
 
     void show_right_pane(ex::State &state, ReSize &re_size) {
@@ -130,7 +130,7 @@ namespace ex::gui {
         right_pane_width = ImGui::GetWindowWidth();
         ImGui::EndChild();
 
-        re_size.inc_x = old_width != right_pane_width;
+        re_size.inc_x = (!re_size.inc_x) && (old_width != right_pane_width);
     }
 
     void show_content(ex::State &state, ReSize &re_size) {
@@ -182,7 +182,7 @@ namespace ex::gui {
         main_width = ImGui::GetWindowWidth();
         ImGui::EndChild();
 
-        re_size.inc_x = old_width != main_width;
+        re_size.inc_x = (!re_size.inc_x) && (old_width != main_width);
     }
 
     void GUI::layout(ex::State &state) {
