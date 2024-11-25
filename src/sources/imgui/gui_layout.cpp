@@ -5,6 +5,7 @@
 #include "../../headers/imgui/gui.h"
 
 #include <imgui.h>
+#include <string>
 
 namespace ex::gui {
 
@@ -90,9 +91,9 @@ namespace ex::gui {
         ImGui::BeginChild("LeftPane", ImVec2(left_pane_width, 0),
                           ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
         ImGui::Text("Left Pane (e.g., File Explorer)");
-        ImGui::Button("Sample Button");
+        ImGui::Text("%s", std::to_string(left_pane_width).c_str());
+        left_pane_width = ImGui::GetWindowWidth();
         ImGui::EndChild();
-//        left_pane_width = ImGui::GetWindowWidth();
         ImGui::SameLine();
     }
 
@@ -102,8 +103,9 @@ namespace ex::gui {
         ImGui::SameLine();
         ImGui::BeginChild("RightPane", ImVec2(0, 0), ImGuiChildFlags_Borders);
         ImGui::Text("Right Pane (e.g., Properties)");
+        ImGui::Text("%s", std::to_string(right_pane_width).c_str());
+        right_pane_width = ImGui::GetWindowWidth();
         ImGui::EndChild();
-//        right_pane_width = ImGui::GetWindowWidth();
     }
 
     void show_content(ex::State &state) {
