@@ -5,7 +5,6 @@
 #include "../../headers/imgui/gui.h"
 
 #include <imgui.h>
-#include <string>
 
 namespace ex::gui {
 
@@ -119,7 +118,7 @@ namespace ex::gui {
 
         ImGui::SameLine();
         ImGui::BeginChild("RightPane",
-                          ImVec2(re_size.inc_x ? 0 : right_pane_width, 0),
+                          ImVec2((re_size.inc_x || window_resized) ? 0 : right_pane_width, 0),
                           ImGuiChildFlags_Borders);
         {
             // TODO CONTENT
@@ -169,7 +168,9 @@ namespace ex::gui {
                           main_size(),
                           0
                                   | (show_right ? ImGuiChildFlags_ResizeX : 0)
-                                  | (re_size.inc_x ? ImGuiChildFlags_AutoResizeX : 0),
+                                  | ((re_size.inc_x || window_resized) ? ImGuiChildFlags_AutoResizeX : 0)
+                                  | ((re_size.inc_y || window_resized) ? ImGuiChildFlags_AutoResizeY : 0)
+                                  ,
                           ImGuiWindowFlags_NoScrollbar
                                   | ImGuiWindowFlags_NoScrollWithMouse);
         {
