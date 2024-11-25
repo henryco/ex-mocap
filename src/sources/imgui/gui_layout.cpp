@@ -99,7 +99,7 @@ namespace ex::gui {
         if (!show_right)
             return;
         ImGui::SameLine();
-        ImGui::BeginChild("RightPane", ImVec2(right_pane_width, 0), true);
+        ImGui::BeginChild("RightPane", ImVec2(0, 0), true);
         ImGui::Text("Right Pane (e.g., Properties)");
         ImGui::EndChild();
     }
