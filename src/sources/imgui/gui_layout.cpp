@@ -20,9 +20,12 @@ namespace ex::gui {
 
     static float pane_width_left    = 200.0f;
     static float pane_width_right   = 200.0f;
-    static float main_width         = 0.f;
-    static float main_free_x        = 0.f;
-    static float main_free_y        = 0.f;
+    static float pane_height_bottom = 200.0f;
+
+    static float main_width  = 0.f;
+    static float main_height = 0.f;
+    static float main_free_x = 0.f;
+    static float main_free_y = 0.f;
 
     static bool show_right = true;
     static bool show_left  = true;
@@ -37,7 +40,7 @@ namespace ex::gui {
 
     static inline float bottom_offset() { return show_logs ? (offset_main_v) : 0; }
 
-    static inline float logs_expanded_offset() { return expanded_logs ? 200 : 0; }
+    static inline float logs_expanded_offset() { return expanded_logs ? pane_height_bottom : 0; }
 
     static inline ImVec2 main_size() { return { main_free_x - left_offset() - right_offset(), 0 }; }
 
