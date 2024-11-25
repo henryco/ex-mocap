@@ -34,6 +34,41 @@ namespace ex::gui {
 
     static inline int menu_flag() { return show_menu ? ImGuiWindowFlags_MenuBar : 0; }
 
+    void show_menu_bar(ex::State &state) {
+        if (!show_menu)
+            return;
+
+        if (ImGui::BeginMenuBar()) {
+            if (ImGui::BeginMenu("File")) {
+                if (ImGui::MenuItem("New")) { /* Handle "New" action */ }
+                if (ImGui::MenuItem("Open")) { /* Handle "Open" action */ }
+                if (ImGui::MenuItem("Save")) { /* Handle "Save" action */ }
+                ImGui::Separator();
+                if (ImGui::MenuItem("Exit")) { /* Handle "Exit" action */ }
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Edit")) {
+                if (ImGui::MenuItem("Undo", "Ctrl+Z")) { /* Handle "Undo" action */ }
+                if (ImGui::MenuItem("Redo", "Ctrl+Y", false, false)) {
+                    /* Disabled item example */
+                }
+                ImGui::Separator();
+                if (ImGui::MenuItem("Cut", "Ctrl+X")) { /* Handle "Cut" action */ }
+                if (ImGui::MenuItem("Copy", "Ctrl+C")) { /* Handle "Copy" action */ }
+                if (ImGui::MenuItem("Paste", "Ctrl+V")) { /* Handle "Paste" action */ }
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Help")) {
+                if (ImGui::MenuItem("About")) { /* Handle "About" action */ }
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMenuBar();
+        }
+    }
+
     void show_left_pane(ex::State &state) {
         if (!show_left)
             return;
@@ -96,41 +131,6 @@ namespace ex::gui {
             show_logs_pane(state);
         }
         ImGui::EndChild();
-    }
-
-    void show_menu_bar(ex::State &state) {
-        if (!show_menu)
-            return;
-
-        if (ImGui::BeginMenuBar()) {
-            if (ImGui::BeginMenu("File")) {
-                if (ImGui::MenuItem("New")) { /* Handle "New" action */ }
-                if (ImGui::MenuItem("Open")) { /* Handle "Open" action */ }
-                if (ImGui::MenuItem("Save")) { /* Handle "Save" action */ }
-                ImGui::Separator();
-                if (ImGui::MenuItem("Exit")) { /* Handle "Exit" action */ }
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("Edit")) {
-                if (ImGui::MenuItem("Undo", "Ctrl+Z")) { /* Handle "Undo" action */ }
-                if (ImGui::MenuItem("Redo", "Ctrl+Y", false, false)) {
-                    /* Disabled item example */
-                }
-                ImGui::Separator();
-                if (ImGui::MenuItem("Cut", "Ctrl+X")) { /* Handle "Cut" action */ }
-                if (ImGui::MenuItem("Copy", "Ctrl+C")) { /* Handle "Copy" action */ }
-                if (ImGui::MenuItem("Paste", "Ctrl+V")) { /* Handle "Paste" action */ }
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("Help")) {
-                if (ImGui::MenuItem("About")) { /* Handle "About" action */ }
-                ImGui::EndMenu();
-            }
-
-            ImGui::EndMenuBar();
-        }
     }
 
     void GUI::layout(ex::State &state) {
