@@ -9,6 +9,11 @@
 
 namespace ex::gui {
 
+    struct ReSize {
+        bool inc_x = false;
+        bool inc_y = false;
+    };
+
     static float offset_main_h = 16.f;
     static float offset_main_v = 23.f;
 
@@ -31,7 +36,7 @@ namespace ex::gui {
 
     static inline float logs_expanded_offset() { return expanded_logs ? 200 : 0; }
 
-    static inline ImVec2 main_size() { return { main_width - left_offset() - right_offset(), 0 }; }
+    static inline ImVec2 main_size() { return { - left_offset() - right_offset(), 0 }; }
 
     static inline ImVec2 content_size() { return { 0, -(bottom_offset() + logs_expanded_offset())}; }
 
@@ -85,30 +90,49 @@ namespace ex::gui {
         }
     }
 
-    void show_left_pane(ex::State &state) {
+    void show_left_pane(ex::State &state, ReSize &re_size) {
         if (!show_left)
             return;
+        const auto old_width = left_pane_width;
+
         ImGui::BeginChild("LeftPane", ImVec2(left_pane_width, 0),
                           ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
-        ImGui::Text("Left Pane (e.g., File Explorer)");
-        ImGui::Text("%s", std::to_string(left_pane_width).c_str());
+        {
+            // TODO CONTENT
+            ImGui::Text("Left Pane (e.g., File Explorer)");
+            ImGui::Text("old: %s", std::to_string(left_pane_width).c_str());
+        }
+
         left_pane_width = ImGui::GetWindowWidth();
         ImGui::EndChild();
         ImGui::SameLine();
+
+        re_size.inc_x = old_width != left_pane_width;
     }
 
-    void show_right_pane(ex::State &state) {
+    void show_right_pane(ex::State &state, ReSize &re_size) {
         if (!show_right)
             return;
+        const auto old_width = right_pane_width;
+
         ImGui::SameLine();
-        ImGui::BeginChild("RightPane", ImVec2(0, 0), ImGuiChildFlags_Borders);
-        ImGui::Text("Right Pane (e.g., Properties)");
-        ImGui::Text("%s", std::to_string(right_pane_width).c_str());
+        ImGui::BeginChild("RightPane", ImVec2(re_size.inc_x ? 0 : right_pane_width, 0),
+                          ImGuiChildFlags_Borders);
+        {
+            // TODO CONTENT
+            ImGui::Text("Right Pane (e.g., Properties)");
+            ImGui::Text("old: %s", std::to_string(old_width).c_str());
+            ImGui::Text("new: %s", std::to_string(right_pane_width).c_str());
+            ImGui::Text("upd : %s", std::to_string(re_size.inc_x).c_str());
+        }
+
         right_pane_width = ImGui::GetWindowWidth();
         ImGui::EndChild();
+
+        re_size.inc_x = old_width != right_pane_width;
     }
 
-    void show_content(ex::State &state) {
+    void show_content(ex::State &state, ReSize &re_size) {
         ImGui::BeginChild("ContentBox", content_size(),
                           ImGuiChildFlags_Borders |
                                   content_resize_flag());
@@ -126,7 +150,7 @@ namespace ex::gui {
         ImGui::EndChild();
     }
 
-    void show_logs_pane(ex::State &state) {
+    void show_logs_pane(ex::State &state, ReSize &re_size) {
         if (!show_logs)
             return;
 
@@ -139,25 +163,37 @@ namespace ex::gui {
 
     }
 
-    void show_main_container(ex::State &state) {
+    void show_main_container(ex::State &state, ReSize &re_size) {
+        const auto old_width = main_width;
+
         ImGui::BeginChild("MainContainer", main_size(),
                           0 | (show_right ? ImGuiChildFlags_ResizeX : 0),
                           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+        ImGui::Text("main: %s", std::to_string(main_width).c_str());
+        ImGui::Text("size: %s", std::to_string(main_size().x).c_str());
+        ImGui::Text("upd : %s", std::to_string(re_size.inc_x).c_str());
+
         {
-            show_content(state);
-            show_logs_pane(state);
+            show_content(state, re_size);
+            show_logs_pane(state, re_size);
         }
+
+        main_width = ImGui::GetWindowWidth();
         ImGui::EndChild();
+
+        re_size.inc_x = old_width != main_width;
     }
 
     void GUI::layout(ex::State &state) {
+        struct ReSize re_size = {};
+
         ImGui::Begin("main", nullptr,ImGuiWindowFlags_NoDecoration | menu_flag());
         {
-            main_width = ImGui::GetContentRegionAvail().x;
             show_menu_bar(state);
-            show_left_pane(state);
-            show_main_container(state);
-            show_right_pane(state);
+            show_left_pane(state, re_size);
+            show_main_container(state, re_size);
+            show_right_pane(state, re_size);
         }
         ImGui::End();
     }
