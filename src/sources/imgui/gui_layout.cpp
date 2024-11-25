@@ -37,7 +37,8 @@ namespace ex::gui {
     void show_left_pane(ex::State &state) {
         if (!show_left)
             return;
-        ImGui::BeginChild("LeftPane", ImVec2(left_pane_width, 0), true);
+        ImGui::BeginChild("LeftPane", ImVec2(left_pane_width, 0),
+                          ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
         ImGui::Text("Left Pane (e.g., File Explorer)");
         ImGui::Button("Sample Button");
         ImGui::EndChild();
@@ -53,21 +54,9 @@ namespace ex::gui {
         ImGui::EndChild();
     }
 
-    void show_logs_pane(ex::State &state) {
-        if (!show_logs)
-            return;
-
-        if (ImGui::CollapsingHeader("Log Output")) {
-            ImGui::BeginChild("BottomPane", ImVec2(0, bottom_pane_height), true);
-            ImGui::Text("This is a log message.");
-            ImGui::Text("Another log message.");
-            ImGui::EndChild();
-        }
-
-    }
-
     void show_content(ex::State &state) {
-        ImGui::BeginChild("ContentBox", content_size(), true);
+        ImGui::BeginChild("ContentBox", content_size(),
+                          ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeY | ImGuiChildFlags_ResizeX);
         if (ImGui::BeginTabBar("MainTabs")) {
             if (ImGui::BeginTabItem("Tab 1")) {
                 ImGui::Text("Content for Tab 1");
@@ -80,6 +69,19 @@ namespace ex::gui {
             ImGui::EndTabBar();
         }
         ImGui::EndChild();
+    }
+
+    void show_logs_pane(ex::State &state) {
+        if (!show_logs)
+            return;
+
+        if (ImGui::CollapsingHeader("Log Output")) {
+            ImGui::BeginChild("BottomPane", ImVec2(0, bottom_pane_height), true);
+            ImGui::Text("This is a log message.");
+            ImGui::Text("Another log message.");
+            ImGui::EndChild();
+        }
+
     }
 
     void show_main_container(ex::State &state) {
