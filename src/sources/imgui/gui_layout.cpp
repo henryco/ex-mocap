@@ -92,6 +92,7 @@ namespace ex::gui {
         ImGui::Text("Left Pane (e.g., File Explorer)");
         ImGui::Button("Sample Button");
         ImGui::EndChild();
+//        left_pane_width = ImGui::GetWindowWidth();
         ImGui::SameLine();
     }
 
@@ -99,9 +100,10 @@ namespace ex::gui {
         if (!show_right)
             return;
         ImGui::SameLine();
-        ImGui::BeginChild("RightPane", ImVec2(0, 0), true);
+        ImGui::BeginChild("RightPane", ImVec2(0, 0), ImGuiChildFlags_Borders);
         ImGui::Text("Right Pane (e.g., Properties)");
         ImGui::EndChild();
+//        right_pane_width = ImGui::GetWindowWidth();
     }
 
     void show_content(ex::State &state) {
