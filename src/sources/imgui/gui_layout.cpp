@@ -9,28 +9,30 @@
 namespace ex::gui {
 
     static float offset_main_h = 16.f;
-    static float offset_main_v = 4.f;
+    static float offset_main_v = 23.f;
 
     static float left_pane_width    = 200.0f;
     static float right_pane_width   = 200.0f;
-    static float bottom_pane_height = 150.0f;
     static float main_width         = 0.f;
-    static float main_height        = 0.f;
 
     static bool show_right = true;
     static bool show_left  = true;
     static bool show_logs  = true;
     static bool show_menu  = true;
 
+    static bool expanded_logs = false;
+
     static inline float left_offset() { return show_left ? left_pane_width : 0; }
 
     static inline float right_offset() { return show_right ? (right_pane_width + offset_main_h) : 0; }
 
-    static inline float bottom_offset() { return show_logs ? (bottom_pane_height + offset_main_v) : 0; }
+    static inline float bottom_offset() { return show_logs ? (offset_main_v) : 0; }
+
+    static inline float logs_expanded_offset() { return expanded_logs ? 200 : 0; }
 
     static inline ImVec2 main_size() { return { main_width - left_offset() - right_offset(), 0 }; }
 
-    static inline ImVec2 content_size() { return { 0, main_height - bottom_offset() }; }
+    static inline ImVec2 content_size() { return { 0, -(bottom_offset() + logs_expanded_offset())}; }
 
     static inline int menu_flag() { return show_menu ? ImGuiWindowFlags_MenuBar : 0; }
 
@@ -91,7 +93,11 @@ namespace ex::gui {
 
     void show_content(ex::State &state) {
         ImGui::BeginChild("ContentBox", content_size(),
-                          ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeY | ImGuiChildFlags_ResizeX);
+                          ImGuiChildFlags_Borders |
+                                  ImGuiChildFlags_ResizeX |
+                                  (expanded_logs ? ImGuiChildFlags_ResizeY
+                                                 : ImGuiChildFlags_AutoResizeY)
+                          );
         if (ImGui::BeginTabBar("MainTabs")) {
             if (ImGui::BeginTabItem("Tab 1")) {
                 ImGui::Text("Content for Tab 1");
@@ -110,8 +116,8 @@ namespace ex::gui {
         if (!show_logs)
             return;
 
-        if (ImGui::CollapsingHeader("Log Output")) {
-            ImGui::BeginChild("BottomPane", ImVec2(0, bottom_pane_height), true);
+        if ((expanded_logs = ImGui::CollapsingHeader("Log Output"))) {
+            ImGui::BeginChild("BottomPane", ImVec2(0, 0), true);
             ImGui::Text("This is a log message.");
             ImGui::Text("Another log message.");
             ImGui::EndChild();
