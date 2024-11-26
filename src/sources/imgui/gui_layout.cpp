@@ -102,12 +102,12 @@ namespace ex::gui {
         if (!show_left)
             return;
         const auto old_width = pane_width_left;
-
         ImGui::BeginChild("LeftPane",
                           ImVec2(pane_width_left, 0),
                           0
                           | ImGuiChildFlags_Borders
                           | ImGuiChildFlags_ResizeX);
+
         {
             // TODO CONTENT
         }
@@ -123,12 +123,12 @@ namespace ex::gui {
         if (!show_right)
             return;
         const auto old_width = pane_width_right;
-
         ImGui::SameLine();
         ImGui::BeginChild("RightPane",
                           ImVec2((re_size.inc_x || window_resized) ? 0 : pane_width_right, 0),
                           0
                           | ImGuiChildFlags_Borders);
+
         {
             // TODO CONTENT
         }
@@ -170,12 +170,12 @@ namespace ex::gui {
         if (!show_logs)
             return;
         const auto old_height = pane_height_bottom;
-
         if ((expanded_logs = ImGui::CollapsingHeader("Log Output"))) {
             ImGui::BeginChild("BottomPane",
                               ImVec2(0, (re_size.inc_y || window_resized) ? 0 : pane_height_bottom),
                               0
                               | ImGuiChildFlags_Borders);
+
             {
                 // TODO LOGS
             }
@@ -183,7 +183,6 @@ namespace ex::gui {
             pane_height_bottom = ImGui::GetWindowHeight();
             ImGui::EndChild();
         }
-
         re_size.inc_y = (!re_size.inc_y) && (old_height != pane_height_bottom);
     }
 
