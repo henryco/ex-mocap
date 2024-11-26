@@ -89,6 +89,11 @@ namespace ex::gui {
                 ImGui::EndMenu();
             }
 
+            if (ImGui::BeginMenu("View")) {
+                ImGui::MenuItem("Logs", nullptr, &show_logs);
+                ImGui::EndMenu();
+            }
+
             if (ImGui::BeginMenu("Help")) {
                 if (ImGui::MenuItem("About")) { /* Handle "About" action */ }
                 ImGui::EndMenu();
@@ -184,7 +189,7 @@ namespace ex::gui {
         if (!show_logs)
             return;
         const auto old_height = pane_height_bottom;
-        if ((expanded_logs = ImGui::CollapsingHeader("Log Output"))) {
+        if ((expanded_logs = ImGui::CollapsingHeader( ICON_LC_LOGS " Log Output "))) {
             ImGui::BeginChild("BottomPane",
                               ImVec2(0, (re_size.inc_y || window_resized) ? 0 : pane_height_bottom),
                               0

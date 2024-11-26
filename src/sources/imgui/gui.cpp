@@ -40,8 +40,9 @@ namespace ex::gui {
         icons_config.FontDataOwnedByAtlas = false;
         icons_config.MergeMode            = true;
         icons_config.PixelSnapH           = true;
-        icons_config.OversampleH          = 3;
-        icons_config.OversampleV          = 3;
+        icons_config.OversampleH          = 5;
+        icons_config.OversampleV          = 5;
+        icons_config.GlyphOffset          = ImVec2(0.f, 5.f);
 
         io.Fonts->AddFontFromMemoryTTF(
                 const_cast<void*>(static_cast<const void*>(s_lucide_ttf)),
