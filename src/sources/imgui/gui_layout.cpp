@@ -18,9 +18,10 @@ namespace ex::gui {
     static float offset_main_h = 16.f;
     static float offset_main_v = 23.f;
 
-    static float pane_width_left    = 200.0f;
-    static float pane_width_right   = 200.0f;
-    static float pane_height_bottom = 200.0f;
+    static float pane_width_left     = 200.0f;
+    static float pane_width_right    = 200.0f;
+    static float pane_height_bottom  = 200.0f;
+    static float pane_height_content = 0.f;
 
     static float main_width  = 0.f;
     static float main_height = 0.f;
@@ -44,7 +45,7 @@ namespace ex::gui {
 
     inline ImVec2 main_size() { return { main_free_x - left_offset() - right_offset(), 0 }; }
 
-    inline ImVec2 content_size() { return { 0, -(bottom_offset() + logs_expanded_offset())}; }
+    inline ImVec2 content_size() { return { 0, 0 - bottom_offset() - logs_expanded_offset()}; }
 
     inline int menu_flag() { return show_menu ? ImGuiWindowFlags_MenuBar : 0; }
 
@@ -135,14 +136,16 @@ namespace ex::gui {
     }
 
     void show_content(ex::State &state, ReSize &re_size) {
+        const auto old_height = pane_height_content;
+
         ImGui::BeginChild("ContentBox",
                           content_size(),
                           0
                                   | ImGuiChildFlags_Borders
                                   | content_resize_flag()
-//                                  | ((re_size.inc_x || window_resized) ? ImGuiChildFlags_AutoResizeX : 0)
                                   | ((re_size.inc_y || window_resized) ? ImGuiChildFlags_AutoResizeY : 0)
                           );
+        ImGui::Text("upd: %d", re_size.inc_y);
         if (ImGui::BeginTabBar("MainTabs")) {
             if (ImGui::BeginTabItem("Tab 1")) {
                 ImGui::Text("Content for Tab 1");
@@ -154,7 +157,10 @@ namespace ex::gui {
             }
             ImGui::EndTabBar();
         }
+        pane_height_content = ImGui::GetWindowHeight();
         ImGui::EndChild();
+
+        re_size.inc_y = (!re_size.inc_y) && (old_height != pane_height_content);
     }
 
     void show_logs_pane(ex::State &state, ReSize &re_size) {
@@ -172,6 +178,8 @@ namespace ex::gui {
                 ImGui::Text("This is a log message.");
                 ImGui::Text("Another log message.");
                 ImGui::Text("height: %f", pane_height_bottom);
+                ImGui::Text("upd: %d", re_size.inc_y);
+                ImGui::Text("res: %d", window_resized);
             }
 
             pane_height_bottom = ImGui::GetWindowHeight();
@@ -196,6 +204,7 @@ namespace ex::gui {
                                   | ImGuiWindowFlags_NoScrollWithMouse
                                   | ImGuiWindowFlags_NoScrollbar
                           );
+        ImGui::Text("upd: %d", re_size.inc_y);
         {
             show_content(state, re_size);
             show_logs_pane(state, re_size);
@@ -220,7 +229,7 @@ namespace ex::gui {
     }
 
     void GUI::layout(ex::State &state) {
-        struct ReSize re_size = {};
+        ReSize re_size = {};
 
         ImGui::Begin("main", nullptr,ImGuiWindowFlags_NoDecoration | menu_flag());
         {
