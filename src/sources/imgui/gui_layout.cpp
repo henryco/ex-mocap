@@ -110,6 +110,13 @@ namespace ex::gui {
 
         {
             // TODO CONTENT
+
+            ImGuiID dock_space_id = ImGui::GetID("LeftDockSpace");
+            ImGui::DockSpace(dock_space_id,
+                             ImVec2(0.0f, 0.0f),
+                             ImGuiDockNodeFlags_None
+                                     | ImGuiDockNodeFlags_PassthruCentralNode
+                                     | ImGuiDockNodeFlags_AutoHideTabBar);
         }
 
         pane_width_left = ImGui::GetWindowWidth();
@@ -131,6 +138,12 @@ namespace ex::gui {
 
         {
             // TODO CONTENT
+            ImGuiID dock_space_id = ImGui::GetID("RightDockSpace");
+            ImGui::DockSpace(dock_space_id,
+                             ImVec2(0.0f, 0.0f),
+                             ImGuiDockNodeFlags_None
+                                     | ImGuiDockNodeFlags_PassthruCentralNode
+                                     | ImGuiDockNodeFlags_AutoHideTabBar);
         }
 
         pane_width_right = ImGui::GetWindowWidth();
