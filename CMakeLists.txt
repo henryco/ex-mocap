@@ -20,8 +20,8 @@ set(ONNXRUNTIME_ROOT external/onnxruntime-gpu-cuda12)
 include_directories(${ONNXRUNTIME_ROOT}/include)
 link_directories(${ONNXRUNTIME_ROOT}/lib)
 
-add_subdirectory(external/json)
 add_subdirectory(external/argparse)
+add_subdirectory(external/json)
 add_subdirectory(external/glm)
 
 set(CMAKE_C_COMPILER "clang-18")
@@ -30,6 +30,9 @@ set(CMAKE_CXX_COMPILER "clang++-18")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(GNUInstallDirs)
+
+add_library(ifcpph INTERFACE)
+target_include_directories(ifcpph INTERFACE external/iconfontcppheaders)
 
 add_library(imgui
         external/imgui/imgui.cpp
@@ -148,6 +151,7 @@ if (UNIX AND NOT APPLE)
             PRIVATE ${V4L2_LIBRARIES}
             PRIVATE nlohmann_json::nlohmann_json
             PRIVATE argparse
+            PRIVATE ifcpph
             PRIVATE imgui
             PRIVATE glm)
     target_compile_options(${PROJECT_NAME}
