@@ -34,6 +34,9 @@ include(GNUInstallDirs)
 add_library(ifcpph INTERFACE)
 target_include_directories(ifcpph INTERFACE external/iconfontcppheaders)
 
+add_library(lucide INTERFACE)
+target_include_directories(lucide INTERFACE external/lucide)
+
 add_library(imgui
         external/imgui/imgui.cpp
         external/imgui/imgui_draw.cpp
@@ -151,6 +154,7 @@ if (UNIX AND NOT APPLE)
             PRIVATE ${V4L2_LIBRARIES}
             PRIVATE nlohmann_json::nlohmann_json
             PRIVATE argparse
+            PRIVATE lucide
             PRIVATE ifcpph
             PRIVATE imgui
             PRIVATE glm)

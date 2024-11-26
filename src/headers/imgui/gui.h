@@ -5,8 +5,10 @@
 #ifndef GUI_BOOT_H
 #define GUI_BOOT_H
 
-#include <GLFW/glfw3.h>
 #include "../state.h"
+
+#include <IconsLucide.h>
+#include <GLFW/glfw3.h>
 
 namespace ex::gui {
     class GUI {

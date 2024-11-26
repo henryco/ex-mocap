@@ -4,12 +4,32 @@
 
 #include "../../headers/imgui/gui.h"
 
-#include <GLFW/glfw3.h>
-#include <backends/imgui_impl_glfw.h>
+#include <IconsLucide.h_lucide.ttf.h>
 #include <backends/imgui_impl_opengl3.h>
+#include <backends/imgui_impl_glfw.h>
+#include <GLFW/glfw3.h>
 #include <imgui.h>
 
 namespace ex::gui {
+
+    inline void init_font_icons(ImGuiIO &io) {
+        io.Fonts->AddFontDefault();
+        const auto base_font_size = 13.0f;
+        const auto icon_font_size = base_font_size * 2.0f / 3.0f;
+        static const ImWchar icons_ranges[] = { ICON_MIN_LC, ICON_MAX_16_LC, 0 };
+        ImFontConfig icons_config;
+        icons_config.MergeMode = true;
+        icons_config.PixelSnapH = true;
+        icons_config.GlyphMinAdvanceX = icon_font_size;
+        icons_config.FontDataOwnedByAtlas = false;
+        io.Fonts->AddFontFromMemoryTTF(
+                const_cast<void*>(static_cast<const void*>(s_lucide_ttf)),
+                sizeof(s_lucide_ttf),
+                icon_font_size,
+                &icons_config,
+                icons_ranges);
+        io.Fonts->Build();
+    }
 
     void GUI::update_gui(ex::State &state) const {
         ImGui_ImplOpenGL3_NewFrame();
@@ -36,6 +56,8 @@ namespace ex::gui {
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+        init_font_icons(io);
 
         ImGui::StyleColorsLight();
 
