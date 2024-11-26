@@ -16,7 +16,8 @@ namespace ex::gui {
     static bool window_resized = false;
 
     static float offset_main_h = 16.f;
-    static float offset_main_v = 27.f;
+    static float offset_main_v = 23.f;
+    static float offset_logs_v = 4.0f;
 
     static float pane_width_left     = 200.0f;
     static float pane_width_right    = 200.0f;
@@ -41,7 +42,7 @@ namespace ex::gui {
 
     inline float bottom_offset() { return show_logs ? (offset_main_v) : 0; }
 
-    inline float logs_expanded_offset() { return expanded_logs ? pane_height_bottom : 0; }
+    inline float logs_expanded_offset() { return expanded_logs ? (pane_height_bottom + offset_logs_v) : 0; }
 
     inline ImVec2 main_size() { return { main_free_x - left_offset() - right_offset(), 0 }; }
 
@@ -126,7 +127,8 @@ namespace ex::gui {
         ImGui::SameLine();
         ImGui::BeginChild("RightPane",
                           ImVec2((re_size.inc_x || window_resized) ? 0 : pane_width_right, 0),
-                          ImGuiChildFlags_Borders);
+                          0
+                          | ImGuiChildFlags_Borders);
         {
             // TODO CONTENT
         }
@@ -172,14 +174,10 @@ namespace ex::gui {
         if ((expanded_logs = ImGui::CollapsingHeader("Log Output"))) {
             ImGui::BeginChild("BottomPane",
                               ImVec2(0, (re_size.inc_y || window_resized) ? 0 : pane_height_bottom),
-                              0 | ImGuiChildFlags_Borders);
+                              0
+                              | ImGuiChildFlags_Borders);
             {
                 // TODO LOGS
-                ImGui::Text("This is a log message.");
-                ImGui::Text("Another log message.");
-                ImGui::Text("height: %f", pane_height_bottom);
-                ImGui::Text("upd: %d", re_size.inc_y);
-                ImGui::Text("res: %d", window_resized);
             }
 
             pane_height_bottom = ImGui::GetWindowHeight();
