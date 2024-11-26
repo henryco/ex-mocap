@@ -110,6 +110,14 @@ namespace ex::gui {
             }
 
             if (ImGui::BeginMenu("View")) {
+                if (ImGui::MenuItem("Sidebar Left", nullptr, &view.show_left)) {
+                    window_resized = true;
+                }
+
+                if (ImGui::MenuItem("Sidebar Right", nullptr, &view.show_right)) {
+                    window_resized = true;
+                }
+
                 if(ImGui::MenuItem("Logs", nullptr, &view.show_logs)) {
                     view.expanded_logs = view.show_logs;
                 }
