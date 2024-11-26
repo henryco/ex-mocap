@@ -8,51 +8,55 @@
 
 namespace ex::gui {
 
-    struct ReSize {
+    typedef struct View {
+        float pane_width_left     = 200.0f;
+        float pane_width_right    = 200.0f;
+        float pane_height_bottom  = 200.0f;
+        float pane_height_content = 0.f;
+
+        float main_width  = 0.f;
+        float main_height = 0.f;
+        float main_free_x = 0.f;
+        float main_free_y = 0.f;
+
+        bool show_right = true;
+        bool show_left  = true;
+        bool show_logs  = true;
+        bool show_menu  = true;
+
+        bool expanded_logs = false;
+    } View;
+
+    typedef struct ReSize {
         bool inc_x = false;
         bool inc_y = false;
-    };
+    } ReSize;
+
+    static constexpr float offset_main_h = 16.f;
+    static constexpr float offset_main_v = 23.f;
+    static constexpr float offset_logs_v = 4.0f;
 
     static bool window_resized = false;
+    static bool reset_layout = false;
+    static View view = View{};
 
-    static float offset_main_h = 16.f;
-    static float offset_main_v = 23.f;
-    static float offset_logs_v = 4.0f;
+    inline float left_offset() { return view.show_left ? view.pane_width_left : 0; }
 
-    static float pane_width_left     = 200.0f;
-    static float pane_width_right    = 200.0f;
-    static float pane_height_bottom  = 200.0f;
-    static float pane_height_content = 0.f;
+    inline float right_offset() { return view.show_right ? (view.pane_width_right + offset_main_h) : 0; }
 
-    static float main_width  = 0.f;
-    static float main_height = 0.f;
-    static float main_free_x = 0.f;
-    static float main_free_y = 0.f;
+    inline float bottom_offset() { return view.show_logs ? (offset_main_v) : 0; }
 
-    static bool show_right = true;
-    static bool show_left  = true;
-    static bool show_logs  = true;
-    static bool show_menu  = true;
+    inline float logs_expanded_offset() { return view.expanded_logs ? (view.pane_height_bottom + offset_logs_v) : 0; }
 
-    static bool expanded_logs = false;
+    inline ImVec2 main_size() { return { view.main_free_x - left_offset() - right_offset(), 0 }; }
 
-    inline float left_offset() { return show_left ? pane_width_left : 0; }
+    inline ImVec2 content_size() { return { 0, view.main_free_y - bottom_offset() - logs_expanded_offset()}; }
 
-    inline float right_offset() { return show_right ? (pane_width_right + offset_main_h) : 0; }
-
-    inline float bottom_offset() { return show_logs ? (offset_main_v) : 0; }
-
-    inline float logs_expanded_offset() { return expanded_logs ? (pane_height_bottom + offset_logs_v) : 0; }
-
-    inline ImVec2 main_size() { return { main_free_x - left_offset() - right_offset(), 0 }; }
-
-    inline ImVec2 content_size() { return { 0, main_free_y - bottom_offset() - logs_expanded_offset()}; }
-
-    inline int menu_flag() { return show_menu ? ImGuiWindowFlags_MenuBar : 0; }
+    inline int menu_flag() { return view.show_menu ? ImGuiWindowFlags_MenuBar : 0; }
 
     inline int content_resize_flag() {
         static bool content_resize_flag_first = true;
-        if (!expanded_logs) {
+        if (!view.expanded_logs) {
             content_resize_flag_first = true;
             return 1;
         }
@@ -64,38 +68,63 @@ namespace ex::gui {
     }
 
     void show_menu_bar(ex::State &state) {
-        if (!show_menu)
+        if (!view.show_menu)
             return;
 
         if (ImGui::BeginMenuBar()) {
             if (ImGui::BeginMenu("File")) {
-                if (ImGui::MenuItem("New")) { /* Handle "New" action */ }
-                if (ImGui::MenuItem("Open")) { /* Handle "Open" action */ }
-                if (ImGui::MenuItem("Save")) { /* Handle "Save" action */ }
+                if (ImGui::MenuItem("New")) {
+                    // TODO
+                }
+                if (ImGui::MenuItem("Open")) {
+                    // TODO
+                }
+                if (ImGui::MenuItem("Save")) {
+                    // TODO
+                }
                 ImGui::Separator();
-                if (ImGui::MenuItem("Exit")) { /* Handle "Exit" action */ }
+                if (ImGui::MenuItem("Exit")) {
+                    // TODO
+                }
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Edit")) {
-                if (ImGui::MenuItem("Undo", "Ctrl+Z")) { /* Handle "Undo" action */ }
+                if (ImGui::MenuItem("Undo", "Ctrl+Z")) {
+                    // TODO
+                }
                 if (ImGui::MenuItem("Redo", "Ctrl+Y", false, false)) {
-                    /* Disabled item example */
+                    // TODO
                 }
                 ImGui::Separator();
-                if (ImGui::MenuItem("Cut", "Ctrl+X")) { /* Handle "Cut" action */ }
-                if (ImGui::MenuItem("Copy", "Ctrl+C")) { /* Handle "Copy" action */ }
-                if (ImGui::MenuItem("Paste", "Ctrl+V")) { /* Handle "Paste" action */ }
+                if (ImGui::MenuItem("Cut", "Ctrl+X")) {
+                    // TODO
+                }
+                if (ImGui::MenuItem("Copy", "Ctrl+C")) {
+                    // TODO
+                }
+                if (ImGui::MenuItem("Paste", "Ctrl+V")) {
+                    // TODO
+                }
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("View")) {
-                ImGui::MenuItem("Logs", nullptr, &show_logs);
+                if(ImGui::MenuItem("Logs", nullptr, &view.show_logs)) {
+                    view.expanded_logs = view.show_logs;
+                }
+
+                ImGui::Separator();
+                if (ImGui::MenuItem("Reset layout")) {
+                    reset_layout = true;
+                }
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Help")) {
-                if (ImGui::MenuItem("About")) { /* Handle "About" action */ }
+                if (ImGui::MenuItem("About")) {
+                    // TODO
+                }
                 ImGui::EndMenu();
             }
 
@@ -104,17 +133,18 @@ namespace ex::gui {
     }
 
     void show_left_pane(ex::State &state, ReSize &re_size) {
-        if (!show_left)
+        if (!view.show_left)
             return;
-        const auto old_width = pane_width_left;
+        const auto old_width = view.pane_width_left;
         ImGui::BeginChild("LeftPane",
-                          ImVec2(pane_width_left, 0),
+                          ImVec2(view.pane_width_left, 0),
                           0
                           | ImGuiChildFlags_Borders
                           | ImGuiChildFlags_ResizeX);
 
         {
             // TODO CONTENT
+            ImGui::Text("%f", view.pane_width_left);
 
             ImGuiID dock_space_id = ImGui::GetID("LeftDockSpace");
             ImGui::DockSpace(dock_space_id,
@@ -124,20 +154,20 @@ namespace ex::gui {
                                      | ImGuiDockNodeFlags_AutoHideTabBar);
         }
 
-        pane_width_left = ImGui::GetWindowWidth();
+        view.pane_width_left = ImGui::GetWindowWidth();
         ImGui::EndChild();
         ImGui::SameLine();
 
-        re_size.inc_x = (!re_size.inc_x) && (old_width != pane_width_left);
+        re_size.inc_x = (!re_size.inc_x) && (old_width != view.pane_width_left);
     }
 
     void show_right_pane(ex::State &state, ReSize &re_size) {
-        if (!show_right)
+        if (!view.show_right)
             return;
-        const auto old_width = pane_width_right;
+        const auto old_width = view.pane_width_right;
         ImGui::SameLine();
         ImGui::BeginChild("RightPane",
-                          ImVec2((re_size.inc_x || window_resized) ? 0 : pane_width_right, 0),
+                          ImVec2((re_size.inc_x || window_resized) ? 0 : view.pane_width_right, 0),
                           0
                           | ImGuiChildFlags_Borders);
 
@@ -151,14 +181,14 @@ namespace ex::gui {
                                      | ImGuiDockNodeFlags_AutoHideTabBar);
         }
 
-        pane_width_right = ImGui::GetWindowWidth();
+        view.pane_width_right = ImGui::GetWindowWidth();
         ImGui::EndChild();
 
-        re_size.inc_x = (!re_size.inc_x) && (old_width != pane_width_right);
+        re_size.inc_x = (!re_size.inc_x) && (old_width != view.pane_width_right);
     }
 
     void show_content(ex::State &state, ReSize &re_size) {
-        const auto old_height = pane_height_content;
+        const auto old_height = view.pane_height_content;
 
         ImGui::BeginChild("ContentBox",
                           content_size(),
@@ -179,19 +209,19 @@ namespace ex::gui {
             }
             ImGui::EndTabBar();
         }
-        pane_height_content = ImGui::GetWindowHeight();
+        view.pane_height_content = ImGui::GetWindowHeight();
         ImGui::EndChild();
 
-        re_size.inc_y = (!re_size.inc_y) && (old_height != pane_height_content);
+        re_size.inc_y = (!re_size.inc_y) && (old_height != view.pane_height_content);
     }
 
     void show_logs_pane(ex::State &state, ReSize &re_size) {
-        if (!show_logs)
+        if (!view.show_logs)
             return;
-        const auto old_height = pane_height_bottom;
-        if ((expanded_logs = ImGui::CollapsingHeader( ICON_LC_LOGS " Log Output "))) {
+        const auto old_height = view.pane_height_bottom;
+        if ((view.expanded_logs = ImGui::CollapsingHeader( ICON_LC_LOGS " Log Output "))) {
             ImGui::BeginChild("BottomPane",
-                              ImVec2(0, (re_size.inc_y || window_resized) ? 0 : pane_height_bottom),
+                              ImVec2(0, (re_size.inc_y || window_resized) ? 0 : view.pane_height_bottom),
                               0
                               | ImGuiChildFlags_Borders);
 
@@ -199,20 +229,20 @@ namespace ex::gui {
                 // TODO LOGS
             }
 
-            pane_height_bottom = ImGui::GetWindowHeight();
+            view.pane_height_bottom = ImGui::GetWindowHeight();
             ImGui::EndChild();
         }
-        re_size.inc_y = (!re_size.inc_y) && (old_height != pane_height_bottom);
+        re_size.inc_y = (!re_size.inc_y) && (old_height != view.pane_height_bottom);
     }
 
     void show_main_container(ex::State &state, ReSize &re_size) {
-        const auto old_width = main_width;
-        const auto old_height = main_height;
+        const auto old_width = view.main_width;
+        const auto old_height = view.main_height;
 
         ImGui::BeginChild("MainContainer",
                           main_size(),
                           0
-                                  | (show_right ? ImGuiChildFlags_ResizeX : 0)
+                                  | (view.show_right ? ImGuiChildFlags_ResizeX : 0)
                                   | ((re_size.inc_x || window_resized) ? ImGuiChildFlags_AutoResizeX : 0)
                                   ,
                           0
@@ -224,12 +254,12 @@ namespace ex::gui {
             show_logs_pane(state, re_size);
         }
 
-        main_width = ImGui::GetWindowWidth();
-        main_height = ImGui::GetWindowHeight();
+        view.main_width = ImGui::GetWindowWidth();
+        view.main_height = ImGui::GetWindowHeight();
         ImGui::EndChild();
 
-        re_size.inc_x = (!re_size.inc_x) && (old_width != main_width);
-        re_size.inc_y = (!re_size.inc_y) && (old_height != main_height);
+        re_size.inc_x = (!re_size.inc_x) && (old_width != view.main_width);
+        re_size.inc_y = (!re_size.inc_y) && (old_height != view.main_height);
     }
 
     bool is_window_resized() {
@@ -242,14 +272,22 @@ namespace ex::gui {
         return false;
     }
 
+    void check_for_reset() {
+        if (!reset_layout)
+            return;
+        reset_layout = false;
+        view = {};
+    }
+
     void GUI::layout(ex::State &state) {
         ReSize re_size = {};
+        check_for_reset();
 
         ImGui::Begin("main", nullptr,ImGuiWindowFlags_NoDecoration | menu_flag());
         {
             window_resized = is_window_resized();
-            main_free_x = ImGui::GetContentRegionAvail().x;
-            main_free_y = ImGui::GetContentRegionAvail().y;
+            view.main_free_x = ImGui::GetContentRegionAvail().x;
+            view.main_free_y = ImGui::GetContentRegionAvail().y;
 
             show_menu_bar(state);
             show_left_pane(state, re_size);
