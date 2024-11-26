@@ -145,7 +145,6 @@ namespace ex::gui {
                                   | content_resize_flag()
                                   | ((re_size.inc_y || window_resized) ? ImGuiChildFlags_AutoResizeY : 0)
                           );
-        ImGui::Text("upd: %d", re_size.inc_y);
         if (ImGui::BeginTabBar("MainTabs")) {
             if (ImGui::BeginTabItem("Tab 1")) {
                 ImGui::Text("Content for Tab 1");
@@ -204,7 +203,6 @@ namespace ex::gui {
                                   | ImGuiWindowFlags_NoScrollWithMouse
                                   | ImGuiWindowFlags_NoScrollbar
                           );
-        ImGui::Text("upd: %d", re_size.inc_y);
         {
             show_content(state, re_size);
             show_logs_pane(state, re_size);
@@ -220,7 +218,7 @@ namespace ex::gui {
 
     bool is_window_resized() {
         static ImVec2 iwr_last_size = {};
-        const auto current_size = ImGui::GetWindowSize();
+        const auto current_size = ImGui::GetContentRegionAvail();
         if (current_size.x != iwr_last_size.x || current_size.y != iwr_last_size.y) {
             iwr_last_size = current_size;
             return true;
