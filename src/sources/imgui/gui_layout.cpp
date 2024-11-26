@@ -45,7 +45,7 @@ namespace ex::gui {
 
     inline ImVec2 main_size() { return { main_free_x - left_offset() - right_offset(), 0 }; }
 
-    inline ImVec2 content_size() { return { 0, 0 - bottom_offset() - logs_expanded_offset()}; }
+    inline ImVec2 content_size() { return { 0, main_free_y - bottom_offset() - logs_expanded_offset()}; }
 
     inline int menu_flag() { return show_menu ? ImGuiWindowFlags_MenuBar : 0; }
 
@@ -197,7 +197,7 @@ namespace ex::gui {
                           0
                                   | (show_right ? ImGuiChildFlags_ResizeX : 0)
                                   | ((re_size.inc_x || window_resized) ? ImGuiChildFlags_AutoResizeX : 0)
-                                  | ((re_size.inc_y || window_resized) ? ImGuiChildFlags_AutoResizeY : 0)
+//                                  | ((re_size.inc_y || window_resized) ? ImGuiChildFlags_AutoResizeY : 0)
                                   ,
                           0
                                   | ImGuiWindowFlags_NoScrollWithMouse
