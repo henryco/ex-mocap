@@ -32,7 +32,7 @@ namespace ex::gui {
         bool inc_y = false;
     } ReSize;
 
-    static constexpr float offset_main_h = 14.f;
+    static constexpr float offset_main_h = 8.f;
     static constexpr float offset_main_v = 16.f;
     static constexpr float offset_logs_v = 4.0f;
 
@@ -40,7 +40,7 @@ namespace ex::gui {
     static bool reset_layout = false;
     static View view = View{};
 
-    inline float left_offset() { return view.show_left ? view.pane_width_left : 0; }
+    inline float left_offset() { return view.show_left ? (view.pane_width_left + offset_main_h) : 0; }
 
     inline float right_offset() { return view.show_right ? (view.pane_width_right + offset_main_h) : 0; }
 
@@ -48,7 +48,7 @@ namespace ex::gui {
 
     inline float logs_expanded_offset() { return view.expanded_logs ? (view.pane_height_bottom + offset_logs_v) : 0; }
 
-    inline ImVec2 main_size() { return { view.main_free_x - left_offset() - right_offset() - 8, 0 }; }
+    inline ImVec2 main_size() { return { view.main_free_x - left_offset() - right_offset(), 0 }; }
 
     inline ImVec2 content_size() { return { 0, view.main_free_y - bottom_offset() - logs_expanded_offset()}; }
 
