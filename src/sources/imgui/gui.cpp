@@ -13,15 +13,36 @@
 namespace ex::gui {
 
     inline void init_font_icons(ImGuiIO &io) {
-        io.Fonts->AddFontDefault();
-        const auto base_font_size = 13.0f;
-        const auto icon_font_size = base_font_size * 2.0f / 3.0f;
-        static const ImWchar icons_ranges[] = { ICON_MIN_LC, ICON_MAX_16_LC, 0 };
+        constexpr float base_font_size   = 13.f;
+        constexpr float icon_font_size   = 16.f;
+        constexpr float font_multiply    = .7f;
+        constexpr int   over_sample_size = 5;
+
+        ImFontConfig default_config;
+        default_config.FontDataOwnedByAtlas = true;
+//        default_config.RasterizerDensity    = 1.25f;
+        default_config.PixelSnapH           = true;
+//        default_config.RasterizerMultiply   = font_multiply;
+        default_config.SizePixels           = base_font_size;
+        default_config.OversampleH          = over_sample_size;
+        default_config.OversampleV          = over_sample_size;
+
+        io.Fonts->AddFontDefault(&default_config);
+
+        static const ImWchar icons_ranges[] = {
+            ICON_MIN_LC,
+            ICON_MAX_16_LC,
+            0
+        };
+
         ImFontConfig icons_config;
-        icons_config.MergeMode = true;
-        icons_config.PixelSnapH = true;
-        icons_config.GlyphMinAdvanceX = icon_font_size;
+        icons_config.GlyphMinAdvanceX     = icon_font_size;
         icons_config.FontDataOwnedByAtlas = false;
+        icons_config.MergeMode            = true;
+        icons_config.PixelSnapH           = true;
+        icons_config.OversampleH          = 3;
+        icons_config.OversampleV          = 3;
+
         io.Fonts->AddFontFromMemoryTTF(
                 const_cast<void*>(static_cast<const void*>(s_lucide_ttf)),
                 sizeof(s_lucide_ttf),

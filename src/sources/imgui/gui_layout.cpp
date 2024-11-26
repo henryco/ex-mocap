@@ -165,6 +165,7 @@ namespace ex::gui {
         if (ImGui::BeginTabBar("MainTabs")) {
             if (ImGui::BeginTabItem("Tab 1")) {
                 ImGui::Text("Content for Tab 1");
+                ImGui::Text(ICON_LC_SETTINGS " icon " ICON_LC_SETTINGS_2);
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Tab 2")) {
