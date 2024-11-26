@@ -33,7 +33,7 @@ namespace ex::gui {
     } ReSize;
 
     static constexpr float offset_main_h = 8.f;
-    static constexpr float offset_main_v = 16.f;
+    static constexpr float offset_main_v = 23.f;
     static constexpr float offset_logs_v = 4.0f;
 
     static bool window_resized = false;
