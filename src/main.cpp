@@ -1,9 +1,8 @@
 #include <argparse/argparse.hpp>
-#include <filesystem>
 #include <spdlog/spdlog.h>
+#include <filesystem>
 
 #include "headers/boot.h"
-#include "headers/imgui/gui.h"
 
 int main(const int argc, char **argv) {
 
