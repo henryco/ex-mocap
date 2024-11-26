@@ -9,8 +9,8 @@
 namespace ex::gui {
 
     typedef struct View {
-        float pane_width_left     = 200.0f;
-        float pane_width_right    = 200.0f;
+        float pane_width_left     = 350.0f;
+        float pane_width_right    = 350.0f;
         float pane_height_bottom  = 200.0f;
         float pane_height_content = 0.f;
 
