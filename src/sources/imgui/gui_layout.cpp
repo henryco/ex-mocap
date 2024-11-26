@@ -32,8 +32,8 @@ namespace ex::gui {
         bool inc_y = false;
     } ReSize;
 
-    static constexpr float offset_main_h = 16.f;
-    static constexpr float offset_main_v = 23.f;
+    static constexpr float offset_main_h = 14.f;
+    static constexpr float offset_main_v = 16.f;
     static constexpr float offset_logs_v = 4.0f;
 
     static bool window_resized = false;
@@ -48,7 +48,7 @@ namespace ex::gui {
 
     inline float logs_expanded_offset() { return view.expanded_logs ? (view.pane_height_bottom + offset_logs_v) : 0; }
 
-    inline ImVec2 main_size() { return { view.main_free_x - left_offset() - right_offset(), 0 }; }
+    inline ImVec2 main_size() { return { view.main_free_x - left_offset() - right_offset() - 8, 0 }; }
 
     inline ImVec2 content_size() { return { 0, view.main_free_y - bottom_offset() - logs_expanded_offset()}; }
 
@@ -120,11 +120,13 @@ namespace ex::gui {
 
                 if(ImGui::MenuItem("Logs", nullptr, &view.show_logs)) {
                     view.expanded_logs = view.show_logs;
+                    window_resized = true;
                 }
 
                 ImGui::Separator();
                 if (ImGui::MenuItem("Reset layout")) {
                     reset_layout = true;
+                    window_resized = true;
                 }
                 ImGui::EndMenu();
             }
@@ -284,16 +286,19 @@ namespace ex::gui {
         if (!reset_layout)
             return;
         reset_layout = false;
+        window_resized = true;
         view = {};
     }
 
     void GUI::layout(ex::State &state) {
         ReSize re_size = {};
-        check_for_reset();
 
         ImGui::Begin("main", nullptr,ImGuiWindowFlags_NoDecoration | menu_flag());
         {
             window_resized = is_window_resized();
+
+            check_for_reset();
+
             view.main_free_x = ImGui::GetContentRegionAvail().x;
             view.main_free_y = ImGui::GetContentRegionAvail().y;
 
