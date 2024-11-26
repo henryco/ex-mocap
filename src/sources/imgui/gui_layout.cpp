@@ -153,9 +153,6 @@ namespace ex::gui {
                           | ImGuiChildFlags_ResizeX);
 
         {
-            // TODO CONTENT
-            ImGui::Text("%f", view.pane_width_left);
-
             ImGuiID dock_space_id = ImGui::GetID("LeftDockSpace");
             ImGui::DockSpace(dock_space_id,
                              ImVec2(0.0f, 0.0f),
@@ -182,7 +179,6 @@ namespace ex::gui {
                           | ImGuiChildFlags_Borders);
 
         {
-            // TODO CONTENT
             ImGuiID dock_space_id = ImGui::GetID("RightDockSpace");
             ImGui::DockSpace(dock_space_id,
                              ImVec2(0.0f, 0.0f),
