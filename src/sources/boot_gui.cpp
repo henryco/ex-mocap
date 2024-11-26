@@ -17,6 +17,10 @@ int ex::boot::gui(int argc, char **argv, const char *project_path) {
         return 1;
     }
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     auto window = ex::gl::create_window("ExMoCap");
     if (!window) {
         glfwTerminate();
