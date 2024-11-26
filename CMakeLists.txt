@@ -86,17 +86,17 @@ set(HEADER_FILES
 
         src/headers/imgui/gui.h
         src/headers/logic/logic.h
-        src/headers/gl/render.h
+        src/headers/gl/gl_utils.h
 )
 
 set(SOURCE_FILES
         src/sources/imgui/gui.cpp
         src/sources/logic/logic.cpp
-        src/sources/gl/render.cpp
 
         src/sources/boot_gui.cpp
         src/sources/boot_terminal.cpp
         src/sources/imgui/gui_layout.cpp
+        src/sources/gl/gl_utils.cpp
 )
 
 if (UNIX AND NOT APPLE)

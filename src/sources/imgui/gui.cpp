@@ -53,7 +53,7 @@ namespace ex::gui {
         io.Fonts->Build();
     }
 
-    void GUI::update_gui(ex::State &state) const {
+    void GUI::build(ex::State &state) const {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
 
@@ -66,7 +66,7 @@ namespace ex::gui {
         ImGui::Render();
     }
 
-    void GUI::draw_gui(const float delta) {
+    void GUI::draw(const float delta) const {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 

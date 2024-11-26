@@ -22,9 +22,9 @@ namespace ex::gui {
 
         ~GUI();
 
-        void update_gui(ex::State &state) const;
+        void build(ex::State &state) const;
 
-        static void draw_gui(float delta);
+        void draw(float delta) const;
 
     protected:
         void layout(ex::State &state) const;

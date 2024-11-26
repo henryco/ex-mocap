@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "../headers/boot.h"
-#include "../headers/gl/render.h"
+#include "../headers/gl/gl_utils.h"
 #include "../headers/imgui/gui.h"
 
 #include <GLFW/glfw3.h>
@@ -27,20 +27,34 @@ int ex::boot::gui(int argc, char **argv, const char *project_path) {
         return 1;
     }
 
-    {
-        ex::State state {};
-        auto render = ex::gl::Render(window);
-        auto gui = ex::gui::GUI(window);
+    glfwMakeContextCurrent(window);
 
-        while (true) {
-            gui.update_gui(state);
+    auto gui = ex::gui::GUI(window);
+    ex::State state {};
 
-            // TODO LOGIC
+    while (true) {
+        if (glfwWindowShouldClose(window))
+            break;
 
-            if (render.render(ex::gui::GUI::draw_gui))
-                break;
-        }
+        glfwPollEvents();
+
+        // TODO LOGIC
+
+        gui.build(state);
+
+        int display_w, display_h;
+        glfwGetFramebufferSize(window, &display_w, &display_h);
+        glViewport(0, 0, display_w, display_h);
+        glClearColor(0, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        gui.draw(0.f);
+
+        glfwSwapBuffers(window);
     }
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
 
     return 0;
 }

@@ -1,8 +1,9 @@
 //
-// Created by xd on 23/11/24.
+// Created by henryco on 26/11/24.
 //
 
-#include "../../src/headers/gl/render.h"
+#include "../../headers/gl/gl_utils.h"
+
 #include <iostream>
 
 namespace ex::gl {
@@ -39,35 +40,4 @@ namespace ex::gl {
         return window;
     }
 
-    Render::Render(GLFWwindow *window) {
-        this->window = window;
-        glfwMakeContextCurrent(this->window);
-    }
-
-    Render::~Render() {
-        glfwDestroyWindow(this->window);
-        glfwTerminate();
-    }
-
-    bool Render::render(void (*func)(float delta)) {
-        if (glfwWindowShouldClose(window))
-            return true;
-
-        glfwPollEvents();
-
-        int display_w, display_h;
-        glfwGetFramebufferSize(this->window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        glClearColor(0, 0, 0, 0);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        if (func != nullptr)
-            func(0.f);
-
-        glfwSwapBuffers(this->window);
-
-        return false;
-    }
 }
-
-
