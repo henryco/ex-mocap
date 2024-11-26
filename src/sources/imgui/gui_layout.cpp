@@ -25,6 +25,7 @@ namespace ex::gui {
         bool show_menu  = true;
 
         bool expanded_logs = false;
+        bool should_exit = false;
     } View;
 
     typedef struct ReSize {
@@ -84,7 +85,7 @@ namespace ex::gui {
                 }
                 ImGui::Separator();
                 if (ImGui::MenuItem("Exit")) {
-                    // TODO
+                    view.should_exit = true;
                 }
                 ImGui::EndMenu();
             }
@@ -286,7 +287,13 @@ namespace ex::gui {
         view = {};
     }
 
-    void GUI::layout(ex::State &state) {
+    void should_exit(GLFWwindow *window) {
+        if (!view.should_exit)
+            return;
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+
+    void GUI::layout(ex::State &state) const {
         ReSize re_size = {};
 
         ImGui::Begin("main", nullptr,ImGuiWindowFlags_NoDecoration | menu_flag());
@@ -302,6 +309,8 @@ namespace ex::gui {
             show_left_pane(state, re_size);
             show_main_container(state, re_size);
             show_right_pane(state, re_size);
+
+            should_exit(window);
         }
         ImGui::End();
     }

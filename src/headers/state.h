@@ -6,8 +6,11 @@
 #define EX_MOTION_STATE_H
 
 namespace ex {
-    struct State {
-    };
+
+    typedef struct State {
+        // TODO
+    } State;
+
 }
 
 #endif // EX_MOTION_STATE_H

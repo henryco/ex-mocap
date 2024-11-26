@@ -21,23 +21,24 @@ int ex::boot::gui(int argc, char **argv, const char *project_path) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    auto window = ex::gl::create_window("ExMoCap");
+    const auto window = ex::gl::create_window("ExMoCap");
     if (!window) {
         glfwTerminate();
         return 1;
     }
 
-    struct ex::State state {};
-    auto render = ex::gl::Render(window);
     {
+        ex::State state {};
+        auto render = ex::gl::Render(window);
         auto gui = ex::gui::GUI(window);
 
         while (true) {
             gui.update_gui(state);
 
+            // TODO LOGIC
+
             if (render.render(ex::gui::GUI::draw_gui))
                 break;
-
         }
     }
 

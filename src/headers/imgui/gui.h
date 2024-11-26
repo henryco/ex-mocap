@@ -7,13 +7,14 @@
 
 #include "../state.h"
 
+// ReSharper disable once CppUnusedIncludeDirective
 #include <IconsLucide.h>
 #include <GLFW/glfw3.h>
 
 namespace ex::gui {
     class GUI {
 
-    private:
+    protected:
         GLFWwindow *window;
 
     public:
@@ -26,7 +27,7 @@ namespace ex::gui {
         static void draw_gui(float delta);
 
     protected:
-        static void layout(ex::State &state);
+        void layout(ex::State &state) const;
     };
 } // namespace ex::gui
 
