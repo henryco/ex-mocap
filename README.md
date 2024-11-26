@@ -10,6 +10,7 @@
 ```
 
 ### Dependencies
+- [IconFontCppHeaders](https://github.com/juliettef/IconFontCppHeaders) (external/iconfontcppheaders)
 - [OnnxRuntime](https://github.com/microsoft/onnxruntime) (external/onnxruntime)
 - [Argparse](https://github.com/p-ranav/argparse#positional-arguments) (external/argparse)
 - [ImGui](https://github.com/ocornut/imgui) (external/imgui)

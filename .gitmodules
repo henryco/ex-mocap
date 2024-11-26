@@ -13,3 +13,6 @@
 [submodule "external/argparse"]
 	path = external/argparse
 	url = git@github.com:p-ranav/argparse.git
+[submodule "external/iconfontcppheaders"]
+	path = external/iconfontcppheaders
+	url = git@github.com:juliettef/IconFontCppHeaders.git
