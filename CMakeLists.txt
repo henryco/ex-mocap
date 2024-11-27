@@ -87,6 +87,7 @@ set(HEADER_FILES
         src/headers/imgui/gui.h
         src/headers/logic/logic.h
         src/headers/gl/gl_utils.h
+        src/headers/utils/log_utils.h
 )
 
 set(SOURCE_FILES
@@ -97,6 +98,7 @@ set(SOURCE_FILES
         src/sources/boot_terminal.cpp
         src/sources/imgui/gui_layout.cpp
         src/sources/gl/gl_utils.cpp
+        src/sources/utils/log_utils.cpp
 )
 
 if (UNIX AND NOT APPLE)

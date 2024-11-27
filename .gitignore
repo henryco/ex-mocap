@@ -102,3 +102,8 @@ map_streams.sh
 
 external/onnxruntime-*
 /external/onnxruntime-*
+
+logs
+.logs
+/logs
+/.logs
