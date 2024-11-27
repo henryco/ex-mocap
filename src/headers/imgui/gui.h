@@ -5,6 +5,7 @@
 #ifndef GUI_BOOT_H
 #define GUI_BOOT_H
 
+#include "../utils/log_utils.h"
 #include "../state.h"
 
 // ReSharper disable once CppUnusedIncludeDirective
@@ -14,7 +15,11 @@
 namespace ex::gui {
     class GUI {
 
-    protected:
+    public:
+        static inline const auto log =
+            ex::logs::get_logger("im_gui");
+
+    private:
         GLFWwindow *window;
 
     public:

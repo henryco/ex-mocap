@@ -233,7 +233,9 @@ namespace ex::gui {
                               | ImGuiChildFlags_Borders);
 
             {
-                // TODO LOGS
+                for (const auto &log : ex::logs::get_all_logs()) {
+                    ImGui::TextWrapped("%s", log.c_str());
+                }
             }
 
             view.pane_height_bottom = ImGui::GetWindowHeight();

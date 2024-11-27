@@ -13,6 +13,8 @@
 namespace ex::gui {
 
     inline void init_font_icons(ImGuiIO &io) {
+        GUI::log->info("initializing font icons");
+
         constexpr float base_font_size   = 13.f;
         constexpr float icon_font_size   = 16.f;
         constexpr float font_multiply    = .7f;
@@ -29,7 +31,7 @@ namespace ex::gui {
 
         io.Fonts->AddFontDefault(&default_config);
 
-        static const ImWchar icons_ranges[] = {
+        static constexpr ImWchar icons_ranges[] = {
             ICON_MIN_LC,
             ICON_MAX_16_LC,
             0
@@ -51,6 +53,8 @@ namespace ex::gui {
                 &icons_config,
                 icons_ranges);
         io.Fonts->Build();
+
+        GUI::log->info("font icons initialized");
     }
 
     void GUI::build(ex::State &state) const {
@@ -73,6 +77,8 @@ namespace ex::gui {
     GUI::GUI(GLFWwindow *window) {
         this->window = window;
 
+        GUI::log->info("creating imgui context");
+
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
@@ -83,14 +89,23 @@ namespace ex::gui {
 
         ImGui::StyleColorsLight();
 
+        GUI::log->info("initialize imgui gl backend");
+
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init("#version 460");
+
+        GUI::log->info("imgui gl backend initialized");
+        GUI::log->info("imgui context created");
     }
 
     GUI::~GUI() {
+        GUI::log->info("destroy imgui context");
+
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
+
+        GUI::log->info("imgui context destroyed");
     }
 }
 

@@ -7,15 +7,20 @@
 #include "../headers/boot.h"
 #include "../headers/gl/gl_utils.h"
 #include "../headers/imgui/gui.h"
+#include "../headers/utils/log_utils.h"
 
 #include <GLFW/glfw3.h>
 
 int ex::boot::gui(int argc, char **argv, const char *project_path) {
 
+    static const auto log = ex::logs::get_logger("boot_gui");
+
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW";
         return 1;
     }
+
+    log->info("GLFW initialized");
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
@@ -27,7 +32,11 @@ int ex::boot::gui(int argc, char **argv, const char *project_path) {
         return 1;
     }
 
+    log->info("Window created");
+
     glfwMakeContextCurrent(window);
+
+    log->info("GL context created");
 
     auto gui = ex::gui::GUI(window);
     ex::State state {};
