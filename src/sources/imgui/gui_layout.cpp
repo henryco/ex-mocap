@@ -25,6 +25,7 @@ namespace ex::gui {
         bool show_logs  = true;
         bool show_menu  = true;
 
+        bool highlight_logs = true;
         bool expanded_logs = false;
         bool follow_logs = false;
         bool should_exit = false;
@@ -244,6 +245,10 @@ namespace ex::gui {
             ImGui::BeginChild("LogControlsPane",
                 ImVec2(24, 0), 0, ImGuiWindowFlags_NoDecoration);
             {
+                view.highlight_logs = !ex::gui::toggle_button(ICON_LC_LIGHTBULB_OFF, !view.highlight_logs);
+                ex::gui::plain_tooltip("Disable highlighting for warnings and errors");
+                ImGui::Spacing();
+
                 view.follow_logs = ex::gui::toggle_button(ICON_LC_LIST_END, view.follow_logs);
                 ex::gui::plain_tooltip("Follow logs");
                 ImGui::Spacing();
@@ -274,6 +279,14 @@ namespace ex::gui {
             ImGui::BeginChild("LogPane", ImVec2(0, 0), ImGuiChildFlags_FrameStyle);
             {
                 for (const auto &log : ex::logs::get_all_logs()) {
+
+                    if (view.highlight_logs && log.find("[error]") != std::string::npos) {
+                        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
+                        ImGui::TextWrapped("%s", log.c_str());
+                        ImGui::PopStyleColor();
+                        continue;
+                    }
+
                     ImGui::TextWrapped("%s", log.c_str());
                 }
                 if (view.follow_logs || !old_expanded) {
