@@ -227,19 +227,23 @@ namespace ex::gui {
             return;
         const auto old_height = view.pane_height_bottom;
         if ((view.expanded_logs = ImGui::CollapsingHeader(ICON_LC_LOGS " Log Output "))) {
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
             ImGui::BeginChild("BottomPane",
                               ImVec2(0, (re_size.inc_y || window_resized) ? 0 : view.pane_height_bottom),
                               0
                               | ImGuiChildFlags_Borders);
 
+            ImGui::BeginChild("LogPane", ImVec2(0, 0), ImGuiChildFlags_FrameStyle);
             {
                 for (const auto &log : ex::logs::get_all_logs()) {
                     ImGui::TextWrapped("%s", log.c_str());
                 }
             }
+            ImGui::EndChild();
 
             view.pane_height_bottom = ImGui::GetWindowHeight();
             ImGui::EndChild();
+            ImGui::PopStyleVar();
         }
         re_size.inc_y = (!re_size.inc_y) && (old_height != view.pane_height_bottom);
     }
