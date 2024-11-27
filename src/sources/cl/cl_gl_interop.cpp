@@ -42,28 +42,15 @@ namespace ex::cl::utils {
         return properties;
     }
 
-    cl_context create_cl_gl_context(GLFWwindow* window) {
+    cl_context create_cl_gl_context(GLFWwindow* window, cl_platform_id platform, cl_device_id device) {
         const auto log = provide_logger();
 
         log->info("Creating cl_gl context");
 
-        cl_platform_id platform;
-        cl_int         err = clGetPlatformIDs(1, &platform, nullptr);
-        if (err != CL_SUCCESS) {
-            log->error("Failed to get cl platform ids: {}", err);
-            return nullptr;
-        }
-
-        cl_device_id device;
-        err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, nullptr);
-        if (err != CL_SUCCESS) {
-            log->error("Failed to get opencl device id: {}", err);
-            return nullptr;
-        }
-
         auto props = ex::cl::utils::get_cl_gl_context_properties(window, platform);
         log->info("Acquired cl_gl interop context properties");
 
+        cl_int err;
         cl_context context = clCreateContext(props, 1, &device,
                                              nullptr, nullptr, &err);
         if (err != CL_SUCCESS) {
@@ -75,45 +62,45 @@ namespace ex::cl::utils {
         return context;
     }
 
-    void check_gl_sharing_support() {
+    void check_gl_sharing_support(std::vector<device_platform> &platforms) {
         const auto log = provide_logger();
 
         // Get the number of platforms
-        cl_uint numPlatforms;
-        cl_int  err = clGetPlatformIDs(0, nullptr, &numPlatforms);
+        cl_uint num_platforms;
+        cl_int  err = clGetPlatformIDs(0, nullptr, &num_platforms);
         if (err != CL_SUCCESS) {
             log->error("Failed to get number of OpenCL platforms: {}", err);
             return;
         }
 
         // Get the platform IDs
-        std::vector<cl_platform_id> platforms(numPlatforms);
-        err = clGetPlatformIDs(numPlatforms, platforms.data(), nullptr);
+        std::vector<cl_platform_id> platform_ids(num_platforms);
+        err = clGetPlatformIDs(num_platforms, platform_ids.data(), nullptr);
         if (err != CL_SUCCESS) {
             log->error("Failed to get OpenCL platforms: {}", err);
             return;
         }
 
         // Iterate over each platform
-        for (cl_uint i = 0; i < numPlatforms; ++i) {
+        for (cl_uint i = 0; i < num_platforms; ++i) {
             // Get the number of devices for this platform
-            cl_uint numDevices;
-            err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, 0, nullptr, &numDevices);
+            cl_uint num_devices;
+            err = clGetDeviceIDs(platform_ids[i], CL_DEVICE_TYPE_ALL, 0, nullptr, &num_devices);
             if (err != CL_SUCCESS) {
                 log->error("Failed to get OpenCL devices: {}", err);
                 continue;
             }
 
             // Get the device IDs
-            std::vector<cl_device_id> devices(numDevices);
-            err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, numDevices, devices.data(), nullptr);
+            std::vector<cl_device_id> devices(num_devices);
+            err = clGetDeviceIDs(platform_ids[i], CL_DEVICE_TYPE_ALL, num_devices, devices.data(), nullptr);
             if (err != CL_SUCCESS) {
                 log->error("Failed to get OpenCL devices: {}", err);
                 continue;
             }
 
             // Iterate over each device
-            for (cl_uint j = 0; j < numDevices; ++j) {
+            for (cl_uint j = 0; j < num_devices; ++j) {
                 // Get the extensions string size
                 size_t extensionSize;
                 err = clGetDeviceInfo(devices[j], CL_DEVICE_EXTENSIONS, 0, nullptr, &extensionSize);
@@ -131,8 +118,9 @@ namespace ex::cl::utils {
                 }
 
                 // Check if cl_khr_gl_sharing is supported
-                std::string extensionsStr(extensions.begin(), extensions.end());
-                if (extensionsStr.find("cl_khr_gl_sharing") != std::string::npos) {
+                std::string extensions_str(extensions.begin(), extensions.end());
+                if (extensions_str.find("cl_khr_gl_sharing") != std::string::npos) {
+                    platforms.emplace_back(platform_ids[i], devices[j]);
                     log->info("Device: [{}] on Platform: [{}] supports cl_khr_gl_sharing", j, i);
                 } else {
                     log->warn("Device: [{}] on Platform: [{}] does not supports cl_khr_gl_sharing", j, i);

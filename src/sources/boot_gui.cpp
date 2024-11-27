@@ -37,10 +37,18 @@ int ex::boot::gui(int argc, char **argv, const char *project_path) {
     glfwMakeContextCurrent(window);
     log->info("GL context created");
 
-    ex::cl::utils::check_gl_sharing_support();
+    std::vector<ex::cl::utils::device_platform> cl_device_platforms;
+    ex::cl::utils::check_gl_sharing_support(cl_device_platforms);
+    log->info("Queried cl_device_platforms: {}", cl_device_platforms.size());
 
-    auto ocl_context = ex::cl::utils::create_cl_gl_context(window);
-    log->info("CL context created");
+    cl_context ocl_context = nullptr;
+    if (!cl_device_platforms.empty()) {
+        const auto platform = cl_device_platforms[0].platform;
+        const auto device   = cl_device_platforms[0].device;
+
+        ocl_context = ex::cl::utils::create_cl_gl_context(window, platform, device);
+        log->info("CL context created");
+    }
 
     if (!ocl_context) {
         log->error("CL context pointer null reference");
