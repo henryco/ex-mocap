@@ -53,20 +53,21 @@ namespace ex::cl::utils {
         cl_platform_id platform;
         err = clGetPlatformIDs(1, &platform, nullptr);
         if (err != CL_SUCCESS) {
-            log->error("Failed to create opencl context: {}", err);
-            fprintf(stderr, "Failed to create opencl context: %d\n", err);
+            log->error("Failed to get cl platform ids: {}", err);
+            fprintf(stderr, "Failed to get cl platform ids: %d\n", err);
             return nullptr;
         }
 
         cl_device_id device;
         err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, nullptr);
         if (err != CL_SUCCESS) {
-            log->error("Failed to create opencl context: {}", err);
-            fprintf(stderr, "Failed to create opencl context: %d\n", err);
+            log->error("Failed to get opencl device id: {}", err);
+            fprintf(stderr, "Failed to get opencl device id: %d\n", err);
             return nullptr;
         }
 
-        cl_context_properties *props = ex::cl::utils::get_cl_gl_context_properties(window, platform);
+        auto props = ex::cl::utils::get_cl_gl_context_properties(window, platform);
+        log->info("Acquired cl_gl interop context properties");
 
         cl_context context = clCreateContext(props, 1, &device,
                                              nullptr, nullptr, &err);
@@ -77,7 +78,6 @@ namespace ex::cl::utils {
         }
 
         log->info("Created cl_gl interop context");
-
         return context;
     }
 }
