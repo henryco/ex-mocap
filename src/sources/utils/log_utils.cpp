@@ -14,7 +14,7 @@ namespace ex::logs {
         return ring_buffer_sink;
     }
 
-    std::shared_ptr<spdlog::logger> get_logger(const std::string &name) {
+    ex::logs::logger get_logger(const std::string &name) {
         static auto rotating =
                 std::make_shared<spdlog::sinks::rotating_file_sink_mt>("logs/exmotion_log",
                                                                        1024 * 1024,

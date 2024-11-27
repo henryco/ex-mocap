@@ -2,14 +2,13 @@
 // Created by henryco on 23/11/24.
 //
 
-#include <iostream>
-
 #include "../headers/boot.h"
 #include "../headers/gl/gl_utils.h"
 #include "../headers/imgui/gui.h"
-#include "../headers/utils/log_utils.h"
+#include "../headers/cl/cl_gl_interop.h"
 
 #include <GLFW/glfw3.h>
+#include <iostream>
 
 int ex::boot::gui(int argc, char **argv, const char *project_path) {
 
@@ -27,19 +26,34 @@ int ex::boot::gui(int argc, char **argv, const char *project_path) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     const auto window = ex::gl::create_window("ExMoCap");
+    log->info("Window created");
+
     if (!window) {
+        log->error("Window pointer null reference");
         glfwTerminate();
         return 1;
     }
 
-    log->info("Window created");
-
     glfwMakeContextCurrent(window);
-
     log->info("GL context created");
 
+    auto ocl_context = ex::cl::utils::create_cl_gl_context(window);
+    log->info("CL context created");
+
+    if (!ocl_context) {
+        log->error("CL context pointer null reference");
+        // TODO SHUTDOWN?
+    }
+
     auto gui = ex::gui::GUI(window);
+    log->info("ImGUI context created");
+
     ex::State state {};
+    log->info("Application context created");
+
+    // TODO INITIALIZATION
+
+    log->info("Initialization complete");
 
     while (true) {
         if (glfwWindowShouldClose(window))

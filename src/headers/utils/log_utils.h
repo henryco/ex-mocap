@@ -19,6 +19,8 @@
 
 namespace ex::logs {
 
+    using logger = std::shared_ptr<spdlog::logger>;
+
     namespace sinks {
 
         class Clearable {
@@ -94,7 +96,7 @@ namespace ex::logs {
 
     spdlog::sink_ptr get_buffer_sink();
 
-    std::shared_ptr<spdlog::logger> get_logger(const std::string& name);
+    ex::logs::logger get_logger(const std::string& name);
 
     std::vector<std::string> get_all_logs();
 

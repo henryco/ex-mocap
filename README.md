@@ -21,6 +21,7 @@
 - [OpenCL](https://www.khronos.org/opencl/)
 - [OpenGL](https://www.opengl.org/)
 - [GLFW](https://www.glfw.org/)
+- [GLEW](https://glew.sourceforge.net/)
 - [Spdlog](https://github.com/gabime/spdlog)
 - [CUDA](https://developer.nvidia.com/cuda-toolkit)
 
@@ -36,5 +37,6 @@
         cudnn-cuda-12       \
         libglfw3-dev        \
         libglfw3            \
+        libglew-dev         \
         libv4l-dev
 ```
