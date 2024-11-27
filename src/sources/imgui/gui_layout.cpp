@@ -280,13 +280,21 @@ namespace ex::gui {
             {
                 for (const auto &log : ex::logs::get_all_logs_ext()) {
                     const auto &message = std::get<0>(log);
-                    const auto &error = std::get<1>(log);
+                    const auto &level = std::get<1>(log);
 
-                    if (view.highlight_logs && error) {
-                        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
-                        ImGui::TextWrapped("%s", message.c_str());
-                        ImGui::PopStyleColor();
-                        continue;
+                    if (view.highlight_logs) {
+                        if (level == spdlog::level::warn) {
+                            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 140, 40, 255));
+                            ImGui::TextWrapped("%s", message.c_str());
+                            ImGui::PopStyleColor();
+                            continue;
+                        }
+                        if (level == spdlog::level::err || level == spdlog::level::critical) {
+                            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(220, 20, 60, 255));
+                            ImGui::TextWrapped("%s", message.c_str());
+                            ImGui::PopStyleColor();
+                            continue;
+                        }
                     }
 
                     ImGui::TextWrapped("%s", message.c_str());

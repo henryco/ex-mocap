@@ -32,11 +32,11 @@ namespace ex::logs {
         return dynamic_pointer_cast<ex::logs::sinks::Container>(get_buffer_sink())->last_formatted(size);
     }
 
-    std::vector<std::tuple<std::string, bool>> get_all_logs_ext() {
+    std::vector<std::tuple<std::string, spdlog::level::level_enum>> get_all_logs_ext() {
         return dynamic_pointer_cast<ex::logs::sinks::Container>(get_buffer_sink())->last_formatted_ext(0);
     }
 
-    std::vector<std::tuple<std::string, bool>> get_logs_ext(const size_t size) {
+    std::vector<std::tuple<std::string, spdlog::level::level_enum>> get_logs_ext(const size_t size) {
         return dynamic_pointer_cast<ex::logs::sinks::Container>(get_buffer_sink())->last_formatted_ext(size);
     }
 

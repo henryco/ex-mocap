@@ -30,7 +30,7 @@ namespace ex::logs {
 
         class Container {
         public:
-            virtual std::vector<std::tuple<std::string, bool>> last_formatted_ext(size_t lim) = 0;
+            virtual std::vector<std::tuple<std::string, spdlog::level::level_enum>> last_formatted_ext(size_t lim) = 0;
             virtual std::vector<spdlog::details::log_msg_buffer> last_raw(size_t lim) = 0;
             virtual std::vector<std::string> last_formatted(size_t lim) = 0;
         };
@@ -61,18 +61,18 @@ namespace ex::logs {
                 return ret;
             }
 
-            std::vector<std::tuple<std::string, bool>> last_formatted_ext(size_t lim) override {
+            std::vector<std::tuple<std::string, spdlog::level::level_enum>> last_formatted_ext(size_t lim) override {
                 std::lock_guard<Mutex> lock(spdlog::sinks::base_sink<Mutex>::mutex_);
                 auto items_available = q_.size();
                 auto n_items = lim > 0 ? (std::min)(lim, items_available) : items_available;
-                std::vector<std::tuple<std::string, bool>> ret;
+                std::vector<std::tuple<std::string, spdlog::level::level_enum>> ret;
                 ret.reserve(n_items);
                 for (size_t i = (items_available - n_items); i < items_available; i++) {
                     const auto &el = q_.at(i);
 
                     spdlog::memory_buf_t formatted;
                     spdlog::sinks::base_sink<Mutex>::formatter_->format(el, formatted);
-                    ret.push_back({SPDLOG_BUF_TO_STRING(formatted), el.level > SPDLOG_LEVEL_INFO && el.level < SPDLOG_LEVEL_OFF});
+                    ret.push_back({SPDLOG_BUF_TO_STRING(formatted), el.level});
                 }
                 return ret;
             }
@@ -121,9 +121,9 @@ namespace ex::logs {
 
     std::string get_all_as_string();
 
-    std::vector<std::tuple<std::string, bool>> get_all_logs_ext();
+    std::vector<std::tuple<std::string, spdlog::level::level_enum>> get_all_logs_ext();
 
-    std::vector<std::tuple<std::string, bool>> get_logs_ext(size_t size);
+    std::vector<std::tuple<std::string, spdlog::level::level_enum>> get_logs_ext(size_t size);
 
     void clear_all();
 
