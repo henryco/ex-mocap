@@ -25,6 +25,7 @@ namespace ex::gui {
         bool show_menu  = true;
 
         bool expanded_logs = false;
+        bool follow_logs = false;
         bool should_exit = false;
     } View;
 
@@ -226,7 +227,34 @@ namespace ex::gui {
         if (!view.show_logs)
             return;
         const auto old_height = view.pane_height_bottom;
+        const auto old_expanded = view.expanded_logs;
+
         if ((view.expanded_logs = ImGui::CollapsingHeader(ICON_LC_LOGS " Log Output "))) {
+            ImGui::BeginChild("LogControlsPane",
+                ImVec2(24, 0), 0, ImGuiWindowFlags_NoDecoration);
+            {
+                const int v = view.follow_logs ? 255 : 0;
+                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(v, v, v, 255));
+                ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0, 0, 0, view.follow_logs ? 127 : 0));
+                ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(0, 0, 0, 255));
+                ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
+                ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+                if (ImGui::Button(ICON_LC_LIST_END)) {
+                    view.follow_logs = !view.follow_logs;
+                }
+                ImGui::PopStyleVar(2);
+                ImGui::PopStyleColor(3);
+
+                if (ImGui::IsItemHovered()) {
+                    ImGui::BeginTooltip();
+                    ImGui::Text("Follow logs");
+                    ImGui::EndTooltip();
+                }
+            }
+            ImGui::EndChild();
+
+            ImGui::SameLine();
+
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
             ImGui::BeginChild("BottomPane",
                               ImVec2(0, (re_size.inc_y || window_resized) ? 0 : view.pane_height_bottom),
@@ -237,6 +265,9 @@ namespace ex::gui {
             {
                 for (const auto &log : ex::logs::get_all_logs()) {
                     ImGui::TextWrapped("%s", log.c_str());
+                }
+                if (view.follow_logs || !old_expanded) {
+                    ImGui::SetScrollY(ImGui::GetScrollMaxY());
                 }
             }
             ImGui::EndChild();
