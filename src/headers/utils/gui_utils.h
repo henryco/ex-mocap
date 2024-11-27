@@ -7,6 +7,8 @@
 
 namespace ex::gui {
 
+    bool toggle_button(const char *label);
+
     bool toggle_button(const char *label, const bool &state);
 
     bool plain_tooltip(const char *label);

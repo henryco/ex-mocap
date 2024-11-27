@@ -100,7 +100,7 @@ set(SOURCE_FILES
         src/sources/imgui/gui_layout.cpp
         src/sources/gl/gl_utils.cpp
         src/sources/utils/log_utils.cpp
-        src/sources/imgui/gui_utils.cpp
+        src/sources/utils/gui_utils.cpp
 )
 
 if (UNIX AND NOT APPLE)

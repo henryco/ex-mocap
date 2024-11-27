@@ -30,4 +30,8 @@ namespace ex::logs {
         return get_buffer_sink()->last_formatted(size);
     }
 
+    void clear_all() {
+        auto sink = get_buffer_sink();
+    }
+
 } // namespace ex::logs

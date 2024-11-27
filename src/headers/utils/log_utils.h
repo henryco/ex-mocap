@@ -18,6 +18,8 @@ namespace ex::logs {
 
     std::vector<std::string> get_logs(size_t size);
 
+    void clear_all();
+
 }
 
 #endif //LOG_UTILS_H

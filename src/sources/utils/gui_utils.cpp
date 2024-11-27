@@ -27,6 +27,10 @@ namespace ex::gui {
         return new_state;
     }
 
+    bool toggle_button(const char *label) {
+        return toggle_button(label, false);
+    }
+
     bool plain_tooltip(const char *label) {
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();

@@ -236,6 +236,11 @@ namespace ex::gui {
             {
                 view.follow_logs = ex::gui::toggle_button(ICON_LC_LIST_END, view.follow_logs);
                 ex::gui::plain_tooltip("Follow logs");
+
+                if (ex::gui::toggle_button(ICON_LC_TRASH_2)) {
+                    // TODO
+                }
+                ex::gui::plain_tooltip("Clear all");
             }
             ImGui::EndChild();
 
