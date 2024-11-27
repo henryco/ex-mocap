@@ -236,16 +236,20 @@ namespace ex::gui {
             {
                 view.follow_logs = ex::gui::toggle_button(ICON_LC_LIST_END, view.follow_logs);
                 ex::gui::plain_tooltip("Follow logs");
+                ImGui::Spacing();
 
                 if (ex::gui::toggle_button(ICON_LC_CLIPBOARD_COPY)) {
                     ImGui::SetClipboardText(ex::logs::get_all_as_string().c_str());
                 }
                 ex::gui::plain_tooltip("Copy to clipboard");
+                ImGui::Spacing();
 
                 if (ex::gui::toggle_button(ICON_LC_TRASH_2)) {
                     ex::logs::clear_all();
                 }
                 ex::gui::plain_tooltip("Clear all");
+                ImGui::Spacing();
+
             }
             ImGui::EndChild();
 
