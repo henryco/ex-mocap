@@ -278,16 +278,18 @@ namespace ex::gui {
 
             ImGui::BeginChild("LogPane", ImVec2(0, 0), ImGuiChildFlags_FrameStyle);
             {
-                for (const auto &log : ex::logs::get_all_logs()) {
+                for (const auto &log : ex::logs::get_all_logs_ext()) {
+                    const auto &message = std::get<0>(log);
+                    const auto &error = std::get<1>(log);
 
-                    if (view.highlight_logs && log.find("[error]") != std::string::npos) {
+                    if (view.highlight_logs && error) {
                         ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
-                        ImGui::TextWrapped("%s", log.c_str());
+                        ImGui::TextWrapped("%s", message.c_str());
                         ImGui::PopStyleColor();
                         continue;
                     }
 
-                    ImGui::TextWrapped("%s", log.c_str());
+                    ImGui::TextWrapped("%s", message.c_str());
                 }
                 if (view.follow_logs || !old_expanded) {
                     ImGui::SetScrollY(ImGui::GetScrollMaxY());
