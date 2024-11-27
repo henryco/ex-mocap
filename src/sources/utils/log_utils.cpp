@@ -36,4 +36,13 @@ namespace ex::logs {
         dynamic_pointer_cast<ex::logs::sinks::Clearable>(get_buffer_sink())->clear_all();
     }
 
+    std::string get_all_as_string() {
+        const auto &all = get_all_logs();
+        std::ostringstream oss;
+        for (const auto& str : all) {
+            oss << str;
+        }
+        return oss.str();
+    }
+
 } // namespace ex::logs

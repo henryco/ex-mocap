@@ -100,6 +100,8 @@ namespace ex::logs {
 
     std::vector<std::string> get_logs(size_t size = 0);
 
+    std::string get_all_as_string();
+
     void clear_all();
 
 }
