@@ -15,7 +15,6 @@
 #include <vector>
 
 #include <spdlog/logger.h>
-#include <spdlog/sinks/ringbuffer_sink.h>
 
 namespace ex::logs {
 
@@ -25,11 +24,13 @@ namespace ex::logs {
 
         class Clearable {
         public:
+            virtual ~Clearable()     = default;
             virtual void clear_all() = 0;
         };
 
         class Container {
         public:
+            virtual ~Container() = default;
             virtual std::vector<std::tuple<std::string, spdlog::level::level_enum>> last_formatted_ext(size_t lim) = 0;
             virtual std::vector<spdlog::details::log_msg_buffer> last_raw(size_t lim) = 0;
             virtual std::vector<std::string> last_formatted(size_t lim) = 0;
@@ -72,7 +73,7 @@ namespace ex::logs {
 
                     spdlog::memory_buf_t formatted;
                     spdlog::sinks::base_sink<Mutex>::formatter_->format(el, formatted);
-                    ret.push_back({SPDLOG_BUF_TO_STRING(formatted), el.level});
+                    ret.emplace_back(SPDLOG_BUF_TO_STRING(formatted), el.level);
                 }
                 return ret;
             }

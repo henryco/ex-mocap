@@ -37,6 +37,8 @@ int ex::boot::gui(int argc, char **argv, const char *project_path) {
     glfwMakeContextCurrent(window);
     log->info("GL context created");
 
+    ex::cl::utils::check_gl_sharing_support();
+
     auto ocl_context = ex::cl::utils::create_cl_gl_context(window);
     log->info("CL context created");
 
