@@ -238,7 +238,7 @@ namespace ex::gui {
                 ex::gui::plain_tooltip("Follow logs");
 
                 if (ex::gui::toggle_button(ICON_LC_TRASH_2)) {
-                    // TODO
+                    ex::logs::clear_all();
                 }
                 ex::gui::plain_tooltip("Clear all");
             }
