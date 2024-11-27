@@ -226,7 +226,7 @@ namespace ex::gui {
         if (!view.show_logs)
             return;
         const auto old_height = view.pane_height_bottom;
-        if ((view.expanded_logs = ImGui::CollapsingHeader( ICON_LC_LOGS " Log Output "))) {
+        if ((view.expanded_logs = ImGui::CollapsingHeader(ICON_LC_LOGS " Log Output "))) {
             ImGui::BeginChild("BottomPane",
                               ImVec2(0, (re_size.inc_y || window_resized) ? 0 : view.pane_height_bottom),
                               0
