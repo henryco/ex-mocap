@@ -48,10 +48,8 @@ namespace ex::cl::utils {
 
         log->info("Creating cl_gl context");
 
-        cl_int err;
-
         cl_platform_id platform;
-        err = clGetPlatformIDs(1, &platform, nullptr);
+        cl_int         err = clGetPlatformIDs(1, &platform, nullptr);
         if (err != CL_SUCCESS) {
             log->error("Failed to get cl platform ids: {}", err);
             fprintf(stderr, "Failed to get cl platform ids: %d\n", err);
@@ -77,7 +75,7 @@ namespace ex::cl::utils {
             return nullptr;
         }
 
-        log->info("Created cl_gl interop context");
+        log->info("Created cl_gl interop context: {}", err == CL_SUCCESS);
         return context;
     }
 }
