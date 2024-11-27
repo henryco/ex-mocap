@@ -7,6 +7,12 @@
 
 namespace ex::gui {
 
+    bool plain_close_button();
+
+    bool plain_button(const char *label, const bool &state);
+
+    bool plain_button(const char *label);
+
     bool toggle_button(const char *label);
 
     bool toggle_button(const char *label, const bool &state);

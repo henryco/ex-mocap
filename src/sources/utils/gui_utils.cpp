@@ -3,9 +3,36 @@
 //
 
 #include "../../headers/utils/gui_utils.h"
+#include "IconsLucide.h"
 #include "imgui.h"
 
 namespace ex::gui {
+
+    bool plain_close_button() {
+        ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(ICON_LC_X).x - ImGui::GetStyle().ItemSpacing.x);
+        const auto closed = ex::gui::plain_button(ICON_LC_X);
+        ex::gui::plain_tooltip("Close");
+        return closed;
+    }
+
+    bool plain_button(const char *label, const bool &state) {
+        bool new_state = state;
+        const int v = state ? 255 : 0;
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(v, v, v, 255));
+        ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0, 0, 0, 0));
+
+        if (ImGui::Button(label)) {
+            new_state = !state;
+        }
+
+        ImGui::PopStyleColor(2);
+
+        return new_state;
+    }
+
+    bool plain_button(const char *label) {
+        return plain_button(label, false);
+    }
 
     bool toggle_button(const char *label, const bool &state) {
         bool new_state = state;

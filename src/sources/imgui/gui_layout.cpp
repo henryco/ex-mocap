@@ -230,7 +230,17 @@ namespace ex::gui {
         const auto old_height = view.pane_height_bottom;
         const auto old_expanded = view.expanded_logs;
 
-        if ((view.expanded_logs = ImGui::CollapsingHeader(ICON_LC_LOGS " Log Output "))) {
+        ImGui::SetNextItemAllowOverlap();
+
+        view.expanded_logs = ImGui::CollapsingHeader(ICON_LC_LOGS " Log Output ");
+
+        if (ex::gui::plain_close_button()) {
+            view.expanded_logs = false;
+            view.show_logs = false;
+            window_resized = true;
+        }
+
+        if (view.expanded_logs) {
             ImGui::BeginChild("LogControlsPane",
                 ImVec2(24, 0), 0, ImGuiWindowFlags_NoDecoration);
             {
