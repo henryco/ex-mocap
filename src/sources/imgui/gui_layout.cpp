@@ -3,6 +3,7 @@
 //
 
 #include "../../headers/imgui/gui.h"
+#include "../../headers/utils/gui_utils.h"
 
 #include <imgui.h>
 
@@ -233,23 +234,8 @@ namespace ex::gui {
             ImGui::BeginChild("LogControlsPane",
                 ImVec2(24, 0), 0, ImGuiWindowFlags_NoDecoration);
             {
-                const int v = view.follow_logs ? 255 : 0;
-                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(v, v, v, 255));
-                ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0, 0, 0, view.follow_logs ? 127 : 0));
-                ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(0, 0, 0, 255));
-                ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
-                ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
-                if (ImGui::Button(ICON_LC_LIST_END)) {
-                    view.follow_logs = !view.follow_logs;
-                }
-                ImGui::PopStyleVar(2);
-                ImGui::PopStyleColor(3);
-
-                if (ImGui::IsItemHovered()) {
-                    ImGui::BeginTooltip();
-                    ImGui::Text("Follow logs");
-                    ImGui::EndTooltip();
-                }
+                view.follow_logs = ex::gui::toggle_button(ICON_LC_LIST_END, view.follow_logs);
+                ex::gui::plain_tooltip("Follow logs");
             }
             ImGui::EndChild();
 
