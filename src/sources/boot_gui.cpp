@@ -14,6 +14,34 @@ namespace ex::boot {
 
     const auto log = ex::logs::get_logger("boot_gui");
 
+    GLFWwindow *init_gl_context(ex::State &state) {
+        if (!glfwInit()) {
+            std::cerr << "Failed to initialize GLFW";
+            return nullptr;
+        }
+
+        log->info("GLFW initialized");
+
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+        const auto window = ex::gl::create_window("ExMoCap");
+        log->info("Window created");
+        state.window = window;
+
+        if (!window) {
+            log->error("Window pointer null reference");
+            glfwTerminate();
+            return nullptr;
+        }
+
+        glfwMakeContextCurrent(window);
+        log->info("GL context created");
+
+        return window;
+    }
+
     void init_cl_context(ex::State &state, GLFWwindow *window) {
         std::vector<ex::cl::utils::device_platform> cl_device_platforms;
         ex::cl::utils::get_device_platforms(cl_device_platforms);
@@ -52,33 +80,10 @@ namespace ex::boot {
         ex::State state {};
         log->info("Application context created");
 
-        if (!glfwInit()) {
-            std::cerr << "Failed to initialize GLFW";
-            return 1;
-        }
-
-        log->info("GLFW initialized");
-
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-        const auto window = ex::gl::create_window("ExMoCap");
-        log->info("Window created");
-        state.window = window;
-
-        if (!window) {
-            log->error("Window pointer null reference");
-            glfwTerminate();
-            return 1;
-        }
-
-        glfwMakeContextCurrent(window);
-        log->info("GL context created");
-
+        const auto window = init_gl_context(state);
         init_cl_context(state, window);
 
-        auto gui = ex::gui::GUI(window);
+        const auto gui = ex::gui::GUI(window);
         log->info("ImGUI context created");
 
         // TODO INITIALIZATION
