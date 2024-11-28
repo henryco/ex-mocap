@@ -10,84 +10,106 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-int ex::boot::gui(int argc, char **argv, const char *project_path) {
+namespace ex::boot {
 
-    static const auto log = ex::logs::get_logger("boot_gui");
+    const auto log = ex::logs::get_logger("boot_gui");
 
-    if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW";
-        return 1;
+    void init_cl_context(ex::State &state, GLFWwindow *window) {
+        std::vector<ex::cl::utils::device_platform> cl_device_platforms;
+        ex::cl::utils::get_device_platforms(cl_device_platforms);
+        log->info("Queried cl_device_platforms: {}", cl_device_platforms.size());
+
+        if (cl_device_platforms.empty()) {
+            log->error("Not found any cl_device_platforms");
+            return;
+        }
+
+        cl_context ocl_context = nullptr;
+        for (auto &[platform, device, gl_sharing] : cl_device_platforms) {
+            if (!gl_sharing)
+                continue;
+            ocl_context = ex::cl::utils::create_cl_gl_context(window, platform, device);
+            if (ocl_context != nullptr) {
+                state.gl_sharing = true;
+                log->info("CL context created");
+                break;
+            }
+        }
+
+        if (!ocl_context) {
+            log->error("CL context pointer null reference, fallback to default context");
+            const auto device = cl_device_platforms[0].device;
+            ocl_context       = ex::cl::utils::create_cl_context(device);
+            state.gl_sharing  = false;
+            log->info("Default CL context created");
+        }
+
+        state.ocl_context = ocl_context;
     }
 
-    log->info("GLFW initialized");
+    int gui(int argc, char **argv, const char *project_path) {
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        ex::State state {};
+        log->info("Application context created");
 
-    const auto window = ex::gl::create_window("ExMoCap");
-    log->info("Window created");
+        if (!glfwInit()) {
+            std::cerr << "Failed to initialize GLFW";
+            return 1;
+        }
 
-    if (!window) {
-        log->error("Window pointer null reference");
+        log->info("GLFW initialized");
+
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+        const auto window = ex::gl::create_window("ExMoCap");
+        log->info("Window created");
+        state.window = window;
+
+        if (!window) {
+            log->error("Window pointer null reference");
+            glfwTerminate();
+            return 1;
+        }
+
+        glfwMakeContextCurrent(window);
+        log->info("GL context created");
+
+        init_cl_context(state, window);
+
+        auto gui = ex::gui::GUI(window);
+        log->info("ImGUI context created");
+
+        // TODO INITIALIZATION
+
+        log->info("Initialization complete");
+
+        while (true) {
+            if (glfwWindowShouldClose(window))
+                break;
+
+            glfwPollEvents();
+
+            // TODO LOGIC
+
+            gui.build(state);
+
+            int display_w, display_h;
+            glfwGetFramebufferSize(window, &display_w, &display_h);
+            glViewport(0, 0, display_w, display_h);
+            glClearColor(0, 0, 0, 0);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            gui.draw(0.f);
+
+            glfwSwapBuffers(window);
+        }
+
+        glfwDestroyWindow(window);
         glfwTerminate();
-        return 1;
+
+        return 0;
     }
 
-    glfwMakeContextCurrent(window);
-    log->info("GL context created");
-
-    std::vector<ex::cl::utils::device_platform> cl_device_platforms;
-    ex::cl::utils::check_gl_sharing_support(cl_device_platforms);
-    log->info("Queried cl_device_platforms: {}", cl_device_platforms.size());
-
-    cl_context ocl_context = nullptr;
-    if (!cl_device_platforms.empty()) {
-        const auto platform = cl_device_platforms[0].platform;
-        const auto device   = cl_device_platforms[0].device;
-
-        ocl_context = ex::cl::utils::create_cl_gl_context(window, platform, device);
-        log->info("CL context created");
-    }
-
-    if (!ocl_context) {
-        log->error("CL context pointer null reference");
-        // TODO SHUTDOWN?
-    }
-
-    auto gui = ex::gui::GUI(window);
-    log->info("ImGUI context created");
-
-    ex::State state {};
-    log->info("Application context created");
-
-    // TODO INITIALIZATION
-
-    log->info("Initialization complete");
-
-    while (true) {
-        if (glfwWindowShouldClose(window))
-            break;
-
-        glfwPollEvents();
-
-        // TODO LOGIC
-
-        gui.build(state);
-
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        glClearColor(0, 0, 0, 0);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        gui.draw(0.f);
-
-        glfwSwapBuffers(window);
-    }
-
-    glfwDestroyWindow(window);
-    glfwTerminate();
-
-    return 0;
 }

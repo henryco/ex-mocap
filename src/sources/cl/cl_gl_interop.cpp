@@ -89,7 +89,7 @@ namespace ex::cl::utils {
         return context;
     }
 
-    void check_gl_sharing_support(std::vector<device_platform> &platforms) {
+    void get_device_platforms(std::vector<device_platform> &platforms) {
         const auto log = provide_logger();
 
         // Get the number of platforms
@@ -147,9 +147,10 @@ namespace ex::cl::utils {
                 // Check if cl_khr_gl_sharing is supported
                 std::string extensions_str(extensions.begin(), extensions.end());
                 if (extensions_str.find("cl_khr_gl_sharing") != std::string::npos) {
-                    platforms.emplace_back(platform_ids[i], devices[j]);
+                    platforms.emplace_back(platform_ids[i], devices[j], true);
                     log->info("Device: [{}] on Platform: [{}] supports cl_khr_gl_sharing", j, i);
                 } else {
+                    platforms.emplace_back(platform_ids[i], devices[j], false);
                     log->warn("Device: [{}] on Platform: [{}] does not supports cl_khr_gl_sharing", j, i);
                 }
             }
