@@ -42,23 +42,50 @@ namespace ex::cl::utils {
         return properties;
     }
 
-    cl_context create_cl_gl_context(GLFWwindow* window, cl_platform_id platform, cl_device_id device) {
+    cl_context create_cl_gl_context(GLFWwindow *window, cl_platform_id platform, cl_device_id device) {
         const auto log = provide_logger();
-
         log->info("Creating cl_gl context");
 
         auto props = ex::cl::utils::get_cl_gl_context_properties(window, platform);
         log->info("Acquired cl_gl interop context properties");
 
-        cl_int err;
-        cl_context context = clCreateContext(props, 1, &device,
-                                             nullptr, nullptr, &err);
+        cl_int     err;
+        cl_context context = clCreateContext(
+            props,
+            1,
+            &device,
+            nullptr,
+            nullptr,
+            &err);
+
         if (err != CL_SUCCESS) {
             log->error("Failed to create opencl context: {}", err);
             return nullptr;
         }
 
         log->info("Created cl_gl interop context: {}", err == CL_SUCCESS);
+        return context;
+    }
+
+    cl_context create_cl_context(cl_device_id device) {
+        const auto log = provide_logger();
+        log->info("Creating plain cl context");
+
+        cl_int     err;
+        cl_context context = clCreateContext(
+            nullptr,
+            1,
+            &device,
+            nullptr,
+            nullptr,
+            &err);
+
+        if (err != CL_SUCCESS) {
+            log->error("Failed to create opencl context: {}", err);
+            return nullptr;
+        }
+
+        log->info("Created cl interop context: {}", err == CL_SUCCESS);
         return context;
     }
 

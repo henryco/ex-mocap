@@ -20,6 +20,8 @@ namespace ex::cl::utils {
 
     cl_context create_cl_gl_context(GLFWwindow* window, cl_platform_id platform, cl_device_id device);
 
+    cl_context create_cl_context(cl_device_id device);
+
     void check_gl_sharing_support(std::vector<device_platform> &platforms);
 
 }
