@@ -13,8 +13,10 @@
 namespace ex::platform::dev {
 
     struct CameraDevice {
-        std::string device_path;  // e.g., /dev/video0
-        std::string usb_bus_info; // e.g., Bus 001 Device 002
+        std::string device_id;
+        std::string index;
+        std::string uuid;
+        std::string name;
     };
 
     std::string read_file(const std::string &filePath) {
@@ -32,43 +34,49 @@ namespace ex::platform::dev {
 
         // Iterate over all /dev/video* devices
         for (const auto& entry : std::filesystem::directory_iterator("/dev")) {
-            std::string device_path = entry.path().string();
+            const std::string device_path = entry.path().string();
             if (device_path.find("/dev/video") == std::string::npos) {
                 continue; // Skip non-video devices
             }
 
             // Find corresponding sysfs entry for the video device
-            std::string device_name   = entry.path().filename();
-            std::string sys_device_path = "/sys/class/video4linux/" + device_name;
+            const std::string device_name   = entry.path().filename();
+            const std::string sys_device_path = "/sys/class/video4linux/" + device_name;
+
             if (!std::filesystem::exists(sys_device_path)) {
                 continue;
             }
 
+            const std::filesystem::path sys_path       = sys_device_path;
+            const std::filesystem::path dev_path       = sys_path / "device";
+            const std::filesystem::path current_path   = sys_device_path;
+            const std::filesystem::path name_path      = current_path / "name";
+            const std::filesystem::path interface_path = current_path / "interface";
+            const std::filesystem::path index_path     = current_path / "index";
+
+            CameraDevice device;
+            device.device_id = "/dev/" + device_name;
+
             // Follow symbolic link to actual device path
-            std::string real_device_path = std::filesystem::canonical(sys_device_path).string();
-
-            // Traverse upward to find USB attributes
-            std::filesystem::path current_path = real_device_path;
-            while (current_path.has_parent_path()) {
-                current_path = current_path.parent_path();
-
-                // Check for USB device attributes
-                if (std::filesystem::exists(current_path / "busnum") &&
-                    std::filesystem::exists(current_path / "devnum")) {
-
-                    // Read bus and device numbers
-                    std::string bus_num = read_file((current_path / "busnum").string());
-                    std::string dev_num = read_file((current_path / "devnum").string());
-
-                    if (!bus_num.empty() && !dev_num.empty()) {
-                        CameraDevice cam;
-                        cam.device_path = device_path;
-                        cam.usb_bus_info = "Bus " + bus_num + " Device " + dev_num;
-                        cameras.push_back(cam);
-                    }
-                    break; // Found USB parent device
-                }
+            if (std::filesystem::exists(dev_path)) {
+                device.uuid = std::filesystem::canonical(dev_path).string();
             }
+
+            // Resolve name
+            if (std::filesystem::exists(name_path)) {
+                device.name = read_file(name_path);
+            } else if (std::filesystem::exists(interface_path)) {
+                device.name = read_file(interface_path);
+            } else {
+                device.name = device.device_id;
+            }
+
+            // Resolve index
+            if (std::filesystem::exists(index_path)) {
+                device.index = read_file(index_path);
+            }
+
+            cameras.push_back(device);
         }
 
         return cameras;
@@ -82,7 +90,7 @@ namespace ex::platform::dev {
         } else {
             std::cout << "Camera devices found:" << std::endl;
             for (const auto& camera : cameras) {
-                std::cout << "  Path: " << camera.device_path << ", USB: " << camera.usb_bus_info << std::endl;
+                std::cout << "DEVICE: " << camera.device_id << ", UUID: " << camera.uuid << ", NAME: " << camera.name << ", IDX: " << camera.index << std::endl;
             }
         }
     }

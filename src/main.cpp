@@ -3,8 +3,12 @@
 #include <filesystem>
 
 #include "headers/boot.h"
+#include "../platforms/device.h"
 
 int main(const int argc, char **argv) {
+
+    ex::platform::dev::list();
+    return 1;
 
     argparse::ArgumentParser program("exmotion", "0.0.1");
     program.add_description(R"desc(
