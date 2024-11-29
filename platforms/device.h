@@ -6,7 +6,7 @@
 #define EX_MOTION_DEVICE_H
 
 namespace ex::platform::dev {
-
+    void list();
 }
 
 #endif // EX_MOTION_DEVICE_H
