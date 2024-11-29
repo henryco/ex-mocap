@@ -31,6 +31,19 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(GNUInstallDirs)
 
+find_package(PkgConfig REQUIRED)
+find_package(OpenCLHeaders REQUIRED)
+find_package(OpenCL 3.0 REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(spdlog REQUIRED)
+find_package(glfw3 REQUIRED)
+
+if (OpenCL_FOUND)
+    add_definitions("-DCL_HPP_TARGET_OPENCL_VERSION=300")
+    add_definitions("-DCL_TARGET_OPENCL_VERSION=300")
+endif ()
+
 add_library(ifcpph INTERFACE)
 target_include_directories(ifcpph INTERFACE external/iconfontcppheaders)
 
@@ -51,24 +64,16 @@ target_include_directories(imgui PUBLIC
         external/imgui/misc/cpp
         external/imgui/backends)
 
-find_package(PkgConfig REQUIRED)
-find_package(OpenCLHeaders REQUIRED)
-find_package(OpenCL 3.0 REQUIRED)
-find_package(OpenCV REQUIRED)
-find_package(OpenGL REQUIRED)
-find_package(spdlog REQUIRED)
-find_package(glfw3 REQUIRED)
+target_link_libraries(imgui PUBLIC
+        OpenGL::GL glfw)
 
-target_link_libraries(imgui PUBLIC OpenGL::GL glfw)
+set(PLATFORM_FILES
+        platforms/device.h
+)
 
 if (UNIX AND NOT APPLE)
     pkg_check_modules(V4L2 REQUIRED libv4l2)
-    # TODO
-endif ()
-
-if (OpenCL_FOUND)
-    add_definitions("-DCL_HPP_TARGET_OPENCL_VERSION=300")
-    add_definitions("-DCL_TARGET_OPENCL_VERSION=300")
+    list(APPEND PLATFORM_FILES platforms/linux/device.cpp)
 endif ()
 
 set(KERNEL_FILES
@@ -105,11 +110,6 @@ set(SOURCE_FILES
         src/sources/cl/cl_gl_interop.cpp
 )
 
-if (UNIX AND NOT APPLE)
-    # TODO
-endif ()
-
-
 # =================== OpenCL kernels generation =====================
 add_executable(convert_to_c_array scripts/embed_file.cxx)
 set(GENERATED_CL_SOURCES)
@@ -134,10 +134,12 @@ add_custom_target(generate_cl_sources
 
 set(RESULT_SOURCES
         src/main.cpp
+        ${KERNEL_FILES}
+        ${GENERATED_CL_SOURCES}
+        ${PLATFORM_FILES}
         ${HEADER_FILES}
         ${SOURCE_FILES}
-        ${KERNEL_FILES}
-        ${GENERATED_CL_SOURCES})
+)
 
 add_executable(ex_motion
         ${RESULT_SOURCES})
