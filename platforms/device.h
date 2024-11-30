@@ -42,6 +42,10 @@ namespace ex::platform::dev {
     int get_device_index(const std::string &device_uuid);
 
     int get_device_index(const VideoDevice &device);
+
+    void reset_controls(const std::string &device_uuid);
+
+    void reset_controls(const VideoDevice &device);
 }
 
 #endif // EX_MOTION_DEVICE_H

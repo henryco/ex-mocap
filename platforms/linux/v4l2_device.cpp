@@ -125,7 +125,7 @@ namespace ex::platform::dev {
         return list_controls(device.uuid);
     }
 
-    std::vector<VideoControl> list_controls(const std::string &id) {
+    std::vector<VideoControl> list_controls(const std::string &device_uuid) {
         // TODO
         return {};
     }
@@ -136,5 +136,15 @@ namespace ex::platform::dev {
 
     void set_control_value(const std::string &device_uuid, uint prop_id, int value) {
         // TODO
+    }
+
+    void reset_controls(const VideoDevice &device) {
+        reset_controls(device.uuid);
+    }
+
+    void reset_controls(const std::string &device_uuid) {
+        const auto controls = list_controls(device_uuid);
+        for (const auto &control: controls)
+            set_control_value(device_uuid, control.id, control.default_value);
     }
 }
