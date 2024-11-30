@@ -16,11 +16,6 @@ namespace ex::platform::dev::v4l2 {
         __s32 value;
     };
 
-    struct serial_v4l2_control {
-        std::uint32_t id;
-        int32_t value;
-    };
-
     typedef struct v4l2_queryctrl_ext V4L2_QueryCtrl;
     typedef struct v4l2_control V4L2_Control;
 
