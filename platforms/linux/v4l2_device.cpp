@@ -190,6 +190,28 @@ namespace ex::platform::dev {
         }
     }
 
+    std::string get_device_id(const std::string &device_uuid) {
+        if (device_uuid.starts_with("/dev/video")) {
+            return device_uuid;
+        }
+
+        const auto split_idx = device_uuid.find(':');
+        if (split_idx == std::string::npos) {
+            throw std::invalid_argument("invalid device uuid " + device_uuid);
+        }
+
+        const auto index = device_uuid.substr(0, split_idx);
+        const auto uuid  = device_uuid.substr(split_idx + 1);
+
+        for (const auto &device: v4l2::devices_list) {
+            if (device.uuid == uuid && device.index == index) {
+                return device.device_id;
+            }
+        }
+
+        throw std::invalid_argument("invalid device uuid " + device_uuid);
+    }
+
     int get_capture_api() {
         return 200; // V4L2
     }
@@ -241,8 +263,23 @@ namespace ex::platform::dev {
     }
 
     std::vector<VideoControl> list_controls(const std::string &device_uuid) {
-        // TODO
-        return {};
+        const auto device_id = get_device_id(device_uuid);
+        const auto camera_props = v4l2::get_camera_props(device_id);
+
+        std::vector<VideoControl> props;
+        props.reserve(camera_props.size());
+        for (const auto &p: camera_props) {
+            VideoControl control;
+            control.id = p.id;
+            control.default_value = p.default_value;
+            control.name = std::string(reinterpret_cast<const char *>(p.name), 32);
+            control.value = p.value;
+            control.min = p.minimum;
+            control.max = p.maximum;
+            control.step = p.step;
+            props.push_back(control);
+        }
+        return props;
     }
 
     bool set_control_value(const VideoDevice &device, uint prop_id, int value) {
@@ -250,8 +287,8 @@ namespace ex::platform::dev {
     }
 
     bool set_control_value(const std::string &device_uuid, uint prop_id, int value) {
-        // TODO
-        return false;
+        const auto device_id = get_device_id(device_uuid);
+        return v4l2::set_camera_prop(device_id, prop_id, value);
     }
 
     void reset_controls(const VideoDevice &device) {
