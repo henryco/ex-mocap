@@ -15,7 +15,13 @@ namespace ex::platform::dev {
         std::string name;
     };
 
+    void refresh();
+
     std::vector<VideoDevice> list_devices();
+
+    int get_device_index(const std::string &id);
+
+    int get_device_index(const VideoDevice &device);
 }
 
 #endif // EX_MOTION_DEVICE_H

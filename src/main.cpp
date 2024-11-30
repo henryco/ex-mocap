@@ -9,7 +9,7 @@ int main(const int argc, char **argv) {
 
     const auto devices = ex::platform::dev::list_devices();
     for (const auto &item: devices) {
-        std::cout << "device: " << item.uuid << ", " << item.name << "\n";
+        std::cout << "device: " << item.uuid << ", " << item.name << ", " << ex::platform::dev::get_device_index(item.uuid) << "\n";
     }
     return 1;
 

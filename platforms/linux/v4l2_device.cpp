@@ -11,6 +11,11 @@
 
 namespace ex::platform::dev {
 
+    namespace v4l2 {
+        static std::vector<v4l2::V4L2Device> devices_list;
+        static bool initialized = false;
+    }
+
     std::string read_file(const std::string &filePath) {
         std::ifstream file(filePath);
         if (!file.is_open()) {
@@ -75,15 +80,45 @@ namespace ex::platform::dev {
     }
 
     std::vector<VideoDevice> list_devices() {
-        const auto cameras = v4l2::list_usb_camera_devices();
+        if (!v4l2::initialized)
+            refresh();
 
         std::vector<VideoDevice> devices;
-        devices.reserve(cameras.size());
-        for (const auto &item: cameras) {
+        devices.reserve(v4l2::devices_list.size());
+        for (const auto &item: v4l2::devices_list) {
             devices.emplace_back(item.index + ":" + item.uuid, item.name);
         }
-
         return devices;
+    }
+
+    void refresh() {
+        v4l2::devices_list = v4l2::list_usb_camera_devices();
+    }
+
+    int get_device_index(const VideoDevice &device) {
+        return get_device_index(device.uuid);
+    }
+
+    int get_device_index(const std::string &id) {
+        if (id.starts_with("/dev/video")) {
+            return std::stoi(id.substr(10));
+        }
+
+        const auto split_idx = id.find(':');
+        if (split_idx == std::string::npos) {
+            return -1;
+        }
+
+        const auto index = id.substr(0, split_idx);
+        const auto uuid  = id.substr(split_idx + 1);
+
+        for (const auto &device: v4l2::devices_list) {
+            if (device.uuid == uuid && device.index == index) {
+                return std::stoi(device.device_id.substr(10));
+            }
+        }
+
+        return -1;
     }
 
 }
