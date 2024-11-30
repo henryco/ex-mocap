@@ -73,7 +73,8 @@ set(PLATFORM_FILES
 
 if (UNIX AND NOT APPLE)
     pkg_check_modules(V4L2 REQUIRED libv4l2)
-    list(APPEND PLATFORM_FILES platforms/linux/device.cpp)
+    list(APPEND PLATFORM_FILES platforms/linux/v4l2_device.h)
+    list(APPEND PLATFORM_FILES platforms/linux/v4l2_device.cpp)
 endif ()
 
 set(KERNEL_FILES

@@ -7,7 +7,10 @@
 
 int main(const int argc, char **argv) {
 
-    ex::platform::dev::list();
+    const auto devices = ex::platform::dev::list_devices();
+    for (const auto &item: devices) {
+        std::cout << "device: " << item.uuid << ", " << item.name << "\n";
+    }
     return 1;
 
     argparse::ArgumentParser program("exmotion", "0.0.1");

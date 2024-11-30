@@ -5,8 +5,17 @@
 #ifndef EX_MOTION_DEVICE_H
 #define EX_MOTION_DEVICE_H
 
+#include <string>
+#include <vector>
+
 namespace ex::platform::dev {
-    void list();
+
+    struct VideoDevice {
+        std::string uuid;
+        std::string name;
+    };
+
+    std::vector<VideoDevice> list_devices();
 }
 
 #endif // EX_MOTION_DEVICE_H

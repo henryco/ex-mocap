@@ -2,22 +2,14 @@
 // Created by xd on 29/11/24.
 //
 
+#include "v4l2_device.h"
 #include "../device.h"
 
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <vector>
 #include <filesystem>
+#include <fstream>
+#include <vector>
 
 namespace ex::platform::dev {
-
-    struct CameraDevice {
-        std::string device_id;
-        std::string index;
-        std::string uuid;
-        std::string name;
-    };
 
     std::string read_file(const std::string &filePath) {
         std::ifstream file(filePath);
@@ -29,8 +21,8 @@ namespace ex::platform::dev {
         return content;
     }
 
-    std::vector<CameraDevice> list_usb_camera_devices() {
-        std::vector<CameraDevice> cameras;
+    std::vector<v4l2::V4L2Device> v4l2::list_usb_camera_devices() {
+        std::vector<v4l2::V4L2Device> cameras;
 
         // Iterate over all /dev/video* devices
         for (const auto& entry : std::filesystem::directory_iterator("/dev")) {
@@ -54,7 +46,7 @@ namespace ex::platform::dev {
             const std::filesystem::path interface_path = current_path / "interface";
             const std::filesystem::path index_path     = current_path / "index";
 
-            CameraDevice device;
+            v4l2::V4L2Device device;
             device.device_id = "/dev/" + device_name;
 
             // Follow symbolic link to actual device path
@@ -82,17 +74,16 @@ namespace ex::platform::dev {
         return cameras;
     }
 
-    void list() {
-        std::vector<CameraDevice> cameras = list_usb_camera_devices();
+    std::vector<VideoDevice> list_devices() {
+        const auto cameras = v4l2::list_usb_camera_devices();
 
-        if (cameras.empty()) {
-            std::cout << "No camera devices found." << std::endl;
-        } else {
-            std::cout << "Camera devices found:" << std::endl;
-            for (const auto& camera : cameras) {
-                std::cout << "DEVICE: " << camera.device_id << ", UUID: " << camera.uuid << ", NAME: " << camera.name << ", IDX: " << camera.index << std::endl;
-            }
+        std::vector<VideoDevice> devices;
+        devices.reserve(cameras.size());
+        for (const auto &item: cameras) {
+            devices.emplace_back(item.index + ":" + item.uuid, item.name);
         }
+
+        return devices;
     }
 
 }
