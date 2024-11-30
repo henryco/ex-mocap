@@ -79,6 +79,10 @@ namespace ex::platform::dev {
         }
     }
 
+    int get_capture_api() {
+        return 200; // V4L2
+    }
+
     std::vector<VideoDevice> list_devices() {
         if (!v4l2::initialized)
             refresh();

@@ -27,6 +27,8 @@ namespace ex::platform::dev {
         std::string name;
     };
 
+    int get_capture_api();
+
     void refresh();
 
     std::vector<VideoDevice> list_devices();
