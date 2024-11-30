@@ -7,7 +7,13 @@
 
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <vector>
+
+#include <sys/ioctl.h>
+#include <algorithm>
+#include <unistd.h>
+#include <fcntl.h>
 
 namespace ex::platform::dev {
 
@@ -77,6 +83,111 @@ namespace ex::platform::dev {
 
             return cameras;
         }
+
+        std::vector<V4L2_QueryCtrl> get_camera_props(const std::string &device) {
+            std::vector<V4L2_QueryCtrl> properties;
+
+            const int file_descriptor = open(device.c_str(), O_RDWR);
+
+            if (file_descriptor == -1) {
+                std::cerr << "Cannot open video device: " << device << std::endl;
+                return {};
+            }
+
+            try {
+
+                V4L2_QueryCtrl queryctrl;
+                queryctrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
+
+                while (0 == ioctl(file_descriptor, VIDIOC_QUERYCTRL, &queryctrl)) {
+                    if (!(queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)) {
+
+                        if (queryctrl.type != V4L2_CTRL_TYPE_CTRL_CLASS) {
+                            V4L2_Control ctr = {.id = queryctrl.id};
+                            if (ioctl(file_descriptor, VIDIOC_G_CTRL, &ctr) == -1) {
+                                std::cerr << "Cannot retrieve value for control: "
+                                          << ctr.id << " [" << device << "]"
+                                          << std::endl;
+                            }
+                            queryctrl.value = ctr.value;
+                        }
+
+                        // TODO: query menu items name
+
+                        properties.push_back(queryctrl);
+                    }
+
+                    queryctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
+                }
+
+                if (errno != EINVAL) {
+                    std::cerr << "fails for reasons other than reaching the end of the control list, error no: [" << errno << "]" << std::endl;
+                    close(file_descriptor);
+                    return {};
+                }
+
+            } catch (...) {
+                close(file_descriptor);
+                throw;
+            }
+
+            close(file_descriptor);
+
+            // Sorting, important!
+            std::sort(properties.begin(), properties.end(),
+                      [](const V4L2_QueryCtrl &a, const V4L2_QueryCtrl &b) {
+                          return a.type > b.type;
+                      });
+
+            return properties;
+        }
+
+        bool set_camera_prop(const std::string &device_id, uint prop_id, int prop_value) {
+            // not the most efficient way to pass data, but it's ok
+            return set_camera_prop(device_id, {
+                                                      .id = prop_id,
+                                                      .value = prop_value
+                                              });
+        }
+
+        bool set_camera_prop(const std::string &device_id, V4L2_Control control) {
+            // not the most efficient way to pass data, but it's ok.
+            return set_camera_prop(
+                    device_id,
+                    std::vector<V4L2_Control>({control})
+                            )[0];
+        }
+
+        std::vector<bool> set_camera_prop(const std::string &device, std::vector<V4L2_Control> controls) {
+            const int file_descriptor = open(device.c_str(), O_RDWR);
+
+            std::vector<bool> results(controls.size());
+
+            if (file_descriptor == -1) {
+                std::cerr << "Cannot open video device: " << device << '\n';
+                return results;
+            }
+
+            try {
+
+                for (int i = 0; i < controls.size(); ++i) {
+                    auto &control = controls[i];
+                    if (ioctl(file_descriptor, VIDIOC_S_CTRL, &control) == -1) {
+                        std::cerr << "[" << device << "] Cannot set control value: " << control.id << '\n';
+                        results[i] = false;
+                    } else {
+                        results[i] = true;
+                    }
+                }
+
+            } catch (...) {
+                close(file_descriptor);
+                throw;
+            }
+
+            close(file_descriptor);
+            return results;
+        }
     }
 
     int get_capture_api() {
@@ -134,12 +245,13 @@ namespace ex::platform::dev {
         return {};
     }
 
-    void set_control_value(const VideoDevice &device, uint prop_id, int value) {
-        set_control_value(device.uuid, prop_id, value);
+    bool set_control_value(const VideoDevice &device, uint prop_id, int value) {
+        return set_control_value(device.uuid, prop_id, value);
     }
 
-    void set_control_value(const std::string &device_uuid, uint prop_id, int value) {
+    bool set_control_value(const std::string &device_uuid, uint prop_id, int value) {
         // TODO
+        return false;
     }
 
     void reset_controls(const VideoDevice &device) {

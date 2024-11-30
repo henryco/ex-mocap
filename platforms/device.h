@@ -37,9 +37,9 @@ namespace ex::platform::dev {
 
     std::vector<VideoControl> list_controls(const VideoDevice &device);
 
-    void set_control_value(const std::string &device_uuid, control_id prop_id, int value);
+    bool set_control_value(const std::string &device_uuid, control_id prop_id, int value);
 
-    void set_control_value(const VideoDevice &device, control_id prop_id, int value);
+    bool set_control_value(const VideoDevice &device, control_id prop_id, int value);
 
     int get_device_index(const std::string &device_uuid);
 
