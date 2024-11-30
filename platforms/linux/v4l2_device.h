@@ -80,7 +80,7 @@ namespace ex::platform::dev::v4l2 {
      * @param controls A vector of `V4L2_Control` objects representing the camera properties to be set.
      * @return Vector of booleans representing results of setting each of properties.
      *
-     * @see eox::v4l2::V4L2_Control
+     * @see V4L2_Control
      */
     std::vector<bool> set_camera_prop(const std::string &device_id, std::vector<V4L2_Control> controls);
 
