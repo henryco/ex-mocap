@@ -199,12 +199,12 @@ namespace ex::gui {
         ImGui::SetNextWindowClass(&window_class);
         ImGui::SetNextWindowDockID(docking.dock_left_bot_id, flag_1);
         ImGui::Begin("My Window2", nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
-        ImGui::Text("This window 2");
+        ImGui::Text("This window 2: %d", ex::gui::window_is_docked());
         ImGui::End();
 
         ImGui::SetNextWindowClass(&window_class);
         ImGui::Begin("My Window3", nullptr, reset_flag(true) | ImGuiWindowFlags_NoCollapse);
-        ImGui::Text("This window 3");
+        ImGui::Text("This window 3: %d", ex::gui::window_is_docked());
         ImGui::End();
     }
 
@@ -258,7 +258,7 @@ namespace ex::gui {
                           reset_flag());
 
         {
-            ImGui::Text("");
+            ImGui::Text("%d", ex::gui::is_docking_empty(docking.dock_left_id));
             // TODO
             ImGui::Separator();
             show_left_dock_space(state);

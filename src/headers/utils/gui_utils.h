@@ -5,7 +5,13 @@
 #ifndef EX_MOTION_GUI_UTILS_H
 #define EX_MOTION_GUI_UTILS_H
 
+#include <imgui.h>
+
 namespace ex::gui {
+
+    bool window_is_docked();
+
+    bool is_docking_empty(const ImGuiID &id);
 
     bool plain_close_button();
 

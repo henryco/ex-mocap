@@ -3,10 +3,23 @@
 //
 
 #include "../../headers/utils/gui_utils.h"
-#include "IconsLucide.h"
-#include "imgui.h"
+
+#include <imgui_internal.h>
+#include <IconsLucide.h>
 
 namespace ex::gui {
+
+    bool window_is_docked() {
+        const auto node = ImGui::GetWindowDockNode();
+        return !node ? false : node->Windows.size() > 1;
+    }
+
+    bool is_docking_empty(const ImGuiID &id) {
+        const auto node = ImGui::DockBuilderGetNode(id);
+        if (!node)
+            return true;
+        return (node->Windows.empty() && !node->ChildNodes[0] && !node->ChildNodes[1]);
+    }
 
     bool plain_close_button() {
         ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(ICON_LC_X).x - ImGui::GetStyle().ItemSpacing.x);
