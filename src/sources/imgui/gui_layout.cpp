@@ -175,17 +175,23 @@ namespace ex::gui {
     }
 
     void show_operation_tree(ex::State &state) {
+        ImGuiWindowClass window_class;
+        window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoSplit;
+
         const auto flag_1 = view.reset ? ImGuiCond_Always : ImGuiCond_Once;
+        ImGui::SetNextWindowClass(&window_class);
         ImGui::SetNextWindowDockID(docking.dock_left_top_id, flag_1);
         ImGui::Begin("My Window", nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
         ImGui::Text("This window is docked into a specific dock space!");
         ImGui::End();
 
+        ImGui::SetNextWindowClass(&window_class);
         ImGui::SetNextWindowDockID(docking.dock_left_bot_id, flag_1);
         ImGui::Begin("My Window2", nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
         ImGui::Text("This window 2");
         ImGui::End();
 
+        ImGui::SetNextWindowClass(&window_class);
         ImGui::Begin("My Window3", nullptr, reset_flag(true) | ImGuiWindowFlags_NoCollapse);
         ImGui::Text("This window 3");
         ImGui::End();
@@ -193,6 +199,9 @@ namespace ex::gui {
 
     void show_left_dock_space(ex::State &state) {
         static bool first_time = true;
+
+        ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.f, 0.f, 0.f, .0f));
+        ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.f, 0.f, 0.f, .0f));
 
         docking.dock_left_id = ImGui::GetID("DockMainLeft");
         ImGui::DockSpace(docking.dock_left_id,
@@ -219,6 +228,8 @@ namespace ex::gui {
                                         &docking.dock_left_bot_id);
             ImGui::DockBuilderFinish(docking.dock_left_id);
         }
+
+        ImGui::PopStyleColor(2);
     }
 
     void show_left_pane(ex::State &state, ReSize &re_size) {
