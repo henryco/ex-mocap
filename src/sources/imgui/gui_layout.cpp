@@ -225,7 +225,7 @@ namespace ex::gui {
                                  | dock_host_flag()
         );
 
-        if (first_time | view.reset) {
+        if (first_time || view.reset) {
             first_time = false;
             ImGui::DockBuilderRemoveNode(docking.dock_left_id);
             ImGui::DockBuilderAddNode(docking.dock_left_id,
@@ -288,7 +288,7 @@ namespace ex::gui {
                                  | dock_host_flag()
         );
 
-        if (first_time | view.reset) {
+        if (first_time || view.reset) {
             first_time = false;
             // TODO
         }
