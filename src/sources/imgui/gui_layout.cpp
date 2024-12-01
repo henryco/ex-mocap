@@ -177,6 +177,16 @@ namespace ex::gui {
     void show_left_dock_space(ex::State &state) {
         static bool first_time = true;
 
+        ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.f, 0.f, 0.f, .0f));
+        ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.f, 0.f, 0.f, .0f));
+        ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.f, 0.f, 0.f, .0f));
+
+        ImGui::PushStyleColor(ImGuiCol_TabHovered, ImVec4(0.f, 0.f, 0.f, .0f));
+        ImGui::PushStyleColor(ImGuiCol_Tab, ImVec4(0.f, 0.f, 0.f, .0f));
+        ImGui::PushStyleColor(ImGuiCol_TabSelected, ImVec4(0.f, 0.f, 0.f, .0f));
+        ImGui::PushStyleColor(ImGuiCol_TabDimmed, ImVec4(0.f, 0.f, 0.f, .0f));
+        ImGui::PushStyleColor(ImGuiCol_TabDimmedSelected, ImVec4(0.f, 0.f, 0.f, .0f));
+
         docking.dock_left_id = ImGui::GetID("DockMainLeft");
         ImGui::DockSpace(docking.dock_left_id,
                          ImVec2(0.0f, 0.0f),
@@ -187,20 +197,20 @@ namespace ex::gui {
 
         if (first_time | view.reset) {
             first_time = false;
-
-            ImGui::DockBuilderRemoveNode(docking.dock_left_id); // Clear existing layout
-            ImGui::DockBuilderAddNode(docking.dock_left_id, ImGuiDockNodeFlags_None
-                                                                    | ImGuiDockNodeFlags_PassthruCentralNode
-                                                                    | ImGuiDockNodeFlags_AutoHideTabBar);
-            // Split into left and right
-            ImGui::DockBuilderSplitNode(docking.dock_left_id, ImGuiDir_Up,
+            ImGui::DockBuilderRemoveNode(docking.dock_left_id);
+            ImGui::DockBuilderAddNode(docking.dock_left_id,
+                                      ImGuiDockNodeFlags_None
+                                              | ImGuiDockNodeFlags_PassthruCentralNode
+                                              | ImGuiDockNodeFlags_AutoHideTabBar);
+            ImGui::DockBuilderSplitNode(docking.dock_left_id,
+                                        ImGuiDir_Up,
                                         0.7f,
                                         &docking.dock_left_top_id,
                                         &docking.dock_left_bot_id);
-
-            // Finalize the layout without assigning windows
             ImGui::DockBuilderFinish(docking.dock_left_id);
         }
+
+        ImGui::PopStyleColor(8);
     }
 
     void show_left_pane(ex::State &state, ReSize &re_size) {
