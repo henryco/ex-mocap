@@ -145,7 +145,7 @@ namespace ex::gui {
             }
 
             if (ImGui::BeginMenu("View")) {
-                ImGui::MenuItem("Docking", nullptr, &view.docking);
+                ImGui::MenuItem("Unlocked", nullptr, &view.docking);
                 ImGui::Separator();
 
                 if (ImGui::MenuItem("Sidebar Left", nullptr, &view.show_left)) {
