@@ -38,6 +38,8 @@ namespace ex::gui {
         bool expanded_logs = false;
         bool follow_logs = false;
         bool should_exit = false;
+
+        bool reset = false;
     } View;
 
     typedef struct ReSize {
@@ -68,6 +70,8 @@ namespace ex::gui {
     inline ImVec2 content_size() { return { 0, view.main_free_y - bottom_offset() - logs_expanded_offset()}; }
 
     inline int menu_flag() { return view.show_menu ? ImGuiWindowFlags_MenuBar : 0; }
+
+    inline int reset_flag() { return view.reset ? ImGuiWindowFlags_NoSavedSettings : 0; }
 
     inline int content_resize_flag() {
         static bool content_resize_flag_first = true;
@@ -158,14 +162,14 @@ namespace ex::gui {
     }
 
     void show_operation_tree(ex::State &state) {
-        ImGui::SetNextWindowDockID(docking.dock_left_top_id, ImGuiCond_Always);
-        ImGui::Begin("My Window", nullptr, ImGuiWindowFlags_NoCollapse);
-
+        const auto flag_1 = view.reset ? ImGuiCond_Always : ImGuiCond_Once;
+        ImGui::SetNextWindowDockID(docking.dock_left_top_id, flag_1);
+        ImGui::Begin("My Window", nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
         ImGui::Text("This window is docked into a specific dock space!");
         ImGui::End();
 
-        ImGui::SetNextWindowDockID(docking.dock_left_bot_id, ImGuiCond_Always);
-        ImGui::Begin("My Window2", nullptr, ImGuiWindowFlags_NoCollapse);
+        ImGui::SetNextWindowDockID(docking.dock_left_bot_id, flag_1);
+        ImGui::Begin("My Window2", nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
         ImGui::Text("This window 2");
         ImGui::End();
     }
@@ -181,15 +185,13 @@ namespace ex::gui {
                                  | ImGuiDockNodeFlags_AutoHideTabBar
         );
 
-        if (first_time) {
+        if (first_time | view.reset) {
             first_time = false;
 
             ImGui::DockBuilderRemoveNode(docking.dock_left_id); // Clear existing layout
             ImGui::DockBuilderAddNode(docking.dock_left_id, ImGuiDockNodeFlags_None
                                                                     | ImGuiDockNodeFlags_PassthruCentralNode
-                                                                    | ImGuiDockNodeFlags_AutoHideTabBar); // Re-add the dock node
-                                                       //                ImGui::DockBuilderSetNodeSize(docking.dock_left_id, ImGui::GetMainViewport()->Size);
-
+                                                                    | ImGuiDockNodeFlags_AutoHideTabBar);
             // Split into left and right
             ImGui::DockBuilderSplitNode(docking.dock_left_id, ImGuiDir_Up,
                                         0.7f,
@@ -209,7 +211,8 @@ namespace ex::gui {
                           ImVec2(view.pane_width_left, 0),
                           0
                           | ImGuiChildFlags_Borders
-                          | ImGuiChildFlags_ResizeX);
+                          | ImGuiChildFlags_ResizeX,
+                          reset_flag());
 
         {
             show_left_dock_space(state);
@@ -240,7 +243,8 @@ namespace ex::gui {
         ImGui::BeginChild("RightPane",
                           ImVec2((re_size.inc_x || window_resized) ? 0 : view.pane_width_right, 0),
                           0
-                          | ImGuiChildFlags_Borders);
+                          | ImGuiChildFlags_Borders,
+                          reset_flag());
 
         {
             show_right_dock_space(state);
@@ -260,7 +264,8 @@ namespace ex::gui {
                           0
                                   | ImGuiChildFlags_Borders
                                   | content_resize_flag()
-                                  | ((re_size.inc_y || window_resized) ? ImGuiChildFlags_AutoResizeY : 0)
+                                  | ((re_size.inc_y || window_resized) ? ImGuiChildFlags_AutoResizeY : 0),
+                          reset_flag()
                           );
         if (ImGui::BeginTabBar("MainTabs")) {
             if (ImGui::BeginTabItem("Tab 1")) {
@@ -294,7 +299,7 @@ namespace ex::gui {
 
         if (view.expanded_logs) {
             ImGui::BeginChild("LogControlsPane",
-                ImVec2(24, 0), 0, ImGuiWindowFlags_NoDecoration);
+                ImVec2(24, 0), 0, ImGuiWindowFlags_NoDecoration | reset_flag());
             {
                 view.highlight_logs = !ex::gui::toggle_button(ICON_LC_LIGHTBULB_OFF, !view.highlight_logs);
                 ex::gui::plain_tooltip("Disable highlighting for warnings and errors");
@@ -325,9 +330,9 @@ namespace ex::gui {
             ImGui::BeginChild("BottomPane",
                               ImVec2(0, (re_size.inc_y || window_resized) ? 0 : view.pane_height_bottom),
                               0
-                              | ImGuiChildFlags_Borders);
+                              | ImGuiChildFlags_Borders, reset_flag());
 
-            ImGui::BeginChild("LogPane", ImVec2(0, 0), ImGuiChildFlags_FrameStyle);
+            ImGui::BeginChild("LogPane", ImVec2(0, 0), ImGuiChildFlags_FrameStyle, reset_flag());
             {
                 for (const auto &log : ex::logs::get_all_logs_ext()) {
                     const auto &message = std::get<0>(log);
@@ -376,6 +381,7 @@ namespace ex::gui {
                           0
                                   | ImGuiWindowFlags_NoScrollWithMouse
                                   | ImGuiWindowFlags_NoScrollbar
+                                  | reset_flag()
                           );
         {
             show_content(state, re_size);
@@ -406,6 +412,7 @@ namespace ex::gui {
         reset_layout = false;
         window_resized = true;
         view = {};
+        view.reset = true;
     }
 
     void should_exit(GLFWwindow *window) {
@@ -421,7 +428,8 @@ namespace ex::gui {
                      ImGuiWindowFlags_NoDecoration
                              | ImGuiWindowFlags_NoDocking
                              | ImGuiWindowFlags_NoBringToFrontOnFocus
-                             | menu_flag());
+                             | menu_flag()
+                             | reset_flag());
         {
             window_resized = is_window_resized();
 
@@ -440,5 +448,9 @@ namespace ex::gui {
             should_exit(window);
         }
         ImGui::End();
+
+        if (view.reset) {
+            view.reset = false;
+        }
     }
 } // namespace ex::gui
