@@ -71,7 +71,20 @@ namespace ex::gui {
 
     inline int menu_flag() { return view.show_menu ? ImGuiWindowFlags_MenuBar : 0; }
 
-    inline int reset_flag() { return view.reset ? ImGuiWindowFlags_NoSavedSettings : 0; }
+    inline int reset_flag(bool standalone = false) {
+        return view.reset ? (ImGuiWindowFlags_NoSavedSettings
+                             | (standalone ? ImGuiWindowFlags_AlwaysAutoResize : 0))
+                          : 0;
+    }
+
+    inline int dock_host_flag() {
+        return 0
+#ifndef EXM_DISABLE_EXPERIMENTAL
+               | ImGuiDockNodeFlags_NoWindowMenuButton
+               | ImGuiDockNodeFlags_NoTabBar
+#endif
+        ;
+    }
 
     inline int content_resize_flag() {
         static bool content_resize_flag_first = true;
@@ -172,20 +185,14 @@ namespace ex::gui {
         ImGui::Begin("My Window2", nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
         ImGui::Text("This window 2");
         ImGui::End();
+
+        ImGui::Begin("My Window3", nullptr, reset_flag(true) | ImGuiWindowFlags_NoCollapse);
+        ImGui::Text("This window 3");
+        ImGui::End();
     }
 
     void show_left_dock_space(ex::State &state) {
         static bool first_time = true;
-
-        ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.f, 0.f, 0.f, .0f));
-        ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.f, 0.f, 0.f, .0f));
-        ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.f, 0.f, 0.f, .0f));
-
-        ImGui::PushStyleColor(ImGuiCol_TabHovered, ImVec4(0.f, 0.f, 0.f, .0f));
-        ImGui::PushStyleColor(ImGuiCol_Tab, ImVec4(0.f, 0.f, 0.f, .0f));
-        ImGui::PushStyleColor(ImGuiCol_TabSelected, ImVec4(0.f, 0.f, 0.f, .0f));
-        ImGui::PushStyleColor(ImGuiCol_TabDimmed, ImVec4(0.f, 0.f, 0.f, .0f));
-        ImGui::PushStyleColor(ImGuiCol_TabDimmedSelected, ImVec4(0.f, 0.f, 0.f, .0f));
 
         docking.dock_left_id = ImGui::GetID("DockMainLeft");
         ImGui::DockSpace(docking.dock_left_id,
@@ -193,6 +200,7 @@ namespace ex::gui {
                          ImGuiDockNodeFlags_None
                                  | ImGuiDockNodeFlags_PassthruCentralNode
                                  | ImGuiDockNodeFlags_AutoHideTabBar
+                                 | dock_host_flag()
         );
 
         if (first_time | view.reset) {
@@ -201,7 +209,9 @@ namespace ex::gui {
             ImGui::DockBuilderAddNode(docking.dock_left_id,
                                       ImGuiDockNodeFlags_None
                                               | ImGuiDockNodeFlags_PassthruCentralNode
-                                              | ImGuiDockNodeFlags_AutoHideTabBar);
+                                              | ImGuiDockNodeFlags_AutoHideTabBar
+                                              | dock_host_flag()
+                                      );
             ImGui::DockBuilderSplitNode(docking.dock_left_id,
                                         ImGuiDir_Up,
                                         0.7f,
@@ -209,8 +219,6 @@ namespace ex::gui {
                                         &docking.dock_left_bot_id);
             ImGui::DockBuilderFinish(docking.dock_left_id);
         }
-
-        ImGui::PopStyleColor(8);
     }
 
     void show_left_pane(ex::State &state, ReSize &re_size) {
@@ -433,6 +441,8 @@ namespace ex::gui {
 
     void GUI::layout(ex::State &state) const {
         ReSize re_size = {};
+
+        ImGui::GetStyle().TabRounding = 0.0f;
 
         ImGui::Begin("main", nullptr,
                      ImGuiWindowFlags_NoDecoration
