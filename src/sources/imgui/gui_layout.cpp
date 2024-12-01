@@ -176,7 +176,7 @@ namespace ex::gui {
 
     void show_operation_tree(ex::State &state) {
         ImGuiWindowClass window_class;
-        window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoDockingSplit;// | ImGuiDockNodeFlags_NoTabBar;
+        window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoDockingSplit | ImGuiDockNodeFlags_AutoHideTabBar;// | ImGuiDockNodeFlags_NoTabBar;
 
         const auto flag_1 = view.reset ? ImGuiCond_Always : ImGuiCond_Once;
         ImGui::SetNextWindowClass(&window_class);
@@ -201,7 +201,8 @@ namespace ex::gui {
         static bool first_time = true;
 
         ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.f, 0.f, 0.f, .0f));
-        ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.f, 0.f, 0.f, .0f));
+        ImGui::PushStyleColor(ImGuiCol_TabSelected, ImVec4(0.f, 0.f, 0.f, .0));
+        ImGui::PushStyleColor(ImGuiCol_TabDimmedSelected, ImVec4(0.f, 0.f, 0.f, .0f));
 
         docking.dock_left_id = ImGui::GetID("DockMainLeft");
         ImGui::DockSpace(docking.dock_left_id,
@@ -229,7 +230,7 @@ namespace ex::gui {
             ImGui::DockBuilderFinish(docking.dock_left_id);
         }
 
-        ImGui::PopStyleColor(2);
+        ImGui::PopStyleColor(3);
     }
 
     void show_left_pane(ex::State &state, ReSize &re_size) {
@@ -244,6 +245,9 @@ namespace ex::gui {
                           reset_flag());
 
         {
+            ImGui::Text("");
+            // TODO
+            ImGui::Separator();
             show_left_dock_space(state);
         }
 
@@ -255,6 +259,12 @@ namespace ex::gui {
     }
 
     void show_right_dock_space(ex::State &state) {
+        static bool first_time = true;
+
+        ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.f, 0.f, 0.f, .0f));
+        ImGui::PushStyleColor(ImGuiCol_TabSelected, ImVec4(0.f, 0.f, 0.f, .0));
+        ImGui::PushStyleColor(ImGuiCol_TabDimmedSelected, ImVec4(0.f, 0.f, 0.f, .0f));
+
         docking.dock_right_id = ImGui::GetID("DockMainRight");
         ImGui::DockSpace(docking.dock_right_id,
                          ImVec2(0.0f, 0.0f),
@@ -262,6 +272,13 @@ namespace ex::gui {
                                  | ImGuiDockNodeFlags_PassthruCentralNode
                                  | ImGuiDockNodeFlags_AutoHideTabBar
         );
+
+        if (first_time | view.reset) {
+            first_time = false;
+            // TODO
+        }
+
+        ImGui::PopStyleColor(3);
     }
 
     void show_right_pane(ex::State &state, ReSize &re_size) {
@@ -276,6 +293,9 @@ namespace ex::gui {
                           reset_flag());
 
         {
+            ImGui::Text("");
+            // TODO
+            ImGui::Separator();
             show_right_dock_space(state);
         }
 
