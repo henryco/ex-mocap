@@ -81,7 +81,7 @@ namespace ex::gui {
         return 0
 #ifndef EXM_DISABLE_EXPERIMENTAL
                | ImGuiDockNodeFlags_NoWindowMenuButton
-               | ImGuiDockNodeFlags_NoTabBar
+               | ImGuiDockNodeFlags_DockedWindowsInFocusRoute
 #endif
         ;
     }
@@ -176,7 +176,7 @@ namespace ex::gui {
 
     void show_operation_tree(ex::State &state) {
         ImGuiWindowClass window_class;
-        window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoSplit;
+        window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoDockingSplit;// | ImGuiDockNodeFlags_NoTabBar;
 
         const auto flag_1 = view.reset ? ImGuiCond_Always : ImGuiCond_Once;
         ImGui::SetNextWindowClass(&window_class);
