@@ -4,10 +4,19 @@
 
 #include "../../headers/imgui/gui.h"
 #include "../../headers/utils/gui_utils.h"
+#include "imgui_internal.h"
 
 #include <imgui.h>
 
 namespace ex::gui {
+
+    typedef struct Docking {
+        ImGuiID dock_left_id = 0;
+        ImGuiID dock_left_top_id = 0;
+        ImGuiID dock_left_bot_id = 0;
+
+        ImGuiID dock_right_id = 0;
+    } Docking;
 
     typedef struct View {
         float pane_width_left     = 350.0f;
@@ -29,8 +38,6 @@ namespace ex::gui {
         bool expanded_logs = false;
         bool follow_logs = false;
         bool should_exit = false;
-
-        bool docked_op_tree = false;
     } View;
 
     typedef struct ReSize {
@@ -44,6 +51,8 @@ namespace ex::gui {
 
     static bool window_resized = false;
     static bool reset_layout = false;
+
+    static Docking docking = Docking{};
     static View view = View{};
 
     inline float left_offset() { return view.show_left ? (view.pane_width_left + offset_main_h) : 0; }
@@ -148,26 +157,51 @@ namespace ex::gui {
         }
     }
 
-    void show_operation_tree(ex::State &state, const ImGuiID &dock_space_id) {
-
-        if (!view.docked_op_tree) {
-            ImGui::SetNextWindowFocus();
-            view.docked_op_tree = true;
-        }
-
-        ImGui::SetNextWindowDockID(dock_space_id, ImGuiCond_Once);
-        ImGui::Begin("My Window", nullptr);
-
-        if (!ImGui::IsWindowDocked()) {
-            view.docked_op_tree = false;
-        }
+    void show_operation_tree(ex::State &state) {
+        ImGui::SetNextWindowDockID(docking.dock_left_top_id, ImGuiCond_Always);
+        ImGui::Begin("My Window", nullptr, ImGuiWindowFlags_NoCollapse);
 
         ImGui::Text("This window is docked into a specific dock space!");
         ImGui::End();
 
+        ImGui::SetNextWindowDockID(docking.dock_left_bot_id, ImGuiCond_Always);
+        ImGui::Begin("My Window2", nullptr, ImGuiWindowFlags_NoCollapse);
+        ImGui::Text("This window 2");
+        ImGui::End();
     }
 
-    void show_left_pane(ex::State &state, ReSize &re_size, const ImGuiID &dock_space_id) {
+    void show_left_dock_space(ex::State &state) {
+        static bool first_time = true;
+
+        docking.dock_left_id = ImGui::GetID("DockMainLeft");
+        ImGui::DockSpace(docking.dock_left_id,
+                         ImVec2(0.0f, 0.0f),
+                         ImGuiDockNodeFlags_None
+                                 | ImGuiDockNodeFlags_PassthruCentralNode
+                                 | ImGuiDockNodeFlags_AutoHideTabBar
+        );
+
+        if (first_time) {
+            first_time = false;
+
+            ImGui::DockBuilderRemoveNode(docking.dock_left_id); // Clear existing layout
+            ImGui::DockBuilderAddNode(docking.dock_left_id, ImGuiDockNodeFlags_None
+                                                                    | ImGuiDockNodeFlags_PassthruCentralNode
+                                                                    | ImGuiDockNodeFlags_AutoHideTabBar); // Re-add the dock node
+                                                       //                ImGui::DockBuilderSetNodeSize(docking.dock_left_id, ImGui::GetMainViewport()->Size);
+
+            // Split into left and right
+            ImGui::DockBuilderSplitNode(docking.dock_left_id, ImGuiDir_Up,
+                                        0.7f,
+                                        &docking.dock_left_top_id,
+                                        &docking.dock_left_bot_id);
+
+            // Finalize the layout without assigning windows
+            ImGui::DockBuilderFinish(docking.dock_left_id);
+        }
+    }
+
+    void show_left_pane(ex::State &state, ReSize &re_size) {
         if (!view.show_left)
             return;
         const auto old_width = view.pane_width_left;
@@ -178,12 +212,7 @@ namespace ex::gui {
                           | ImGuiChildFlags_ResizeX);
 
         {
-            ImGui::DockSpace(dock_space_id,
-                             ImVec2(0.0f, 0.0f),
-                             ImGuiDockNodeFlags_None
-                                     | ImGuiDockNodeFlags_PassthruCentralNode
-//                                     | ImGuiDockNodeFlags_AutoHideTabBar
-                             );
+            show_left_dock_space(state);
         }
 
         view.pane_width_left = ImGui::GetWindowWidth();
@@ -193,7 +222,17 @@ namespace ex::gui {
         re_size.inc_x = (!re_size.inc_x) && (old_width != view.pane_width_left);
     }
 
-    void show_right_pane(ex::State &state, ReSize &re_size, const ImGuiID &dock_space_id) {
+    void show_right_dock_space(ex::State &state) {
+        docking.dock_right_id = ImGui::GetID("DockMainRight");
+        ImGui::DockSpace(docking.dock_right_id,
+                         ImVec2(0.0f, 0.0f),
+                         ImGuiDockNodeFlags_None
+                                 | ImGuiDockNodeFlags_PassthruCentralNode
+                                 | ImGuiDockNodeFlags_AutoHideTabBar
+        );
+    }
+
+    void show_right_pane(ex::State &state, ReSize &re_size) {
         if (!view.show_right)
             return;
         const auto old_width = view.pane_width_right;
@@ -204,12 +243,7 @@ namespace ex::gui {
                           | ImGuiChildFlags_Borders);
 
         {
-            ImGui::DockSpace(dock_space_id,
-                             ImVec2(0.0f, 0.0f),
-                             ImGuiDockNodeFlags_None
-                                     | ImGuiDockNodeFlags_PassthruCentralNode
-//                                     | ImGuiDockNodeFlags_AutoHideTabBar
-                             );
+            show_right_dock_space(state);
         }
 
         view.pane_width_right = ImGui::GetWindowWidth();
@@ -383,9 +417,6 @@ namespace ex::gui {
     void GUI::layout(ex::State &state) const {
         ReSize re_size = {};
 
-        ImGuiID dock_space_id_left  = ImGui::GetID("LeftDockSpace");
-        ImGuiID dock_space_id_right = ImGui::GetID("RightDockSpace");
-
         ImGui::Begin("main", nullptr,
                      ImGuiWindowFlags_NoDecoration
                              | ImGuiWindowFlags_NoDocking
@@ -400,11 +431,11 @@ namespace ex::gui {
             view.main_free_y = ImGui::GetContentRegionAvail().y;
 
             show_menu_bar(state);
-            show_left_pane(state, re_size, dock_space_id_left);
+            show_left_pane(state, re_size);
             show_main_container(state, re_size);
-            show_right_pane(state, re_size, dock_space_id_right);
+            show_right_pane(state, re_size);
 
-            show_operation_tree(state, dock_space_id_left);
+            show_operation_tree(state);
 
             should_exit(window);
         }
