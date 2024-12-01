@@ -41,6 +41,8 @@ namespace ex::gui {
 
         bool reset = false;
         bool docking = false;
+
+        bool first_run = true;
     } View;
 
     typedef struct ReSize {
@@ -72,19 +74,19 @@ namespace ex::gui {
 
     inline int menu_flag() { return view.show_menu ? ImGuiWindowFlags_MenuBar : 0; }
 
-    inline int reset_flag(bool standalone = false) {
+    inline int reset_flag(const bool standalone = false) {
         return view.reset ? (ImGuiWindowFlags_NoSavedSettings
                              | (standalone ? ImGuiWindowFlags_AlwaysAutoResize : 0))
                           : 0;
     }
 
-    inline int dock_host_flag() {
+    int dock_host_flag() {
         return 0
-               | (view.docking ? 0 : (ImGuiDockNodeFlags_NoUndocking))
+               | ((view.docking || view.first_run) ? 0 : (ImGuiDockNodeFlags_NoUndocking))
 #ifndef EXM_DISABLE_EXPERIMENTAL
-               | (view.docking ? 0 : (ImGuiDockNodeFlags_NoDocking))
-               | ImGuiDockNodeFlags_NoWindowMenuButton
+               | ((view.docking || view.first_run) ? 0 : (ImGuiDockNodeFlags_NoDocking))
                | ImGuiDockNodeFlags_DockedWindowsInFocusRoute
+               | ImGuiDockNodeFlags_NoWindowMenuButton
 #endif
         ;
     }
@@ -145,7 +147,9 @@ namespace ex::gui {
             }
 
             if (ImGui::BeginMenu("View")) {
-                ImGui::MenuItem("Unlocked", nullptr, &view.docking);
+                if (ImGui::MenuItem("Docking", nullptr, &view.docking)) {
+                    window_resized = true;
+                }
                 ImGui::Separator();
 
                 if (ImGui::MenuItem("Sidebar Left", nullptr, &view.show_left)) {
@@ -215,6 +219,7 @@ namespace ex::gui {
         ImGui::DockSpace(docking.dock_left_id,
                          ImVec2(0.0f, 0.0f),
                          ImGuiDockNodeFlags_None
+                                 | ImGuiDockNodeFlags_NoDockingOverCentralNode
                                  | ImGuiDockNodeFlags_PassthruCentralNode
                                  | ImGuiDockNodeFlags_AutoHideTabBar
                                  | dock_host_flag()
@@ -510,6 +515,7 @@ namespace ex::gui {
         }
         ImGui::End();
 
+        view.first_run = false;
         if (view.reset) {
             view.reset = false;
         }
