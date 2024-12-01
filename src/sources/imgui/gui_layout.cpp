@@ -40,6 +40,7 @@ namespace ex::gui {
         bool should_exit = false;
 
         bool reset = false;
+        bool docking = false;
     } View;
 
     typedef struct ReSize {
@@ -79,7 +80,9 @@ namespace ex::gui {
 
     inline int dock_host_flag() {
         return 0
+               | (view.docking ? 0 : (ImGuiDockNodeFlags_NoUndocking))
 #ifndef EXM_DISABLE_EXPERIMENTAL
+               | (view.docking ? 0 : (ImGuiDockNodeFlags_NoDocking))
                | ImGuiDockNodeFlags_NoWindowMenuButton
                | ImGuiDockNodeFlags_DockedWindowsInFocusRoute
 #endif
@@ -142,6 +145,9 @@ namespace ex::gui {
             }
 
             if (ImGui::BeginMenu("View")) {
+                ImGui::MenuItem("Docking", nullptr, &view.docking);
+                ImGui::Separator();
+
                 if (ImGui::MenuItem("Sidebar Left", nullptr, &view.show_left)) {
                     window_resized = true;
                 }
@@ -156,6 +162,7 @@ namespace ex::gui {
                 }
 
                 ImGui::Separator();
+
                 if (ImGui::MenuItem("Reset layout")) {
                     reset_layout = true;
                     window_resized = true;
