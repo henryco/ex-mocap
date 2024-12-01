@@ -29,6 +29,8 @@ namespace ex::gui {
         bool expanded_logs = false;
         bool follow_logs = false;
         bool should_exit = false;
+
+        bool docked_op_tree = false;
     } View;
 
     typedef struct ReSize {
@@ -146,7 +148,26 @@ namespace ex::gui {
         }
     }
 
-    void show_left_pane(ex::State &state, ReSize &re_size) {
+    void show_operation_tree(ex::State &state, const ImGuiID &dock_space_id) {
+
+        if (!view.docked_op_tree) {
+            ImGui::SetNextWindowFocus();
+            view.docked_op_tree = true;
+        }
+
+        ImGui::SetNextWindowDockID(dock_space_id, ImGuiCond_Once);
+        ImGui::Begin("My Window", nullptr);
+
+        if (!ImGui::IsWindowDocked()) {
+            view.docked_op_tree = false;
+        }
+
+        ImGui::Text("This window is docked into a specific dock space!");
+        ImGui::End();
+
+    }
+
+    void show_left_pane(ex::State &state, ReSize &re_size, const ImGuiID &dock_space_id) {
         if (!view.show_left)
             return;
         const auto old_width = view.pane_width_left;
@@ -157,12 +178,12 @@ namespace ex::gui {
                           | ImGuiChildFlags_ResizeX);
 
         {
-            ImGuiID dock_space_id = ImGui::GetID("LeftDockSpace");
             ImGui::DockSpace(dock_space_id,
                              ImVec2(0.0f, 0.0f),
                              ImGuiDockNodeFlags_None
                                      | ImGuiDockNodeFlags_PassthruCentralNode
-                                     | ImGuiDockNodeFlags_AutoHideTabBar);
+//                                     | ImGuiDockNodeFlags_AutoHideTabBar
+                             );
         }
 
         view.pane_width_left = ImGui::GetWindowWidth();
@@ -172,7 +193,7 @@ namespace ex::gui {
         re_size.inc_x = (!re_size.inc_x) && (old_width != view.pane_width_left);
     }
 
-    void show_right_pane(ex::State &state, ReSize &re_size) {
+    void show_right_pane(ex::State &state, ReSize &re_size, const ImGuiID &dock_space_id) {
         if (!view.show_right)
             return;
         const auto old_width = view.pane_width_right;
@@ -183,12 +204,12 @@ namespace ex::gui {
                           | ImGuiChildFlags_Borders);
 
         {
-            ImGuiID dock_space_id = ImGui::GetID("RightDockSpace");
             ImGui::DockSpace(dock_space_id,
                              ImVec2(0.0f, 0.0f),
                              ImGuiDockNodeFlags_None
                                      | ImGuiDockNodeFlags_PassthruCentralNode
-                                     | ImGuiDockNodeFlags_AutoHideTabBar);
+//                                     | ImGuiDockNodeFlags_AutoHideTabBar
+                             );
         }
 
         view.pane_width_right = ImGui::GetWindowWidth();
@@ -362,7 +383,14 @@ namespace ex::gui {
     void GUI::layout(ex::State &state) const {
         ReSize re_size = {};
 
-        ImGui::Begin("main", nullptr,ImGuiWindowFlags_NoDecoration | menu_flag());
+        ImGuiID dock_space_id_left  = ImGui::GetID("LeftDockSpace");
+        ImGuiID dock_space_id_right = ImGui::GetID("RightDockSpace");
+
+        ImGui::Begin("main", nullptr,
+                     ImGuiWindowFlags_NoDecoration
+                             | ImGuiWindowFlags_NoDocking
+                             | ImGuiWindowFlags_NoBringToFrontOnFocus
+                             | menu_flag());
         {
             window_resized = is_window_resized();
 
@@ -372,9 +400,11 @@ namespace ex::gui {
             view.main_free_y = ImGui::GetContentRegionAvail().y;
 
             show_menu_bar(state);
-            show_left_pane(state, re_size);
+            show_left_pane(state, re_size, dock_space_id_left);
             show_main_container(state, re_size);
-            show_right_pane(state, re_size);
+            show_right_pane(state, re_size, dock_space_id_right);
+
+            show_operation_tree(state, dock_space_id_left);
 
             should_exit(window);
         }
