@@ -218,6 +218,7 @@ namespace ex::gui {
             ImGui::DockBuilderRemoveNode(docking.dock_left_id);
             ImGui::DockBuilderAddNode(docking.dock_left_id,
                                       ImGuiDockNodeFlags_None
+                                              | ImGuiDockNodeFlags_NoDockingOverCentralNode
                                               | ImGuiDockNodeFlags_PassthruCentralNode
                                               | ImGuiDockNodeFlags_AutoHideTabBar
                                               | dock_host_flag()
@@ -269,8 +270,10 @@ namespace ex::gui {
         ImGui::DockSpace(docking.dock_right_id,
                          ImVec2(0.0f, 0.0f),
                          ImGuiDockNodeFlags_None
+                                 | ImGuiDockNodeFlags_NoDockingOverCentralNode
                                  | ImGuiDockNodeFlags_PassthruCentralNode
                                  | ImGuiDockNodeFlags_AutoHideTabBar
+                                 | dock_host_flag()
         );
 
         if (first_time | view.reset) {
