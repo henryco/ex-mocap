@@ -2,63 +2,13 @@
 // Created by xd on 24/11/24.
 //
 
-#include "../../headers/imgui/gui.h"
+#include "../../headers/imgui/gui_layout.h"
 #include "../../headers/utils/gui_utils.h"
-#include "imgui_internal.h"
+#include "../../headers/utils/log_utils.h"
 
-#include <imgui.h>
+#include <imgui_internal.h>
 
 namespace ex::gui {
-
-    typedef struct Docking {
-        ImGuiID dock_left_id = 0;
-        ImGuiID dock_left_top_id = 0;
-        ImGuiID dock_left_bot_id = 0;
-
-        ImGuiID dock_right_id = 0;
-    } Docking;
-
-    typedef struct View {
-        float pane_width_left     = 350.0f;
-        float pane_width_right    = 350.0f;
-        float pane_height_bottom  = 200.0f;
-        float pane_height_content = 0.f;
-
-        float main_width  = 0.f;
-        float main_height = 0.f;
-        float main_free_x = 0.f;
-        float main_free_y = 0.f;
-
-        bool show_right = true;
-        bool show_left  = true;
-        bool show_logs  = true;
-        bool show_menu  = true;
-
-        bool highlight_logs = true;
-        bool expanded_logs = false;
-        bool follow_logs = false;
-        bool should_exit = false;
-
-        bool reset = false;
-        bool docking = false;
-
-        bool first_run = true;
-    } View;
-
-    typedef struct ReSize {
-        bool inc_x = false;
-        bool inc_y = false;
-    } ReSize;
-
-    static constexpr float offset_main_h = 8.f;
-    static constexpr float offset_main_v = 23.f;
-    static constexpr float offset_logs_v = 4.0f;
-
-    static bool window_resized = false;
-    static bool reset_layout = false;
-
-    static Docking docking = Docking{};
-    static View view = View{};
 
     inline float left_offset() { return view.show_left ? (view.pane_width_left + offset_main_h) : 0; }
 
@@ -90,8 +40,6 @@ namespace ex::gui {
 #endif
         ;
     }
-
-#define cond_node() (view.reset ? ImGuiCond_Always : ImGuiCond_Once)
 
     inline int content_resize_flag() {
         static bool content_resize_flag_first = true;
@@ -158,7 +106,6 @@ namespace ex::gui {
 
             if (ImGui::BeginMenu("View")) {
                 if (ImGui::MenuItem("Unpin windows", nullptr, &view.docking)) {
-                    GUI::log->debug("Unpin windows: {}", view.docking);
                     window_resized = true;
                 }
                 ImGui::Separator();
@@ -536,13 +483,7 @@ namespace ex::gui {
         view.reset = true;
     }
 
-    void should_exit(GLFWwindow *window) {
-        if (!view.should_exit)
-            return;
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-    }
-
-    void GUI::layout(ex::State &state) const {
+    bool layout::build(ex::State &state) {
         ReSize re_size = {};
 
         ImGui::GetStyle().TabRounding = 0.0f;
@@ -569,8 +510,6 @@ namespace ex::gui {
             show_work_tree(state);
             show_workspace_switcher(state);
             show_floating_window(state);
-
-            should_exit(window);
         }
         ImGui::End();
 
@@ -578,5 +517,7 @@ namespace ex::gui {
         if (view.reset) {
             view.reset = false;
         }
+
+        return view.should_exit;
     }
 } // namespace ex::gui
