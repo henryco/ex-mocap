@@ -91,9 +91,7 @@ namespace ex::gui {
         ;
     }
 
-    bool node_cond() {
-        return view.reset ? ImGuiCond_Always : ImGuiCond_Once;
-    }
+#define cond_node() view.reset ? ImGuiCond_Always : ImGuiCond_Once
 
     inline int content_resize_flag() {
         static bool content_resize_flag_first = true;
@@ -213,8 +211,7 @@ namespace ex::gui {
             return;
 
         static bool docked = false;
-
-        ImGui::SetNextWindowDockID(docking.dock_left_top_id, node_cond());
+        ImGui::SetNextWindowDockID(docking.dock_left_top_id, cond_node());
         show_docked_window("Work tree", docked || view.docking);
         docked = ex::gui::window_is_docked();
         watch = watch_parent_dock();
@@ -229,8 +226,7 @@ namespace ex::gui {
             return;
 
         static bool docked = false;
-
-        ImGui::SetNextWindowDockID(docking.dock_left_bot_id, node_cond());
+        ImGui::SetNextWindowDockID(docking.dock_left_bot_id, cond_node());
         show_docked_window("Workspace", docked || view.docking);
         docked = ex::gui::window_is_docked();
         watch = watch_parent_dock();
