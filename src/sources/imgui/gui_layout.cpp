@@ -54,6 +54,11 @@ namespace ex::gui {
         }
     }
 
+    ex::logs::logger logger() {
+        static ex::logs::logger log = ex::logs::get_logger("gui_layout");
+        return log;
+    }
+
     bool layout::build(ex::State &state) {
         static GuiState gui;
 

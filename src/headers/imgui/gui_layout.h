@@ -7,6 +7,7 @@
 
 #include "../state.h"
 #include "../utils/gui_utils.h"
+#include "../utils/log_utils.h"
 
 #include <imgui_internal.h>
 
@@ -130,6 +131,8 @@ namespace ex::gui {
         }
         return ImGuiChildFlags_ResizeY;
     }
+
+    ex::logs::logger logger();
 
     void show_menu_top_bar(ex::State &state, GuiState &gui);
 

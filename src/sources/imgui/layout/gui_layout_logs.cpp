@@ -3,7 +3,6 @@
 //
 
 #include "../../../headers/imgui/gui_layout.h"
-#include "../../../headers/utils/log_utils.h"
 
 namespace ex::gui {
 
