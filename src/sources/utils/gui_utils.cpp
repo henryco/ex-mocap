@@ -9,9 +9,20 @@
 
 namespace ex::gui {
 
+    bool window_withing_dock(const ImGuiID &id) {
+        auto node = ImGui::GetWindowDockNode();
+        while (true) {
+            if (node == nullptr)
+                return false;
+            if (node->ID == id)
+                return true;
+            node = node->ParentNode;
+        }
+    }
+
     bool window_is_docked() {
         const auto node = ImGui::GetWindowDockNode();
-        return !node ? false : node->Windows.size() > 1;
+        return node != nullptr && node->Windows.size() > 1;
     }
 
     bool is_docking_empty(const ImGuiID &id) {

@@ -91,6 +91,10 @@ namespace ex::gui {
         ;
     }
 
+    bool node_cond() {
+        return view.reset ? ImGuiCond_Always : ImGuiCond_Once;
+    }
+
     inline int content_resize_flag() {
         static bool content_resize_flag_first = true;
         if (!view.expanded_logs) {
@@ -102,6 +106,14 @@ namespace ex::gui {
             return 1;
         }
         return ImGuiChildFlags_ResizeY;
+    }
+
+    bool *watch_parent_dock() {
+        if (ex::gui::window_withing_dock(docking.dock_left_id))
+            return &view.show_left;
+        if (ex::gui::window_withing_dock(docking.dock_right_id))
+            return &view.show_right;
+        return nullptr;
     }
 
     void show_menu_bar(ex::State &state) {
@@ -196,32 +208,47 @@ namespace ex::gui {
     }
 
     void show_work_tree(ex::State &state) {
-        const auto cond = view.reset ? ImGuiCond_Always : ImGuiCond_Once;
+        static bool *watch = nullptr;
+        if (watch != nullptr && !(*watch))
+            return;
+
         static bool docked = false;
 
-        ImGui::SetNextWindowDockID(docking.dock_left_top_id, cond);
+        ImGui::SetNextWindowDockID(docking.dock_left_top_id, node_cond());
         show_docked_window("Work tree", docked || view.docking);
         docked = ex::gui::window_is_docked();
+        watch = watch_parent_dock();
+
         ImGui::Text("This window 1: %d | %d", docked, view.docking);
         ImGui::End();
     }
 
     void show_workspace_switcher(ex::State &state) {
-        const auto cond = view.reset ? ImGuiCond_Always : ImGuiCond_Once;
+        static bool *watch = nullptr;
+        if (watch != nullptr && !(*watch))
+            return;
+
         static bool docked = false;
 
-        ImGui::SetNextWindowDockID(docking.dock_left_bot_id, cond);
+        ImGui::SetNextWindowDockID(docking.dock_left_bot_id, node_cond());
         show_docked_window("Workspace", docked || view.docking);
         docked = ex::gui::window_is_docked();
+        watch = watch_parent_dock();
+
         ImGui::Text("This window 2: %d | %d", docked, view.docking);
         ImGui::End();
     }
 
     void show_floating_window(ex::State &state) {
+        static bool *watch = nullptr;
+        if (watch != nullptr && !(*watch))
+            return;
+
         static bool docked = false;
         static bool open = true;
         ImGui::Begin("My Window3", &open, reset_flag(true) | ImGuiWindowFlags_NoCollapse);
         docked = ex::gui::window_is_docked();
+        watch = watch_parent_dock();
         ImGui::Text("This window 3: %d | %d", docked, view.docking);
         ImGui::End();
     }
