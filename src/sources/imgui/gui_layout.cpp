@@ -215,7 +215,7 @@ namespace ex::gui {
         ImGui::PushStyleColor(ImGuiCol_TabSelected, ImVec4(0.f, 0.f, 0.f, .0));
         ImGui::PushStyleColor(ImGuiCol_TabDimmedSelected, ImVec4(0.f, 0.f, 0.f, .0f));
 
-        const int flags = (first_time || ex::gui::is_docking_empty(docking.dock_left_id))
+        const int flags = (ex::gui::is_docking_empty(docking.dock_left_id))
                         ? ImGuiDockNodeFlags_NoDockingSplit
                         : 0;
 
