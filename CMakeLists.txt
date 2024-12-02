@@ -110,6 +110,7 @@ set(SOURCE_FILES
         src/sources/utils/log_utils.cpp
         src/sources/utils/gui_utils.cpp
         src/sources/cl/cl_gl_interop.cpp
+        src/sources/imgui/layout/gui_layout_menu_top.cpp
 )
 
 # =================== OpenCL kernels generation =====================

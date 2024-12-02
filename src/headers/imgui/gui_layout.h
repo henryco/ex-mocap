@@ -12,10 +12,8 @@
 
 namespace ex::gui {
 
-#define cond_node() (view.reset ? ImGuiCond_Always : ImGuiCond_Once)
-
     typedef struct Docking {
-        ImGuiID dock_left_id = 0;
+        ImGuiID dock_left_id     = 0;
         ImGuiID dock_left_top_id = 0;
         ImGuiID dock_left_bot_id = 0;
 
@@ -39,11 +37,11 @@ namespace ex::gui {
         bool show_menu  = true;
 
         bool highlight_logs = true;
-        bool expanded_logs = false;
-        bool follow_logs = false;
-        bool should_exit = false;
+        bool expanded_logs  = false;
+        bool follow_logs    = false;
+        bool should_exit    = false;
 
-        bool reset = false;
+        bool reset   = false;
         bool docking = false;
 
         bool first_run = true;
@@ -54,15 +52,20 @@ namespace ex::gui {
         bool inc_y = false;
     } ReSize;
 
+    typedef struct Window {
+        bool window_resized = false;
+        bool reset_layout   = false;
+    } Window;
+
+    typedef struct GuiState {
+        Docking docking;
+        Window  window;
+        View    view;
+    } GuiState;
+
     static constexpr float offset_main_h = 8.f;
     static constexpr float offset_main_v = 23.f;
     static constexpr float offset_logs_v = 4.0f;
-
-    static bool window_resized = false;
-    static bool reset_layout = false;
-
-    static Docking docking = Docking{};
-    static View view = View{};
 
     namespace layout {
         /**
@@ -70,6 +73,8 @@ namespace ex::gui {
          */
         bool build(ex::State &state);
     }
-}
 
+    void show_menu_top_bar(ex::State &state, GuiState &gui);
+
+}
 #endif // EX_MOTION_GUI_LAYOUT_H

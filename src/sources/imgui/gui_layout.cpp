@@ -8,42 +8,44 @@
 
 #include <imgui_internal.h>
 
+#define cond_node() (gui.view.reset ? ImGuiCond_Always : ImGuiCond_Once)
+
 namespace ex::gui {
 
-    inline float left_offset() { return view.show_left ? (view.pane_width_left + offset_main_h) : 0; }
+    inline float left_offset(GuiState &gui) { return gui.view.show_left ? (gui.view.pane_width_left + offset_main_h) : 0; }
 
-    inline float right_offset() { return view.show_right ? (view.pane_width_right + offset_main_h) : 0; }
+    inline float right_offset(GuiState &gui) { return gui.view.show_right ? (gui.view.pane_width_right + offset_main_h) : 0; }
 
-    inline float bottom_offset() { return view.show_logs ? (offset_main_v) : 0; }
+    inline float bottom_offset(GuiState &gui) { return gui.view.show_logs ? (offset_main_v) : 0; }
 
-    inline float logs_expanded_offset() { return view.expanded_logs ? (view.pane_height_bottom + offset_logs_v) : 0; }
+    inline float logs_expanded_offset(GuiState &gui) { return gui.view.expanded_logs ? (gui.view.pane_height_bottom + offset_logs_v) : 0; }
 
-    inline ImVec2 main_size() { return { view.main_free_x - left_offset() - right_offset(), 0 }; }
+    inline ImVec2 main_size(GuiState &gui) { return { gui.view.main_free_x - left_offset(gui) - right_offset(gui), 0 }; }
 
-    inline ImVec2 content_size() { return { 0, view.main_free_y - bottom_offset() - logs_expanded_offset()}; }
+    inline ImVec2 content_size(GuiState &gui) { return { 0, gui.view.main_free_y - bottom_offset(gui) - logs_expanded_offset(gui)}; }
 
-    inline int menu_flag() { return view.show_menu ? ImGuiWindowFlags_MenuBar : 0; }
+    inline int menu_flag(GuiState &gui) { return gui.view.show_menu ? ImGuiWindowFlags_MenuBar : 0; }
 
-    inline int reset_flag(const bool standalone = false) {
-        return view.reset ? (ImGuiWindowFlags_NoSavedSettings
+    inline int reset_flag(GuiState &gui, const bool standalone = false) {
+        return gui.view.reset ? (ImGuiWindowFlags_NoSavedSettings
                              | (standalone ? ImGuiWindowFlags_AlwaysAutoResize : 0))
                           : 0;
     }
 
-    int dock_host_flag() {
+    int dock_host_flag(GuiState &gui) {
         return 0
-               | ((view.docking || view.first_run) ? 0 : ImGuiDockNodeFlags_NoUndocking)
+               | ((gui.view.docking || gui.view.first_run) ? 0 : ImGuiDockNodeFlags_NoUndocking)
 #ifndef EXM_DISABLE_EXPERIMENTAL
-               | ((!view.docking && !view.first_run) ? ImGuiDockNodeFlags_NoWindowMenuButton : 0)
-               | ((view.docking || view.first_run) ? 0 : ImGuiDockNodeFlags_NoDocking)
+               | ((!gui.view.docking && !gui.view.first_run) ? ImGuiDockNodeFlags_NoWindowMenuButton : 0)
+               | ((gui.view.docking || gui.view.first_run) ? 0 : ImGuiDockNodeFlags_NoDocking)
                | ImGuiDockNodeFlags_DockedWindowsInFocusRoute
 #endif
         ;
     }
 
-    inline int content_resize_flag() {
+    int content_resize_flag(GuiState &gui) {
         static bool content_resize_flag_first = true;
-        if (!view.expanded_logs) {
+        if (!gui.view.expanded_logs) {
             content_resize_flag_first = true;
             return 1;
         }
@@ -54,129 +56,48 @@ namespace ex::gui {
         return ImGuiChildFlags_ResizeY;
     }
 
-    bool *watch_parent_dock() {
-        if (ex::gui::window_withing_dock(docking.dock_left_id))
-            return &view.show_left;
-        if (ex::gui::window_withing_dock(docking.dock_right_id))
-            return &view.show_right;
+    bool *watch_parent_dock(GuiState &gui) {
+        if (ex::gui::window_withing_dock(gui.docking.dock_left_id))
+            return &gui.view.show_left;
+        if (ex::gui::window_withing_dock(gui.docking.dock_right_id))
+            return &gui.view.show_right;
         return nullptr;
     }
 
-    void show_menu_bar(ex::State &state) {
-        if (!view.show_menu)
-            return;
-
-        if (ImGui::BeginMenuBar()) {
-            if (ImGui::BeginMenu("File")) {
-                if (ImGui::MenuItem("New")) {
-                    // TODO
-                }
-                if (ImGui::MenuItem("Open")) {
-                    // TODO
-                }
-                if (ImGui::MenuItem("Save")) {
-                    // TODO
-                }
-                ImGui::Separator();
-                if (ImGui::MenuItem("Exit")) {
-                    view.should_exit = true;
-                }
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("Edit")) {
-                if (ImGui::MenuItem("Undo", "Ctrl+Z")) {
-                    // TODO
-                }
-                if (ImGui::MenuItem("Redo", "Ctrl+Y", false, false)) {
-                    // TODO
-                }
-                ImGui::Separator();
-                if (ImGui::MenuItem("Cut", "Ctrl+X")) {
-                    // TODO
-                }
-                if (ImGui::MenuItem("Copy", "Ctrl+C")) {
-                    // TODO
-                }
-                if (ImGui::MenuItem("Paste", "Ctrl+V")) {
-                    // TODO
-                }
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("View")) {
-                if (ImGui::MenuItem("Unpin windows", nullptr, &view.docking)) {
-                    window_resized = true;
-                }
-                ImGui::Separator();
-
-                if (ImGui::MenuItem("Sidebar Left", nullptr, &view.show_left)) {
-                    window_resized = true;
-                }
-
-                if (ImGui::MenuItem("Sidebar Right", nullptr, &view.show_right)) {
-                    window_resized = true;
-                }
-
-                if(ImGui::MenuItem("Logs", nullptr, &view.show_logs)) {
-                    view.expanded_logs = view.show_logs;
-                    window_resized = true;
-                }
-
-                ImGui::Separator();
-
-                if (ImGui::MenuItem("Reset layout")) {
-                    reset_layout = true;
-                    window_resized = true;
-                }
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("Help")) {
-                if (ImGui::MenuItem("About")) {
-                    // TODO
-                }
-                ImGui::EndMenu();
-            }
-
-            ImGui::EndMenuBar();
-        }
-    }
-
-    void show_work_tree(ex::State &state) {
+    void show_work_tree(ex::State &state, GuiState &gui) {
         static bool *watch = nullptr;
         if (watch != nullptr && !(*watch))
             return;
 
         static bool docked = false;
 
-        ex::gui::next_auto_hide(docked || view.docking);
-        ImGui::SetNextWindowDockID(docking.dock_left_top_id, cond_node());
-        ImGui::Begin("Work tree", nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
+        ex::gui::next_auto_hide(docked || gui.view.docking);
+        ImGui::SetNextWindowDockID(gui.docking.dock_left_top_id, cond_node());
+        ImGui::Begin("Work tree", nullptr, reset_flag(gui) | ImGuiWindowFlags_NoCollapse);
         docked = ex::gui::window_is_multi_docked();
-        watch = watch_parent_dock();
+        watch = watch_parent_dock(gui);
 
-        ImGui::Text("This window 1: %d | %d", docked, view.docking);
+        ImGui::Text("This window 1: %d | %d", docked, gui.view.docking);
         ImGui::End();
     }
 
-    void show_workspace_switcher(ex::State &state) {
+    void show_workspace_switcher(ex::State &state, GuiState &gui) {
         static bool *watch = nullptr;
         if (watch != nullptr && !(*watch))
             return;
 
         static bool docked = false;
-        ex::gui::next_auto_hide(docked || view.docking);
-        ImGui::SetNextWindowDockID(docking.dock_left_bot_id, cond_node());
-        ImGui::Begin("Workspace", nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
+        ex::gui::next_auto_hide(docked || gui.view.docking);
+        ImGui::SetNextWindowDockID(gui.docking.dock_left_bot_id, cond_node());
+        ImGui::Begin("Workspace", nullptr, reset_flag(gui) | ImGuiWindowFlags_NoCollapse);
         docked = ex::gui::window_is_multi_docked();
-        watch = watch_parent_dock();
+        watch = watch_parent_dock(gui);
 
-        ImGui::Text("This window 2: %d | %d", docked, view.docking);
+        ImGui::Text("This window 2: %d | %d", docked, gui.view.docking);
         ImGui::End();
     }
 
-    void show_floating_window(ex::State &state) {
+    void show_floating_window(ex::State &state, GuiState &gui) {
 
         static bool docked = false;
         static bool show = true;
@@ -188,111 +109,111 @@ namespace ex::gui {
         if (watch != nullptr && !(*watch))
             return;
 
-        bool *ptr = (!docked || view.docking) ? &show : nullptr;
+        bool *ptr = (!docked || gui.view.docking) ? &show : nullptr;
 
         ex::gui::next_no_close();
-        ImGui::Begin("My Window3", ptr, reset_flag(true) | ImGuiWindowFlags_NoCollapse);
+        ImGui::Begin("My Window3", ptr, reset_flag(gui, true) | ImGuiWindowFlags_NoCollapse);
         docked = ex::gui::window_is_docked();
-        watch = watch_parent_dock();
-        ImGui::Text("This window 3: %d | %d", docked, view.docking);
+        watch = watch_parent_dock(gui);
+        ImGui::Text("This window 3: %d | %d", docked, gui.view.docking);
         ImGui::End();
     }
 
-    void show_left_dock_space(ex::State &state) {
+    void show_left_dock_space(ex::State &state, GuiState &gui) {
         static bool first_time = true;
 
         ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.f, 0.f, 0.f, .0f));
         ImGui::PushStyleColor(ImGuiCol_TabSelected, ImVec4(0.f, 0.f, 0.f, .0));
         ImGui::PushStyleColor(ImGuiCol_TabDimmedSelected, ImVec4(0.f, 0.f, 0.f, .0f));
 
-        const int flags = (ex::gui::is_docking_empty(docking.dock_left_id))
+        const int flags = (ex::gui::is_docking_empty(gui.docking.dock_left_id))
                         ? ImGuiDockNodeFlags_NoDockingSplit
                         : 0;
 
         const int aux_flags = ImGuiDockNodeFlags_PassthruCentralNode
-                              | dock_host_flag();
+                              | dock_host_flag(gui);
 
-        docking.dock_left_id = ImGui::GetID("DockMainLeft");
-        ImGui::DockSpace(docking.dock_left_id,
+        gui.docking.dock_left_id = ImGui::GetID("DockMainLeft");
+        ImGui::DockSpace(gui.docking.dock_left_id,
                          ImVec2(0.0f, 0.0f),
                          ImGuiDockNodeFlags_None
                                  | aux_flags
                                  | flags
         );
 
-        if (first_time || view.reset) {
+        if (first_time || gui.view.reset) {
             first_time = false;
-            ImGui::DockBuilderRemoveNode(docking.dock_left_id);
-            ImGui::DockBuilderAddNode(docking.dock_left_id,
+            ImGui::DockBuilderRemoveNode(gui.docking.dock_left_id);
+            ImGui::DockBuilderAddNode(gui.docking.dock_left_id,
                                       ImGuiDockNodeFlags_None
                                       | aux_flags
                                       );
-            ImGui::DockBuilderSplitNode(docking.dock_left_id,
+            ImGui::DockBuilderSplitNode(gui.docking.dock_left_id,
                                         ImGuiDir_Up,
                                         0.7f,
-                                        &docking.dock_left_top_id,
-                                        &docking.dock_left_bot_id);
+                                        &gui.docking.dock_left_top_id,
+                                        &gui.docking.dock_left_bot_id);
 
-            if (const auto node_1 = ImGui::DockBuilderGetNode(docking.dock_left_top_id))
+            if (const auto node_1 = ImGui::DockBuilderGetNode(gui.docking.dock_left_top_id))
                 node_1->SetLocalFlags(aux_flags);
 
-            if (const auto node_2 = ImGui::DockBuilderGetNode(docking.dock_left_bot_id))
+            if (const auto node_2 = ImGui::DockBuilderGetNode(gui.docking.dock_left_bot_id))
                 node_2->SetLocalFlags(aux_flags);
 
-            ImGui::DockBuilderFinish(docking.dock_left_id);
+            ImGui::DockBuilderFinish(gui.docking.dock_left_id);
         }
 
         ImGui::PopStyleColor(3);
     }
 
-    void show_left_pane(ex::State &state, ReSize &re_size) {
-        if (!view.show_left)
+    void show_left_pane(ex::State &state, ReSize &re_size, GuiState &gui) {
+        if (!gui.view.show_left)
             return;
-        const auto old_width = view.pane_width_left;
+        const auto old_width = gui.view.pane_width_left;
         ImGui::BeginChild("LeftPane",
-                          ImVec2(view.pane_width_left, 0),
+                          ImVec2(gui.view.pane_width_left, 0),
                           0
                           | ImGuiChildFlags_Borders
                           | ImGuiChildFlags_ResizeX,
-                          reset_flag());
+                          reset_flag(gui));
 
         {
-            ImGui::Text("%d", ex::gui::is_docking_empty(docking.dock_left_id));
+            ImGui::Text("%d", ex::gui::is_docking_empty(gui.docking.dock_left_id));
             // TODO
             ImGui::Separator();
-            show_left_dock_space(state);
+            show_left_dock_space(state, gui);
         }
 
-        view.pane_width_left = ImGui::GetWindowWidth();
+        gui.view.pane_width_left = ImGui::GetWindowWidth();
         ImGui::EndChild();
         ImGui::SameLine();
 
-        re_size.inc_x = (!re_size.inc_x) && (old_width != view.pane_width_left);
+        re_size.inc_x = (!re_size.inc_x) && (old_width != gui.view.pane_width_left);
     }
 
-    void show_right_dock_space(ex::State &state) {
+    void show_right_dock_space(ex::State &state, GuiState &gui) {
         static bool first_time = true;
 
         ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.f, 0.f, 0.f, .0f));
         ImGui::PushStyleColor(ImGuiCol_TabSelected, ImVec4(0.f, 0.f, 0.f, .0));
         ImGui::PushStyleColor(ImGuiCol_TabDimmedSelected, ImVec4(0.f, 0.f, 0.f, .0f));
 
-        const int flags = (first_time || ex::gui::is_docking_empty(docking.dock_right_id))
+        const int flags = (first_time || ex::gui::is_docking_empty(gui.docking.dock_right_id))
                 ? ImGuiDockNodeFlags_NoDockingSplit
                 : 0;
 
         const int aux_flags = ImGuiDockNodeFlags_PassthruCentralNode
-                | dock_host_flag();
+                | dock_host_flag(gui);
 
-        docking.dock_right_id = ImGui::GetID("DockMainRight");
-        ImGui::DockSpace(docking.dock_right_id,
+        gui.docking.dock_right_id = ImGui::GetID("DockMainRight");
+        ImGui::DockSpace(gui.docking.dock_right_id,
                          ImVec2(0.0f, 0.0f),
                          ImGuiDockNodeFlags_None
                                  | aux_flags
                                  | flags
         );
 
-        if (first_time || view.reset) {
+        if (first_time || gui.view.reset) {
             first_time = false;
             // TODO
         }
@@ -300,40 +221,40 @@ namespace ex::gui {
         ImGui::PopStyleColor(3);
     }
 
-    void show_right_pane(ex::State &state, ReSize &re_size) {
-        if (!view.show_right)
+    void show_right_pane(ex::State &state, ReSize &re_size, GuiState &gui) {
+        if (!gui.view.show_right)
             return;
-        const auto old_width = view.pane_width_right;
+        const auto old_width = gui.view.pane_width_right;
         ImGui::SameLine();
         ImGui::BeginChild("RightPane",
-                          ImVec2((re_size.inc_x || window_resized) ? 0 : view.pane_width_right, 0),
+                          ImVec2((re_size.inc_x || gui.window.window_resized) ? 0 : gui.view.pane_width_right, 0),
                           0
                           | ImGuiChildFlags_Borders,
-                          reset_flag());
+                          reset_flag(gui));
 
         {
-            ImGui::Text("%d", ex::gui::is_docking_empty(docking.dock_right_id));
+            ImGui::Text("%d", ex::gui::is_docking_empty(gui.docking.dock_right_id));
             // TODO
             ImGui::Separator();
-            show_right_dock_space(state);
+            show_right_dock_space(state, gui);
         }
 
-        view.pane_width_right = ImGui::GetWindowWidth();
+        gui.view.pane_width_right = ImGui::GetWindowWidth();
         ImGui::EndChild();
 
-        re_size.inc_x = (!re_size.inc_x) && (old_width != view.pane_width_right);
+        re_size.inc_x = (!re_size.inc_x) && (old_width != gui.view.pane_width_right);
     }
 
-    void show_content(ex::State &state, ReSize &re_size) {
-        const auto old_height = view.pane_height_content;
+    void show_content(ex::State &state, ReSize &re_size, GuiState &gui) {
+        const auto old_height = gui.view.pane_height_content;
 
         ImGui::BeginChild("ContentBox",
-                          content_size(),
+                          content_size(gui),
                           0
                                   | ImGuiChildFlags_Borders
-                                  | content_resize_flag()
-                                  | ((re_size.inc_y || window_resized) ? ImGuiChildFlags_AutoResizeY : 0),
-                          reset_flag()
+                                  | content_resize_flag(gui)
+                                  | ((re_size.inc_y || gui.window.window_resized) ? ImGuiChildFlags_AutoResizeY : 0),
+                          reset_flag(gui)
                           );
         if (ImGui::BeginTabBar("MainTabs")) {
             if (ImGui::BeginTabItem("Tab 1")) {
@@ -347,33 +268,33 @@ namespace ex::gui {
             }
             ImGui::EndTabBar();
         }
-        view.pane_height_content = ImGui::GetWindowHeight();
+        gui.view.pane_height_content = ImGui::GetWindowHeight();
         ImGui::EndChild();
 
-        re_size.inc_y = (!re_size.inc_y) && (old_height != view.pane_height_content);
+        re_size.inc_y = (!re_size.inc_y) && (old_height != gui.view.pane_height_content);
     }
 
-    void show_logs_pane(ex::State &state, ReSize &re_size) {
-        if (!view.show_logs)
+    void show_logs_pane(ex::State &state, ReSize &re_size, GuiState &gui) {
+        if (!gui.view.show_logs)
             return;
-        const auto old_height = view.pane_height_bottom;
-        const auto old_expanded = view.expanded_logs;
+        const auto old_height = gui.view.pane_height_bottom;
+        const auto old_expanded = gui.view.expanded_logs;
 
-        view.expanded_logs = ImGui::CollapsingHeader(ICON_LC_LOGS " Log Output ", &view.show_logs);
-        if (!view.show_logs) {
-            view.expanded_logs = false;
-            window_resized = true;
+        gui.view.expanded_logs = ImGui::CollapsingHeader(ICON_LC_LOGS " Log Output ", &gui.view.show_logs);
+        if (!gui.view.show_logs) {
+            gui.view.expanded_logs = false;
+            gui.window.window_resized = true;
         }
 
-        if (view.expanded_logs) {
+        if (gui.view.expanded_logs) {
             ImGui::BeginChild("LogControlsPane",
-                ImVec2(24, 0), 0, ImGuiWindowFlags_NoDecoration | reset_flag());
+                ImVec2(24, 0), 0, ImGuiWindowFlags_NoDecoration | reset_flag(gui));
             {
-                view.highlight_logs = !ex::gui::toggle_button(ICON_LC_LIGHTBULB_OFF, !view.highlight_logs);
+                gui.view.highlight_logs = !ex::gui::toggle_button(ICON_LC_LIGHTBULB_OFF, !gui.view.highlight_logs);
                 ex::gui::plain_tooltip("Disable highlighting for warnings and errors");
                 ImGui::Spacing();
 
-                view.follow_logs = ex::gui::toggle_button(ICON_LC_LIST_END, view.follow_logs);
+                gui.view.follow_logs = ex::gui::toggle_button(ICON_LC_LIST_END, gui.view.follow_logs);
                 ex::gui::plain_tooltip("Follow logs");
                 ImGui::Spacing();
 
@@ -396,17 +317,17 @@ namespace ex::gui {
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
             ImGui::BeginChild("BottomPane",
-                              ImVec2(0, (re_size.inc_y || window_resized) ? 0 : view.pane_height_bottom),
+                              ImVec2(0, (re_size.inc_y || gui.window.window_resized) ? 0 : gui.view.pane_height_bottom),
                               0
-                              | ImGuiChildFlags_Borders, reset_flag());
+                              | ImGuiChildFlags_Borders, reset_flag(gui));
 
-            ImGui::BeginChild("LogPane", ImVec2(0, 0), ImGuiChildFlags_FrameStyle, reset_flag());
+            ImGui::BeginChild("LogPane", ImVec2(0, 0), ImGuiChildFlags_FrameStyle, reset_flag(gui));
             {
                 for (const auto &log : ex::logs::get_all_logs_ext()) {
                     const auto &message = std::get<0>(log);
                     const auto &level = std::get<1>(log);
 
-                    if (view.highlight_logs) {
+                    if (gui.view.highlight_logs) {
                         if (level == spdlog::level::warn) {
                             ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 140, 40, 255));
                             ImGui::TextWrapped("%s", message.c_str());
@@ -423,45 +344,45 @@ namespace ex::gui {
 
                     ImGui::TextWrapped("%s", message.c_str());
                 }
-                if (view.follow_logs || !old_expanded) {
+                if (gui.view.follow_logs || !old_expanded) {
                     ImGui::SetScrollY(ImGui::GetScrollMaxY());
                 }
             }
             ImGui::EndChild();
 
-            view.pane_height_bottom = ImGui::GetWindowHeight();
+            gui.view.pane_height_bottom = ImGui::GetWindowHeight();
             ImGui::EndChild();
             ImGui::PopStyleVar();
         }
-        re_size.inc_y = (!re_size.inc_y) && (old_height != view.pane_height_bottom);
+        re_size.inc_y = (!re_size.inc_y) && (old_height != gui.view.pane_height_bottom);
     }
 
-    void show_main_container(ex::State &state, ReSize &re_size) {
-        const auto old_width = view.main_width;
-        const auto old_height = view.main_height;
+    void show_main_container(ex::State &state, ReSize &re_size, GuiState &gui) {
+        const auto old_width = gui.view.main_width;
+        const auto old_height = gui.view.main_height;
 
         ImGui::BeginChild("MainContainer",
-                          main_size(),
+                          main_size(gui),
                           0
-                                  | (view.show_right ? ImGuiChildFlags_ResizeX : 0)
-                                  | ((re_size.inc_x || window_resized) ? ImGuiChildFlags_AutoResizeX : 0)
+                                  | (gui.view.show_right ? ImGuiChildFlags_ResizeX : 0)
+                                  | ((re_size.inc_x || gui.window.window_resized) ? ImGuiChildFlags_AutoResizeX : 0)
                                   ,
                           0
                                   | ImGuiWindowFlags_NoScrollWithMouse
                                   | ImGuiWindowFlags_NoScrollbar
-                                  | reset_flag()
+                                  | reset_flag(gui)
                           );
         {
-            show_content(state, re_size);
-            show_logs_pane(state, re_size);
+            show_content(state, re_size, gui);
+            show_logs_pane(state, re_size, gui);
         }
 
-        view.main_width = ImGui::GetWindowWidth();
-        view.main_height = ImGui::GetWindowHeight();
+        gui.view.main_width = ImGui::GetWindowWidth();
+        gui.view.main_height = ImGui::GetWindowHeight();
         ImGui::EndChild();
 
-        re_size.inc_x = (!re_size.inc_x) && (old_width != view.main_width);
-        re_size.inc_y = (!re_size.inc_y) && (old_height != view.main_height);
+        re_size.inc_x = (!re_size.inc_x) && (old_width != gui.view.main_width);
+        re_size.inc_y = (!re_size.inc_y) && (old_height != gui.view.main_height);
     }
 
     bool is_window_resized() {
@@ -474,16 +395,18 @@ namespace ex::gui {
         return false;
     }
 
-    void check_for_reset() {
-        if (!reset_layout)
+    void check_for_reset(GuiState &gui) {
+        if (!gui.window.reset_layout)
             return;
-        reset_layout = false;
-        window_resized = true;
-        view = {};
-        view.reset = true;
+        gui.window.reset_layout = false;
+        gui.window.window_resized = true;
+        gui.view = {};
+        gui.view.reset = true;
     }
 
     bool layout::build(ex::State &state) {
+        static GuiState gui;
+
         ReSize re_size = {};
 
         ImGui::GetStyle().TabRounding = 0.0f;
@@ -492,32 +415,32 @@ namespace ex::gui {
                      ImGuiWindowFlags_NoDecoration
                              | ImGuiWindowFlags_NoDocking
                              | ImGuiWindowFlags_NoBringToFrontOnFocus
-                             | menu_flag()
-                             | reset_flag());
+                             | menu_flag(gui)
+                             | reset_flag(gui));
         {
-            window_resized = is_window_resized();
+            gui.window.window_resized = is_window_resized();
 
-            check_for_reset();
+            check_for_reset(gui);
 
-            view.main_free_x = ImGui::GetContentRegionAvail().x;
-            view.main_free_y = ImGui::GetContentRegionAvail().y;
+            gui.view.main_free_x = ImGui::GetContentRegionAvail().x;
+            gui.view.main_free_y = ImGui::GetContentRegionAvail().y;
 
-            show_menu_bar(state);
-            show_left_pane(state, re_size);
-            show_main_container(state, re_size);
-            show_right_pane(state, re_size);
+            show_menu_top_bar(state, gui);
+            show_left_pane(state, re_size, gui);
+            show_main_container(state, re_size, gui);
+            show_right_pane(state, re_size, gui);
 
-            show_work_tree(state);
-            show_workspace_switcher(state);
-            show_floating_window(state);
+            show_work_tree(state, gui);
+            show_workspace_switcher(state, gui);
+            show_floating_window(state, gui);
         }
         ImGui::End();
 
-        view.first_run = false;
-        if (view.reset) {
-            view.reset = false;
+        gui.view.first_run = false;
+        if (gui.view.reset) {
+            gui.view.reset = false;
         }
 
-        return view.should_exit;
+        return gui.view.should_exit;
     }
 } // namespace ex::gui
