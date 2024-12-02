@@ -82,10 +82,10 @@ namespace ex::gui {
 
     int dock_host_flag() {
         return 0
-               | ((view.docking || view.first_run) ? 0 : (ImGuiDockNodeFlags_NoUndocking))
+               | ((view.docking || view.first_run) ? 0 : ImGuiDockNodeFlags_NoUndocking)
 #ifndef EXM_DISABLE_EXPERIMENTAL
-               | ((view.docking || view.first_run) ? 0 : (ImGuiDockNodeFlags_NoDocking))
-               | (!view.docking ? ImGuiDockNodeFlags_NoWindowMenuButton : 0)
+               | ((!view.docking && !view.first_run) ? ImGuiDockNodeFlags_NoWindowMenuButton : 0)
+               | ((view.docking || view.first_run) ? 0 : ImGuiDockNodeFlags_NoDocking)
                | ImGuiDockNodeFlags_DockedWindowsInFocusRoute
 #endif
         ;
