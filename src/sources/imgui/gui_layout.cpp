@@ -195,27 +195,33 @@ namespace ex::gui {
         ImGui::Begin(name.c_str(), nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
     }
 
-    void show_operation_tree(ex::State &state) {
+    void show_work_tree(ex::State &state) {
         const auto cond = view.reset ? ImGuiCond_Always : ImGuiCond_Once;
-        static bool docked_1 = false;
-        static bool docked_2 = false;
-        static bool docked_3 = false;
+        static bool docked = false;
 
         ImGui::SetNextWindowDockID(docking.dock_left_top_id, cond);
-        show_docked_window("My Window1", docked_1 || view.docking);
-        docked_1 = ex::gui::window_is_docked();
-        ImGui::Text("This window 1: %d | %d", docked_1, view.docking);
+        show_docked_window("Work tree", docked || view.docking);
+        docked = ex::gui::window_is_docked();
+        ImGui::Text("This window 1: %d | %d", docked, view.docking);
         ImGui::End();
+    }
+
+    void show_workspace_switcher(ex::State &state) {
+        const auto cond = view.reset ? ImGuiCond_Always : ImGuiCond_Once;
+        static bool docked = false;
 
         ImGui::SetNextWindowDockID(docking.dock_left_bot_id, cond);
-        show_docked_window("My Window2", docked_2 || view.docking);
-        docked_2 = ex::gui::window_is_docked();
-        ImGui::Text("This window 2: %d | %d", docked_2, view.docking);
+        show_docked_window("Workspace", docked || view.docking);
+        docked = ex::gui::window_is_docked();
+        ImGui::Text("This window 2: %d | %d", docked, view.docking);
         ImGui::End();
+    }
 
+    void show_floating_window(ex::State &state) {
+        static bool docked = false;
         ImGui::Begin("My Window3", nullptr, reset_flag(true) | ImGuiWindowFlags_NoCollapse);
-        docked_3 = ex::gui::window_is_docked();
-        ImGui::Text("This window 3: %d | %d", docked_3, view.docking);
+        docked = ex::gui::window_is_docked();
+        ImGui::Text("This window 3: %d | %d", docked, view.docking);
         ImGui::End();
     }
 
@@ -535,7 +541,9 @@ namespace ex::gui {
             show_main_container(state, re_size);
             show_right_pane(state, re_size);
 
-            show_operation_tree(state);
+            show_work_tree(state);
+            show_workspace_switcher(state);
+            show_floating_window(state);
 
             should_exit(window);
         }
