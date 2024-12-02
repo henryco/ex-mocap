@@ -9,7 +9,8 @@ namespace ex::gui {
     void workspace_tree(ex::State &state, GuiState &gui) {
         ImGui::BeginChild(
                 "WorkSpaceTree",
-                ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - 14));
+                ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - 10),
+                0);
         // TODO
         ImGui::Text("test");
         ImGui::EndChild();
@@ -43,7 +44,7 @@ namespace ex::gui {
 
         ImGui::BeginChild("WorkSpaceBox", ImVec2(0, 0), 0, ImGuiWindowFlags_NoDecoration);
         workspace_tree(state, gui);
-        ImGui::Separator();
+//        ImGui::Separator();
         ImGui::Spacing();
         ImGui::Spacing();
         workspace_buttons(state, gui);
