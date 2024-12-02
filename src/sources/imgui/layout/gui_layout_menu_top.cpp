@@ -23,7 +23,7 @@ namespace ex::gui {
                 }
                 ImGui::Separator();
                 if (ImGui::MenuItem("Exit")) {
-                    gui.view.should_exit = true;
+                    gui.window.exit = true;
                 }
                 ImGui::EndMenu();
             }
@@ -50,28 +50,28 @@ namespace ex::gui {
 
             if (ImGui::BeginMenu("View")) {
                 if (ImGui::MenuItem("Unpin windows", nullptr, &gui.view.docking)) {
-                    gui.window.window_resized = true;
+                    gui.window.resized = true;
                 }
                 ImGui::Separator();
 
                 if (ImGui::MenuItem("Sidebar Left", nullptr, &gui.view.show_left)) {
-                    gui.window.window_resized = true;
+                    gui.window.resized = true;
                 }
 
                 if (ImGui::MenuItem("Sidebar Right", nullptr, &gui.view.show_right)) {
-                    gui.window.window_resized = true;
+                    gui.window.resized = true;
                 }
 
                 if(ImGui::MenuItem("Logs", nullptr, &gui.view.show_logs)) {
                     gui.view.expanded_logs = gui.view.show_logs;
-                    gui.window.window_resized = true;
+                    gui.window.resized     = true;
                 }
 
                 ImGui::Separator();
 
                 if (ImGui::MenuItem("Reset layout")) {
-                    gui.window.reset_layout = true;
-                    gui.window.window_resized = true;
+                    gui.window.reset        = true;
+                    gui.window.resized      = true;
                 }
                 ImGui::EndMenu();
             }

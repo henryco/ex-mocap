@@ -42,7 +42,6 @@ namespace ex::gui {
         bool highlight_logs = true;
         bool expanded_logs  = false;
         bool follow_logs    = false;
-        bool should_exit    = false;
 
         bool reset   = false;
         bool docking = false;
@@ -56,8 +55,9 @@ namespace ex::gui {
     } ReSize;
 
     typedef struct Window {
-        bool window_resized = false;
-        bool reset_layout   = false;
+        bool resized = false;
+        bool reset   = false;
+        bool exit    = false;
     } Window;
 
     typedef struct GuiState {

@@ -42,7 +42,7 @@ namespace ex::gui {
         const auto old_width = gui.view.pane_width_right;
         ImGui::SameLine();
         ImGui::BeginChild("RightPane",
-                          ImVec2((re_size.inc_x || gui.window.window_resized) ? 0 : gui.view.pane_width_right, 0),
+                          ImVec2((re_size.inc_x || gui.window.resized) ? 0 : gui.view.pane_width_right, 0),
                           0
                                   | ImGuiChildFlags_Borders,
                           reset_flag(gui));

@@ -14,7 +14,7 @@ namespace ex::gui {
                           0
                                   | ImGuiChildFlags_Borders
                                   | content_resize_flag(gui)
-                                  | ((re_size.inc_y || gui.window.window_resized) ? ImGuiChildFlags_AutoResizeY : 0),
+                                  | ((re_size.inc_y || gui.window.resized) ? ImGuiChildFlags_AutoResizeY : 0),
                           reset_flag(gui)
         );
         if (ImGui::BeginTabBar("MainTabs")) {
@@ -43,7 +43,7 @@ namespace ex::gui {
                           main_size(gui),
                           0
                                   | (gui.view.show_right ? ImGuiChildFlags_ResizeX : 0)
-                                  | ((re_size.inc_x || gui.window.window_resized) ? ImGuiChildFlags_AutoResizeX : 0)
+                                  | ((re_size.inc_x || gui.window.resized) ? ImGuiChildFlags_AutoResizeX : 0)
                                   ,
                           0
                                   | ImGuiWindowFlags_NoScrollWithMouse

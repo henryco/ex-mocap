@@ -16,7 +16,7 @@ namespace ex::gui {
         gui.view.expanded_logs = ImGui::CollapsingHeader(ICON_LC_LOGS " Log Output ", &gui.view.show_logs);
         if (!gui.view.show_logs) {
             gui.view.expanded_logs = false;
-            gui.window.window_resized = true;
+            gui.window.resized     = true;
         }
 
         if (gui.view.expanded_logs) {
@@ -50,7 +50,7 @@ namespace ex::gui {
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
             ImGui::BeginChild("BottomPane",
-                              ImVec2(0, (re_size.inc_y || gui.window.window_resized) ? 0 : gui.view.pane_height_bottom),
+                              ImVec2(0, (re_size.inc_y || gui.window.resized) ? 0 : gui.view.pane_height_bottom),
                               0
                                       | ImGuiChildFlags_Borders, reset_flag(gui));
 

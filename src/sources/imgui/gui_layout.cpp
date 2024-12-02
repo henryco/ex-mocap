@@ -39,10 +39,10 @@ namespace ex::gui {
     }
 
     void check_for_reset(GuiState &gui) {
-        if (!gui.window.reset_layout)
+        if (!gui.window.reset)
             return;
-        gui.window.reset_layout = false;
-        gui.window.window_resized = true;
+        gui.window.reset        = false;
+        gui.window.resized      = true;
         gui.view = {};
         gui.view.reset = true;
     }
@@ -68,7 +68,7 @@ namespace ex::gui {
                              | menu_flag(gui)
                              | reset_flag(gui));
         {
-            gui.window.window_resized = is_window_resized();
+            gui.window.resized = is_window_resized();
 
             check_for_reset(gui);
 
@@ -88,6 +88,6 @@ namespace ex::gui {
 
         cleanup(gui);
 
-        return gui.view.should_exit;
+        return gui.window.exit;
     }
 } // namespace ex::gui
