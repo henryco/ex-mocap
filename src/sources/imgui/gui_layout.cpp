@@ -91,7 +91,7 @@ namespace ex::gui {
         ;
     }
 
-#define cond_node() view.reset ? ImGuiCond_Always : ImGuiCond_Once
+#define cond_node() (view.reset ? ImGuiCond_Always : ImGuiCond_Once)
 
     inline int content_resize_flag() {
         static bool content_resize_flag_first = true;
