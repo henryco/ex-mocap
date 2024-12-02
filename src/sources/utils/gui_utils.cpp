@@ -9,6 +9,14 @@
 
 namespace ex::gui {
 
+    void next_auto_hide(bool header) {
+        ImGuiWindowClass window_class;
+        window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_AutoHideTabBar;
+        if (!header)
+            window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_NoTabBar;
+        ImGui::SetNextWindowClass(&window_class);
+    }
+
     bool window_withing_dock(const ImGuiID &id) {
         auto node = ImGui::GetWindowDockNode();
         while (true) {

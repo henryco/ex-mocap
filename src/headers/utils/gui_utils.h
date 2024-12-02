@@ -9,6 +9,8 @@
 
 namespace ex::gui {
 
+    void next_auto_hide(bool header);
+
     bool window_withing_dock(const ImGuiID &id);
 
     bool window_is_docked();

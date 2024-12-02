@@ -195,24 +195,16 @@ namespace ex::gui {
         }
     }
 
-    void show_docked_window(const std::string &name, const bool tab_bar) {
-        ImGuiWindowClass window_class;
-        window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_None;
-        if (!tab_bar)
-            window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_NoTabBar;
-
-        ImGui::SetNextWindowClass(&window_class);
-        ImGui::Begin(name.c_str(), nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
-    }
-
     void show_work_tree(ex::State &state) {
         static bool *watch = nullptr;
         if (watch != nullptr && !(*watch))
             return;
 
         static bool docked = false;
+
         ImGui::SetNextWindowDockID(docking.dock_left_top_id, cond_node());
-        show_docked_window("Work tree", docked || view.docking);
+        ex::gui::next_auto_hide(docked || view.docking);
+        ImGui::Begin("Work tree", nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
         docked = ex::gui::window_is_docked();
         watch = watch_parent_dock();
 
@@ -227,7 +219,8 @@ namespace ex::gui {
 
         static bool docked = false;
         ImGui::SetNextWindowDockID(docking.dock_left_bot_id, cond_node());
-        show_docked_window("Workspace", docked || view.docking);
+        ex::gui::next_auto_hide(docked || view.docking);
+        ImGui::Begin("Workspace", nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
         docked = ex::gui::window_is_docked();
         watch = watch_parent_dock();
 
@@ -261,8 +254,7 @@ namespace ex::gui {
                         : 0;
 
         const int aux_flags = ImGuiDockNodeFlags_PassthruCentralNode
-                                 | ImGuiDockNodeFlags_AutoHideTabBar
-                                 | dock_host_flag();
+                              | dock_host_flag();
 
         docking.dock_left_id = ImGui::GetID("DockMainLeft");
         ImGui::DockSpace(docking.dock_left_id,
