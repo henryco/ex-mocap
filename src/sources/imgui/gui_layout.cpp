@@ -190,10 +190,10 @@ namespace ex::gui {
         window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_AutoHideTabBar;// | ImGuiDockNodeFlags_NoTabBar;
 
         const auto flag_1 = view.reset ? ImGuiCond_Always : ImGuiCond_Once;
-//        ImGui::SetNextWindowClass(&window_class);
+        ImGui::SetNextWindowClass(&window_class);
         ImGui::SetNextWindowDockID(docking.dock_left_top_id, flag_1);
         ImGui::Begin("My Window", nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
-        ImGui::Text("This window is docked into a specific dock space!");
+        ImGui::Text("This window 1: %d", ex::gui::window_is_docked());
         ImGui::End();
 
         ImGui::SetNextWindowClass(&window_class);
