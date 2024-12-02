@@ -187,10 +187,10 @@ namespace ex::gui {
 
     void show_operation_tree(ex::State &state) {
         ImGuiWindowClass window_class;
-        window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoDockingSplit | ImGuiDockNodeFlags_AutoHideTabBar;// | ImGuiDockNodeFlags_NoTabBar;
+        window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_AutoHideTabBar;// | ImGuiDockNodeFlags_NoTabBar;
 
         const auto flag_1 = view.reset ? ImGuiCond_Always : ImGuiCond_Once;
-        ImGui::SetNextWindowClass(&window_class);
+//        ImGui::SetNextWindowClass(&window_class);
         ImGui::SetNextWindowDockID(docking.dock_left_top_id, flag_1);
         ImGui::Begin("My Window", nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
         ImGui::Text("This window is docked into a specific dock space!");
@@ -215,14 +215,18 @@ namespace ex::gui {
         ImGui::PushStyleColor(ImGuiCol_TabSelected, ImVec4(0.f, 0.f, 0.f, .0));
         ImGui::PushStyleColor(ImGuiCol_TabDimmedSelected, ImVec4(0.f, 0.f, 0.f, .0f));
 
+        const int flags = (first_time || ex::gui::is_docking_empty(docking.dock_left_id))
+                        ? ImGuiDockNodeFlags_NoDockingSplit
+                        : 0;
+
         docking.dock_left_id = ImGui::GetID("DockMainLeft");
         ImGui::DockSpace(docking.dock_left_id,
                          ImVec2(0.0f, 0.0f),
                          ImGuiDockNodeFlags_None
-                                 | ImGuiDockNodeFlags_NoDockingOverCentralNode
                                  | ImGuiDockNodeFlags_PassthruCentralNode
                                  | ImGuiDockNodeFlags_AutoHideTabBar
                                  | dock_host_flag()
+                                 | flags
         );
 
         if (first_time || view.reset) {
@@ -230,10 +234,10 @@ namespace ex::gui {
             ImGui::DockBuilderRemoveNode(docking.dock_left_id);
             ImGui::DockBuilderAddNode(docking.dock_left_id,
                                       ImGuiDockNodeFlags_None
-                                              | ImGuiDockNodeFlags_NoDockingOverCentralNode
                                               | ImGuiDockNodeFlags_PassthruCentralNode
                                               | ImGuiDockNodeFlags_AutoHideTabBar
                                               | dock_host_flag()
+                                              | flags
                                       );
             ImGui::DockBuilderSplitNode(docking.dock_left_id,
                                         ImGuiDir_Up,
@@ -278,14 +282,18 @@ namespace ex::gui {
         ImGui::PushStyleColor(ImGuiCol_TabSelected, ImVec4(0.f, 0.f, 0.f, .0));
         ImGui::PushStyleColor(ImGuiCol_TabDimmedSelected, ImVec4(0.f, 0.f, 0.f, .0f));
 
+        const int flags = (first_time || ex::gui::is_docking_empty(docking.dock_right_id))
+                ? ImGuiDockNodeFlags_NoDockingSplit
+                : 0;
+
         docking.dock_right_id = ImGui::GetID("DockMainRight");
         ImGui::DockSpace(docking.dock_right_id,
                          ImVec2(0.0f, 0.0f),
                          ImGuiDockNodeFlags_None
-                                 | ImGuiDockNodeFlags_NoDockingOverCentralNode
                                  | ImGuiDockNodeFlags_PassthruCentralNode
                                  | ImGuiDockNodeFlags_AutoHideTabBar
                                  | dock_host_flag()
+                                 | flags
         );
 
         if (first_time || view.reset) {
@@ -308,7 +316,7 @@ namespace ex::gui {
                           reset_flag());
 
         {
-            ImGui::Text("");
+            ImGui::Text("%d", ex::gui::is_docking_empty(docking.dock_right_id));
             // TODO
             ImGui::Separator();
             show_right_dock_space(state);
