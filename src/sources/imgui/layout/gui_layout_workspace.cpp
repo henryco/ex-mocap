@@ -18,7 +18,29 @@ namespace ex::gui {
         docked = ex::gui::window_is_multi_docked();
         watch = watch_parent_dock(gui);
 
-        ImGui::Text("This window 2: %d | %d", docked, gui.view.docking);
+        ImGui::BeginChild("WorkSpaceBox", ImVec2(0, 0), 0, ImGuiWindowFlags_NoDecoration);
+
+        // TODO REMOVE
+        ImGui::Dummy(ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - 14));
+        // TODO REMOVE
+
+        ImGui::Separator();
+        ImGui::Spacing();
+        ImGui::Spacing();
+        {
+            if (ex::gui::toggle_button(ICON_LC_PLUS)) {
+                // TODO
+            }
+            ex::gui::plain_tooltip("Add workspace");
+            ImGui::SameLine(0, 10);
+            if (ex::gui::toggle_button(ICON_LC_MINUS)) {
+                // TODO
+            }
+            ex::gui::plain_tooltip("Remove workspace");
+        }
+
+        ImGui::EndChild();
+
         ImGui::End();
     }
 
