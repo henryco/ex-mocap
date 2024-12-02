@@ -237,7 +237,6 @@ namespace ex::gui {
                                               | ImGuiDockNodeFlags_PassthruCentralNode
                                               | ImGuiDockNodeFlags_AutoHideTabBar
                                               | dock_host_flag()
-                                              | flags
                                       );
             ImGui::DockBuilderSplitNode(docking.dock_left_id,
                                         ImGuiDir_Up,
