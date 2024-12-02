@@ -157,7 +157,7 @@ namespace ex::gui {
             }
 
             if (ImGui::BeginMenu("View")) {
-                if (ImGui::MenuItem("Docking", nullptr, &view.docking)) {
+                if (ImGui::MenuItem("Unpin windows", nullptr, &view.docking)) {
                     window_resized = true;
                 }
                 ImGui::Separator();
