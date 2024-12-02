@@ -197,19 +197,25 @@ namespace ex::gui {
 
     void show_operation_tree(ex::State &state) {
         const auto cond = view.reset ? ImGuiCond_Always : ImGuiCond_Once;
+        static bool docked_1 = false;
+        static bool docked_2 = false;
+        static bool docked_3 = false;
 
         ImGui::SetNextWindowDockID(docking.dock_left_top_id, cond);
-        ImGui::Begin("My Window", nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
-        ImGui::Text("This window 1: %d", ex::gui::window_is_docked());
+        show_docked_window("My Window1", docked_1 || view.docking);
+        docked_1 = ex::gui::window_is_docked();
+        ImGui::Text("This window 1: %d | %d", docked_1, view.docking);
         ImGui::End();
 
         ImGui::SetNextWindowDockID(docking.dock_left_bot_id, cond);
-        ImGui::Begin("My Window2", nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
-        ImGui::Text("This window 2: %d", ex::gui::window_is_docked());
+        show_docked_window("My Window2", docked_2 || view.docking);
+        docked_2 = ex::gui::window_is_docked();
+        ImGui::Text("This window 2: %d | %d", docked_2, view.docking);
         ImGui::End();
 
         ImGui::Begin("My Window3", nullptr, reset_flag(true) | ImGuiWindowFlags_NoCollapse);
-        ImGui::Text("This window 3: %d", ex::gui::window_is_docked());
+        docked_3 = ex::gui::window_is_docked();
+        ImGui::Text("This window 3: %d | %d", docked_3, view.docking);
         ImGui::End();
     }
 
