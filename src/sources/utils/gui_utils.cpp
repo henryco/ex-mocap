@@ -9,9 +9,16 @@
 
 namespace ex::gui {
 
+    void next_no_close() {
+        ImGuiWindowClass window_class;
+        window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoCloseButton;
+        ImGui::SetNextWindowClass(&window_class);
+    }
+
     void next_auto_hide(bool header) {
         ImGuiWindowClass window_class;
-        window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_AutoHideTabBar;
+        window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_None  | ImGuiDockNodeFlags_AutoHideTabBar;
+        window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_NoCloseButton;
         if (!header)
             window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_NoTabBar;
         ImGui::SetNextWindowClass(&window_class);

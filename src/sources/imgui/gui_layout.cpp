@@ -235,6 +235,8 @@ namespace ex::gui {
 
         static bool docked = false;
         static bool open = true;
+
+        ex::gui::next_no_close();
         ImGui::Begin("My Window3", &open, reset_flag(true) | ImGuiWindowFlags_NoCollapse);
         docked = ex::gui::window_is_docked();
         watch = watch_parent_dock();
