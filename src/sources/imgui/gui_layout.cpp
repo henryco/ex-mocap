@@ -229,14 +229,18 @@ namespace ex::gui {
     }
 
     void show_floating_window(ex::State &state) {
+
+        static bool docked = false;
+        static bool show = true;
+
+        if (!show)
+            return;
+
         static bool *watch = nullptr;
         if (watch != nullptr && !(*watch))
             return;
 
-        static bool docked = false;
-        static bool open = true;
-
-        auto ptr = (!docked || view.docking) ? &docked : nullptr;
+        bool *ptr = (!docked || view.docking) ? &show : nullptr;
 
         ex::gui::next_no_close();
         ImGui::Begin("My Window3", ptr, reset_flag(true) | ImGuiWindowFlags_NoCollapse);
