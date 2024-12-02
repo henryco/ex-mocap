@@ -202,8 +202,8 @@ namespace ex::gui {
 
         static bool docked = false;
 
-        ImGui::SetNextWindowDockID(docking.dock_left_top_id, cond_node());
         ex::gui::next_auto_hide(docked || view.docking);
+        ImGui::SetNextWindowDockID(docking.dock_left_top_id, cond_node());
         ImGui::Begin("Work tree", nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
         docked = ex::gui::window_is_docked();
         watch = watch_parent_dock();
@@ -218,8 +218,8 @@ namespace ex::gui {
             return;
 
         static bool docked = false;
-        ImGui::SetNextWindowDockID(docking.dock_left_bot_id, cond_node());
         ex::gui::next_auto_hide(docked || view.docking);
+        ImGui::SetNextWindowDockID(docking.dock_left_bot_id, cond_node());
         ImGui::Begin("Workspace", nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
         docked = ex::gui::window_is_docked();
         watch = watch_parent_dock();
