@@ -185,9 +185,19 @@ namespace ex::gui {
         }
     }
 
+    void show_docked_window(const std::string &name, const bool tab_bar) {
+        ImGuiWindowClass window_class;
+        window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_None;
+        if (!tab_bar)
+            window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_NoTabBar;
+
+        ImGui::SetNextWindowClass(&window_class);
+        ImGui::Begin(name.c_str(), nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
+    }
+
     void show_operation_tree(ex::State &state) {
         ImGuiWindowClass window_class;
-        window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_AutoHideTabBar;// | ImGuiDockNodeFlags_NoTabBar;
+        window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_None;
 
         const auto flag_1 = view.reset ? ImGuiCond_Always : ImGuiCond_Once;
         ImGui::SetNextWindowClass(&window_class);
@@ -219,13 +229,15 @@ namespace ex::gui {
                         ? ImGuiDockNodeFlags_NoDockingSplit
                         : 0;
 
+        const int aux_flags = ImGuiDockNodeFlags_PassthruCentralNode
+                                 | ImGuiDockNodeFlags_AutoHideTabBar
+                                 | dock_host_flag();
+
         docking.dock_left_id = ImGui::GetID("DockMainLeft");
         ImGui::DockSpace(docking.dock_left_id,
                          ImVec2(0.0f, 0.0f),
                          ImGuiDockNodeFlags_None
-                                 | ImGuiDockNodeFlags_PassthruCentralNode
-                                 | ImGuiDockNodeFlags_AutoHideTabBar
-                                 | dock_host_flag()
+                                 | aux_flags
                                  | flags
         );
 
@@ -234,15 +246,20 @@ namespace ex::gui {
             ImGui::DockBuilderRemoveNode(docking.dock_left_id);
             ImGui::DockBuilderAddNode(docking.dock_left_id,
                                       ImGuiDockNodeFlags_None
-                                              | ImGuiDockNodeFlags_PassthruCentralNode
-                                              | ImGuiDockNodeFlags_AutoHideTabBar
-                                              | dock_host_flag()
+                                      | aux_flags
                                       );
             ImGui::DockBuilderSplitNode(docking.dock_left_id,
                                         ImGuiDir_Up,
                                         0.7f,
                                         &docking.dock_left_top_id,
                                         &docking.dock_left_bot_id);
+
+            if (const auto node_1 = ImGui::DockBuilderGetNode(docking.dock_left_top_id))
+                node_1->SetLocalFlags(aux_flags);
+
+            if (const auto node_2 = ImGui::DockBuilderGetNode(docking.dock_left_bot_id))
+                node_2->SetLocalFlags(aux_flags);
+
             ImGui::DockBuilderFinish(docking.dock_left_id);
         }
 
@@ -285,13 +302,14 @@ namespace ex::gui {
                 ? ImGuiDockNodeFlags_NoDockingSplit
                 : 0;
 
+        const int aux_flags = ImGuiDockNodeFlags_PassthruCentralNode
+                | dock_host_flag();
+
         docking.dock_right_id = ImGui::GetID("DockMainRight");
         ImGui::DockSpace(docking.dock_right_id,
                          ImVec2(0.0f, 0.0f),
                          ImGuiDockNodeFlags_None
-                                 | ImGuiDockNodeFlags_PassthruCentralNode
-                                 | ImGuiDockNodeFlags_AutoHideTabBar
-                                 | dock_host_flag()
+                                 | aux_flags
                                  | flags
         );
 
