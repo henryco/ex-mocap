@@ -85,8 +85,8 @@ namespace ex::gui {
                | ((view.docking || view.first_run) ? 0 : (ImGuiDockNodeFlags_NoUndocking))
 #ifndef EXM_DISABLE_EXPERIMENTAL
                | ((view.docking || view.first_run) ? 0 : (ImGuiDockNodeFlags_NoDocking))
+               | (!view.docking ? ImGuiDockNodeFlags_NoWindowMenuButton : 0)
                | ImGuiDockNodeFlags_DockedWindowsInFocusRoute
-               | ImGuiDockNodeFlags_NoWindowMenuButton
 #endif
         ;
     }
