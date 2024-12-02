@@ -36,6 +36,10 @@ namespace ex::gui {
     }
 
     bool window_is_docked() {
+        return ImGui::GetWindowDockID() != 0;
+    }
+
+    bool window_is_multi_docked() {
         const auto node = ImGui::GetWindowDockNode();
         return node != nullptr && node->Windows.size() > 1;
     }

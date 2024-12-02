@@ -15,6 +15,8 @@ namespace ex::gui {
 
     bool window_withing_dock(const ImGuiID &id);
 
+    bool window_is_multi_docked();
+
     bool window_is_docked();
 
     bool is_docking_empty(const ImGuiID &id);

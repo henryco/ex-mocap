@@ -205,7 +205,7 @@ namespace ex::gui {
         ex::gui::next_auto_hide(docked || view.docking);
         ImGui::SetNextWindowDockID(docking.dock_left_top_id, cond_node());
         ImGui::Begin("Work tree", nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
-        docked = ex::gui::window_is_docked();
+        docked = ex::gui::window_is_multi_docked();
         watch = watch_parent_dock();
 
         ImGui::Text("This window 1: %d | %d", docked, view.docking);
@@ -221,7 +221,7 @@ namespace ex::gui {
         ex::gui::next_auto_hide(docked || view.docking);
         ImGui::SetNextWindowDockID(docking.dock_left_bot_id, cond_node());
         ImGui::Begin("Workspace", nullptr, reset_flag() | ImGuiWindowFlags_NoCollapse);
-        docked = ex::gui::window_is_docked();
+        docked = ex::gui::window_is_multi_docked();
         watch = watch_parent_dock();
 
         ImGui::Text("This window 2: %d | %d", docked, view.docking);
@@ -236,8 +236,10 @@ namespace ex::gui {
         static bool docked = false;
         static bool open = true;
 
+        auto ptr = (!docked || view.docking) ? &docked : nullptr;
+
         ex::gui::next_no_close();
-        ImGui::Begin("My Window3", &open, reset_flag(true) | ImGuiWindowFlags_NoCollapse);
+        ImGui::Begin("My Window3", ptr, reset_flag(true) | ImGuiWindowFlags_NoCollapse);
         docked = ex::gui::window_is_docked();
         watch = watch_parent_dock();
         ImGui::Text("This window 3: %d | %d", docked, view.docking);
