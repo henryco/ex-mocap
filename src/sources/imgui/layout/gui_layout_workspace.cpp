@@ -6,6 +6,29 @@
 
 namespace ex::gui {
 
+    void workspace_tree(ex::State &state, GuiState &gui) {
+        ImGui::BeginChild(
+                "WorkSpaceTree",
+                ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - 14));
+        // TODO
+        ImGui::Text("test");
+        ImGui::EndChild();
+    }
+
+    void workspace_buttons(ex::State &state, GuiState &gui) {
+        if (ex::gui::toggle_button(ICON_LC_PLUS)) {
+            logger()->debug("Add workspace");
+            // TODO
+        }
+        ex::gui::plain_tooltip("Add workspace");
+        ImGui::SameLine(0, 10);
+        if (ex::gui::toggle_button(ICON_LC_MINUS)) {
+            logger()->debug("Remove workspace");
+            // TODO
+        }
+        ex::gui::plain_tooltip("Remove workspace");
+    }
+
     void show_workspace_switcher(ex::State &state, GuiState &gui) {
         static bool *watch = nullptr;
         if (watch != nullptr && !(*watch))
@@ -19,26 +42,11 @@ namespace ex::gui {
         watch = watch_parent_dock(gui);
 
         ImGui::BeginChild("WorkSpaceBox", ImVec2(0, 0), 0, ImGuiWindowFlags_NoDecoration);
-
-        // TODO REMOVE
-        ImGui::Dummy(ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - 14));
-        // TODO REMOVE
-
+        workspace_tree(state, gui);
         ImGui::Separator();
         ImGui::Spacing();
         ImGui::Spacing();
-        {
-            if (ex::gui::toggle_button(ICON_LC_PLUS)) {
-                // TODO
-            }
-            ex::gui::plain_tooltip("Add workspace");
-            ImGui::SameLine(0, 10);
-            if (ex::gui::toggle_button(ICON_LC_MINUS)) {
-                // TODO
-            }
-            ex::gui::plain_tooltip("Remove workspace");
-        }
-
+        workspace_buttons(state, gui);
         ImGui::EndChild();
 
         ImGui::End();
