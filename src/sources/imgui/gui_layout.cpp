@@ -219,7 +219,8 @@ namespace ex::gui {
 
     void show_floating_window(ex::State &state) {
         static bool docked = false;
-        ImGui::Begin("My Window3", nullptr, reset_flag(true) | ImGuiWindowFlags_NoCollapse);
+        static bool open = true;
+        ImGui::Begin("My Window3", &open, reset_flag(true) | ImGuiWindowFlags_NoCollapse);
         docked = ex::gui::window_is_docked();
         ImGui::Text("This window 3: %d | %d", docked, view.docking);
         ImGui::End();
