@@ -9,7 +9,7 @@ namespace ex::gui {
     void end_pin_button(ex::State &state, GuiState &gui) {
         const auto icon = gui.view.docking ? ICON_LC_PIN_OFF : ICON_LC_PIN;
         ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(icon).x
-                - ImGui::GetStyle().FramePadding.x * 2 - ImGui::GetStyle().ItemSpacing.x);
+                - ImGui::GetStyle().FramePadding.x * 3 - ImGui::GetStyle().ItemSpacing.x * 1);
         if (ex::gui::plain_button(icon)) {
             gui.view.docking = !gui.view.docking;
             gui.window.resized = true;
