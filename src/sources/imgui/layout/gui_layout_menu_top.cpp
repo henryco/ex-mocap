@@ -6,6 +6,18 @@
 
 namespace ex::gui {
 
+    void end_pin_button(ex::State &state, GuiState &gui) {
+        const auto icon = gui.view.docking ? ICON_LC_PIN_OFF : ICON_LC_PIN;
+        ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(icon).x
+                - ImGui::GetStyle().FramePadding.x * 2 - ImGui::GetStyle().ItemSpacing.x);
+        if (ex::gui::plain_button(icon)) {
+            gui.view.docking = !gui.view.docking;
+            gui.window.resized = true;
+            logger()->debug("unpin windows: {}", gui.view.docking);
+        }
+        ex::gui::plain_tooltip("Unpin windows");
+    }
+
     void show_menu_top_bar(ex::State &state, GuiState &gui) {
         if (!gui.view.show_menu)
             return;
@@ -83,6 +95,8 @@ namespace ex::gui {
                 }
                 ImGui::EndMenu();
             }
+
+            end_pin_button(state, gui);
 
             ImGui::EndMenuBar();
         }
