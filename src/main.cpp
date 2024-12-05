@@ -3,8 +3,19 @@
 #include <filesystem>
 
 #include "headers/boot.h"
+#include "headers/nodes/test_nodes.h"
 
 int main(const int argc, char **argv) {
+
+    ex::test::Node1 one;
+    ex::test::Node2 two;
+
+    const auto a = one.pull<int>(1, 0);
+    one.check<int, 2>();
+
+    std::cout << "a: " << a << '\n';
+
+    return 1;
 
     argparse::ArgumentParser program("exmotion", "0.0.1");
     program.add_description(R"desc(
