@@ -90,6 +90,7 @@ set(HEADER_FILES
         src/headers/utils/log_utils.h
         src/headers/utils/gui_utils.h
         src/headers/cl/cl_gl_interop.h
+        src/headers/nodes/nodes.h
 )
 
 set(SOURCE_FILES
