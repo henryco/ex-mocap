@@ -11,8 +11,8 @@ namespace ex::nodes {
     class Node {
     public:
         template <typename T>
-        T pull(int index) {
-            return static_cast<N*>(this)->out(static_cast<T*>(nullptr), index);
+        T pull(int index, int clock_i) {
+            return static_cast<N*>(this)->out(static_cast<T*>(nullptr), index, clock_i);
         }
     };
 
@@ -21,7 +21,7 @@ namespace ex::nodes {
     public:
         virtual ~Output() = default;
 
-        virtual O out(O *null_ptr, int index) = 0;
+        virtual O out(O *null_ptr, int index, int clock_i) = 0;
     };
 
     template<typename I>
