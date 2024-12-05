@@ -2,10 +2,10 @@
 // Created by xd on 05/12/24.
 //
 
-#include "nodes.h"
-
 #ifndef EX_MOTION_TEST_NODES_H
 #define EX_MOTION_TEST_NODES_H
+
+#include "nodes.h"
 
 namespace ex::test {
 
@@ -14,7 +14,9 @@ namespace ex::test {
 
         public nodes::Out<int, 0, 1, 2>,
         public nodes::Out<float, 3, 4>,
-        public nodes::Out<short, 5, 6>
+        public nodes::Out<short, 5, 6>,
+
+        public nodes::In<short, 7, 8>
     {
     public:
         short out(short *null_ptr, int index, int clock_i) override {
@@ -27,6 +29,14 @@ namespace ex::test {
 
         int out(int *null_ptr, int index, int clock_i) override {
             return 3;
+        }
+
+        void attach(Output<short> *output_ptr, int index) override {
+
+        }
+
+        void detach(Output<short> *output_ptr, int index) override {
+
         }
     };
 

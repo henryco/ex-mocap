@@ -11,9 +11,18 @@ int main(const int argc, char **argv) {
     ex::test::Node2 two;
 
     const auto a = one.pull<int>(1, 0);
-    one.check<int, 2>();
+    const auto b = one.has_output<int, 4>();
+    const auto c = one.has_output<int>(2);
+    const auto d = one.has_input<short>(2);
+    const auto e = one.has_input<short>(7);
+    const auto f = one.has_input<short, 7>();
 
     std::cout << "a: " << a << '\n';
+    std::cout << "b: " << b << '\n';
+    std::cout << "c: " << c << '\n';
+    std::cout << "d: " << d << '\n';
+    std::cout << "e: " << e << '\n';
+    std::cout << "f: " << f << '\n';
 
     return 1;
 

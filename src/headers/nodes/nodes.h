@@ -25,28 +25,51 @@ namespace ex::nodes {
         virtual void detach(Output<I> *output_ptr, int index) = 0;
     };
 
-
-    template<typename T>
     class Indexer {
     public:
         virtual ~Indexer() = default;
 
-        virtual bool has_index(int idx) const = 0;
+        virtual std::vector<int> indexes() const = 0;
+
+        virtual bool has(int idx) const = 0;
+    };
+
+    template<typename T>
+    class InIndexer : public Indexer {
+    public:
+        ~InIndexer() override = default;
+    };
+
+    template<typename T>
+    class OutIndexer : public Indexer {
+    public:
+        ~OutIndexer() override = default;
     };
 
     template<typename I, int... Indexes>
-    class In : public Input<I> {
+    class In : public Input<I>, public InIndexer<I> {
     public:
-        virtual ~In() = default;
+        ~In() override = default;
 
+        constexpr std::vector<int> indexes() const override {
+            return {Indexes...};
+        }
+
+        constexpr bool has(int idx) const override {
+            return ((idx == Indexes) || ...);
+        }
     };
 
     template<typename O, int... Indexes>
-    class Out : public Output<O>, public Indexer<O> {
+    class Out : public Output<O>, public OutIndexer<O> {
     public:
-        virtual ~Out() = default;
+        ~Out() override = default;
 
-        constexpr bool has_index(int idx) const override {
+        constexpr std::vector<int> indexes() const override {
+            return {Indexes...};
+        }
+
+        constexpr bool has(int idx) const override {
             return ((idx == Indexes) || ...);
         }
     };
@@ -60,11 +83,23 @@ namespace ex::nodes {
         }
 
         template<typename T, int idx>
-        constexpr void check() {
-//            static_cast<Indexer<T> *>(static_cast<N *>(this))->has(idx);
-//            static_assert((static_cast<Indexer<T> *>(static_cast<N *>(this))->has(idx)), "NOPE");
+        constexpr bool has_output() {
+            return static_cast<OutIndexer<T> *>(static_cast<N *>(this))->has(idx);
+        }
 
-//            static_cast<Indexer<T> *>(static_cast<N *>(this))->has(idx);
+        template<typename T>
+        constexpr bool has_output(const int idx) {
+            return static_cast<OutIndexer<T> *>(static_cast<N *>(this))->has(idx);
+        }
+
+        template<typename T, int idx>
+        constexpr bool has_input() {
+            return static_cast<InIndexer<T> *>(static_cast<N *>(this))->has(idx);
+        }
+
+        template<typename T>
+        constexpr bool has_input(const int idx) {
+            return static_cast<InIndexer<T> *>(static_cast<N *>(this))->has(idx);
         }
     };
 
