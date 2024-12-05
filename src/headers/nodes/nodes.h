@@ -34,6 +34,21 @@ namespace ex::nodes {
         virtual void detach(Output<I> *output_ptr, int index) = 0;
     };
 
+    template<typename I, int... Indexes>
+    class In : public Input<I> {
+    public:
+        virtual ~In() = default;
+
+
+    };
+
+    template<typename O, int... Indexes>
+    class Out : public Output<O> {
+    public:
+        virtual ~Out() = default;
+
+
+    };
 }
 
 #endif // EX_MOTION_NODES_H
