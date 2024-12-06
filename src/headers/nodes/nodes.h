@@ -63,11 +63,11 @@ namespace ex::nodes {
 
         bool add_node(Output<I> *output_ptr) {
             return this-> attach(output_ptr, N);
-        };
+        }
 
         bool remove_node(Output<I> *output_ptr) {
             return this-> detach(output_ptr, N);
-        };
+        }
 
         template<int i>
         bool add_output(NodeOut<I, i> *output_ptr) {
