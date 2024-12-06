@@ -5,15 +5,24 @@
 #ifndef EX_MOTION_NODES_H
 #define EX_MOTION_NODES_H
 
-#include <typeindex>
 #include <typeinfo>
 
 namespace ex::nodes {
 
     template <typename T>
-    std::type_index get_type_index() {
-        return std::type_index(typeid(T));
+    const char *get_type_name() {
+        return typeid(T).name();
     }
+
+//    template <typename T>
+//    class TypedNode {
+//    public:
+//        virtual ~TypedNode() = default;
+//
+//         void test() {
+//            std::cout << "TypedNode test" << get_type_name<T>() << '\n';
+//        }
+//    };
 
     template<int N>
     class IndexedNode {
@@ -63,7 +72,7 @@ namespace ex::nodes {
     };
 
     template<typename O, int N>
-    class NodeOut : public virtual Output<O>, public virtual IndexedNode<N> {
+    class NodeOut : public virtual Output<O>, public IndexedNode<N> {
     public:
         ~NodeOut() override = default;
 
@@ -73,7 +82,7 @@ namespace ex::nodes {
     };
 
     template<typename I, int N>
-    class NodeIn : public virtual Input<I>, public virtual IndexedNode<N> {
+    class NodeIn : public virtual Input<I>, public IndexedNode<N> {
     public:
         ~NodeIn() override = default;
 
@@ -184,7 +193,11 @@ namespace ex::nodes {
 
         template<int input_index, int output_index>
         bool attach_node(IndexedNode<output_index> *out_node) {
+            std::cout << "test" << '\n';
+
             // TODO
+//            static_cast<N *>(this) -> test();
+
             return true;
         }
 
