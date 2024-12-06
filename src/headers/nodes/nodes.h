@@ -39,6 +39,8 @@ namespace ex::nodes {
         virtual bool attach(Output<I> *output_ptr, int output_index, int input_index) = 0;
 
         virtual bool detach(Output<I> *output_ptr, int output_index, int input_index) = 0;
+
+        virtual bool detach_all(int input_index) = 0;
     };
 
     template<typename T>
@@ -84,6 +86,10 @@ namespace ex::nodes {
         template<int i>
         bool remove_output(NodeOut<I, i> *output_ptr) {
             return this-> detach(output_ptr, i, N);
+        }
+
+        bool remove_all() {
+            return this -> detach_all(N);
         }
     };
 
@@ -164,9 +170,19 @@ namespace ex::nodes {
             return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->add_node(out_ptr, output_index);
         }
 
+        template<typename T, int input_index, int output_index>
+        bool attach_node(NodeOut<T, output_index> *out_ptr) {
+            return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->add_output(out_ptr);
+        }
+
         template<typename T, int input_index>
         bool detach_node(Output<T> *out_ptr, const int output_index) {
             return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->remove_node(out_ptr, output_index);
+        }
+
+        template<typename T, int input_index, int output_index>
+        bool detach_node(NodeOut<T, output_index> *out_ptr) {
+            return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->remove_output(out_ptr);
         }
 
         template<typename T, int idx>

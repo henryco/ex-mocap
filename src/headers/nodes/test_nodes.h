@@ -38,6 +38,10 @@ namespace ex::test {
         bool detach(Output<short> *output_ptr, const int output_index, const int input_index) override {
             return false;
         }
+
+        bool detach_all(int input_index) override {
+            return true;
+        }
     };
 
     class Node2:
@@ -59,7 +63,7 @@ namespace ex::test {
         }
 
         bool attach(Output<short> *output_ptr, const int output_index, const int input_index) override {
-            std::cout << "attached short " << output_index << ", " << input_index << '\n';
+            std::cout << "attached short " << input_index << ", " << output_index << '\n';
             return false;
         }
 
@@ -73,6 +77,10 @@ namespace ex::test {
 
         bool detach(Output<float> *output_ptr, const int output_index, const int input_index) override {
             return false;
+        }
+
+        bool detach_all(int input_index) override {
+            return true;
         }
     };
 
