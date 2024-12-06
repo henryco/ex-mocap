@@ -26,6 +26,7 @@ int main(const int argc, char **argv) {
     std::cout << "f: " << f << '\n';
     std::cout << "g: " << g << '\n';
 
+    two.attach_node<short, 2>(&one);
 
     return 1;
 

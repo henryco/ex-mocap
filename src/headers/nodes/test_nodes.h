@@ -59,6 +59,7 @@ namespace ex::test {
         }
 
         bool attach(Output<short> *output_ptr, int index) override {
+            std::cout << "attached short " << index << '\n';
             return false;
         }
 
