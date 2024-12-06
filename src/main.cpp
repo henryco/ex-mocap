@@ -26,6 +26,7 @@ int main(const int argc, char **argv) {
     std::cout << "f: " << f << '\n';
     std::cout << "g: " << g << '\n';
 
+
     return 1;
 
     argparse::ArgumentParser program("exmotion", "0.0.1");

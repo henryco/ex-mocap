@@ -47,7 +47,7 @@ namespace ex::nodes {
     };
 
     template<typename O, int N>
-    class NodeOut : public Output<O> {
+    class NodeOut : public virtual Output<O> {
     public:
         ~NodeOut() override = default;
 
@@ -57,7 +57,7 @@ namespace ex::nodes {
     };
 
     template<typename I, int N>
-    class NodeIn : public Input<I> {
+    class NodeIn : public virtual Input<I> {
     public:
         ~NodeIn() override = default;
 
@@ -137,7 +137,7 @@ namespace ex::nodes {
     public:
         template <typename T>
         T pull(const int index, const int clock_i) {
-            return static_cast<N*>(this)->out(static_cast<T*>(nullptr), index, clock_i);
+            return static_cast<Output<T>*>(static_cast<N *>(this))->out(static_cast<T *>(nullptr), index, clock_i);
         }
 
         template <typename T, int index>
