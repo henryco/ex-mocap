@@ -19,23 +19,23 @@ namespace ex::test {
         public nodes::In<short, 7, 8>
     {
     public:
-        short out(short *null_ptr, int index, int clock_i) override {
+        short out(short *null_ptr, const int index, const int clock_i) override {
             return 1;
         }
 
-        float out(float *null_ptr, int index, int clock_i) override {
+        float out(float *null_ptr, const int index, const int clock_i) override {
             return 2.f;
         }
 
-        int out(int *null_ptr, int index, int clock_i) override {
+        int out(int *null_ptr, const int index, const int clock_i) override {
             return 3;
         }
 
-        bool attach(Output<short> *output_ptr, int index) override {
+        bool attach(Output<short> *output_ptr, const int output_index, const int input_index) override {
             return false;
         }
 
-        bool detach(Output<short> *output_ptr, int index) override {
+        bool detach(Output<short> *output_ptr, const int output_index, const int input_index) override {
             return false;
         }
     };
@@ -50,28 +50,28 @@ namespace ex::test {
         public nodes::Out<char, 1>
     {
     public:
-        char out(char *null_ptr, int index, int clock_i) override {
+        char out(char *null_ptr, const int index, const int clock_i) override {
             return 'a';
         }
 
-        bool out(bool *null_ptr, int index, int clock_i) override {
+        bool out(bool *null_ptr, const int index, const int clock_i) override {
             return true;
         }
 
-        bool attach(Output<short> *output_ptr, int index) override {
-            std::cout << "attached short " << index << '\n';
+        bool attach(Output<short> *output_ptr, const int output_index, const int input_index) override {
+            std::cout << "attached short " << output_index << ", " << input_index << '\n';
             return false;
         }
 
-        bool detach(Output<short> *output_ptr, int index) override {
+        bool detach(Output<short> *output_ptr, const int output_index, const int input_index) override {
             return false;
         }
 
-        bool attach(Output<float> *output_ptr, int index) override {
+        bool attach(Output<float> *output_ptr, const int output_index, const int input_index) override {
             return false;
         }
 
-        bool detach(Output<float> *output_ptr, int index) override {
+        bool detach(Output<float> *output_ptr, const int output_index, const int input_index) override {
             return false;
         }
     };
