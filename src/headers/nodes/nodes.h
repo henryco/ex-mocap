@@ -156,22 +156,22 @@ namespace ex::nodes {
         }
 
         template<typename T, int idx>
-        constexpr bool has_output() {
+        bool has_output() {
             return static_cast<OutIndexer<T> *>(static_cast<N *>(this))->has(idx);
         }
 
         template<typename T>
-        constexpr bool has_output(const int idx) {
+        bool has_output(const int idx) {
             return static_cast<OutIndexer<T> *>(static_cast<N *>(this))->has(idx);
         }
 
         template<typename T, int idx>
-        constexpr bool has_input() {
+        bool has_input() {
             return static_cast<InIndexer<T> *>(static_cast<N *>(this))->has(idx);
         }
 
         template<typename T>
-        constexpr bool has_input(const int idx) {
+        bool has_input(const int idx) {
             return static_cast<InIndexer<T> *>(static_cast<N *>(this))->has(idx);
         }
     };
