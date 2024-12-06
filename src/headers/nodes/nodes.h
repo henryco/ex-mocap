@@ -5,7 +5,15 @@
 #ifndef EX_MOTION_NODES_H
 #define EX_MOTION_NODES_H
 
+#include <typeindex>
+#include <typeinfo>
+
 namespace ex::nodes {
+
+    template <typename T>
+    std::type_index get_type_index() {
+        return std::type_index(typeid(T));
+    }
 
     template<int N>
     class IndexedNode {
