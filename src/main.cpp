@@ -28,9 +28,11 @@ int main(const int argc, char **argv) {
 
     two.attach_node<short, 2>(&one, 1);
     two.attach_node<short, 2, 5>(&one);
+
     two.detach_nodes<short, 2>();
 
     two.attach_node<2, 5>(&one);
+    two.detach_node<2, 5>(&one);
 
     return 1;
 

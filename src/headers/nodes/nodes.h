@@ -177,7 +177,7 @@ namespace ex::nodes {
 
         template<int input_index, int output_index>
         bool attach_node(IndexedNode *out_node) {
-
+            // TODO
             return true;
         }
 
@@ -189,6 +189,12 @@ namespace ex::nodes {
         template<typename T, int input_index, int output_index>
         bool detach_node(NodeOut<T, output_index> *out_ptr) {
             return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->remove_output(out_ptr);
+        }
+
+        template<int input_index, int output_index>
+        bool detach_node(IndexedNode *out_node) {
+            // TODO
+            return true;
         }
 
         template<typename T, int input_index>
