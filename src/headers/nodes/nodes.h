@@ -137,22 +137,22 @@ namespace ex::nodes {
     public:
         template <typename T>
         T pull(const int index, const int clock_i) {
-            return static_cast<Output<T>*>(static_cast<N *>(this))->out(static_cast<T *>(nullptr), index, clock_i);
+            return static_cast<Output<T> *>(static_cast<N *>(this))->out(static_cast<T *>(nullptr), index, clock_i);
         }
 
         template <typename T, int index>
         T pull(const int clock_i) {
-            return static_cast<NodeOut<T, index>*>(static_cast<N*>(this))->output(clock_i);
+            return static_cast<NodeOut<T, index>*>(static_cast<N *>(this))->output(clock_i);
         }
 
         template<typename T, int index>
         bool attach_node(Output<T> *out_ptr) {
-            return static_cast<NodeIn<T, index>*>(static_cast<N*>(this))->add_node(out_ptr);
+            return static_cast<NodeIn<T, index>*>(static_cast<N *>(this))->add_node(out_ptr);
         }
 
         template<typename T, int index>
         bool detach_node(Output<T> *out_ptr) {
-            return static_cast<NodeIn<T, index>*>(static_cast<N*>(this))->remove_node(out_ptr);
+            return static_cast<NodeIn<T, index> *>(static_cast<N *>(this))->remove_node(out_ptr);
         }
 
         template<typename T, int idx>
