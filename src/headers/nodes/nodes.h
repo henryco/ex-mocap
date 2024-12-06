@@ -14,15 +14,13 @@ namespace ex::nodes {
         return typeid(T).name();
     }
 
-//    template <typename T>
-//    class TypedNode {
-//    public:
-//        virtual ~TypedNode() = default;
-//
-//         void test() {
-//            std::cout << "TypedNode test" << get_type_name<T>() << '\n';
-//        }
-//    };
+    template <typename T>
+    class TypedNode {
+    public:
+        virtual ~TypedNode() = default;
+
+        virtual void test() = 0;
+    };
 
     template<int N>
     class IndexedNode {
@@ -87,21 +85,21 @@ namespace ex::nodes {
         ~NodeIn() override = default;
 
         bool add_node(Output<I> *output_ptr, const int output_index) {
-            return this-> attach(output_ptr, output_index, N);
+            return this -> attach(output_ptr, output_index, N);
         }
 
         bool remove_node(Output<I> *output_ptr, const int output_index) {
-            return this-> detach(output_ptr, output_index, N);
+            return this -> detach(output_ptr, output_index, N);
         }
 
         template<int i>
         bool add_output(NodeOut<I, i> *output_ptr) {
-            return this-> attach(output_ptr, i, N);
+            return this -> attach(output_ptr, i, N);
         }
 
         template<int i>
         bool remove_output(NodeOut<I, i> *output_ptr) {
-            return this-> detach(output_ptr, i, N);
+            return this -> detach(output_ptr, i, N);
         }
 
         bool remove_all() {
