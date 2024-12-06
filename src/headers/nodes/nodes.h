@@ -51,7 +51,7 @@ namespace ex::nodes {
     public:
         ~NodeOut() override = default;
 
-        O direct_out(int clock_i) {
+        O output(int clock_i) {
             return this->out(static_cast<O*>(nullptr), N, clock_i);
         }
     };
@@ -61,21 +61,21 @@ namespace ex::nodes {
     public:
         ~NodeIn() override = default;
 
-        void direct_attach(Output<I> *output_ptr) {
+        void attach_node(Output<I> *output_ptr) {
             this-> attach(output_ptr, N);
         };
 
-        void direct_detach(Output<I> *output_ptr) {
+        void detach_node(Output<I> *output_ptr) {
             this-> detach(output_ptr, N);
         };
 
         template<int i>
-        void att(NodeOut<I, i> *output_ptr) {
+        void attach_output(NodeOut<I, i> *output_ptr) {
             this-> attach(output_ptr, N);
         }
 
         template<int i>
-        void det(NodeOut<I, i> *output_ptr) {
+        void detach_output(NodeOut<I, i> *output_ptr) {
             this-> detach(output_ptr, N);
         }
     };
@@ -142,7 +142,7 @@ namespace ex::nodes {
 
         template <typename T, int index>
         T pull(const int clock_i) {
-            return static_cast<NodeOut<T, index>*>(static_cast<N*>(this))->direct_out(clock_i);
+            return static_cast<NodeOut<T, index>*>(static_cast<N*>(this))->output(clock_i);
         }
 
         template<typename T, int idx>
