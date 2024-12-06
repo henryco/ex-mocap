@@ -46,6 +46,39 @@ namespace ex::nodes {
         ~OutIndexer() override = default;
     };
 
+
+    template<typename I, int N>
+    class NodeIn {
+
+    };
+
+    template<typename I, int... Indexes>
+    class Inputs;
+
+    template<typename I>
+    class Inputs<I> {};
+
+    template <typename I, int First, int... Rest>
+    class Inputs<I, First, Rest...> : public NodeIn<I, First>, public Inputs<I, Rest...> {};
+
+
+
+    template<typename O, int N>
+    class NodeOut {
+
+    };
+
+    template<typename I, int... Indexes>
+    class Outputs;
+
+    template<typename I>
+    class Outputs<I> {};
+
+    template <typename O, int First, int... Rest>
+    class Outputs<O, First, Rest...> : public NodeOut<O, First>, public Outputs<O, Rest...> {};
+
+
+
     template<typename I, int... Indexes>
     class In : public Input<I>, public InIndexer<I> {
     public:
@@ -78,7 +111,12 @@ namespace ex::nodes {
     class Node {
     public:
         template <typename T>
-        T pull(int index, int clock_i) {
+        T pull(const int index, const int clock_i) {
+            return static_cast<N*>(this)->out(static_cast<T*>(nullptr), index, clock_i);
+        }
+
+        template <typename T, int index>
+        T pull(const int clock_i) {
             return static_cast<N*>(this)->out(static_cast<T*>(nullptr), index, clock_i);
         }
 

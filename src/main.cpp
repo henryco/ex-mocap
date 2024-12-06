@@ -16,6 +16,7 @@ int main(const int argc, char **argv) {
     const auto d = one.has_input<short>(2);
     const auto e = one.has_input<short>(7);
     const auto f = one.has_input<short, 7>();
+    const auto g = one.pull<int, 1>(0);
 
     std::cout << "a: " << a << '\n';
     std::cout << "b: " << b << '\n';
@@ -23,6 +24,7 @@ int main(const int argc, char **argv) {
     std::cout << "d: " << d << '\n';
     std::cout << "e: " << e << '\n';
     std::cout << "f: " << f << '\n';
+    std::cout << "g: " << g << '\n';
 
     return 1;
 
