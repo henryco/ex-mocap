@@ -46,11 +46,38 @@ namespace ex::nodes {
         ~OutIndexer() override = default;
     };
 
+    template<typename O, int N>
+    class NodeOut : public Output<O> {
+    public:
+        ~NodeOut() override = default;
+
+        O direct_out(int clock_i) {
+            return this->out(static_cast<O*>(nullptr), N, clock_i);
+        }
+    };
 
     template<typename I, int N>
     class NodeIn : public Input<I> {
     public:
         ~NodeIn() override = default;
+
+        void direct_attach(Output<I> *output_ptr) {
+            this-> attach(output_ptr, N);
+        };
+
+        void direct_detach(Output<I> *output_ptr) {
+            this-> detach(output_ptr, N);
+        };
+
+        template<int i>
+        void att(NodeOut<I, i> *output_ptr) {
+            this-> attach(output_ptr, N);
+        }
+
+        template<int i>
+        void det(NodeOut<I, i> *output_ptr) {
+            this-> detach(output_ptr, N);
+        }
     };
 
     template<typename I, int... Indexes>
@@ -63,18 +90,6 @@ namespace ex::nodes {
     class Inputs<I, First, Rest...>
         : public NodeIn<I, First>,
           public Inputs<I, Rest...> {};
-
-
-
-    template<typename O, int N>
-    class NodeOut : public Output<O> {
-    public:
-        ~NodeOut() override = default;
-
-        O direct_out(int clock_i) {
-            return this->out(static_cast<O*>(nullptr), N, clock_i);
-        }
-    };
 
     template<typename O, int... Indexes>
     class Outputs;
