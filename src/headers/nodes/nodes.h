@@ -175,6 +175,12 @@ namespace ex::nodes {
             return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->add_output(out_ptr);
         }
 
+        template<int input_index, int output_index>
+        bool attach_node(IndexedNode *out_node) {
+
+            return true;
+        }
+
         template<typename T, int input_index>
         bool detach_node(Output<T> *out_ptr, const int output_index) {
             return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->remove_node(out_ptr, output_index);
@@ -183,6 +189,11 @@ namespace ex::nodes {
         template<typename T, int input_index, int output_index>
         bool detach_node(NodeOut<T, output_index> *out_ptr) {
             return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->remove_output(out_ptr);
+        }
+
+        template<typename T, int input_index>
+        bool detach_nodes() {
+            return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->remove_all();
         }
 
         template<typename T, int idx>
@@ -203,12 +214,6 @@ namespace ex::nodes {
         template<typename T>
         bool has_input(const int idx) {
             return static_cast<InIndexer<T> *>(static_cast<N *>(this))->has(idx);
-        }
-
-        template<typename T, int out_idx, int in_idx>
-        bool connect(Output<T> *out_node) {
-
-            return true;
         }
     };
 
