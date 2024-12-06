@@ -7,11 +7,10 @@
 
 namespace ex::nodes {
 
+    template<int N>
     class IndexedNode {
     public:
         virtual ~IndexedNode() = default;
-
-//        virtual int get_index() const = 0;
     };
 
     class Indexer {
@@ -56,17 +55,15 @@ namespace ex::nodes {
     };
 
     template<typename O, int N>
-    class NodeOut : public virtual Output<O>, public virtual IndexedNode {
+    class NodeOut : public virtual Output<O>, public virtual IndexedNode<N> {
     public:
         ~NodeOut() override = default;
 
-        O output(int clock_i) {
-            return this->out(static_cast<O *>(nullptr), N, clock_i);
-        }
+        O output(int clock_i) { return this->out(static_cast<O *>(nullptr), N, clock_i); }
     };
 
     template<typename I, int N>
-    class NodeIn : public virtual Input<I>, public virtual IndexedNode {
+    class NodeIn : public virtual Input<I>, public virtual IndexedNode<N> {
     public:
         ~NodeIn() override = default;
 
@@ -176,7 +173,7 @@ namespace ex::nodes {
         }
 
         template<int input_index, int output_index>
-        bool attach_node(IndexedNode *out_node) {
+        bool attach_node(IndexedNode<output_index> *out_node) {
             // TODO
             return true;
         }
@@ -192,7 +189,7 @@ namespace ex::nodes {
         }
 
         template<int input_index, int output_index>
-        bool detach_node(IndexedNode *out_node) {
+        bool detach_node(IndexedNode<output_index> *out_node) {
             // TODO
             return true;
         }
