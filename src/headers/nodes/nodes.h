@@ -67,7 +67,9 @@ namespace ex::nodes {
     public:
         ~NodeOut() override = default;
 
-        O output(int clock_i) { return this->out(static_cast<O *>(nullptr), N, clock_i); }
+        O output(int clock_i) {
+            return this->out(static_cast<O *>(nullptr), N, clock_i);
+        }
     };
 
     template<typename I, int N>
