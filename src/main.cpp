@@ -28,6 +28,8 @@ int main(const int argc, char **argv) {
 
     two.attach_node<short, 2>(&one);
 
+    two.connect<5, 3>(&one);
+
     return 1;
 
     argparse::ArgumentParser program("exmotion", "0.0.1");

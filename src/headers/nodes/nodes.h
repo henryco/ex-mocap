@@ -7,6 +7,13 @@
 
 namespace ex::nodes {
 
+    class IndexedNode {
+    public:
+        virtual ~IndexedNode() = default;
+
+//        virtual int get_index() const = 0;
+    };
+
     class Indexer {
     public:
         virtual ~Indexer() = default;
@@ -47,17 +54,17 @@ namespace ex::nodes {
     };
 
     template<typename O, int N>
-    class NodeOut : public virtual Output<O> {
+    class NodeOut : public virtual Output<O>, public virtual IndexedNode {
     public:
         ~NodeOut() override = default;
 
         O output(int clock_i) {
-            return this->out(static_cast<O*>(nullptr), N, clock_i);
+            return this->out(static_cast<O *>(nullptr), N, clock_i);
         }
     };
 
     template<typename I, int N>
-    class NodeIn : public virtual Input<I> {
+    class NodeIn : public virtual Input<I>, public virtual IndexedNode {
     public:
         ~NodeIn() override = default;
 
@@ -89,7 +96,11 @@ namespace ex::nodes {
     template <typename I, int First, int... Rest>
     class Inputs<I, First, Rest...>
         : public NodeIn<I, First>,
-          public Inputs<I, Rest...> {};
+          public Inputs<I, Rest...>
+    {
+    public:
+        ~Inputs() override = default;
+    };
 
     template<typename O, int... Indexes>
     class Outputs;
@@ -100,7 +111,10 @@ namespace ex::nodes {
     template <typename O, int First, int... Rest>
     class Outputs<O, First, Rest...>
         : public NodeOut<O, First>,
-          public Outputs<O, Rest...> {};
+          public Outputs<O, Rest...> {
+    public:
+        ~Outputs() override = default;
+    };
 
 
 
@@ -173,6 +187,11 @@ namespace ex::nodes {
         template<typename T>
         bool has_input(const int idx) {
             return static_cast<InIndexer<T> *>(static_cast<N *>(this))->has(idx);
+        }
+
+        template<int out_idx, int in_idx>
+        bool connect(IndexedNode *out_node) {
+            return true;
         }
     };
 
