@@ -60,7 +60,9 @@ namespace ex::nodes {
     class Inputs<I> {};
 
     template <typename I, int First, int... Rest>
-    class Inputs<I, First, Rest...> : public NodeIn<I, First>, public Inputs<I, Rest...> {};
+    class Inputs<I, First, Rest...>
+        : public NodeIn<I, First>,
+          public Inputs<I, Rest...> {};
 
 
 
@@ -81,7 +83,9 @@ namespace ex::nodes {
     class Outputs<O> {};
 
     template <typename O, int First, int... Rest>
-    class Outputs<O, First, Rest...> : public NodeOut<O, First>, public Outputs<O, Rest...> {};
+    class Outputs<O, First, Rest...>
+        : public NodeOut<O, First>,
+          public Outputs<O, Rest...> {};
 
 
 
