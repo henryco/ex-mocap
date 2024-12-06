@@ -31,12 +31,12 @@ namespace ex::test {
             return 3;
         }
 
-        void attach(Output<short> *output_ptr, int index) override {
-
+        bool attach(Output<short> *output_ptr, int index) override {
+            return false;
         }
 
-        void detach(Output<short> *output_ptr, int index) override {
-
+        bool detach(Output<short> *output_ptr, int index) override {
+            return false;
         }
     };
 
@@ -58,20 +58,20 @@ namespace ex::test {
             return true;
         }
 
-        void attach(Output<short> *output_ptr, int index) override {
-
+        bool attach(Output<short> *output_ptr, int index) override {
+            return false;
         }
 
-        void detach(Output<short> *output_ptr, int index) override {
-
+        bool detach(Output<short> *output_ptr, int index) override {
+            return false;
         }
 
-        void attach(Output<float> *output_ptr, int index) override {
-
+        bool attach(Output<float> *output_ptr, int index) override {
+            return false;
         }
 
-        void detach(Output<float> *output_ptr, int index) override {
-
+        bool detach(Output<float> *output_ptr, int index) override {
+            return false;
         }
     };
 
