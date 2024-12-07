@@ -33,6 +33,8 @@ int main(const int argc, char **argv) {
 
     static_cast<ex::nodes::Input<short>*>(&two)->attach_io(&one, 5, 2);
 
+    two.attach_any(&one, 5, 2);
+
     return 1;
 
     argparse::ArgumentParser program("exmotion", "0.0.1");

@@ -67,7 +67,11 @@ namespace ex::nodes {
             return detach(ptr, output_index, input_index);
         }
 
+        virtual bool attach_any(IO *io_ptr, int output_index, int input_index) = 0;
+
         virtual bool attach(Output<I> *output_ptr, int output_index, int input_index) = 0;
+
+        virtual bool detach_any(IO *output_ptr, int output_index, int input_index) = 0;
 
         virtual bool detach(Output<I> *output_ptr, int output_index, int input_index) = 0;
 

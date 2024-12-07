@@ -35,7 +35,15 @@ namespace ex::test {
             return false;
         }
 
+        bool attach_any(IO *io_ptr, const int output_index, const int input_index) override {
+            return false;
+        }
+
         bool detach(Output<short> *output_ptr, const int output_index, const int input_index) override {
+            return false;
+        }
+
+        bool detach_any(IO *io_ptr, const int output_index, const int input_index) override {
             return false;
         }
 
@@ -67,15 +75,24 @@ namespace ex::test {
             return false;
         }
 
-        bool detach(Output<short> *output_ptr, const int output_index, const int input_index) override {
-            return false;
-        }
-
         bool attach(Output<float> *output_ptr, const int output_index, const int input_index) override {
             return false;
         }
 
+        bool attach_any(IO *io_ptr, const int output_index, const int input_index) override {
+            std::cout << "attached any " << input_index << ", " << output_index << '\n';
+            return false;
+        }
+
+        bool detach(Output<short> *output_ptr, const int output_index, const int input_index) override {
+            return false;
+        }
+
         bool detach(Output<float> *output_ptr, const int output_index, const int input_index) override {
+            return false;
+        }
+
+        bool detach_any(IO *io_ptr, const int output_index, const int input_index) override {
             return false;
         }
 
