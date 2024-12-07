@@ -110,34 +110,34 @@ namespace ex::nodes {
         }
 
         bool add_io(IO *io_ptr, const int output_index) {
-            auto ptr = dynamic_cast<Input<I> *>(io_ptr);
+            auto ptr = dynamic_cast<Output<I> *>(io_ptr);
             if (ptr == nullptr)
                 return false;
-            return add_node(ptr, output_index);
+            return add_output(ptr, output_index);
         }
 
         bool remove_io(IO *io_ptr, const int output_index) {
-            auto ptr = dynamic_cast<Input<I> *>(io_ptr);
+            auto ptr = dynamic_cast<Output<I> *>(io_ptr);
             if (ptr == nullptr)
                 return false;
-            return remove_node(ptr, output_index);
+            return remove_output(ptr, output_index);
         }
 
-        bool add_node(Output<I> *output_ptr, const int output_index) {
+        bool add_output(Output<I> *output_ptr, const int output_index) {
             return this -> attach(output_ptr, output_index, N);
         }
 
-        bool remove_node(Output<I> *output_ptr, const int output_index) {
+        bool remove_output(Output<I> *output_ptr, const int output_index) {
             return this -> detach(output_ptr, output_index, N);
         }
 
         template<int i>
-        bool add_output(NodeOut<I, i> *output_ptr) {
+        bool add_node(NodeOut<I, i> *output_ptr) {
             return this -> attach(output_ptr, i, N);
         }
 
         template<int i>
-        bool remove_output(NodeOut<I, i> *output_ptr) {
+        bool remove_node(NodeOut<I, i> *output_ptr) {
             return this -> detach(output_ptr, i, N);
         }
 
@@ -220,22 +220,22 @@ namespace ex::nodes {
 
         template<typename T, int input_index>
         bool attach_node(Output<T> *out_ptr, const int output_index) {
-            return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->add_node(out_ptr, output_index);
+            return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->add_output(out_ptr, output_index);
         }
 
         template<typename T, int input_index, int output_index>
         bool attach_node(NodeOut<T, output_index> *out_ptr) {
-            return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->add_output(out_ptr);
+            return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->add_node(out_ptr);
         }
 
         template<typename T, int input_index>
         bool detach_node(Output<T> *out_ptr, const int output_index) {
-            return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->remove_node(out_ptr, output_index);
+            return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->remove_output(out_ptr, output_index);
         }
 
         template<typename T, int input_index, int output_index>
         bool detach_node(NodeOut<T, output_index> *out_ptr) {
-            return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->remove_output(out_ptr);
+            return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->remove_node(out_ptr);
         }
 
         template<typename T, int input_index>
