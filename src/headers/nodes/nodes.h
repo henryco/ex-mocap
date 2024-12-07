@@ -256,9 +256,16 @@ namespace ex::nodes {
         }
     };
 
-    template <typename N>
-    class Node {
+    class BaseNode : public virtual IN_, public virtual OUT_ {
     public:
+        ~BaseNode() override = default;
+    };
+
+    template <typename N>
+    class Node : public virtual BaseNode {
+    public:
+        ~Node() override = default;
+
         template <typename T>
         T pull(const int index, const int clock_i) {
             return static_cast<Output<T> *>(static_cast<N *>(this))->out(static_cast<T *>(nullptr), index, clock_i);
