@@ -14,6 +14,11 @@ namespace ex::nodes {
         return typeid(T).name();
     }
 
+    class IO {
+    public:
+        virtual ~IO() = default;
+    };
+
     template<int N>
     class IndexedNode {
     public:
@@ -36,17 +41,17 @@ namespace ex::nodes {
     };
 
     template<typename O>
-    class Output {
+    class Output: public IO {
     public:
-        virtual ~Output() = default;
+        ~Output() override = default;
 
         virtual O out(O *null_ptr, int output_index, int clock_i) = 0;
     };
 
     template<typename I>
-    class Input {
+    class Input : IO {
     public:
-        virtual ~Input() = default;
+        ~Input() override = default;
 
         virtual bool attach(Output<I> *output_ptr, int output_index, int input_index) = 0;
 
@@ -195,19 +200,6 @@ namespace ex::nodes {
             return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->add_output(out_ptr);
         }
 
-        template<int input_index, int output_index>
-        bool attach_node(IndexedNode<output_index> *out_node) {
-            std::cout << "test" << '\n';
-
-            // TODO
-            const std::string a = static_cast<IndexedNode<input_index> *>(static_cast<N *>(this))->type_name();
-            const std::string b = out_node->type_name();
-
-            std::cout << a << '\t' << b << '\n';
-
-            return true;
-        }
-
         template<typename T, int input_index>
         bool detach_node(Output<T> *out_ptr, const int output_index) {
             return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->remove_node(out_ptr, output_index);
@@ -216,12 +208,6 @@ namespace ex::nodes {
         template<typename T, int input_index, int output_index>
         bool detach_node(NodeOut<T, output_index> *out_ptr) {
             return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->remove_output(out_ptr);
-        }
-
-        template<int input_index, int output_index>
-        bool detach_node(IndexedNode<output_index> *out_node) {
-            // TODO
-            return true;
         }
 
         template<typename T, int input_index>
