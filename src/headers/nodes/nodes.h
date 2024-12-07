@@ -53,6 +53,20 @@ namespace ex::nodes {
     public:
         ~Input() override = default;
 
+        bool attach_io(IO *io_ptr, int output_index, int input_index) {
+            auto ptr = dynamic_cast<Output<I> *>(io_ptr);
+            if (ptr == nullptr)
+                return false;
+            return attach(ptr, output_index, input_index);
+        }
+
+        bool detach_io(IO *io_ptr, int output_index, int input_index) {
+            auto ptr = dynamic_cast<Output<I> *>(io_ptr);
+            if (ptr == nullptr)
+                return false;
+            return detach(ptr, output_index, input_index);
+        }
+
         virtual bool attach(Output<I> *output_ptr, int output_index, int input_index) = 0;
 
         virtual bool detach(Output<I> *output_ptr, int output_index, int input_index) = 0;
