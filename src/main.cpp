@@ -31,6 +31,8 @@ int main(const int argc, char **argv) {
 
     two.detach_nodes<short, 2>();
 
+    static_cast<ex::nodes::Input<short>*>(&two)->attach_io(&one, 5, 2);
+
     return 1;
 
     argparse::ArgumentParser program("exmotion", "0.0.1");

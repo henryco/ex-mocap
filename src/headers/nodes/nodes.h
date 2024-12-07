@@ -41,7 +41,7 @@ namespace ex::nodes {
     };
 
     template<typename O>
-    class Output: public IO {
+    class Output: virtual public IO {
     public:
         ~Output() override = default;
 
@@ -49,7 +49,7 @@ namespace ex::nodes {
     };
 
     template<typename I>
-    class Input : IO {
+    class Input : virtual public IO {
     public:
         ~Input() override = default;
 
@@ -107,6 +107,20 @@ namespace ex::nodes {
 
         constexpr const char * type_name() const override {
             return get_type_name<I>();
+        }
+
+        bool add_io(IO *io_ptr, const int output_index) {
+            auto ptr = dynamic_cast<Input<I> *>(io_ptr);
+            if (ptr == nullptr)
+                return false;
+            return add_node(ptr, output_index);
+        }
+
+        bool remove_io(IO *io_ptr, const int output_index) {
+            auto ptr = dynamic_cast<Input<I> *>(io_ptr);
+            if (ptr == nullptr)
+                return false;
+            return remove_node(ptr, output_index);
         }
 
         bool add_node(Output<I> *output_ptr, const int output_index) {
