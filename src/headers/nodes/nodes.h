@@ -33,18 +33,6 @@ namespace ex::nodes {
         ~OUT_() override = default;
     };
 
-    template<int N>
-    class IndexedNode {
-    public:
-        virtual ~IndexedNode() = default;
-
-        virtual const char *type_name() const = 0;
-
-        static constexpr int index() {
-            return N;
-        }
-    };
-
     class Indexer {
     public:
         virtual ~Indexer() = default;
@@ -90,24 +78,22 @@ namespace ex::nodes {
 
     template<typename T>
     class InIndexer : public Indexer {
+        using type = T;
     public:
         ~InIndexer() override = default;
     };
 
     template<typename T>
     class OutIndexer : public Indexer {
+        using type = T;
     public:
         ~OutIndexer() override = default;
     };
 
     template<typename O, int N>
-    class NodeOut : public virtual Output<O>, public IndexedNode<N> {
+    class NodeOut : public virtual Output<O> {
     public:
         ~NodeOut() override = default;
-
-        constexpr const char *type_name() const override {
-            return get_type_name<O>();
-        }
 
         O output(int clock_i) {
             return this->out(static_cast<O *>(nullptr), N, clock_i);
@@ -115,13 +101,9 @@ namespace ex::nodes {
     };
 
     template<typename I, int N>
-    class NodeIn : public virtual Input<I>, public IndexedNode<N> {
+    class NodeIn : public virtual Input<I> {
     public:
         ~NodeIn() override = default;
-
-        constexpr const char * type_name() const override {
-            return get_type_name<I>();
-        }
 
         bool add_io(IO *io_ptr, const int output_index) {
             auto ptr = dynamic_cast<Output<I> *>(io_ptr);
