@@ -33,7 +33,9 @@ int main(const int argc, char **argv) {
 
     static_cast<ex::nodes::Input<short>*>(&two)->attach_io(&one, 5, 2);
 
+    std::cout << "WOW" << '\n';
     two.attach_any(&one, 5, 2);
+    std::cout << "OK" << '\n';
 
     return 1;
 

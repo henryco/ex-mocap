@@ -19,6 +19,8 @@ namespace ex::nodes {
         virtual bool attach_any(IO *io_ptr, int output_index, int input_index) = 0;
 
         virtual bool detach_any(IO *output_ptr, int output_index, int input_index) = 0;
+
+        virtual bool detach_all(int input_index) = 0;
     };
 
     class OUT_ : virtual public IO {
@@ -66,7 +68,65 @@ namespace ex::nodes {
 
         virtual bool detach(Output<I> *output_ptr, int output_index, int input_index) = 0;
 
-        virtual bool detach_all(int input_index) = 0;
+    };
+
+    template<typename ... Types>
+    class AnyIn : virtual public IN_ {
+    public:
+        ~AnyIn() override = default;
+
+        bool attach_any(IO *io_ptr, const int output_index, const int input_index) override {
+            bool result = false;
+            bool stop = false;
+            ((_attach_io<Types>(io_ptr, output_index, input_index, &result, &stop)), ...);
+            return result;
+        }
+
+        bool detach_any(IO *io_ptr, const int output_index, const int input_index) override {
+            bool result = false;
+            bool stop = false;
+            ((_detach_io<Types>(io_ptr, output_index, input_index, &result, &stop)), ...);
+            return result;
+        }
+
+    private:
+        template<typename T>
+        void _attach_io(IO *io_ptr, const int output_index, const int input_index, bool *result, bool *stop) {
+            std::cout << "attach_io: " << output_index << " " << input_index << " " << *result << " " << *stop << '\n';
+
+            if (*stop) {
+                std::cout << "stop: " << *stop << '\n';
+                return;
+            }
+
+            auto in = dynamic_cast<Input<T> *>(this);
+            if (in == nullptr) {
+                *stop = false;
+                return;
+            }
+
+            *result = in->attach_io(io_ptr, output_index, input_index);
+            *stop = true;
+        }
+
+        template<typename T>
+        void _detach_io(IO *io_ptr, const int output_index, const int input_index, bool *result, bool *stop) {
+            std::cout << "detach_io: " << output_index << " " << input_index << " " << *result << " " << *stop << '\n';
+
+            if (*stop) {
+                std::cout << "stop: " << *stop << '\n';
+                return;
+            }
+
+            auto in = dynamic_cast<Input<T> *>(this);
+            if (in == nullptr) {
+                *stop = false;
+                return;
+            }
+
+            *result = in->detach_io(io_ptr, output_index, input_index);
+            *stop = true;
+        }
     };
 
     template<typename T>
