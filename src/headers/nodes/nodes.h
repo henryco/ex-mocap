@@ -7,11 +7,6 @@
 
 namespace ex::nodes {
 
-    template <typename T>
-    const char *get_type_name() {
-        return typeid(T).name();
-    }
-
     class IO {
     public:
         virtual ~IO() = default;
