@@ -218,6 +218,11 @@ namespace ex::nodes {
             return static_cast<NodeOut<T, index> *>(static_cast<N *>(this))->output(clock_i);
         }
 
+        template <typename T>
+        bool attach_node(Output<T> *out_ptr, const int output_index, const int input_index) {
+            return static_cast<Input<T> *>(static_cast<N *>(this))->attach(out_ptr, output_index, input_index);
+        }
+
         template<typename T, int input_index>
         bool attach_node(Output<T> *out_ptr, const int output_index) {
             return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->add_output(out_ptr, output_index);
@@ -226,6 +231,11 @@ namespace ex::nodes {
         template<typename T, int input_index, int output_index>
         bool attach_node(NodeOut<T, output_index> *out_ptr) {
             return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->add_node(out_ptr);
+        }
+
+        template <typename T>
+        bool detach_node(Output<T> *out_ptr, const int output_index, const int input_index) {
+            return static_cast<Input<T> *>(static_cast<N *>(this))->detach(out_ptr, output_index, input_index);
         }
 
         template<typename T, int input_index>
