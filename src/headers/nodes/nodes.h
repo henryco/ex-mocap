@@ -14,18 +14,16 @@ namespace ex::nodes {
         return typeid(T).name();
     }
 
-    template <typename T>
-    class TypedNode {
-    public:
-        virtual ~TypedNode() = default;
-
-        virtual void test() = 0;
-    };
-
     template<int N>
     class IndexedNode {
     public:
         virtual ~IndexedNode() = default;
+
+        virtual const char *type_name() const = 0;
+
+        static constexpr int index() {
+            return N;
+        }
     };
 
     class Indexer {
@@ -74,6 +72,10 @@ namespace ex::nodes {
     public:
         ~NodeOut() override = default;
 
+        constexpr const char *type_name() const override {
+            return get_type_name<O>();
+        }
+
         O output(int clock_i) {
             return this->out(static_cast<O *>(nullptr), N, clock_i);
         }
@@ -83,6 +85,10 @@ namespace ex::nodes {
     class NodeIn : public virtual Input<I>, public IndexedNode<N> {
     public:
         ~NodeIn() override = default;
+
+        constexpr const char * type_name() const override {
+            return get_type_name<I>();
+        }
 
         bool add_node(Output<I> *output_ptr, const int output_index) {
             return this -> attach(output_ptr, output_index, N);
@@ -194,7 +200,10 @@ namespace ex::nodes {
             std::cout << "test" << '\n';
 
             // TODO
-//            static_cast<N *>(this) -> test();
+            const std::string a = static_cast<IndexedNode<input_index> *>(static_cast<N *>(this))->type_name();
+            const std::string b = out_node->type_name();
+
+            std::cout << a << '\t' << b << '\n';
 
             return true;
         }

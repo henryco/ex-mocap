@@ -50,8 +50,8 @@ namespace ex::test {
         public nodes::In<float, 0, 1>,
         public nodes::In<short, 2, 3>,
 
-        public nodes::Out<bool, 0>,
-        public nodes::Out<char, 1>
+        public nodes::Out<bool, 4>,
+        public nodes::Out<char, 5>
     {
     public:
         char out(char *null_ptr, const int index, const int clock_i) override {
