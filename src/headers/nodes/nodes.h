@@ -5,8 +5,6 @@
 #ifndef EX_MOTION_NODES_H
 #define EX_MOTION_NODES_H
 
-#include <typeinfo>
-
 namespace ex::nodes {
 
     template <typename T>
