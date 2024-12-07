@@ -19,6 +19,20 @@ namespace ex::nodes {
         virtual ~IO() = default;
     };
 
+    class IN_ : virtual public IO {
+    public:
+        ~IN_() override = default;
+
+        virtual bool attach_any(IO *io_ptr, int output_index, int input_index) = 0;
+
+        virtual bool detach_any(IO *output_ptr, int output_index, int input_index) = 0;
+    };
+
+    class OUT_ : virtual public IO {
+    public:
+        ~OUT_() override = default;
+    };
+
     template<int N>
     class IndexedNode {
     public:
@@ -41,7 +55,7 @@ namespace ex::nodes {
     };
 
     template<typename O>
-    class Output: virtual public IO {
+    class Output: virtual public OUT_ {
     public:
         ~Output() override = default;
 
@@ -49,7 +63,7 @@ namespace ex::nodes {
     };
 
     template<typename I>
-    class Input : virtual public IO {
+    class Input : virtual public IN_ {
     public:
         ~Input() override = default;
 
@@ -67,11 +81,7 @@ namespace ex::nodes {
             return detach(ptr, output_index, input_index);
         }
 
-        virtual bool attach_any(IO *io_ptr, int output_index, int input_index) = 0;
-
         virtual bool attach(Output<I> *output_ptr, int output_index, int input_index) = 0;
-
-        virtual bool detach_any(IO *output_ptr, int output_index, int input_index) = 0;
 
         virtual bool detach(Output<I> *output_ptr, int output_index, int input_index) = 0;
 
