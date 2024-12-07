@@ -72,57 +72,6 @@ namespace ex::nodes {
 
     };
 
-    template<typename ... Types>
-    class AnyIn : virtual public IN_ {
-    public:
-        ~AnyIn() override = default;
-
-        bool attach_any(IO *io_ptr, const int output_index, const int input_index) override {
-            bool result = false;
-            bool stop = false;
-            ((_attach_io<Types>(io_ptr, output_index, input_index, &result, &stop)), ...);
-            return result;
-        }
-
-        bool detach_any(IO *io_ptr, const int output_index, const int input_index) override {
-            bool result = false;
-            bool stop = false;
-            ((_detach_io<Types>(io_ptr, output_index, input_index, &result, &stop)), ...);
-            return result;
-        }
-
-    private:
-        template<typename T>
-        void _attach_io(IO *io_ptr, const int output_index, const int input_index, bool *result, bool *stop) {
-            if (*stop)
-                return;
-
-            auto in = dynamic_cast<Input<T> *>(this);
-            if (in == nullptr) {
-                *stop = false;
-                return;
-            }
-
-            *result = in->attach_io(io_ptr, output_index, input_index);
-            *stop = true;
-        }
-
-        template<typename T>
-        void _detach_io(IO *io_ptr, const int output_index, const int input_index, bool *result, bool *stop) {
-            if (*stop)
-                return;
-
-            auto in = dynamic_cast<Input<T> *>(this);
-            if (in == nullptr) {
-                *stop = false;
-                return;
-            }
-
-            *result = in->detach_io(io_ptr, output_index, input_index);
-            *stop = true;
-        }
-    };
-
     template<typename T>
     class InIndexer : public Indexer {
         using type = T;
@@ -245,6 +194,57 @@ namespace ex::nodes {
 
         constexpr bool has(int idx) const override {
             return ((idx == Indexes) || ...);
+        }
+    };
+
+    template<typename ... Types>
+        class AnyIn : virtual public IN_ {
+    public:
+        ~AnyIn() override = default;
+
+        bool attach_any(IO *io_ptr, const int output_index, const int input_index) override {
+            bool result = false;
+            bool stop = false;
+            ((_attach_io<Types>(io_ptr, output_index, input_index, &result, &stop)), ...);
+            return result;
+        }
+
+        bool detach_any(IO *io_ptr, const int output_index, const int input_index) override {
+            bool result = false;
+            bool stop = false;
+            ((_detach_io<Types>(io_ptr, output_index, input_index, &result, &stop)), ...);
+            return result;
+        }
+
+    private:
+        template<typename T>
+        void _attach_io(IO *io_ptr, const int output_index, const int input_index, bool *result, bool *stop) {
+            if (*stop)
+                return;
+
+            auto in = dynamic_cast<Input<T> *>(this);
+            if (in == nullptr) {
+                *stop = false;
+                return;
+            }
+
+            *result = in->attach_io(io_ptr, output_index, input_index);
+            *stop = true;
+        }
+
+        template<typename T>
+        void _detach_io(IO *io_ptr, const int output_index, const int input_index, bool *result, bool *stop) {
+            if (*stop)
+                return;
+
+            auto in = dynamic_cast<Input<T> *>(this);
+            if (in == nullptr) {
+                *stop = false;
+                return;
+            }
+
+            *result = in->detach_io(io_ptr, output_index, input_index);
+            *stop = true;
         }
     };
 
