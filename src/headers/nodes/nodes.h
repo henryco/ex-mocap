@@ -12,6 +12,13 @@ namespace ex::nodes {
         virtual ~IO() = default;
     };
 
+    class OUT_ : virtual public IO {
+    public:
+        ~OUT_() override = default;
+
+        virtual void *out(int output_index, int clock_i, std::size_t* size) = 0;
+    };
+
     class IN_ : virtual public IO {
     public:
         ~IN_() override = default;
@@ -21,13 +28,6 @@ namespace ex::nodes {
         virtual bool detach_any(IO *output_ptr, int output_index, int input_index) = 0;
 
         virtual bool detach_all(int input_index) = 0;
-    };
-
-    class OUT_ : virtual public IO {
-    public:
-        ~OUT_() override = default;
-
-        virtual void *out(int output_index, int clock_i, std::size_t* size) = 0;
     };
 
     class Indexer {
@@ -94,12 +94,8 @@ namespace ex::nodes {
     private:
         template<typename T>
         void _attach_io(IO *io_ptr, const int output_index, const int input_index, bool *result, bool *stop) {
-            std::cout << "attach_io: " << output_index << " " << input_index << " " << *result << " " << *stop << '\n';
-
-            if (*stop) {
-                std::cout << "stop: " << *stop << '\n';
+            if (*stop)
                 return;
-            }
 
             auto in = dynamic_cast<Input<T> *>(this);
             if (in == nullptr) {
@@ -113,12 +109,8 @@ namespace ex::nodes {
 
         template<typename T>
         void _detach_io(IO *io_ptr, const int output_index, const int input_index, bool *result, bool *stop) {
-            std::cout << "detach_io: " << output_index << " " << input_index << " " << *result << " " << *stop << '\n';
-
-            if (*stop) {
-                std::cout << "stop: " << *stop << '\n';
+            if (*stop)
                 return;
-            }
 
             auto in = dynamic_cast<Input<T> *>(this);
             if (in == nullptr) {
