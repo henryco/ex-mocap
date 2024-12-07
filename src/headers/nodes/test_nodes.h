@@ -20,6 +20,10 @@ namespace ex::test {
         public nodes::AnyIn<short>
     {
     public:
+        void *out_any(std::size_t *size, const int output_index, const int clock_i) override {
+            return nullptr;
+        }
+
         short out(short *null_ptr, const int index, const int clock_i) override {
             return 1;
         }
@@ -56,6 +60,10 @@ namespace ex::test {
         public nodes::Out<char, 5>
     {
     public:
+        void *out_any(std::size_t *size, const int output_index, const int clock_i) override {
+            return nullptr;
+        }
+
         char out(char *null_ptr, const int index, const int clock_i) override {
             return 'a';
         }

@@ -26,6 +26,8 @@ namespace ex::nodes {
     class OUT_ : virtual public IO {
     public:
         ~OUT_() override = default;
+
+        virtual void* out_any(std::size_t* size, int output_index, int clock_i) = 0;
     };
 
     class Indexer {
