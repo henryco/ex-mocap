@@ -77,14 +77,6 @@ namespace ex::nodes {
             return is_attached(ptr, output_index, input_index);
         }
 
-        bool is_attached_io(const int input_index) {
-            return is_attached(input_index);
-        }
-
-        void detach_all_io(const int input_index) {
-            detach_all(input_index);
-        }
-
         virtual bool attach(Output<I> *output_ptr, int output_index, int input_index) = 0;
 
         virtual bool detach(Output<I> *output_ptr, int output_index, int input_index) = 0;
@@ -309,7 +301,7 @@ namespace ex::nodes {
             auto in = dynamic_cast<Input<T> *>(this);
             if (in == nullptr)
                 return;
-            in->detach_all_io(input_index);
+            in->detach_all(input_index);
         }
 
         template<typename T>
@@ -323,7 +315,7 @@ namespace ex::nodes {
                 return;
             }
 
-            *result = in->is_attached_io(input_index);
+            *result = in->is_attached(input_index);
             *stop = true;
         }
     };
