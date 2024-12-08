@@ -36,10 +36,6 @@ namespace ex::test {
         int out(int *null_ptr, const int index, const int clock_i) override {
             return 3;
         }
-
-        bool is_attached(IO *io_ptr, int input_index) override {
-            return false;
-        }
     };
 
     class Node2:
@@ -66,10 +62,6 @@ namespace ex::test {
 
         bool out(bool *null_ptr, const int index, const int clock_i) override {
             return true;
-        }
-
-        bool is_attached(IO *io_ptr, int input_index) override {
-            return false;
         }
     };
 

@@ -27,11 +27,11 @@ namespace ex::nodes {
 
         virtual bool detach_any(IO *output_ptr, int output_index, int input_index) = 0;
 
+        virtual bool is_attached_any(IO *io_ptr, int output_index, int input_index) = 0;
+
+        virtual bool is_attached_any(int input_index) = 0;
+
         virtual bool detach_all(int input_index) = 0;
-
-        virtual bool is_attached(IO *io_ptr, int input_index) = 0;
-
-        virtual bool is_attached(int input_index) = 0;
     };
 
     class Indexer {
@@ -70,10 +70,18 @@ namespace ex::nodes {
             return detach(ptr, output_index, input_index);
         }
 
+        bool is_attached_io(IO *io_ptr, const int output_index, const int input_index) {
+            auto ptr = dynamic_cast<Output<I> *>(io_ptr);
+            if (ptr == nullptr)
+                return false;
+            return is_attached(ptr, output_index, input_index);
+        }
+
         virtual bool attach(Output<I> *output_ptr, int output_index, int input_index) = 0;
 
         virtual bool detach(Output<I> *output_ptr, int output_index, int input_index) = 0;
 
+        virtual bool is_attached(Output<I> *output_ptr, int output_index, int input_index) = 0;
     };
 
     template<typename T>
@@ -220,6 +228,13 @@ namespace ex::nodes {
             return result;
         }
 
+        bool is_attached_any(IO *io_ptr, const int output_index, const int input_index) override {
+            bool result = false;
+            bool stop = false;
+            ((_is_attached_io<Types>(io_ptr, output_index, input_index, &result, &stop)), ...);
+            return result;
+        }
+
     private:
         template<typename T>
         void _attach_io(IO *io_ptr, const int output_index, const int input_index, bool *result, bool *stop) {
@@ -250,6 +265,21 @@ namespace ex::nodes {
             *result = in->detach_io(io_ptr, output_index, input_index);
             *stop = true;
         }
+
+        template<typename T>
+        void _is_attached_io(IO *io_ptr, const int output_index, const int input_index, bool *result, bool *stop) {
+            if (*stop)
+                return;
+
+            auto in = dynamic_cast<Input<T> *>(this);
+            if (in == nullptr) {
+                *stop = false;
+                return;
+            }
+
+            *result = in->is_attached_io(io_ptr, output_index, input_index);
+            *stop = true;
+        }
     };
 
     template<typename T>
@@ -264,6 +294,16 @@ namespace ex::nodes {
         }
 
         bool detach(Output<T> *output_ptr, const int output_index, const int input_index) override {
+            // TODO
+            return true;
+        }
+
+        bool is_attached(Output<T> *output_ptr, const int output_index, const int input_index) override {
+            // TODO
+            return true;
+        }
+
+        bool is_attached(const int input_index) {
             // TODO
             return true;
         }
@@ -287,12 +327,12 @@ namespace ex::nodes {
     public:
         ~KeepInput() override = default;
 
-        bool detach_all(int input_index) override {
+        bool detach_all(const int input_index) override {
             // TODO
             return true;
         }
 
-        bool is_attached(int input_index) override {
+        bool is_attached_any(const int input_index) override {
             // TODO
             return false;
         }
