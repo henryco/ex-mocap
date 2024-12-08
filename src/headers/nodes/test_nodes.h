@@ -18,7 +18,6 @@ namespace ex::test {
 
         public nodes::In<short, 7, 8>,
 
-        public nodes::AnyIn<short>,
         public nodes::KeepIn<short>
     {
     public:
@@ -68,7 +67,6 @@ namespace ex::test {
         public nodes::In<float, 0, 1>,
         public nodes::In<short, 2, 3>,
 
-        public nodes::AnyIn<short, float>,
         public nodes::KeepIn<short, float>
     {
     public:
