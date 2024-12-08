@@ -269,6 +269,10 @@ namespace ex::nodes {
         Output<T> *get_connection(const int input_index) {
             return nullptr;
         }
+
+        bool remove_connection(const int input_index) {
+            return true;
+        }
     };
 
     template<typename ... Types>
@@ -282,6 +286,11 @@ namespace ex::nodes {
         template<typename T>
         Output<T> *connection(const int input_index) {
             return static_cast<InputStore<T>*>(this)->get_connection(input_index);
+        }
+
+        template<typename T>
+        bool disconnect(const int input_index) {
+            return static_cast<InputStore<T>*>(this)->remove_connection(input_index);
         }
     };
 
