@@ -252,8 +252,13 @@ namespace ex::nodes {
         }
     };
 
+    template<typename ... Types>
+    class KeepInput {
+
+    };
+
     template<typename... Types>
-    class KeepIn : public AnyIn<Types...> {
+    class KeepIn : public AnyIn<Types...>, public KeepInput<Types...>{
     public:
         ~KeepIn() override = default;
     };
