@@ -350,31 +350,36 @@ namespace ex::nodes {
             }
         }
 
-        void find_output_array(const int input_index, int *main_index_o, int *main_size_o) {
+        void find_output_array(const int input_index, const int output_index, int *main_index_o, int *main_size_o, int *meta_index_o = nullptr) {
             if (input_index < 0
                 || metadata_array == nullptr
                 || output_array_2 == nullptr)
             {
                 *main_index_o = -1;
                 *main_size_o  = -1;
+                if (meta_index_o != nullptr)
+                    *meta_index_o = -1;
                 return;
             }
 
             for (int i = 0; i < metadata_count; i++) {
                 if (metadata_array[i].input_index == input_index
-                    && metadata_array[i].output_index > (-1)
+                    && ((output_index >= 0 && metadata_array[i].output_index == output_index)
+                        || (output_index < 0 && metadata_array[i].output_index > (-1)))
                     && metadata_array[i].item_index   > (-1)
                     && metadata_array[i].main_index   > (-1)
                     && metadata_array[i].main_size    > (-1))
                 {
                     const int main_index = metadata_array[i].main_index;
                     const int item_index = metadata_array[i].item_index;
-                    const int main_size = metadata_array[i].main_size;
+                    const int main_size  = metadata_array[i].main_size;
                     if (output_array_2[main_index] != nullptr
                         && output_array_2[main_index][item_index] != nullptr)
                     {
                         *main_index_o = main_index;
                         *main_size_o  = main_size;
+                        if (meta_index_o != nullptr)
+                            *meta_index_o = i;
                         return;
                     }
                 }
@@ -382,6 +387,8 @@ namespace ex::nodes {
 
             *main_index_o = -1;
             *main_size_o  = -1;
+            if (meta_index_o != nullptr)
+                *meta_index_o = -1;
         }
 
         Output<T> *get_connection(const int input_index) {
@@ -400,7 +407,7 @@ namespace ex::nodes {
             int main_index = -1;
             int main_size  = -1;
 
-            find_output_array(input_index, &main_index, &main_size);
+            find_output_array(input_index, output_index, &main_index, &main_size);
             if (main_index < 0 || main_size < 0)
                 return false;
 
@@ -415,7 +422,7 @@ namespace ex::nodes {
         bool is_attached(const int input_index) override {
             int main_index = -1;
             int main_size  = -1;
-            find_output_array(input_index, &main_index, &main_size);
+            find_output_array(input_index, -1, &main_index, &main_size);
             return !((main_index < 0) || (main_size < 0));
         }
 
@@ -460,7 +467,7 @@ namespace ex::nodes {
 
             int main_index = -1;
             int main_size  = -1;
-            find_output_array(input_index, &main_index, &main_size);
+            find_output_array(input_index, output_index, &main_index, &main_size);
 
             const int new_size = metadata_count + 1;
             const int i        = metadata_count;
@@ -501,24 +508,70 @@ namespace ex::nodes {
             output_array_2[j]    = static_cast<Output<T> **>(realloc(output_array_2[j], size_2 * sizeof(Output<T> *)));
             output_array_2[j][k] = output_ptr;
 
+            metadata_count = new_size;
+
             for (int p = 0; p < metadata_count; p++) {
                 if (metadata_array[p].input_index == input_index) {
                     metadata_array[p].main_size = size_2;
                 }
             }
 
-            metadata_count = new_size;
-
             lock--;
             return true;
         }
 
         bool detach(Output<T> *output_ptr, const int output_index, const int input_index) override {
-            if (output_ptr == nullptr)
+            lock++;
+
+            if (output_ptr == nullptr) {
+                lock--;
                 return false;
-            if (!is_attached(output_ptr, output_index, input_index))
+            }
+
+            int meta_index = -1;
+            int main_index = -1;
+            int main_size  = -1;
+
+            find_output_array(input_index, output_index, &main_index, &main_size, &meta_index);
+            if (main_index < 0 || main_size < 0) {
+                lock--;
                 return true;
-            // TODO
+            }
+
+            int j = -1;
+            for (int i = 0; i < main_size; i++) {
+                if (output_array_2[main_index][i] == output_ptr) {
+                    j = i;
+                    break;
+                }
+            }
+
+            if (j < 0) {
+                lock--;
+                return false;
+            }
+
+            const int size_1 = metadata_count - 1;
+            const int size_2 = main_size - 1;
+            const int l      = meta_index;
+            const int k      = main_index;
+
+            metadata_array[l]    = metadata_array[size_1];
+            output_array_2[k][j] = output_array_2[k][size_2];
+
+            metadata_array    = static_cast<Metadata *>(realloc(metadata_array, size_1 * sizeof(Metadata)));
+            output_array_2[k] = static_cast<Output<T> **>(realloc(output_array_2[k], size_2 * sizeof(Output<T> *)));
+
+            metadata_count = size_1;
+            output_count   = size_2;
+
+            for (int p = 0; p < metadata_count; p++) {
+                if (metadata_array[p].input_index == input_index) {
+                    metadata_array[p].main_size = size_2;
+                }
+            }
+
+            lock--;
             return false;
         }
 
