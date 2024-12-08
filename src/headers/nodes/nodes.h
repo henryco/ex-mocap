@@ -341,11 +341,14 @@ namespace ex::nodes {
 
     public:
         ~InputStore() override {
-            if (metadata_array != nullptr)
+            if (metadata_array != nullptr) {
                 free(metadata_array);
+            }
             if (output_array_2 != nullptr) {
-                for (int i = 0; i < output_count; i++)
-                    free(output_array_2[i]);
+                for (int i = 0; i < output_count; i++) {
+                    if (output_array_2[i] != nullptr)
+                        free(output_array_2[i]);
+                }
                 free(output_array_2);
             }
         }
@@ -437,8 +440,10 @@ namespace ex::nodes {
             if (metadata_array == nullptr) {
 
                 if (output_array_2 != nullptr) {
-                    for (int i = 0; i < output_count; i++)
-                        free(output_array_2[i]);
+                    for (int i = 0; i < output_count; i++) {
+                        if (output_array_2[i] != nullptr)
+                            free(output_array_2[i]);
+                    }
                     free(output_array_2);
                 }
 
@@ -585,6 +590,11 @@ namespace ex::nodes {
                 }
             }
 
+            if (metadata_count <= 0)
+                metadata_array = nullptr;
+            if (output_count <= 0)
+                output_array_2 = nullptr;
+
             lock--;
             return false;
         }
@@ -634,6 +644,11 @@ namespace ex::nodes {
             }
 
             output_count = new_size;
+
+            if (metadata_count <= 0)
+                metadata_array = nullptr;
+            if (output_count <= 0)
+                output_array_2 = nullptr;
 
             lock--;
         }
