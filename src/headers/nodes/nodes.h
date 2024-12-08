@@ -615,16 +615,22 @@ namespace ex::nodes {
                 return;
             }
 
-            const int new_size_1 = std::max(metadata_count - main_size, 0);
-            Metadata *new_meta_1 = static_cast<Metadata *>(malloc(new_size_1 * sizeof(Metadata)));
-
             int count = 0;
             for (int i = 0; i < metadata_count; i++) {
                 if (metadata_array[i].input_index == input_index) {
-                    new_meta_1[count++] = metadata_array[i];
+                    count++;
                 }
             }
 
+            const int new_size_1 = std::max(metadata_count - count, 0);
+            Metadata *new_meta_1 = static_cast<Metadata *>(malloc(new_size_1 * sizeof(Metadata)));
+
+            int m = 0;
+            for (int i = 0; i < metadata_count; i++) {
+                if (metadata_array[i].input_index != input_index) {
+                    new_meta_1[m++] = metadata_array[i];
+                }
+            }
 
             const int new_size = std::max(output_count - 1, 0);
             const int k        = main_index;
