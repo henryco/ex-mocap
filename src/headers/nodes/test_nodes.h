@@ -37,14 +37,6 @@ namespace ex::test {
             return 3;
         }
 
-        bool attach(Output<short> *output_ptr, const int output_index, const int input_index) override {
-            return false;
-        }
-
-        bool detach(Output<short> *output_ptr, const int output_index, const int input_index) override {
-            return false;
-        }
-
         bool detach_all(int input_index) override {
             return true;
         }
@@ -67,7 +59,7 @@ namespace ex::test {
         public nodes::In<float, 0, 1>,
         public nodes::In<short, 2, 3>,
 
-        public nodes::KeepIn<short, float>
+        public nodes::KeepIn<float, short>
     {
     public:
         void *out(const int output_index, const int clock_i, std::size_t *size) override {
@@ -80,23 +72,6 @@ namespace ex::test {
 
         bool out(bool *null_ptr, const int index, const int clock_i) override {
             return true;
-        }
-
-        bool attach(Output<short> *output_ptr, const int output_index, const int input_index) override {
-            std::cout << "attached short " << input_index << ", " << output_index << '\n';
-            return false;
-        }
-
-        bool attach(Output<float> *output_ptr, const int output_index, const int input_index) override {
-            return false;
-        }
-
-        bool detach(Output<short> *output_ptr, const int output_index, const int input_index) override {
-            return false;
-        }
-
-        bool detach(Output<float> *output_ptr, const int output_index, const int input_index) override {
-            return false;
         }
 
         bool detach_all(int input_index) override {

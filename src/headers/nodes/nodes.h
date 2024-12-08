@@ -252,13 +252,32 @@ namespace ex::nodes {
         }
     };
 
-    template<typename ... Types>
-    class KeepInput {
+    template<typename T>
+    class InputStore : public virtual Input<T> {
+    public:
+        ~InputStore() override = default;
 
+        bool attach(Output<T> *output_ptr, int output_index, int input_index) override {
+            std::cout << "attach: " << output_index << ", " << input_index << '\n';
+            return true;
+        }
+
+        bool detach(Output<T> *output_ptr, int output_index, int input_index) override {
+            return true;
+        }
+    };
+
+    template<typename ... Types>
+    class KeepInput;
+
+    template <typename ... Types>
+    class KeepInput : public InputStore<Types>... {
+    public:
+        ~KeepInput() override = default;
     };
 
     template<typename... Types>
-    class KeepIn : public AnyIn<Types...>, public KeepInput<Types...>{
+    class KeepIn : public AnyIn<Types...>, public KeepInput<Types...> {
     public:
         ~KeepIn() override = default;
     };
