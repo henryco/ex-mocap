@@ -469,11 +469,11 @@ namespace ex::nodes {
             int main_size  = -1;
             find_output_array(input_index, output_index, &main_index, &main_size);
 
-            const int new_size = metadata_count + 1;
+            const int new_size = std::max(metadata_count + 1, 0);
             const int i        = metadata_count;
 
             if (main_index < 0 || main_size < 0) {
-                const int size_2 = output_count + 1;
+                const int size_2 = std::max(output_count + 1, 0);
                 const int j      = output_count;
 
                 metadata_array = static_cast<Metadata *>(realloc(metadata_array, new_size * sizeof(Metadata)));
@@ -551,8 +551,8 @@ namespace ex::nodes {
                 return false;
             }
 
-            const int size_1 = metadata_count - 1;
-            const int size_2 = main_size - 1;
+            const int size_1 = std::max(metadata_count - 1, 0);
+            const int size_2 = std::max(main_size - 1, 0);
             const int l      = meta_index;
             const int k      = main_index;
 
@@ -562,8 +562,22 @@ namespace ex::nodes {
             metadata_array    = static_cast<Metadata *>(realloc(metadata_array, size_1 * sizeof(Metadata)));
             output_array_2[k] = static_cast<Output<T> **>(realloc(output_array_2[k], size_2 * sizeof(Output<T> *)));
 
+            if (size_2 <= 0) {
+                const int new_size = std::max(output_count - 1, 0);
+
+                output_array_2[k] = output_array_2[new_size];
+                output_array_2 = static_cast<Output<T> ** *>(realloc(output_array_2, new_size * sizeof(Output<T> **)));
+
+                for (int p = 0; p < metadata_count; p++) {
+                    if (metadata_array[p].main_index == new_size) {
+                        metadata_array[p].main_index = k;
+                    }
+                }
+
+                output_count = new_size;
+            }
+
             metadata_count = size_1;
-            output_count   = size_2;
 
             for (int p = 0; p < metadata_count; p++) {
                 if (metadata_array[p].input_index == input_index) {
@@ -576,9 +590,52 @@ namespace ex::nodes {
         }
 
         void detach_all(const int input_index) override {
-            if (!is_attached(input_index))
+            lock++;
+            if (!is_attached(input_index)) {
+                lock--;
                 return;
-            // TODO
+            }
+
+            int main_index = -1;
+            int main_size  = -1;
+
+            find_output_array(input_index, -1, &main_index, &main_size);
+            if (main_index < 0 || main_size < 0) {
+                lock--;
+                return;
+            }
+
+            const int new_size_1 = std::max(metadata_count - main_size, 0);
+            Metadata *new_meta_1 = static_cast<Metadata *>(malloc(new_size_1 * sizeof(Metadata)));
+
+            int count = 0;
+            for (int i = 0; i < metadata_count; i++) {
+                if (metadata_array[i].input_index == input_index) {
+                    new_meta_1[count++] = metadata_array[i];
+                }
+            }
+
+
+            const int new_size = std::max(output_count - 1, 0);
+            const int k        = main_index;
+
+            output_array_2[k] = output_array_2[new_size];
+            output_array_2 = static_cast<Output<T> ** *>(realloc(output_array_2, new_size * sizeof(Output<T> **)));
+
+
+            free(metadata_array);
+            metadata_array = new_meta_1;
+            metadata_count = new_size_1;
+
+            for (int p = 0; p < metadata_count; p++) {
+                if (metadata_array[p].main_index == new_size) {
+                    metadata_array[p].main_index = k;
+                }
+            }
+
+            output_count = new_size;
+
+            lock--;
         }
     };
 
