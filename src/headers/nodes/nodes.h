@@ -257,13 +257,17 @@ namespace ex::nodes {
     public:
         ~InputStore() override = default;
 
-        bool attach(Output<T> *output_ptr, int output_index, int input_index) override {
+        bool attach(Output<T> *output_ptr, const int output_index, const int input_index) override {
             std::cout << "attach: " << output_index << ", " << input_index << '\n';
             return true;
         }
 
-        bool detach(Output<T> *output_ptr, int output_index, int input_index) override {
+        bool detach(Output<T> *output_ptr, const int output_index, const int input_index) override {
             return true;
+        }
+
+        Output<T> *get_connection(const int input_index) {
+            return nullptr;
         }
     };
 
@@ -274,6 +278,11 @@ namespace ex::nodes {
     class KeepInput : public InputStore<Types>... {
     public:
         ~KeepInput() override = default;
+
+        template<typename T>
+        Output<T> *connection(const int input_index) {
+            return static_cast<InputStore<T>*>(this)->get_connection(input_index);
+        }
     };
 
     template<typename... Types>
