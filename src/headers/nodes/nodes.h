@@ -335,13 +335,16 @@ namespace ex::nodes {
         Output<T> *(**output_array_2) = nullptr;
         Metadata *metadata_array      = nullptr;
         int       metadata_count      = 0;
+        int       output_count        = 0;
+
+        int lock = 0;
 
     public:
         ~InputStore() override {
             if (metadata_array != nullptr)
                 free(metadata_array);
             if (output_array_2 != nullptr) {
-                for (int i = 0; i < metadata_count; i++)
+                for (int i = 0; i < output_count; i++)
                     free(output_array_2[i]);
                 free(output_array_2);
             }
@@ -366,11 +369,12 @@ namespace ex::nodes {
                 {
                     const int main_index = metadata_array[i].main_index;
                     const int item_index = metadata_array[i].item_index;
+                    const int main_size = metadata_array[i].main_size;
                     if (output_array_2[main_index] != nullptr
                         && output_array_2[main_index][item_index] != nullptr)
                     {
                         *main_index_o = main_index;
-                        *main_size_o  = item_index;
+                        *main_size_o  = main_size;
                         return;
                     }
                 }
@@ -381,7 +385,11 @@ namespace ex::nodes {
         }
 
         Output<T> *get_connection(const int input_index) {
+            if (lock > 0)
+                return nullptr;
+
             // TODO
+
             return nullptr;
         }
 
@@ -412,13 +420,17 @@ namespace ex::nodes {
         }
 
         bool attach(Output<T> *output_ptr, const int output_index, const int input_index) override {
-            if (output_ptr == nullptr)
+            lock++;
+
+            if (output_ptr == nullptr) {
+                lock--;
                 return false;
+            }
 
             if (metadata_array == nullptr) {
 
                 if (output_array_2 != nullptr) {
-                    for (int i = 0; i < metadata_count; i++)
+                    for (int i = 0; i < output_count; i++)
                         free(output_array_2[i]);
                     free(output_array_2);
                 }
@@ -434,21 +446,71 @@ namespace ex::nodes {
                 metadata_array[0].main_index   = 0;
                 metadata_array[0].main_size    = 1;
 
-                metadata_count = 1;
+                metadata_count     = 1;
+                output_count       = 1;
 
+                lock--;
                 return true;
             }
 
-            if (is_attached(output_ptr, output_index, input_index))
+            if (is_attached(output_ptr, output_index, input_index)) {
+                lock--;
                 return true;
+            }
 
             int main_index = -1;
             int main_size  = -1;
             find_output_array(input_index, &main_index, &main_size);
 
-            // TODO
+            const int new_size = metadata_count + 1;
+            const int i        = metadata_count;
 
-            return false;
+            if (main_index < 0 || main_size < 0) {
+                const int size_2 = output_count + 1;
+                const int j      = output_count;
+
+                metadata_array = static_cast<Metadata *>(realloc(metadata_array, new_size * sizeof(Metadata)));
+                metadata_array[i].output_index = output_index;
+                metadata_array[i].input_index  = input_index;
+                metadata_array[i].main_index   = j;
+                metadata_array[i].item_index   = 0;
+                metadata_array[i].main_size    = 1;
+
+                output_array_2       = static_cast<Output<T> ** *>(realloc(output_array_2, size_2 * sizeof(Output<T> **)));
+                output_array_2[j]    = static_cast<Output<T> **>(malloc(sizeof(Output<T> *)));
+                output_array_2[j][0] = output_ptr;
+
+                metadata_count = new_size;
+                output_count   = size_2;
+
+                lock--;
+                return true;
+            }
+
+            const int size_2 = main_size + 1;
+            const int j      = main_index;
+            const int k      = main_size;
+
+            metadata_array = static_cast<Metadata *>(realloc(metadata_array, new_size * sizeof(Metadata)));
+            metadata_array[i].output_index = output_index;
+            metadata_array[i].input_index  = input_index;
+            metadata_array[i].main_size    = size_2;
+            metadata_array[i].main_index   = j;
+            metadata_array[i].item_index   = k;
+
+            output_array_2[j]    = static_cast<Output<T> **>(realloc(output_array_2[j], size_2 * sizeof(Output<T> *)));
+            output_array_2[j][k] = output_ptr;
+
+            for (int p = 0; p < metadata_count; p++) {
+                if (metadata_array[p].input_index == input_index) {
+                    metadata_array[p].main_size = size_2;
+                }
+            }
+
+            metadata_count = new_size;
+
+            lock--;
+            return true;
         }
 
         bool detach(Output<T> *output_ptr, const int output_index, const int input_index) override {
