@@ -21,7 +21,7 @@ namespace ex::test {
         public nodes::KeepIn<short>
     {
     public:
-        void *out(const int output_index, const int clock_i, std::size_t *size) override {
+        void *out_any(const int output_index, const int clock_i, std::size_t *size) override {
             return nullptr;
         }
 
@@ -50,7 +50,7 @@ namespace ex::test {
         public nodes::KeepIn<float, short>
     {
     public:
-        void *out(const int output_index, const int clock_i, std::size_t *size) override {
+        void *out_any(const int output_index, const int clock_i, std::size_t *size) override {
             auto a = this->connection<float>(1);
             auto b = this->connection<short>(2);
             return nullptr;

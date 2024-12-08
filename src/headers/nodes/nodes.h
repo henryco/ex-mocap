@@ -16,7 +16,7 @@ namespace ex::nodes {
     public:
         ~OUT_() override = default;
 
-        virtual void *out(int output_index, int clock_i, std::size_t* size) = 0;
+        virtual void *out_any(int output_index, int clock_i, std::size_t* size) = 0;
     };
 
     class IN_ : virtual public IO {
