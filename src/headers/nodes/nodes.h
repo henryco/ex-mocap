@@ -423,9 +423,9 @@ namespace ex::nodes {
                     free(output_array_2);
                 }
 
-                output_array_2 = static_cast<Output<T> ** *>(malloc(sizeof(Output<T> **)));
-                metadata_array = static_cast<Metadata *>(malloc(sizeof(Metadata)));
-
+                metadata_array       = static_cast<Metadata *>(malloc(sizeof(Metadata)));
+                output_array_2       = static_cast<Output<T> ** *>(malloc(sizeof(Output<T> **)));
+                output_array_2[0]    = static_cast<Output<T> **>(malloc(sizeof(Output<T> *)));
                 output_array_2[0][0] = output_ptr;
 
                 metadata_array[0].output_index = output_index;
