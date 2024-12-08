@@ -259,18 +259,22 @@ namespace ex::nodes {
 
         bool attach(Output<T> *output_ptr, const int output_index, const int input_index) override {
             std::cout << "attach: " << output_index << ", " << input_index << '\n';
+            // TODO
             return true;
         }
 
         bool detach(Output<T> *output_ptr, const int output_index, const int input_index) override {
+            // TODO
             return true;
         }
 
         Output<T> *get_connection(const int input_index) {
+            // TODO
             return nullptr;
         }
 
         bool remove_connection(const int input_index) {
+            // TODO
             return true;
         }
     };
