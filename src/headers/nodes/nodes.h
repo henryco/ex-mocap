@@ -77,11 +77,17 @@ namespace ex::nodes {
             return is_attached(ptr, output_index, input_index);
         }
 
+        bool is_attached_io(const int input_index) {
+            return is_attached(input_index);
+        }
+
         virtual bool attach(Output<I> *output_ptr, int output_index, int input_index) = 0;
 
         virtual bool detach(Output<I> *output_ptr, int output_index, int input_index) = 0;
 
         virtual bool is_attached(Output<I> *output_ptr, int output_index, int input_index) = 0;
+
+        virtual bool is_attached(int input_index) = 0;
     };
 
     template<typename T>
@@ -235,6 +241,19 @@ namespace ex::nodes {
             return result;
         }
 
+        bool detach_all(const int input_index) override {
+            bool result = false;
+            ((_detach_all<Types>(input_index, &result)), ...);
+            return result;
+        }
+
+        bool is_attached_any(const int input_index) override {
+            bool result = false;
+            bool stop = false;
+            ((_is_attached_any<Types>(input_index, &result, &stop)), ...);
+            return result;
+        }
+
     private:
         template<typename T>
         void _attach_io(IO *io_ptr, const int output_index, const int input_index, bool *result, bool *stop) {
@@ -280,6 +299,26 @@ namespace ex::nodes {
             *result = in->is_attached_io(io_ptr, output_index, input_index);
             *stop = true;
         }
+
+        template<typename T>
+        void _detach_all(const int input_index, bool *result) {
+            // TODO
+        }
+
+        template<typename T>
+        void _is_attached_any(const int input_index, bool *result, bool *stop) {
+            if (*stop)
+                return;
+
+            auto in = dynamic_cast<Input<T> *>(this);
+            if (in == nullptr) {
+                *stop = false;
+                return;
+            }
+
+            *result = in->is_attached_io(input_index);
+            *stop = true;
+        }
     };
 
     template<typename T>
@@ -303,7 +342,7 @@ namespace ex::nodes {
             return true;
         }
 
-        bool is_attached(const int input_index) {
+        bool is_attached(const int input_index) override {
             // TODO
             return true;
         }
@@ -326,16 +365,6 @@ namespace ex::nodes {
     class KeepInput : public InputStore<Types>... {
     public:
         ~KeepInput() override = default;
-
-        bool detach_all(const int input_index) override {
-            // TODO
-            return true;
-        }
-
-        bool is_attached_any(const int input_index) override {
-            // TODO
-            return false;
-        }
 
         template<typename T>
         Output<T> *connection(const int input_index) {
