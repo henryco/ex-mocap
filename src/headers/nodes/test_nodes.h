@@ -17,7 +17,9 @@ namespace ex::test {
         public nodes::Out<short, 5, 6>,
 
         public nodes::In<short, 7, 8>,
-        public nodes::AnyIn<short>
+
+        public nodes::AnyIn<short>,
+        public nodes::KeepIn<short>
     {
     public:
         void *out(const int output_index, const int clock_i, std::size_t *size) override {
@@ -65,7 +67,9 @@ namespace ex::test {
 
         public nodes::In<float, 0, 1>,
         public nodes::In<short, 2, 3>,
-        public nodes::AnyIn<short, float>
+
+        public nodes::AnyIn<short, float>,
+        public nodes::KeepIn<short, float>
     {
     public:
         void *out(const int output_index, const int clock_i, std::size_t *size) override {

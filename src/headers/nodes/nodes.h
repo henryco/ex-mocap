@@ -252,6 +252,14 @@ namespace ex::nodes {
         }
     };
 
+    template<typename ... Types>
+    class KeepIn {
+    public:
+        ~KeepIn() = default;
+
+
+    };
+
     class BaseNode : public virtual IN_, public virtual OUT_ {
     public:
         ~BaseNode() override = default;
