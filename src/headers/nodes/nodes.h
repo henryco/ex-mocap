@@ -28,6 +28,10 @@ namespace ex::nodes {
         virtual bool detach_any(IO *output_ptr, int output_index, int input_index) = 0;
 
         virtual bool detach_all(int input_index) = 0;
+
+        virtual bool is_attached(IO *io_ptr, int input_index) = 0;
+
+        virtual bool is_attached(int input_index) = 0;
     };
 
     class Indexer {

@@ -47,6 +47,14 @@ namespace ex::test {
         bool detach_all(int input_index) override {
             return true;
         }
+
+        bool is_attached(IO *io_ptr, int input_index) override {
+            return false;
+        }
+
+        bool is_attached(int input_index) override {
+            return false;
+        }
     };
 
     class Node2:
@@ -91,6 +99,14 @@ namespace ex::test {
 
         bool detach_all(int input_index) override {
             return true;
+        }
+
+        bool is_attached(IO *io_ptr, int input_index) override {
+            return false;
+        }
+
+        bool is_attached(int input_index) override {
+            return false;
         }
     };
 
