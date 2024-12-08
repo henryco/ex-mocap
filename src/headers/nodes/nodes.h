@@ -31,7 +31,7 @@ namespace ex::nodes {
 
         virtual bool is_attached_any(int input_index) = 0;
 
-        virtual bool detach_all(int input_index) = 0;
+        virtual void detach_all_any(int input_index) = 0;
     };
 
     class Indexer {
@@ -81,6 +81,10 @@ namespace ex::nodes {
             return is_attached(input_index);
         }
 
+        void detach_all_io(const int input_index) {
+            detach_all(input_index);
+        }
+
         virtual bool attach(Output<I> *output_ptr, int output_index, int input_index) = 0;
 
         virtual bool detach(Output<I> *output_ptr, int output_index, int input_index) = 0;
@@ -88,6 +92,8 @@ namespace ex::nodes {
         virtual bool is_attached(Output<I> *output_ptr, int output_index, int input_index) = 0;
 
         virtual bool is_attached(int input_index) = 0;
+
+        virtual void detach_all(int input_index) = 0;
     };
 
     template<typename T>
@@ -141,6 +147,10 @@ namespace ex::nodes {
             return this -> detach(output_ptr, output_index, N);
         }
 
+        void remove_all() {
+            this -> detach_all(N);
+        }
+
         template<int i>
         bool add_node(NodeOut<I, i> *output_ptr) {
             return this -> attach(output_ptr, i, N);
@@ -149,10 +159,6 @@ namespace ex::nodes {
         template<int i>
         bool remove_node(NodeOut<I, i> *output_ptr) {
             return this -> detach(output_ptr, i, N);
-        }
-
-        bool remove_all() {
-            return this -> detach_all(N);
         }
     };
 
@@ -241,10 +247,8 @@ namespace ex::nodes {
             return result;
         }
 
-        bool detach_all(const int input_index) override {
-            bool result = false;
-            ((_detach_all<Types>(input_index, &result)), ...);
-            return result;
+        void detach_all_any(const int input_index) override {
+            ((_detach_all<Types>(input_index)), ...);
         }
 
         bool is_attached_any(const int input_index) override {
@@ -301,8 +305,11 @@ namespace ex::nodes {
         }
 
         template<typename T>
-        void _detach_all(const int input_index, bool *result) {
-            // TODO
+        void _detach_all(const int input_index) {
+            auto in = dynamic_cast<Input<T> *>(this);
+            if (in == nullptr)
+                return;
+            in->detach_all_io(input_index);
         }
 
         template<typename T>
@@ -326,6 +333,11 @@ namespace ex::nodes {
     public:
         ~InputStore() override = default;
 
+        Output<T> *get_connection(const int input_index) {
+            // TODO
+            return nullptr;
+        }
+
         bool attach(Output<T> *output_ptr, const int output_index, const int input_index) override {
             std::cout << "attach: " << output_index << ", " << input_index << '\n';
             // TODO
@@ -347,14 +359,8 @@ namespace ex::nodes {
             return true;
         }
 
-        Output<T> *get_connection(const int input_index) {
+        void detach_all(const int input_index) override {
             // TODO
-            return nullptr;
-        }
-
-        bool remove_connection(const int input_index) {
-            // TODO
-            return true;
         }
     };
 
@@ -434,8 +440,8 @@ namespace ex::nodes {
         }
 
         template<typename T, int input_index>
-        bool detach_nodes() {
-            return static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->remove_all();
+        void detach_nodes() {
+            static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->remove_all();
         }
 
         template<typename T, int idx>
