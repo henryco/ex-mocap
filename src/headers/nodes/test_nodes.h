@@ -60,12 +60,12 @@ namespace ex::test {
     class Node2:
         public nodes::Node<Node2>,
 
+        public nodes::Out<bool, 4>,
+        public nodes::Out<char, 5>,
+
         public nodes::In<float, 0, 1>,
         public nodes::In<short, 2, 3>,
-        public nodes::AnyIn<short, float>,
-
-        public nodes::Out<bool, 4>,
-        public nodes::Out<char, 5>
+        public nodes::AnyIn<short, float>
     {
     public:
         void *out(const int output_index, const int clock_i, std::size_t *size) override {
