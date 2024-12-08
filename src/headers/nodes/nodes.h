@@ -287,6 +287,15 @@ namespace ex::nodes {
     public:
         ~KeepInput() override = default;
 
+        bool detach_all(int input_index) override {
+            // TODO
+            return true;
+        }
+
+        bool is_attached(int input_index) override {
+            return false;
+        }
+
         template<typename T>
         Output<T> *connection(const int input_index) {
             return static_cast<InputStore<T>*>(this)->get_connection(input_index);

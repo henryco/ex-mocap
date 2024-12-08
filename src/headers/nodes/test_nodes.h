@@ -37,15 +37,7 @@ namespace ex::test {
             return 3;
         }
 
-        bool detach_all(int input_index) override {
-            return true;
-        }
-
         bool is_attached(IO *io_ptr, int input_index) override {
-            return false;
-        }
-
-        bool is_attached(int input_index) override {
             return false;
         }
     };
@@ -76,15 +68,7 @@ namespace ex::test {
             return true;
         }
 
-        bool detach_all(int input_index) override {
-            return true;
-        }
-
         bool is_attached(IO *io_ptr, int input_index) override {
-            return false;
-        }
-
-        bool is_attached(int input_index) override {
             return false;
         }
     };
