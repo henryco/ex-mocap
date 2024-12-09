@@ -737,8 +737,15 @@ namespace ex::nodes {
         virtual void on_input(T data, int clock_i, int input_index, int output_index) = 0;
     };
 
+    class ReactiveState {
+    public:
+        virtual ~ReactiveState() = default;
+
+        virtual void update_state(int clock_i, bool once) = 0;
+    };
+
     template<typename ... Types>
-    class ReactiveIn : public KeepIn<Types...>, public virtual ReactiveInput<Types>... {
+    class ReactiveIn : public virtual ReactiveState, public KeepIn<Types...>, public virtual ReactiveInput<Types>... {
     private:
         int last_clock_i = -1;
 
@@ -757,8 +764,7 @@ namespace ex::nodes {
     public:
         ~ReactiveIn() override = default;
 
-        void update_inputs(const int clock_i, const bool once = true) {
-            // TODO
+        void update_state(const int clock_i, const bool once = true) override {
             if (last_clock_i == clock_i && !once)
                 return;
             ((_pull_inputs<Types>(clock_i)), ...);
@@ -771,14 +777,14 @@ namespace ex::nodes {
     };
 
     template<typename T>
-    class ReactiveOutput : public virtual Output<T> {
+    class ReactiveOutput : public virtual ReactiveState, public virtual Output<T> {
     public:
         ~ReactiveOutput() override = default;
 
         virtual T on_output(T *null_ptr, int output_index, int clock_i) = 0;
 
         T out(T *null_ptr, const int output_index, const int clock_i) override {
-            // TODO
+            update_state(clock_i, true);
             return on_output(null_ptr, output_index, clock_i);
         }
     };
