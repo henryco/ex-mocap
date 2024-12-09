@@ -320,18 +320,17 @@ namespace ex::nodes {
         }
     };
 
+    struct alignas(16) Metadata {
+        int   output_index = -1; // 4
+        int   input_index  = -1; // 4
+        int   item_index   = -1; // 4
+        short main_index   = -1; // 2
+        short main_size    = -1; // 2
+    };
+
     template<typename T>
     class InputStore : public virtual Input<T> {
     private:
-
-        struct alignas(16) Metadata {
-            int   output_index = -1; // 4
-            int   input_index  = -1; // 4
-            int   item_index   = -1; // 4
-            short main_index   = -1; // 2
-            short main_size    = -1; // 2
-        };
-
         Output<T> *(**output_array_2) = nullptr;
         Metadata *metadata_array      = nullptr;
         int       metadata_count      = 0;
@@ -351,6 +350,19 @@ namespace ex::nodes {
                 }
                 free(output_array_2);
             }
+        }
+
+        const Metadata * get_metadata(int *return_size) const {
+            if (lock > 0) {
+                *return_size = -1;
+                return nullptr;
+            }
+            if (metadata_array == nullptr || metadata_count <= 0) {
+                *return_size = 0;
+                return nullptr;
+            }
+            *return_size = metadata_count;
+            return metadata_array;
         }
 
     private:
@@ -396,6 +408,17 @@ namespace ex::nodes {
         }
 
     public:
+
+        Output<T> *get_connection(const Metadata &metadata) {
+            if (lock > 0)
+                return nullptr;
+
+            if (output_array_2 == nullptr || output_count <= 0)
+                return nullptr;
+
+            return output_array_2[metadata.main_index][metadata.item_index];
+        }
+
         Output<T> **get_connections(const int input_index, int *out_size = nullptr) {
             if (lock > 0)
                 return nullptr;
@@ -704,6 +727,52 @@ namespace ex::nodes {
     class KeepIn : public AnyIn<Types...>, public KeepInput<Types...> {
     public:
         ~KeepIn() override = default;
+    };
+
+    template<typename T>
+    class ReactiveInput  {
+    public:
+        virtual ~ReactiveInput() = default;
+
+        virtual void on_input(T data, int clock_i, int input_index, int output_index) = 0;
+    };
+
+    template<typename ... Types>
+    class ReactiveIn : public KeepIn<Types...>, public virtual ReactiveInput<Types>... {
+    private:
+        int last_clock_i = -1;
+
+        template<typename T>
+        void _pull_inputs(const int clock_i) {
+            int             size     = -1;
+            const Metadata *metadata = static_cast<InputStore<T> *>(this)->get_metadata(&size);
+            for (int i = 0; i < size; i++) {
+                const auto &meta       = metadata[i];
+                Output<T>  *connection = static_cast<InputStore<T> *>(this)->get_connection(meta);
+                const T     data       = connection->out(static_cast<T *>(nullptr), meta.output_index, clock_i);
+                static_cast<ReactiveInput<T> *>(this)->on_input(data, clock_i, meta.input_index, meta.output_index);
+            }
+        }
+
+    public:
+        ~ReactiveIn() override = default;
+
+        void update_inputs(const int clock_i, const bool once = true) {
+            if (last_clock_i == clock_i && !once)
+                return;
+            ((_pull_inputs<Types>(clock_i)), ...);
+            last_clock_i = clock_i;
+        }
+
+        void reset_internal_clock() {
+            last_clock_i = -1;
+        }
+    };
+
+    template<typename ... Types>
+    class ReactiveOut {
+    public:
+        ~ReactiveOut() = default;
     };
 
     class BaseNode : public virtual IN_, public virtual OUT_ {

@@ -18,23 +18,28 @@ namespace ex::test {
 
         public nodes::In<short, 7, 8>,
 
-        public nodes::KeepIn<short>
+        public nodes::ReactiveIn<short>,
+        public nodes::ReactiveOut<float, int, short>
     {
     public:
         void *out_any(const int output_index, const int clock_i, std::size_t *size) override {
             return nullptr;
         }
 
-        short out(short *null_ptr, const int index, const int clock_i) override {
+        short out(short *null_ptr, const int output_index, const int clock_i) override {
             return 1;
         }
 
-        float out(float *null_ptr, const int index, const int clock_i) override {
+        float out(float *null_ptr, const int output_index, const int clock_i) override {
             return 2.f;
         }
 
-        int out(int *null_ptr, const int index, const int clock_i) override {
+        int out(int *null_ptr, const int output_index, const int clock_i) override {
             return 3;
+        }
+
+        void on_input(short data, int clock_i, int input_index, int output_index) override {
+
         }
     };
 
@@ -47,21 +52,34 @@ namespace ex::test {
         public nodes::In<float, 0, 1>,
         public nodes::In<short, 2, 3>,
 
-        public nodes::KeepIn<float, short>
+        public nodes::ReactiveIn<float, short>,
+        public nodes::ReactiveOut<bool, char>
     {
     public:
+        // OUTPUT
+        char pull(const int index, const int clock_i) {
+            update_inputs(clock_i);
+            return out(static_cast<char *>(nullptr), index, clock_i);
+        }
+
         void *out_any(const int output_index, const int clock_i, std::size_t *size) override {
-            auto a = this->connections<float>(1);
-            auto b = this->connections<short>(2);
             return nullptr;
         }
 
-        char out(char *null_ptr, const int index, const int clock_i) override {
+        char out(char *null_ptr, const int output_index, const int clock_i) override {
             return 'a';
         }
 
-        bool out(bool *null_ptr, const int index, const int clock_i) override {
+        bool out(bool *null_ptr, const int output_index, const int clock_i) override {
             return true;
+        }
+
+        void on_input(float data, int clock_i, int input_index, int output_index) override {
+
+        }
+
+        void on_input(short data, int clock_i, int input_index, int output_index) override {
+
         }
     };
 
