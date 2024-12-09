@@ -758,6 +758,7 @@ namespace ex::nodes {
         ~ReactiveIn() override = default;
 
         void update_inputs(const int clock_i, const bool once = true) {
+            // TODO
             if (last_clock_i == clock_i && !once)
                 return;
             ((_pull_inputs<Types>(clock_i)), ...);
@@ -769,10 +770,23 @@ namespace ex::nodes {
         }
     };
 
-    template<typename ... Types>
-    class ReactiveOut {
+    template<typename T>
+    class ReactiveOutput : public virtual Output<T> {
     public:
-        ~ReactiveOut() = default;
+        ~ReactiveOutput() override = default;
+
+        virtual T on_output(T *null_ptr, int output_index, int clock_i) = 0;
+
+        T out(T *null_ptr, const int output_index, const int clock_i) override {
+            // TODO
+            return on_output(null_ptr, output_index, clock_i);
+        }
+    };
+
+    template<typename ... Types>
+    class ReactiveOut : public ReactiveOutput<Types>... {
+    public:
+        ~ReactiveOut() override = default;
     };
 
     class BaseNode : public virtual IN_, public virtual OUT_ {

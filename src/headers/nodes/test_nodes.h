@@ -26,16 +26,19 @@ namespace ex::test {
             return nullptr;
         }
 
-        short out(short *null_ptr, const int output_index, const int clock_i) override {
-            return 1;
-        }
-
-        float out(float *null_ptr, const int output_index, const int clock_i) override {
-            return 2.f;
-        }
-
-        int out(int *null_ptr, const int output_index, const int clock_i) override {
+        float on_output(float *null_ptr, int output_index, int clock_i) override {
+            // TODO
             return 3;
+        }
+
+        int on_output(int *null_ptr, int output_index, int clock_i) override {
+            // TODO
+            return 4;
+        }
+
+        short on_output(short *null_ptr, int output_index, int clock_i) override {
+            // TODO
+            return 5;
         }
 
         void on_input(short data, int clock_i, int input_index, int output_index) override {
@@ -56,22 +59,19 @@ namespace ex::test {
         public nodes::ReactiveOut<bool, char>
     {
     public:
-        // OUTPUT
-        char pull(const int index, const int clock_i) {
-            update_inputs(clock_i);
-            return out(static_cast<char *>(nullptr), index, clock_i);
-        }
 
         void *out_any(const int output_index, const int clock_i, std::size_t *size) override {
             return nullptr;
         }
 
-        char out(char *null_ptr, const int output_index, const int clock_i) override {
-            return 'a';
+        bool on_output(bool *null_ptr, int output_index, int clock_i) override {
+            // TODO
+            return true;
         }
 
-        bool out(bool *null_ptr, const int output_index, const int clock_i) override {
-            return true;
+        char on_output(char *null_ptr, int output_index, int clock_i) override {
+            // TODO
+            return 'a';
         }
 
         void on_input(float data, int clock_i, int input_index, int output_index) override {
