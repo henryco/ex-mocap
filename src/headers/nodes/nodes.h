@@ -353,6 +353,7 @@ namespace ex::nodes {
             }
         }
 
+    private:
         void find_output_array(const int input_index, const int output_index, int *main_index_o, int *main_size_o, int *meta_index_o = nullptr) {
             if (input_index < 0
                 || metadata_array == nullptr
@@ -394,13 +395,26 @@ namespace ex::nodes {
                 *meta_index_o = -1;
         }
 
-        Output<T> *get_connection(const int input_index) {
+    public:
+        Output<T> **get_connections(const int input_index, int *out_size = nullptr) {
             if (lock > 0)
                 return nullptr;
 
-            // TODO
+            int main_index_o = -1;
+            int main_size_o  = -1;
+            find_output_array(input_index, -1, &main_index_o, &main_size_o);
 
-            return nullptr;
+            if (main_index_o == -1 || main_size_o == -1)
+                return nullptr;
+
+            if (out_size != nullptr)
+                *out_size = main_size_o;
+
+            return output_array_2[main_index_o];
+        }
+
+        void remove_connection(const int input_index) {
+            detach_all(input_index);
         }
 
         bool is_attached(Output<T> *output_ptr, const int output_index, const int input_index) override {
@@ -623,7 +637,7 @@ namespace ex::nodes {
             }
 
             const int new_size_1 = std::max(metadata_count - count, 0);
-            Metadata *new_meta_1 = static_cast<Metadata *>(malloc(new_size_1 * sizeof(Metadata)));
+            auto      new_meta_1 = static_cast<Metadata *>(malloc(new_size_1 * sizeof(Metadata)));
 
             int m = 0;
             for (int i = 0; i < metadata_count; i++) {
@@ -669,9 +683,15 @@ namespace ex::nodes {
         ~KeepInput() override = default;
 
         template<typename T>
+        Output<T> **connections(const int input_index, int *out_size = nullptr) {
+            return static_cast<InputStore<T>*>(this)->get_connections(input_index, out_size);
+        }
+
+        template<typename T>
         Output<T> *connection(const int input_index) {
-            // TODO
-            return static_cast<InputStore<T>*>(this)->get_connection(input_index);
+            int size = -1;
+            Output<T> **r = connections<T>(input_index, &size);
+            return size <= 0 ? nullptr : r[0];
         }
 
         template<typename T>

@@ -51,8 +51,8 @@ namespace ex::test {
     {
     public:
         void *out_any(const int output_index, const int clock_i, std::size_t *size) override {
-            auto a = this->connection<float>(1);
-            auto b = this->connection<short>(2);
+            auto a = this->connections<float>(1);
+            auto b = this->connections<short>(2);
             return nullptr;
         }
 
