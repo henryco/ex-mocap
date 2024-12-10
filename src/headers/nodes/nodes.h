@@ -730,9 +730,9 @@ namespace ex::nodes {
     };
 
     template<typename T>
-    class ReactiveInput  {
+    class CallbackInput  {
     public:
-        virtual ~ReactiveInput() = default;
+        virtual ~CallbackInput() = default;
 
         virtual void on_input(T data, int clock_i, int input_index, int output_index) = 0;
     };
@@ -745,7 +745,7 @@ namespace ex::nodes {
     };
 
     template<typename ... Types>
-    class ReactiveIn : public virtual ReactiveState, public KeepIn<Types...>, public virtual ReactiveInput<Types>... {
+    class ReactiveIn : public virtual ReactiveState, public KeepIn<Types...>, public virtual CallbackInput<Types>... {
     private:
         int last_clock_i = -1;
 
@@ -757,7 +757,7 @@ namespace ex::nodes {
                 const auto &meta       = metadata[i];
                 Output<T>  *connection = static_cast<InputStore<T> *>(this)->get_connection(meta);
                 const T     data       = connection->out(static_cast<T *>(nullptr), meta.output_index, clock_i);
-                static_cast<ReactiveInput<T> *>(this)->on_input(data, clock_i, meta.input_index, meta.output_index);
+                static_cast<CallbackInput<T> *>(this)->on_input(data, clock_i, meta.input_index, meta.output_index);
             }
         }
 
