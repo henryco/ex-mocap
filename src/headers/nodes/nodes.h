@@ -336,7 +336,7 @@ namespace ex::nodes {
         bool try_lock() { return true; }
     };
 
-    template<typename T>
+    template<typename Mutex_, typename T>
     class InputStore : public virtual Input<T> {
     private:
         Output<T> *(**output_array_2) = nullptr;
@@ -344,8 +344,7 @@ namespace ex::nodes {
         int       metadata_count      = 0;
         int       output_count        = 0;
 
-        // TODO MUTEX provider
-        null_mutex mutex_;
+        Mutex_ mutex_;
 
     public:
         ~InputStore() override {
@@ -691,13 +690,13 @@ namespace ex::nodes {
     class KeepInput;
 
     template <typename ... Types>
-    class KeepInput : public InputStore<Types>... {
+    class KeepInput : public InputStore<null_mutex, Types>... {
     public:
         ~KeepInput() override = default;
 
         template<typename T>
         Output<T> **connections(const int input_index, int *out_size = nullptr) {
-            return static_cast<InputStore<T>*>(this)->get_connections(input_index, out_size);
+            return static_cast<InputStore<null_mutex, T>*>(this)->get_connections(input_index, out_size);
         }
 
         template<typename T>
@@ -709,7 +708,7 @@ namespace ex::nodes {
 
         template<typename T>
         bool disconnect(const int input_index) {
-            return static_cast<InputStore<T>*>(this)->remove_connection(input_index);
+            return static_cast<InputStore<null_mutex, T>*>(this)->remove_connection(input_index);
         }
     };
 
@@ -749,10 +748,10 @@ namespace ex::nodes {
             once_ = 0;
 
             int             size     = -1;
-            const Metadata *metadata = static_cast<InputStore<T> *>(this)->get_metadata(&size);
+            const Metadata *metadata = static_cast<InputStore<null_mutex, T> *>(this)->get_metadata(&size);
             for (int i = 0; i < size; i++) {
                 const auto &meta       = metadata[i];
-                Output<T>  *connection = static_cast<InputStore<T> *>(this)->get_connection(meta);
+                Output<T>  *connection = static_cast<InputStore<null_mutex, T> *>(this)->get_connection(meta);
                 const T     data       = connection->out(static_cast<T *>(nullptr), meta.output_index, clock_i);
                 once_ += static_cast<CallbackInput<T> *>(this)->on_input(data, meta.input_index, meta.output_index, clock_i);
             }
