@@ -724,7 +724,7 @@ namespace ex::nodes {
     public:
         virtual ~CallbackInput() = default;
 
-        virtual void on_input(T data, int input_index, int output_index, int clock_i) = 0;
+        virtual bool on_input(T data, int input_index, int output_index, int clock_i) = 0;
     };
 
     class ReactiveState {
@@ -741,21 +741,28 @@ namespace ex::nodes {
 
         template<typename T>
         void _pull_inputs(const int clock_i) {
+            static int once_ = 0;
+
+            if (clock_i == last_clock_i && once_ > 0)
+                return;
+
+            once_ = 0;
+
             int             size     = -1;
             const Metadata *metadata = static_cast<InputStore<T> *>(this)->get_metadata(&size);
             for (int i = 0; i < size; i++) {
                 const auto &meta       = metadata[i];
                 Output<T>  *connection = static_cast<InputStore<T> *>(this)->get_connection(meta);
                 const T     data       = connection->out(static_cast<T *>(nullptr), meta.output_index, clock_i);
-                static_cast<CallbackInput<T> *>(this)->on_input(data, meta.input_index, meta.output_index, clock_i);
+                once_ += static_cast<CallbackInput<T> *>(this)->on_input(data, meta.input_index, meta.output_index, clock_i);
             }
         }
 
     public:
         ~ReactiveIn() override = default;
 
-        void update_state(const int clock_i, const bool once = true) override {
-            if (last_clock_i == clock_i && !once)
+        void update_state(const int clock_i, const bool once) override {
+            if (last_clock_i == clock_i && once)
                 return;
             ((_pull_inputs<Types>(clock_i)), ...);
             last_clock_i = clock_i;
@@ -774,7 +781,7 @@ namespace ex::nodes {
         virtual T on_output(T *null_ptr, int output_index, int clock_i) = 0;
 
         T out(T *null_ptr, const int output_index, const int clock_i) override {
-            update_state(clock_i, true);
+            update_state(clock_i, false);
             return on_output(null_ptr, output_index, clock_i);
         }
     };
