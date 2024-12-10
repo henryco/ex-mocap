@@ -26,22 +26,22 @@ namespace ex::test {
             return nullptr;
         }
 
-        float on_output(float *null_ptr, int output_index, int clock_i) override {
+        float on_output(float *null_ptr, const int output_index, const int clock_i) override {
             // TODO
             return 3;
         }
 
-        int on_output(int *null_ptr, int output_index, int clock_i) override {
+        int on_output(int *null_ptr, const int output_index, const int clock_i) override {
             // TODO
             return 4;
         }
 
-        short on_output(short *null_ptr, int output_index, int clock_i) override {
+        short on_output(short *null_ptr, const int output_index, const int clock_i) override {
             // TODO
             return 5;
         }
 
-        void on_input(short data, int clock_i, int input_index, int output_index) override {
+        void on_input(const short data, const int input_index, const int output_index, const int clock_i) override {
 
         }
     };
@@ -64,21 +64,21 @@ namespace ex::test {
             return nullptr;
         }
 
-        bool on_output(bool *null_ptr, int output_index, int clock_i) override {
+        bool on_output(bool *null_ptr, const int output_index, const int clock_i) override {
             // TODO
             return true;
         }
 
-        char on_output(char *null_ptr, int output_index, int clock_i) override {
+        char on_output(char *null_ptr, const int output_index, const int clock_i) override {
             // TODO
             return 'a';
         }
 
-        void on_input(float data, int clock_i, int input_index, int output_index) override {
+        void on_input(float data, const int input_index, const int output_index, const int clock_i) override {
 
         }
 
-        void on_input(short data, int clock_i, int input_index, int output_index) override {
+        void on_input(short data, const int input_index, const int output_index, const int clock_i) override {
 
         }
     };
