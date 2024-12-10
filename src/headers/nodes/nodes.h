@@ -5,6 +5,8 @@
 #ifndef EX_MOTION_NODES_H
 #define EX_MOTION_NODES_H
 
+#include <mutex>
+
 namespace ex::nodes {
 
     class IO {
@@ -328,6 +330,12 @@ namespace ex::nodes {
         short main_size    = -1; // 2
     };
 
+    struct null_mutex {
+        void lock() { /*empty*/ }
+        void unlock() noexcept { /*empty*/ }
+        bool try_lock() { return true; }
+    };
+
     template<typename T>
     class InputStore : public virtual Input<T> {
     private:
@@ -336,7 +344,7 @@ namespace ex::nodes {
         int       metadata_count      = 0;
         int       output_count        = 0;
 
-        int lock = 0;
+        null_mutex mutex_;
 
     public:
         ~InputStore() override {
@@ -352,11 +360,9 @@ namespace ex::nodes {
             }
         }
 
-        const Metadata * get_metadata(int *return_size) const {
-            if (lock > 0) {
-                *return_size = -1;
-                return nullptr;
-            }
+        const Metadata * get_metadata(int *return_size) {
+            std::lock_guard<null_mutex> guard(mutex_);
+
             if (metadata_array == nullptr || metadata_count <= 0) {
                 *return_size = 0;
                 return nullptr;
@@ -410,8 +416,7 @@ namespace ex::nodes {
     public:
 
         Output<T> *get_connection(const Metadata &metadata) {
-            if (lock > 0)
-                return nullptr;
+            std::lock_guard<null_mutex> guard(mutex_);
 
             if (output_array_2 == nullptr || output_count <= 0)
                 return nullptr;
@@ -420,8 +425,7 @@ namespace ex::nodes {
         }
 
         Output<T> **get_connections(const int input_index, int *out_size = nullptr) {
-            if (lock > 0)
-                return nullptr;
+            std::lock_guard<null_mutex> guard(mutex_);
 
             int main_index_o = -1;
             int main_size_o  = -1;
@@ -441,6 +445,7 @@ namespace ex::nodes {
         }
 
         bool is_attached(Output<T> *output_ptr, const int output_index, const int input_index) override {
+            std::lock_guard<null_mutex> guard(mutex_);
             if (output_ptr == nullptr)
                 return false;
 
@@ -460,6 +465,7 @@ namespace ex::nodes {
         }
 
         bool is_attached(const int input_index) override {
+            std::lock_guard<null_mutex> guard(mutex_);
             int main_index = -1;
             int main_size  = -1;
             find_output_array(input_index, -1, &main_index, &main_size);
@@ -467,12 +473,7 @@ namespace ex::nodes {
         }
 
         bool attach(Output<T> *output_ptr, const int output_index, const int input_index) override {
-            lock++;
-
-            if (output_ptr == nullptr) {
-                lock--;
-                return false;
-            }
+            std::lock_guard<null_mutex> guard(mutex_);
 
             if (metadata_array == nullptr) {
 
@@ -498,12 +499,10 @@ namespace ex::nodes {
                 metadata_count     = 1;
                 output_count       = 1;
 
-                lock--;
                 return true;
             }
 
             if (is_attached(output_ptr, output_index, input_index)) {
-                lock--;
                 return true;
             }
 
@@ -532,7 +531,6 @@ namespace ex::nodes {
                 metadata_count = new_size;
                 output_count   = size_2;
 
-                lock--;
                 return true;
             }
 
@@ -558,15 +556,13 @@ namespace ex::nodes {
                 }
             }
 
-            lock--;
             return true;
         }
 
         bool detach(Output<T> *output_ptr, const int output_index, const int input_index) override {
-            lock++;
+            std::lock_guard<null_mutex> guard(mutex_);
 
             if (output_ptr == nullptr) {
-                lock--;
                 return false;
             }
 
@@ -576,7 +572,6 @@ namespace ex::nodes {
 
             find_output_array(input_index, output_index, &main_index, &main_size, &meta_index);
             if (main_index < 0 || main_size < 0) {
-                lock--;
                 return true;
             }
 
@@ -589,7 +584,6 @@ namespace ex::nodes {
             }
 
             if (j < 0) {
-                lock--;
                 return false;
             }
 
@@ -632,14 +626,12 @@ namespace ex::nodes {
             if (output_count <= 0)
                 output_array_2 = nullptr;
 
-            lock--;
             return false;
         }
 
         void detach_all(const int input_index) override {
-            lock++;
+            std::lock_guard<null_mutex> guard(mutex_);
             if (!is_attached(input_index)) {
-                lock--;
                 return;
             }
 
@@ -648,7 +640,6 @@ namespace ex::nodes {
 
             find_output_array(input_index, -1, &main_index, &main_size);
             if (main_index < 0 || main_size < 0) {
-                lock--;
                 return;
             }
 
@@ -692,8 +683,6 @@ namespace ex::nodes {
                 metadata_array = nullptr;
             if (output_count <= 0)
                 output_array_2 = nullptr;
-
-            lock--;
         }
     };
 
