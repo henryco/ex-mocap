@@ -4,10 +4,12 @@
 
 #include "../../headers/utils/log_utils.h"
 
-#include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/ringbuffer_sink.h>
+#include <spdlog/sinks/rotating_file_sink.h>
 
 namespace ex::logs {
+
+    static std::vector<ex::logs::logger> _loggers;
 
     spdlog::sink_ptr get_buffer_sink() {
         static auto ring_buffer_sink = std::make_shared<ex::logs::sinks::ringbuffer_sink_mt>(1024);
@@ -21,7 +23,10 @@ namespace ex::logs {
                                                                        10,
                                                                        false);
         std::initializer_list<spdlog::sink_ptr> sinks = { rotating, get_buffer_sink() };
-        return make_shared<spdlog::logger>(name, sinks);
+        auto ptr = make_shared<spdlog::logger>(name, sinks);
+        ptr->set_level(global_level);
+        _loggers.push_back(ptr);
+        return ptr;
     }
 
     std::vector<std::string> get_all_logs() {
@@ -51,6 +56,12 @@ namespace ex::logs {
             oss << str;
         }
         return oss.str();
+    }
+
+    void set_level(spdlog::level::level_enum level) {
+        global_level = level;
+        for (const auto &log: _loggers)
+            log->set_level(level);
     }
 
 } // namespace ex::logs

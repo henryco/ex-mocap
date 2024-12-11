@@ -4,8 +4,9 @@
 
 #ifndef EX_MOTION_STATE_H
 #define EX_MOTION_STATE_H
-#include <CL/cl.h>
+
 #include <GLFW/glfw3.h>
+#include <CL/cl.h>
 
 namespace ex {
 

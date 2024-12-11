@@ -1,11 +1,10 @@
 #include <argparse/argparse.hpp>
-#include <spdlog/spdlog.h>
 #include <filesystem>
 
+#include "headers/utils/log_utils.h"
 #include "headers/boot.h"
 
 int main(const int argc, char **argv) {
-
     argparse::ArgumentParser program("exmotion", "0.0.1");
     program.add_description(R"desc(
                 To list available capture devices on linux you can use:
@@ -33,9 +32,9 @@ int main(const int argc, char **argv) {
     }
 
     if (program.get<bool>("--verbose")) {
-        spdlog::set_level(spdlog::level::debug);
+        ex::logs::set_level(spdlog::level::debug);
     } else {
-        spdlog::set_level(spdlog::level::info);
+        ex::logs::set_level(spdlog::level::info);
     }
 
     const auto path = program.get<std::string>("--project");

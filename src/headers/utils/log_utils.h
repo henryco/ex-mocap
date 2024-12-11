@@ -18,6 +18,8 @@
 
 namespace ex::logs {
 
+    static spdlog::level::level_enum global_level = spdlog::level::info;
+
     using logger = std::shared_ptr<spdlog::logger>;
 
     namespace sinks {
@@ -127,6 +129,8 @@ namespace ex::logs {
     std::vector<std::tuple<std::string, spdlog::level::level_enum>> get_logs_ext(size_t size);
 
     void clear_all();
+
+    void set_level(spdlog::level::level_enum level);
 
 }
 

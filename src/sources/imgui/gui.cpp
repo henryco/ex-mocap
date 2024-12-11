@@ -3,10 +3,11 @@
 //
 
 #include "../../headers/imgui/gui.h"
+#include "../../headers/imgui/gui_layout.h"
 
 #include <IconsLucide.h_lucide.ttf.h>
-#include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 
@@ -65,7 +66,9 @@ namespace ex::gui {
         ImGui::SetNextWindowPos(ImVec2(0, 0));
         ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
 
-        GUI::layout(state);
+        if (ex::gui::layout::build(state)) {
+            glfwSetWindowShouldClose(window, GL_TRUE);
+        }
 
         ImGui::Render();
     }

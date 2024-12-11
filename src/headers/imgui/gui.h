@@ -8,7 +8,6 @@
 #include "../utils/log_utils.h"
 #include "../state.h"
 
-// ReSharper disable once CppUnusedIncludeDirective
 #include <IconsLucide.h>
 #include <GLFW/glfw3.h>
 
@@ -30,9 +29,6 @@ namespace ex::gui {
         void build(ex::State &state) const;
 
         void draw(float delta) const;
-
-    protected:
-        void layout(ex::State &state) const;
     };
 } // namespace ex::gui
 
