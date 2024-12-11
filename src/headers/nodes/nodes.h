@@ -7,6 +7,8 @@
 
 #include <mutex>
 
+#define EX_MAX_PORT_CONNECTIONS 256
+
 namespace ex::nodes {
 
     class IO {
@@ -736,24 +738,35 @@ namespace ex::nodes {
     template<typename ... Types>
     class ReactiveIn : public virtual ReactiveState, public KeepIn<Types...>, public virtual CallbackInput<Types>... {
     private:
+        constexpr static int bytes = EX_MAX_PORT_CONNECTIONS / 8;
+        char                 flags[sizeof...(Types)][bytes] = {};
+
         int last_clock_i = -1;
 
         template<typename T>
-        void _pull_inputs(const int clock_i) {
-            static int once_ = 0;
-
-            if (clock_i == last_clock_i && once_ > 0)
-                return;
-
-            once_ = 0;
-
+        void _pull_inputs(const int clock_i, const int type_index) {
             int             size     = -1;
             const Metadata *metadata = static_cast<InputStore<null_mutex, T> *>(this)->get_metadata(&size);
             for (int i = 0; i < size; i++) {
+                const char &byte = flags[type_index][i / bytes];
+                const int   n_th = i % bytes;
+
+                if (clock_i == last_clock_i && (byte & (1 << n_th)) != 0) {
+                    continue;
+                }
+
+                // clear bit for given input
+                flags[type_index][i / bytes] &= ~(1 << n_th);
+
                 const auto &meta       = metadata[i];
                 Output<T>  *connection = static_cast<InputStore<null_mutex, T> *>(this)->get_connection(meta);
                 const T     data       = connection->out(static_cast<T *>(nullptr), meta.output_index, clock_i);
-                once_ += static_cast<CallbackInput<T> *>(this)->on_input(data, meta.input_index, meta.output_index, clock_i);
+                const bool  once       = static_cast<CallbackInput<T> *>(this)->on_input(data, meta.input_index,
+                                                                                         meta.output_index, clock_i);
+                if (once) {
+                    // set a bit for given input
+                    flags[type_index][i / bytes] |= (1 << n_th);
+                }
             }
         }
 
@@ -763,7 +776,8 @@ namespace ex::nodes {
         void update_state(const int clock_i, const bool once) override {
             if (last_clock_i == clock_i && once)
                 return;
-            ((_pull_inputs<Types>(clock_i)), ...);
+            int i = 0;
+            ((_pull_inputs<Types>(clock_i, i++)), ...);
             last_clock_i = clock_i;
         }
 
