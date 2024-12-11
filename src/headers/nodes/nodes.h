@@ -805,7 +805,16 @@ namespace ex::nodes {
         ~ReactiveOut() override = default;
     };
 
-    class BaseNode : public virtual IN_, public virtual OUT_ {
+    class Descriptor {
+    public:
+        virtual ~Descriptor() = default;
+
+        virtual const int get_node_id() const = 0;
+
+        virtual const char *get_node_name() const = 0;
+    };
+
+    class BaseNode : public virtual IN_, public virtual OUT_, public virtual Descriptor {
     public:
         ~BaseNode() override = default;
     };

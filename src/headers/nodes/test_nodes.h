@@ -22,6 +22,14 @@ namespace ex::test {
         public nodes::ReactiveOut<float, int, short>
     {
     public:
+        const int get_node_id() const override {
+            return 1;
+        }
+
+        const char *get_node_name() const override {
+            return "Node1";
+        }
+
         void *out_any(const int output_index, const int clock_i, std::size_t *size) override {
             return nullptr;
         }
@@ -59,6 +67,13 @@ namespace ex::test {
         public nodes::ReactiveOut<bool, char>
     {
     public:
+        const int get_node_id() const override {
+            return 2;
+        }
+
+        const char *get_node_name() const override {
+            return "Node2";
+        }
 
         void *out_any(const int output_index, const int clock_i, std::size_t *size) override {
             return nullptr;
