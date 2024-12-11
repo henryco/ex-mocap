@@ -942,38 +942,109 @@ namespace ex::nodes {
 
     class clock final : public virtual IN_, public virtual OUT_ {
     private:
+        struct metadata_ {
+            IO *const  io_ptr; // 8
+            metadata_ *next;   // 8
+            const int  index;  // 4
+
+            metadata_(IO* io_ptr, const int index) :
+            io_ptr(io_ptr),
+            next(nullptr),
+            index(index) {}
+        };
+
+        metadata_ *store = nullptr;
         int clock_i = 0;
 
     public:
-        ~clock() override = default;
+        ~clock() override {
+            detach_all_any(0);
+        }
 
-        void *out_any(const int output_index, const int clock_i, std::size_t *size) override {
+        void *out_any(const int _, const int clock_i, std::size_t *__) override {
             // TODO
             return nullptr;
         }
 
-        bool attach_any(IO *io_ptr, const int output_index, const int input_index) override {
-            // TODO
+        bool attach_any(IO *io_ptr, const int output_index, const int _) override {
+            if (io_ptr == nullptr)
+                return false;
+
+            if (is_attached_any(io_ptr, output_index, _))
+                return false;
+
+            if (store == nullptr) {
+                store = new metadata_(io_ptr, output_index);
+                return true;
+            }
+
+            metadata_ *head = store;
+            while (head->next != nullptr) {
+                head = head->next;
+            }
+
+            head->next = new metadata_(io_ptr, output_index);
+            return true;
+        }
+
+        bool detach_any(IO *io_ptr, const int output_index, const int _) override {
+            if (io_ptr == nullptr)
+                return false;
+
+            metadata_ *prev = nullptr;
+            metadata_ *head = store;
+            int any = 0;
+
+            while (head != nullptr) {
+                if (head->io_ptr == io_ptr && (head->index == output_index || output_index == -1)) {
+                    if (prev == nullptr) {
+                        store = head->next;
+                        delete head;
+
+                        if (output_index >= 0)
+                            return true;
+
+                        head = store;
+                    } else {
+                        prev->next = head->next;
+                        delete head;
+
+                        if (output_index >= 0)
+                            return true;
+
+                        head = prev->next;
+                    }
+                    any++;
+                }
+                prev = head;
+                head = head->next;
+            }
+            return any > 0;
+        }
+
+        bool is_attached_any(IO *io_ptr, const int output_index, const int _) override {
+            if (io_ptr == nullptr)
+                return false;
+
+            const metadata_ *head = store;
+            while (head != nullptr) {
+                if (head->io_ptr == io_ptr && head->index == output_index)
+                    return true;
+                head = head->next;
+            }
             return false;
         }
 
-        bool detach_any(IO *output_ptr, const int output_index, const int input_index) override {
-            // TODO
-            return false;
+        bool is_attached_any(const int _) override {
+            return store != nullptr;
         }
 
-        bool is_attached_any(IO *io_ptr, const int output_index, const int input_index) override {
-            // TODO
-            return false;
-        }
-
-        bool is_attached_any(const int input_index) override {
-            // TODO
-            return false;
-        }
-
-        void detach_all_any(const int input_index) override {
-            // TODO
+        void detach_all_any(const int _) override {
+            while (store != nullptr) {
+                metadata_ *next_ = store->next;
+                delete store;
+                store = next_;
+           }
         }
 
         void reset() {
@@ -1000,6 +1071,10 @@ namespace ex::nodes {
 
         bool detach(IO *io_ptr, const int output_index) {
             return detach_any(io_ptr, output_index, 0);
+        }
+
+        bool detach(IO *io_ptr) {
+            return detach_any(io_ptr, -1, 0);
         }
 
         void detach_all() {
