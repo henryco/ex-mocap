@@ -34,7 +34,7 @@ namespace ex::test {
             static const nodes::Description inputs_[] = {
                 nodes::describe_io<short>(7, "Some short input")
             };
-            *o_inputs_number = std::size(inputs_);
+            *o_inputs_number = sizeof(inputs_) / sizeof(inputs_[0]);
             return inputs_;
         }
 
@@ -48,7 +48,7 @@ namespace ex::test {
                 nodes::describe_io<short>(5, "Output short 1"),
                 nodes::describe_io<short>(6, "Output short 2"),
             };
-            *o_outputs_number = std::size(outputs_);
+            *o_outputs_number = sizeof(outputs_) / sizeof(outputs_[0]);
             return outputs_;
         }
 
