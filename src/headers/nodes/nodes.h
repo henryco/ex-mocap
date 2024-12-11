@@ -962,7 +962,13 @@ namespace ex::nodes {
         }
 
         void *out_any(const int _, const int clock_i, std::size_t *__) override {
-            // TODO
+            metadata_  *head = store;
+            std::size_t size = 0;
+            while (head != nullptr) {
+                if (const auto out = dynamic_cast<OUT_ *>(head->io_ptr); out != nullptr)
+                    out->out_any(head->index, clock_i, &size);
+                head = head->next;
+            }
             return nullptr;
         }
 
