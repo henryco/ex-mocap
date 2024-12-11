@@ -940,6 +940,73 @@ namespace ex::nodes {
         }
     };
 
+    class clock final : public virtual IN_, public virtual OUT_ {
+    private:
+        int clock_i = 0;
+
+    public:
+        ~clock() override = default;
+
+        void *out_any(const int output_index, const int clock_i, std::size_t *size) override {
+            // TODO
+            return nullptr;
+        }
+
+        bool attach_any(IO *io_ptr, const int output_index, const int input_index) override {
+            // TODO
+            return false;
+        }
+
+        bool detach_any(IO *output_ptr, const int output_index, const int input_index) override {
+            // TODO
+            return false;
+        }
+
+        bool is_attached_any(IO *io_ptr, const int output_index, const int input_index) override {
+            // TODO
+            return false;
+        }
+
+        bool is_attached_any(const int input_index) override {
+            // TODO
+            return false;
+        }
+
+        void detach_all_any(const int input_index) override {
+            // TODO
+        }
+
+        void reset() {
+            clock_i = 0;
+        }
+
+        void next() {
+            if (clock_i >= std::numeric_limits<int>::max() - 1)
+                reset();
+            out_any(0, clock_i++, nullptr);
+        }
+
+        bool is_attached(IO *io_ptr, const int output_index) {
+            return is_attached_any(io_ptr, output_index, 0);
+        }
+
+        bool is_attached() {
+            return is_attached_any(0);
+        }
+
+        bool attach(IO *io_ptr, const int output_index) {
+            return attach_any(io_ptr, output_index, 0);
+        }
+
+        bool detach(IO *io_ptr, const int output_index) {
+            return detach_any(io_ptr, output_index, 0);
+        }
+
+        void detach_all() {
+            detach_all_any(0);
+        }
+    };
+
 }
 
 #endif // EX_MOTION_NODES_H
