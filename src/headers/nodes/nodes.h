@@ -5,7 +5,10 @@
 #ifndef EX_MOTION_NODES_H
 #define EX_MOTION_NODES_H
 
+#include <algorithm>
+#include <cstdlib>
 #include <mutex>
+#include <vector>
 
 #define EX_MAX_PORT_CONNECTIONS 256
 
