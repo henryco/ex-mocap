@@ -805,16 +805,56 @@ namespace ex::nodes {
         ~ReactiveOut() override = default;
     };
 
-    class Descriptor {
+    struct Description {
+        const std::size_t type_id;
+        const int         index;
+        const bool        aux;
+        const char       *name;
+    };
+
+    template<typename T>
+    Description describe_io(const int index, const char *name, const bool aux = false) {
+        return {
+            .type_id = typeid(T).hash_code(),
+            .index = index,
+            .aux = aux,
+            .name = name
+        };
+    }
+
+    class InputDescriptor {
     public:
-        virtual ~Descriptor() = default;
+        virtual ~InputDescriptor () = default;
+
+        virtual Description const *describe_inputs(int *o_inputs_number) const = 0;
+    };
+
+    class OutputDescriptor {
+    public:
+        virtual ~OutputDescriptor () = default;
+
+        virtual Description const *describe_outputs(int *o_outputs_number) const = 0;
+    };
+
+    class IODescriptor : public virtual InputDescriptor, public virtual OutputDescriptor {
+    public:
+        ~IODescriptor() override = default;
+    };
+
+    class NodeDescriptor {
+    public:
+        virtual ~NodeDescriptor() = default;
 
         virtual const int get_node_id() const = 0;
 
         virtual const char *get_node_name() const = 0;
     };
 
-    class BaseNode : public virtual IN_, public virtual OUT_, public virtual Descriptor {
+    class BaseNode : public virtual IN_,
+                     public virtual OUT_,
+                     public virtual NodeDescriptor,
+                     public virtual IODescriptor
+    {
     public:
         ~BaseNode() override = default;
     };

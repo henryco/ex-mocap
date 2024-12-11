@@ -30,7 +30,30 @@ namespace ex::test {
             return "Node1";
         }
 
+        nodes::Description const *describe_inputs(int *o_inputs_number) const override {
+            static const nodes::Description inputs_[] = {
+                nodes::describe_io<short>(7, "Some short input")
+            };
+            *o_inputs_number = std::size(inputs_);
+            return inputs_;
+        }
+
+        nodes::Description const *describe_outputs(int *o_outputs_number) const override {
+            static const nodes::Description outputs_[] = {
+                nodes::describe_io<int>(0, "Output int 1"),
+                nodes::describe_io<int>(1, "Output int 2"),
+                nodes::describe_io<int>(2, "Output int 3"),
+                nodes::describe_io<float>(3, "Output float 1"),
+                nodes::describe_io<float>(4, "Output float 2"),
+                nodes::describe_io<short>(5, "Output short 1"),
+                nodes::describe_io<short>(6, "Output short 2"),
+            };
+            *o_outputs_number = std::size(outputs_);
+            return outputs_;
+        }
+
         void *out_any(const int output_index, const int clock_i, std::size_t *size) override {
+            // TODO
             return nullptr;
         }
 
@@ -50,6 +73,7 @@ namespace ex::test {
         }
 
         bool on_input(const short data, const int input_index, const int output_index, const int clock_i) override {
+            // TODO
             return true;
         }
     };
@@ -75,7 +99,28 @@ namespace ex::test {
             return "Node2";
         }
 
+        nodes::Description const *describe_inputs(int *o_inputs_number) const override {
+            static const nodes::Description inputs_[] = {
+                nodes::describe_io<float>(0, "Input float 1"),
+                nodes::describe_io<float>(1, "Input float 2"),
+                nodes::describe_io<short>(2, "Input short 1"),
+                nodes::describe_io<short>(3, "Input short 2"),
+            };
+            *o_inputs_number = std::size(inputs_);
+            return inputs_;
+        }
+
+        nodes::Description const *describe_outputs(int *o_outputs_number) const override {
+            static const nodes::Description outputs_[] = {
+                nodes::describe_io<bool>(4, "Output bool"),
+                nodes::describe_io<char>(5, "Output char"),
+            };
+            *o_outputs_number = std::size(outputs_);
+            return outputs_;
+        }
+
         void *out_any(const int output_index, const int clock_i, std::size_t *size) override {
+            // TODO
             return nullptr;
         }
 
@@ -90,10 +135,12 @@ namespace ex::test {
         }
 
         bool on_input(float data, const int input_index, const int output_index, const int clock_i) override {
+            // TODO
             return true;
         }
 
         bool on_input(short data, const int input_index, const int output_index, const int clock_i) override {
+            // TODO
             return true;
         }
     };
