@@ -803,6 +803,13 @@ namespace ex::nodes {
     class ReactiveOut : public ReactiveOutput<Types>... {
     public:
         ~ReactiveOut() override = default;
+
+        virtual void *on_any_output(int output_index, int clock_i, std::size_t* size) = 0;
+
+        void *out_any(const int output_index, const int clock_i, std::size_t* size) override {
+            static_cast<ReactiveState *>(this)->update_state(clock_i, false);
+            return on_any_output(output_index, clock_i, size);
+        }
     };
 
     struct Description {

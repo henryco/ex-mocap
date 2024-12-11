@@ -52,7 +52,7 @@ namespace ex::test {
             return outputs_;
         }
 
-        void *out_any(const int output_index, const int clock_i, std::size_t *size) override {
+        void *on_any_output(int output_index, int clock_i, std::size_t *size) override {
             // TODO
             return nullptr;
         }
@@ -119,7 +119,7 @@ namespace ex::test {
             return outputs_;
         }
 
-        void *out_any(const int output_index, const int clock_i, std::size_t *size) override {
+        void *on_any_output(int output_index, int clock_i, std::size_t *size) override {
             // TODO
             return nullptr;
         }
