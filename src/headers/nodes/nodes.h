@@ -953,10 +953,14 @@ namespace ex::nodes {
             index(index) {}
         };
 
-        metadata_ *store = nullptr;
-        int clock_i = 0;
+        metadata_ *store      = nullptr;
+        int        clock_i    = 0;
+        int        target_fps = 0;
 
     public:
+        explicit clock(const int target_fps = 0)
+        : target_fps(target_fps) {}
+
         ~clock() override {
             detach_all_any(0);
         }
@@ -1085,6 +1089,10 @@ namespace ex::nodes {
 
         void detach_all() {
             detach_all_any(0);
+        }
+
+        void set_target_fps(int fps) {
+            this->target_fps = fps;
         }
     };
 
