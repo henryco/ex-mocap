@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <mutex>
+#include <thread>
 #include <vector>
 
 #define EX_MAX_PORT_CONNECTIONS 256
@@ -942,6 +943,24 @@ namespace ex::nodes {
 
     class clock final : public virtual IN_, public virtual OUT_ {
     private:
+        std::chrono::time_point<std::chrono::steady_clock> start_time;
+
+        void time_start() {
+            if (target_fps <= 0)
+                return;
+            start_time = std::chrono::steady_clock::now();
+        }
+
+        void time_stop() {
+            if (target_fps <= 0)
+                return;
+            const auto                  stop_time  = std::chrono::steady_clock::now();
+            const std::chrono::duration frame_time = stop_time - start_time;
+            const double target = 1.0 / static_cast<double>(target_fps);
+            if (const double sleep_time = target - frame_time.count(); sleep_time > 0)
+                std::this_thread::sleep_for(std::chrono::duration<double>(sleep_time));
+        }
+
         struct metadata_ {
             IO *const  io_ptr; // 8
             metadata_ *next;   // 8
@@ -954,11 +973,11 @@ namespace ex::nodes {
         };
 
         metadata_ *store      = nullptr;
-        int        clock_i    = 0;
-        int        target_fps = 0;
+        int        clock_i    = -1;
+        int        target_fps = -1;
 
     public:
-        explicit clock(const int target_fps = 0)
+        explicit clock(const int target_fps = -1)
         : target_fps(target_fps) {}
 
         ~clock() override {
@@ -966,6 +985,7 @@ namespace ex::nodes {
         }
 
         void *out_any(const int _, const int clock_i, std::size_t *__) override {
+            time_start();
             metadata_  *head = store;
             std::size_t size = 0;
             while (head != nullptr) {
@@ -973,6 +993,7 @@ namespace ex::nodes {
                     out->out_any(head->index, clock_i, &size);
                 head = head->next;
             }
+            time_stop();
             return nullptr;
         }
 
