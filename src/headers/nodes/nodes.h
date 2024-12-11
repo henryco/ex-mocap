@@ -1112,7 +1112,7 @@ namespace ex::nodes {
             detach_all_any(0);
         }
 
-        void set_target_fps(int fps) {
+        void set_target_fps(const int fps) {
             this->target_fps = fps;
         }
     };
