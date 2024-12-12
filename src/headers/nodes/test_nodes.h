@@ -11,11 +11,11 @@ namespace ex::test {
 
     class TestSerializer : public nodes::Serializer<std::string> {
     public:
-        std::string serialize(const std::vector<nodes::Serializable<Serializer>> &serializable) const override {
-            return serializable[0].serialize();
+        std::string serialize(const std::vector<nodes::DirectSerializable<std::string> *> &serializable) const override {
+            return "ooo: " + serializable[0]->serialize();
         }
 
-        std::vector<nodes::Serializable<Serializer>> deserialize(const std::string &serialized) override {
+        std::vector<nodes::DirectSerializable<std::string> *> deserialize(const std::string &serialized) override {
             return {};
         }
     };
@@ -37,6 +37,14 @@ namespace ex::test {
     public:
         void deserialize(const std::string &serialized) override {
             std::cout << "test serializer: " << serialized << std::endl;
+
+            const TestSerializer serializer;
+
+            std::vector<DirectSerializable *> list;
+            list.push_back(this);
+
+            const auto result = serializer.serialize(list);
+            std::cout << "test deserializer: " << result << std::endl;
         }
 
         std::string serialize() const override {
