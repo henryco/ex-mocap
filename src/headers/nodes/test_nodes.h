@@ -9,6 +9,17 @@
 
 namespace ex::test {
 
+    class TestSerializer : public nodes::Serializer<std::string> {
+    public:
+        std::string serialize(const std::vector<nodes::Serializable<Serializer>> &serializable) const override {
+            return serializable[0].serialize();
+        }
+
+        std::vector<nodes::Serializable<Serializer>> deserialize(const std::string &serialized) override {
+            return {};
+        }
+    };
+
     class Node1:
         public nodes::Node<Node1>,
 
@@ -19,9 +30,19 @@ namespace ex::test {
         public nodes::In<short, 7, 8>,
 
         public nodes::ReactiveIn<short>,
-        public nodes::ReactiveOut<float, int, short>
+        public nodes::ReactiveOut<float, int, short>,
+
+        public nodes::Serializable<TestSerializer>
     {
     public:
+        void deserialize(const std::string &serialized) override {
+            std::cout << "test serializer: " << serialized << std::endl;
+        }
+
+        std::string serialize() const override {
+            return "ABC";
+        }
+
         const int get_node_id() const override {
             return 1;
         }

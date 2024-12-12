@@ -1,10 +1,14 @@
 #include <argparse/argparse.hpp>
 #include <filesystem>
 
-#include "headers/utils/log_utils.h"
 #include "headers/boot.h"
+#include "headers/nodes/test_nodes.h"
+#include "headers/utils/log_utils.h"
 
 int main(const int argc, char **argv) {
+    ex::test::Node1 node1;
+    node1.deserialize("123");
+
     argparse::ArgumentParser program("exmotion", "0.0.1");
     program.add_description(R"desc(
                 To list available capture devices on linux you can use:
