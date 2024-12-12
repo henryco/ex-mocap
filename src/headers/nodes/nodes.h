@@ -862,13 +862,13 @@ namespace ex::nodes {
     };
 
     template<typename T>
-    class DirectSerializable {
+    class Serializable : public virtual NodeDescriptor {
     public:
-        virtual ~DirectSerializable() = default;
-
-        virtual void deserialize(const T &serialized) = 0;
+        ~Serializable() override = default;
 
         virtual T serialize() const = 0;
+
+        virtual void deserialize(const T &serialized) = 0;
     };
 
     template<typename T>
@@ -876,9 +876,9 @@ namespace ex::nodes {
     public:
         virtual ~Serializer() = default;
 
-        virtual T serialize(const std::vector<DirectSerializable<T> *> &serializable) const = 0;
+        virtual T serialize(const std::vector<Serializable<T> *> &serializable) const = 0;
 
-        virtual std::vector<DirectSerializable<T> *> deserialize(const T &serialized) = 0;
+        virtual std::vector<Serializable<T> *> deserialize(const T &serialized) = 0;
     };
 
     namespace internal_ {
@@ -900,14 +900,13 @@ namespace ex::nodes {
     }
 
     template<typename T>
-    class Serializable
-        : public virtual NodeDescriptor,
-          public virtual DirectSerializable<typename internal_::is_derived_from_template_Serializer<T>::type>
+    class Serialization
+        : public virtual Serializable<typename internal_::is_derived_from_template_Serializer<T>::type>
     {
         static_assert(internal_::is_derived_from_template_Serializer<T>::value,
             "Template argument type should be subtype of nodes::Serializer");
     public:
-        ~Serializable() override = default;
+        ~Serialization() override = default;
     };
 
     class BaseNode : public virtual IN_,
