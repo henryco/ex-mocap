@@ -15,6 +15,48 @@
 
 namespace ex::nodes {
 
+    template<typename I>
+    class InIndex {
+    protected:
+        std::vector<int> indexes;
+        using Type = I;
+    public:
+        virtual ~InIndex() = default;
+
+        void add_input_index(const int index) {
+            indexes.push_back(index);
+        }
+
+        bool has_input_index(const int index) {
+            for (int i = 0; i < indexes.size(); i++) {
+                if (indexes[i] == index)
+                    return true;
+            }
+            return false;
+        }
+    };
+
+    template<typename O>
+    class OutIndex {
+    protected:
+        std::vector<int> indexes;
+        using Type = O;
+    public:
+        virtual ~OutIndex() = default;
+
+        void add_output_index(const int index) {
+            indexes.push_back(index);
+        }
+
+        bool has_output_index(const int index) {
+            for (int i = 0; i < indexes.size(); i++) {
+                if (indexes[i] == index)
+                    return true;
+            }
+            return false;
+        }
+    };
+
     class IO {
     public:
         virtual ~IO() = default;
@@ -96,9 +138,13 @@ namespace ex::nodes {
     };
 
     template<typename O, int N>
-    class NodeOut : public virtual Output<O> {
+    class NodeOut : public virtual Output<O>, public virtual OutIndex<O> {
     public:
         ~NodeOut() override = default;
+
+        NodeOut() {
+            OutIndex<O>::add_output_index(N);
+        }
 
         O output(int clock_i) {
             return this->out(static_cast<O *>(nullptr), N, clock_i);
@@ -110,9 +156,13 @@ namespace ex::nodes {
     };
 
     template<typename I, int N>
-    class NodeIn : public virtual Input<I> {
+    class NodeIn : public virtual Input<I>, public virtual InIndex<I> {
     public:
         ~NodeIn() override = default;
+
+        NodeIn() {
+            InIndex<I>::add_input_index(N);
+        }
 
         bool node_present() {
             return true;
@@ -979,21 +1029,21 @@ namespace ex::nodes {
         bool has_output() {
             return static_cast<NodeOut<T, idx> *>(static_cast<N *>(this))->node_present();
         }
-//
-//        template<typename T>
-//        bool has_output(const int idx) {
-//            return static_cast<OutIndexer<T> *>(static_cast<N *>(this))->has(idx);
-//        }
-//
+
+        template<typename T>
+        bool has_output(const int idx) {
+            return static_cast<OutIndex<T> *>(static_cast<N *>(this))->has_output_index(idx);
+        }
+
         template<typename T, int idx>
         bool has_input() {
             return static_cast<NodeIn<T, idx> *>(static_cast<N *>(this))->node_present();
         }
-//
-//        template<typename T>
-//        bool has_input(const int idx) {
-//            return static_cast<InIndexer<T> *>(static_cast<N *>(this))->has(idx);
-//        }
+
+        template<typename T>
+        bool has_input(const int idx) {
+            return static_cast<InIndex<T> *>(static_cast<N *>(this))->has_input_index(idx);
+        }
     };
 
     class clock final : public virtual IN_, public virtual OUT_ {

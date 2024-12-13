@@ -12,7 +12,9 @@ int main(const int argc, char **argv) {
     const auto a = node1.pull<float>(3, 0);
     const auto b = node1.pull<int, 2>(0);
 
-    node1.has_output<int, 2>();
+    std::cout << "1. " << node1.has_output<int, 2>() << "\n";
+    std::cout << "2. " << node1.has_output<int>(2) << "\n";
+    std::cout << "3. " << node1.has_output<int>(7) << "\n";
 
     std::cout << "a: " << a << ", b: " << b << '\n';
 
