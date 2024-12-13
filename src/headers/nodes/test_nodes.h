@@ -57,10 +57,6 @@ namespace ex::test {
             return "ABC";
         }
 
-        const char *get_node_name() const override {
-            return "Node1";
-        }
-
         void *on_any_output(const int output_index, const int clock_i, std::size_t *size) override {
             // TODO
             return nullptr;
@@ -103,10 +99,6 @@ namespace ex::test {
         public nodes::ReactiveOut<bool, char>
     {
     public:
-        const char *get_node_name() const override {
-            return "Node2";
-        }
-
         void *on_any_output(const int output_index, const int clock_i, std::size_t *size) override {
             // TODO
             return nullptr;

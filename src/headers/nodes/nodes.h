@@ -741,11 +741,13 @@ namespace ex::nodes {
         };
 
         template<internal_::string_literal name_>
-        class name : public virtual IO {
+        class name : public virtual IO,
+                     public virtual NodeDescriptor
+        {
             static constexpr std::size_t FNV_OFFSET_BASIS = (sizeof(std::size_t) == 4) ? 2166136261u : 14695981039346656037ull;
             static constexpr std::size_t FNV_PRIME =  (sizeof(std::size_t) == 4) ? 16777619u : 1099511628211ull;
 
-            const std::size_t fnv1aHash() const {
+            std::size_t fnv1aHash() const {
                 constexpr auto name__ = name_.value;
                 auto           str   = static_cast<const char *>(name__);
                 std::size_t hash = FNV_OFFSET_BASIS;
@@ -763,6 +765,12 @@ namespace ex::nodes {
             const std::size_t get_id() const override {
                 static const std::size_t id_ = fnv1aHash();
                 return id_;
+            }
+
+            const char *get_node_name() const override {
+                constexpr auto name__ = name_.value;
+                static auto str = static_cast<const char *>(name__);
+                return str;
             }
         };
 

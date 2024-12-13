@@ -9,6 +9,7 @@ int main(const int argc, char **argv) {
     ex::test::Node1 node1;
 
     std::cout << "ID: " << node1.get_id() << '\n';
+    std::cout << "name: " << node1.get_node_name() << '\n';
 
     node1.deserialize("123");
 
