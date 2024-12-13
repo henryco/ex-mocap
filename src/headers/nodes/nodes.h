@@ -886,10 +886,13 @@ namespace ex::nodes {
         struct is_derived_from_template_Serializer {
         private:
             template<typename U>
+            // ReSharper disable once CppFunctionIsNotImplemented
             static std::true_type test(Serializer<U> *);
+            // ReSharper disable once CppFunctionIsNotImplemented
             static std::false_type test(...);
 
             template<typename U>
+            // ReSharper disable once CppFunctionIsNotImplemented
             static U inner_type_(Serializer<U> *);
         public:
             using type_check = decltype(test(std::declval<T *>()));
