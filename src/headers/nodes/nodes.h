@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <fmt/core.h>
 #include <mutex>
 #include <thread>
 #include <vector>
@@ -72,6 +73,19 @@ namespace ex::nodes {
         virtual const int get_id() const = 0;
     };
 
+    struct io_node {
+        IO *const io_ptr;    // 8
+        io_node  *next;      // 8
+        const int index_in;  // 4
+        const int index_out; // 4
+
+        io_node(IO* io_ptr, const int index_in, const int index_out) :
+        io_ptr(io_ptr),
+        next(nullptr),
+        index_in(index_in),
+        index_out(index_out) {}
+    };
+
     class OUT : virtual public IO {
     public:
         ~OUT() override = default;
@@ -92,6 +106,8 @@ namespace ex::nodes {
         virtual bool is_attached_any(int input_index) = 0;
 
         virtual void detach_all_any(int input_index) = 0;
+
+        virtual const io_node* list_connections() const = 0;
     };
 
     template<typename O>
@@ -218,7 +234,7 @@ namespace ex::nodes {
     };
 
     template<typename ... Types>
-        class AnyIn : virtual public IN {
+    class AnyIn : virtual public IN {
     public:
         ~AnyIn() override = default;
 
@@ -712,6 +728,10 @@ namespace ex::nodes {
         bool disconnect(const int input_index) {
             return static_cast<InputStore<null_mutex, T>*>(this)->remove_connection(input_index);
         }
+
+        const io_node *list_connections() const override {
+            return nullptr; // TODO
+        }
     };
 
     template<typename... Types>
@@ -1087,18 +1107,7 @@ namespace ex::nodes {
                 std::this_thread::sleep_for(std::chrono::duration<double>(sleep_time));
         }
 
-        struct metadata_ {
-            IO *const  io_ptr; // 8
-            metadata_ *next;   // 8
-            const int  index;  // 4
-
-            metadata_(IO* io_ptr, const int index) :
-            io_ptr(io_ptr),
-            next(nullptr),
-            index(index) {}
-        };
-
-        metadata_ *store      = nullptr;
+        io_node   *store      = nullptr;
         int        clock_i    = -1;
         int        target_fps = -1;
 
@@ -1114,13 +1123,17 @@ namespace ex::nodes {
             return std::numeric_limits<int>::min() + 1;
         }
 
+        const io_node *list_connections() const override {
+            return store;
+        }
+
         void *out_any(const int _, const int clock_i, std::size_t *__) override {
             time_start();
-            metadata_  *head = store;
+            io_node  *head = store;
             std::size_t size = 0;
             while (head != nullptr) {
                 if (const auto out = dynamic_cast<OUT *>(head->io_ptr); out != nullptr)
-                    out->out_any(head->index, clock_i, &size);
+                    out->out_any(head->index_out, clock_i, &size);
                 head = head->next;
             }
             time_stop();
@@ -1135,16 +1148,16 @@ namespace ex::nodes {
                 return false;
 
             if (store == nullptr) {
-                store = new metadata_(io_ptr, output_index);
+                store = new io_node(io_ptr, 0, output_index);
                 return true;
             }
 
-            metadata_ *head = store;
+            io_node *head = store;
             while (head->next != nullptr) {
                 head = head->next;
             }
 
-            head->next = new metadata_(io_ptr, output_index);
+            head->next = new io_node(io_ptr, 0, output_index);
             return true;
         }
 
@@ -1152,12 +1165,12 @@ namespace ex::nodes {
             if (io_ptr == nullptr)
                 return false;
 
-            metadata_ *prev = nullptr;
-            metadata_ *head = store;
+            io_node *prev = nullptr;
+            io_node *head = store;
             int any = 0;
 
             while (head != nullptr) {
-                if (head->io_ptr == io_ptr && (head->index == output_index || output_index == -1)) {
+                if (head->io_ptr == io_ptr && (head->index_out == output_index || output_index == -1)) {
                     if (prev == nullptr) {
                         store = head->next;
                         delete head;
@@ -1187,9 +1200,9 @@ namespace ex::nodes {
             if (io_ptr == nullptr)
                 return false;
 
-            const metadata_ *head = store;
+            const io_node *head = store;
             while (head != nullptr) {
-                if (head->io_ptr == io_ptr && head->index == output_index)
+                if (head->io_ptr == io_ptr && head->index_out == output_index)
                     return true;
                 head = head->next;
             }
@@ -1202,7 +1215,7 @@ namespace ex::nodes {
 
         void detach_all_any(const int _) override {
             while (store != nullptr) {
-                metadata_ *next_ = store->next;
+                io_node *next_ = store->next;
                 delete store;
                 store = next_;
            }
