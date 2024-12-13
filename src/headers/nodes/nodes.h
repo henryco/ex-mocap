@@ -897,6 +897,18 @@ namespace ex::nodes {
 
             using type = decltype(inner_type_(std::declval<T *>()));
         };
+
+        template<size_t N>
+        struct string_literal {
+            char value[N]{};
+            size_t size;
+            // ReSharper disable once CppNonExplicitConvertingConstructor
+            constexpr string_literal(const char (&str)[N]) {
+                std::copy_n(str, N, value);
+                size = sizeof(value);
+            }
+        };
+
     }
 
     template<typename T>
