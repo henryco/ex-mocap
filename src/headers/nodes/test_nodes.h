@@ -55,7 +55,7 @@ namespace ex::test {
             return "ABC";
         }
 
-        const int get_node_id() const override {
+        const int get_id() const override {
             return 1;
         }
 
@@ -103,7 +103,7 @@ namespace ex::test {
         public nodes::ReactiveOut<bool, char>
     {
     public:
-        const int get_node_id() const override {
+        const int get_id() const override {
             return 2;
         }
 

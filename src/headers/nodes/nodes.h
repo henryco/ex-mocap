@@ -68,6 +68,8 @@ namespace ex::nodes {
     class IO {
     public:
         virtual ~IO() = default;
+
+        virtual const int get_id() const = 0;
     };
 
     class OUT_ : virtual public IO {
@@ -859,8 +861,6 @@ namespace ex::nodes {
     public:
         virtual ~NodeDescriptor() = default;
 
-        virtual const int get_node_id() const = 0;
-
         virtual const char *get_node_name() const = 0;
     };
 
@@ -1108,6 +1108,10 @@ namespace ex::nodes {
 
         ~clock() override {
             detach_all_any(0);
+        }
+
+        const int get_id() const override {
+            return std::numeric_limits<int>::min() + 1;
         }
 
         void *out_any(const int _, const int clock_i, std::size_t *__) override {
