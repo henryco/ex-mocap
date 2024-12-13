@@ -57,6 +57,14 @@ namespace ex::nodes {
         }
     };
 
+    template<typename T>
+    class State {
+    public:
+        virtual ~State() = default;
+
+        virtual const T * get() const = 0;
+    };
+
     class IO {
     public:
         virtual ~IO() = default;
