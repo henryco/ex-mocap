@@ -23,6 +23,8 @@ namespace ex::test {
     class Node1:
         public nodes::Node<Node1>,
 
+        public nodes::id::name<"node_1">,
+
         public nodes::io::out<int, 0, "Output int 1">,
         public nodes::io::out<int, 1, "Output int 2">,
         public nodes::io::out<int, 2, "Output int 3">,
@@ -53,10 +55,6 @@ namespace ex::test {
 
         std::string serialize() const override {
             return "ABC";
-        }
-
-        const int get_id() const override {
-            return 1;
         }
 
         const char *get_node_name() const override {
@@ -92,6 +90,8 @@ namespace ex::test {
     class Node2:
         public nodes::Node<Node2>,
 
+        public nodes::id::name<"node_2">,
+
         public nodes::io::in<float, 0, "Input float 1">,
         public nodes::io::in<float, 1, "Input float 2">,
         public nodes::io::in<short, 2, "Input short 1">,
@@ -103,10 +103,6 @@ namespace ex::test {
         public nodes::ReactiveOut<bool, char>
     {
     public:
-        const int get_id() const override {
-            return 2;
-        }
-
         const char *get_node_name() const override {
             return "Node2";
         }

@@ -70,7 +70,7 @@ namespace ex::nodes {
     public:
         virtual ~IO() = default;
 
-        virtual const int get_id() const = 0;
+        virtual const std::size_t get_id() const = 0;
     };
 
     struct io_node {
@@ -719,6 +719,55 @@ namespace ex::nodes {
         ~Serialization() override = default;
     };
 
+    namespace id {
+        template<typename T>
+        class type : public virtual IO {
+        public:
+            ~type() override = default;
+
+            const std::size_t get_id() const override {
+                return typeid(T).hash_code();
+            }
+        };
+
+        template<typename T>
+        class dynamic : public virtual IO {
+        public:
+            ~dynamic() override = default;
+
+            const std::size_t get_id() const override {
+                return typeid(*(static_cast<T *>(this))).hash_code();
+            }
+        };
+
+        template<internal_::string_literal name_>
+        class name : public virtual IO {
+            static constexpr std::size_t FNV_OFFSET_BASIS = (sizeof(std::size_t) == 4) ? 2166136261u : 14695981039346656037ull;
+            static constexpr std::size_t FNV_PRIME =  (sizeof(std::size_t) == 4) ? 16777619u : 1099511628211ull;
+
+            const std::size_t fnv1aHash() const {
+                constexpr auto name__ = name_.value;
+                auto           str   = static_cast<const char *>(name__);
+                std::size_t hash = FNV_OFFSET_BASIS;
+                while (*str) {
+                    hash ^= static_cast<std::size_t>(*str);
+                    hash *= FNV_PRIME;
+                    ++str;
+                }
+                return hash;
+            }
+
+        public:
+            ~name() override = default;
+
+            const std::size_t get_id() const override {
+                static const std::size_t id_ = fnv1aHash();
+                return id_;
+            }
+        };
+
+    }
+
     class BaseNode : public virtual IN,
                      public virtual OUT,
                      public virtual NodeDescriptor,
@@ -835,7 +884,7 @@ namespace ex::nodes {
             detach_all_any(0);
         }
 
-        const int get_id() const override {
+        const std::size_t get_id() const override {
             return std::numeric_limits<int>::min() + 1;
         }
 

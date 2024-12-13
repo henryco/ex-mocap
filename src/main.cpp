@@ -7,6 +7,9 @@
 
 int main(const int argc, char **argv) {
     ex::test::Node1 node1;
+
+    std::cout << "ID: " << node1.get_id() << '\n';
+
     node1.deserialize("123");
 
     const auto a = node1.pull<float>(3, 0);
