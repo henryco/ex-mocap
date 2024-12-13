@@ -12,6 +12,8 @@ int main(const int argc, char **argv) {
     const auto a = node1.pull<float>(3, 0);
     const auto b = node1.pull<int, 2>(0);
 
+    node1.has_output<int, 2>();
+
     std::cout << "a: " << a << ", b: " << b << '\n';
 
     int size_i = 0;

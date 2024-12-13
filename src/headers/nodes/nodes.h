@@ -42,21 +42,16 @@ namespace ex::nodes {
         virtual void detach_all_any(int input_index) = 0;
     };
 
-//    class Indexer {
-//    public:
-//        virtual ~Indexer() = default;
-//
-//        virtual std::vector<int> indexes() const = 0;
-//
-//        virtual bool has(int idx) const = 0;
-//    };
-
     template<typename O>
     class Output: virtual public OUT_ {
     public:
         ~Output() override = default;
 
         virtual O out(O *null_ptr, int output_index, int clock_i) = 0;
+
+        bool output_present() {
+            return true;
+        }
     };
 
     template<typename I>
@@ -85,6 +80,10 @@ namespace ex::nodes {
             return is_attached(ptr, output_index, input_index);
         }
 
+        bool input_present() {
+            return true;
+        }
+
         virtual bool attach(Output<I> *output_ptr, int output_index, int input_index) = 0;
 
         virtual bool detach(Output<I> *output_ptr, int output_index, int input_index) = 0;
@@ -96,20 +95,6 @@ namespace ex::nodes {
         virtual void detach_all(int input_index) = 0;
     };
 
-//    template<typename T>
-//    class InIndexer : public Indexer {
-//        using type = T;
-//    public:
-//        ~InIndexer() override = default;
-//    };
-
-//    template<typename T>
-//    class OutIndexer : public Indexer {
-//        using type = T;
-//    public:
-//        ~OutIndexer() override = default;
-//    };
-
     template<typename O, int N>
     class NodeOut : public virtual Output<O> {
     public:
@@ -118,12 +103,20 @@ namespace ex::nodes {
         O output(int clock_i) {
             return this->out(static_cast<O *>(nullptr), N, clock_i);
         }
+
+        bool node_present() {
+            return true;
+        }
     };
 
     template<typename I, int N>
     class NodeIn : public virtual Input<I> {
     public:
         ~NodeIn() override = default;
+
+        bool node_present() {
+            return true;
+        }
 
         bool add_io(IO *io_ptr, const int output_index) {
             auto ptr = dynamic_cast<Output<I> *>(io_ptr);
@@ -161,65 +154,6 @@ namespace ex::nodes {
             return this -> detach(output_ptr, i, N);
         }
     };
-
-    template<typename I, int... Indexes>
-    class Inputs;
-
-    template<typename I>
-    class Inputs<I> {};
-
-    template <typename I, int First, int... Rest>
-    class Inputs<I, First, Rest...>
-        : public NodeIn<I, First>,
-          public Inputs<I, Rest...>
-    {
-    public:
-        ~Inputs() override = default;
-    };
-
-    template<typename O, int... Indexes>
-    class Outputs;
-
-    template<typename O>
-    class Outputs<O> {};
-
-    template <typename O, int First, int... Rest>
-    class Outputs<O, First, Rest...>
-        : public NodeOut<O, First>,
-          public Outputs<O, Rest...> {
-    public:
-        ~Outputs() override = default;
-    };
-
-
-
-//    template<typename I, int... Indexes>
-//    class In : public InIndexer<I>, public Inputs<I, Indexes...> {
-//    public:
-//        ~In() override = default;
-//
-//        constexpr std::vector<int> indexes() const override {
-//            return {Indexes...};
-//        }
-//
-//        constexpr bool has(int idx) const override {
-//            return ((idx == Indexes) || ...);
-//        }
-//    };
-//
-//    template<typename O, int... Indexes>
-//    class Out : public OutIndexer<O>, public Outputs<O, Indexes...> {
-//    public:
-//        ~Out() override = default;
-//
-//        constexpr std::vector<int> indexes() const override {
-//            return {Indexes...};
-//        }
-//
-//        constexpr bool has(int idx) const override {
-//            return ((idx == Indexes) || ...);
-//        }
-//    };
 
     template<typename ... Types>
         class AnyIn : virtual public IN_ {
@@ -1041,20 +975,20 @@ namespace ex::nodes {
             static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->remove_all();
         }
 
-//        template<typename T, int idx>
-//        bool has_output() {
-//            return static_cast<OutIndexer<T> *>(static_cast<N *>(this))->has(idx);
-//        }
+        template<typename T, int idx>
+        bool has_output() {
+            return static_cast<NodeOut<T, idx> *>(static_cast<N *>(this))->node_present();
+        }
 //
 //        template<typename T>
 //        bool has_output(const int idx) {
 //            return static_cast<OutIndexer<T> *>(static_cast<N *>(this))->has(idx);
 //        }
 //
-//        template<typename T, int idx>
-//        bool has_input() {
-//            return static_cast<InIndexer<T> *>(static_cast<N *>(this))->has(idx);
-//        }
+        template<typename T, int idx>
+        bool has_input() {
+            return static_cast<NodeIn<T, idx> *>(static_cast<N *>(this))->node_present();
+        }
 //
 //        template<typename T>
 //        bool has_input(const int idx) {
