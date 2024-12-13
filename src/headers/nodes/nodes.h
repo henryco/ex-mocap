@@ -522,14 +522,17 @@ namespace ex::nodes {
                     continue;
                 }
 
-                const auto in_ = dynamic_cast<IN *>(this);
-                if (in_ == nullptr) {
+                if (const auto in_ = dynamic_cast<IN *>(this); in_ == nullptr) {
                     head = head->next;
                     i++;
                     continue;
                 }
 
-                in_->in_any(result_ptr, size_, head->index_in, head->index_out, clock_i);
+                if (this->on_any_input(result_ptr, size_, head->index_in, head->index_out, clock_i)) {
+                    // set a bit for given input
+                    flags[type_index][i / bytes] |= (1 << n_th);
+                }
+
                 head = head->next;
                 i++;
             }
@@ -537,6 +540,12 @@ namespace ex::nodes {
 
     public:
         ~ReactiveIn() override = default;
+
+        virtual bool on_any_input(const void *data_ptr, std::size_t size, int input_index, int output_index, int clock_i) = 0;
+
+        void in_any(const void *data_ptr, const std::size_t size, const  int input_index, const  int output_index, const int clock_i) override {
+            on_any_input(data_ptr, size, input_index, output_index, clock_i);
+        }
 
         void update_state(const int clock_i, const bool once) override {
             if (last_clock_i == clock_i && once)

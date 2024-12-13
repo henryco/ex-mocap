@@ -62,8 +62,9 @@ namespace ex::test {
             return nullptr;
         }
 
-        void in_any(const void *data_ptr, const std::size_t size, const int input_index, const  int output_index, const int clock_i) override {
+        bool on_any_input(const void *data_ptr, const std::size_t size, const int input_index, const  int output_index, const int clock_i) override {
             // TODO
+            return true;
         }
 
         float on_output(float *null_ptr, const int output_index, const int clock_i) override {
@@ -107,8 +108,9 @@ namespace ex::test {
             return nullptr;
         }
 
-        void in_any(const void *data_ptr, const std::size_t size, const int input_index, const  int output_index, const int clock_i) override {
+        bool on_any_input(const void *data_ptr, const std::size_t size, const int input_index, const  int output_index, const int clock_i) override {
             // TODO
+            return true;
         }
 
         bool on_output(bool *null_ptr, const int output_index, const int clock_i) override {
