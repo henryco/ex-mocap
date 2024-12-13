@@ -429,18 +429,6 @@ namespace ex::nodes {
         ~KeepInput() override = default;
 
         template<typename T>
-        Output<T> **connections(const int input_index, int *out_size = nullptr) {
-            return static_cast<InputStore<null_mutex, T>*>(this)->get_connections(input_index, out_size);
-        }
-
-        template<typename T>
-        Output<T> *connection(const int input_index) {
-            int size = -1;
-            Output<T> **r = connections<T>(input_index, &size);
-            return size <= 0 ? nullptr : r[0];
-        }
-
-        template<typename T>
         bool disconnect(const int input_index) {
             return static_cast<InputStore<null_mutex, T>*>(this)->remove_connection(input_index);
         }
