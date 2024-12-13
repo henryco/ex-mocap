@@ -72,16 +72,16 @@ namespace ex::nodes {
         virtual const int get_id() const = 0;
     };
 
-    class OUT_ : virtual public IO {
+    class OUT : virtual public IO {
     public:
-        ~OUT_() override = default;
+        ~OUT() override = default;
 
         virtual void *out_any(int output_index, int clock_i, std::size_t* size) = 0;
     };
 
-    class IN_ : virtual public IO {
+    class IN : virtual public IO {
     public:
-        ~IN_() override = default;
+        ~IN() override = default;
 
         virtual bool attach_any(IO *io_ptr, int output_index, int input_index) = 0;
 
@@ -95,7 +95,7 @@ namespace ex::nodes {
     };
 
     template<typename O>
-    class Output: virtual public OUT_ {
+    class Output: virtual public OUT {
     public:
         ~Output() override = default;
 
@@ -107,7 +107,7 @@ namespace ex::nodes {
     };
 
     template<typename I>
-    class Input : virtual public IN_ {
+    class Input : virtual public IN {
     public:
         ~Input() override = default;
 
@@ -218,7 +218,7 @@ namespace ex::nodes {
     };
 
     template<typename ... Types>
-        class AnyIn : virtual public IN_ {
+        class AnyIn : virtual public IN {
     public:
         ~AnyIn() override = default;
 
@@ -985,8 +985,8 @@ namespace ex::nodes {
         ~Serialization() override = default;
     };
 
-    class BaseNode : public virtual IN_,
-                     public virtual OUT_,
+    class BaseNode : public virtual IN,
+                     public virtual OUT,
                      public virtual NodeDescriptor,
                      public virtual IODescriptor
     {
@@ -1065,8 +1065,8 @@ namespace ex::nodes {
         }
     };
 
-    class clock final : public virtual IN_,
-                        public virtual OUT_
+    class clock final : public virtual IN,
+                        public virtual OUT
     {
     private:
         std::chrono::time_point<std::chrono::steady_clock> start_time;
@@ -1119,7 +1119,7 @@ namespace ex::nodes {
             metadata_  *head = store;
             std::size_t size = 0;
             while (head != nullptr) {
-                if (const auto out = dynamic_cast<OUT_ *>(head->io_ptr); out != nullptr)
+                if (const auto out = dynamic_cast<OUT *>(head->io_ptr); out != nullptr)
                     out->out_any(head->index, clock_i, &size);
                 head = head->next;
             }
