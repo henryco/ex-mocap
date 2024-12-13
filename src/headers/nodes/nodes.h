@@ -42,14 +42,14 @@ namespace ex::nodes {
         virtual void detach_all_any(int input_index) = 0;
     };
 
-    class Indexer {
-    public:
-        virtual ~Indexer() = default;
-
-        virtual std::vector<int> indexes() const = 0;
-
-        virtual bool has(int idx) const = 0;
-    };
+//    class Indexer {
+//    public:
+//        virtual ~Indexer() = default;
+//
+//        virtual std::vector<int> indexes() const = 0;
+//
+//        virtual bool has(int idx) const = 0;
+//    };
 
     template<typename O>
     class Output: virtual public OUT_ {
@@ -96,19 +96,19 @@ namespace ex::nodes {
         virtual void detach_all(int input_index) = 0;
     };
 
-    template<typename T>
-    class InIndexer : public Indexer {
-        using type = T;
-    public:
-        ~InIndexer() override = default;
-    };
+//    template<typename T>
+//    class InIndexer : public Indexer {
+//        using type = T;
+//    public:
+//        ~InIndexer() override = default;
+//    };
 
-    template<typename T>
-    class OutIndexer : public Indexer {
-        using type = T;
-    public:
-        ~OutIndexer() override = default;
-    };
+//    template<typename T>
+//    class OutIndexer : public Indexer {
+//        using type = T;
+//    public:
+//        ~OutIndexer() override = default;
+//    };
 
     template<typename O, int N>
     class NodeOut : public virtual Output<O> {
@@ -193,33 +193,33 @@ namespace ex::nodes {
 
 
 
-    template<typename I, int... Indexes>
-    class In : public InIndexer<I>, public Inputs<I, Indexes...> {
-    public:
-        ~In() override = default;
-
-        constexpr std::vector<int> indexes() const override {
-            return {Indexes...};
-        }
-
-        constexpr bool has(int idx) const override {
-            return ((idx == Indexes) || ...);
-        }
-    };
-
-    template<typename O, int... Indexes>
-    class Out : public OutIndexer<O>, public Outputs<O, Indexes...> {
-    public:
-        ~Out() override = default;
-
-        constexpr std::vector<int> indexes() const override {
-            return {Indexes...};
-        }
-
-        constexpr bool has(int idx) const override {
-            return ((idx == Indexes) || ...);
-        }
-    };
+//    template<typename I, int... Indexes>
+//    class In : public InIndexer<I>, public Inputs<I, Indexes...> {
+//    public:
+//        ~In() override = default;
+//
+//        constexpr std::vector<int> indexes() const override {
+//            return {Indexes...};
+//        }
+//
+//        constexpr bool has(int idx) const override {
+//            return ((idx == Indexes) || ...);
+//        }
+//    };
+//
+//    template<typename O, int... Indexes>
+//    class Out : public OutIndexer<O>, public Outputs<O, Indexes...> {
+//    public:
+//        ~Out() override = default;
+//
+//        constexpr std::vector<int> indexes() const override {
+//            return {Indexes...};
+//        }
+//
+//        constexpr bool has(int idx) const override {
+//            return ((idx == Indexes) || ...);
+//        }
+//    };
 
     template<typename ... Types>
         class AnyIn : virtual public IN_ {
@@ -901,10 +901,10 @@ namespace ex::nodes {
             using type = decltype(inner_type_(std::declval<T *>()));
         };
 
-        template<size_t N>
+        template<std::size_t N>
         struct string_literal {
-            char value[N]{};
-            size_t size;
+            std::size_t size;
+            char value[N];
             // ReSharper disable once CppNonExplicitConvertingConstructor
             constexpr string_literal(const char (&str)[N]) {
                 std::copy_n(str, N, value);
@@ -912,6 +912,64 @@ namespace ex::nodes {
             }
         };
 
+    }
+
+    namespace io {
+        class port_dispatcher : public virtual IODescriptor {
+        protected:
+            std::vector<Description> in_descriptions_;
+            std::vector<Description> out_descriptions_;
+            bool freeze_ = false;
+
+        public:
+            ~port_dispatcher() override = default;
+
+            void register_in_descriptor(const Description &descriptor) {
+                in_descriptions_.push_back(descriptor);
+            }
+
+            void register_out_descriptor(const Description &descriptor) {
+                out_descriptions_.push_back(descriptor);
+            }
+
+            const Description *describe_inputs(int *o_inputs_number) const override {
+                *o_inputs_number = in_descriptions_.size();
+                return in_descriptions_.data();
+            }
+
+            const Description *describe_outputs(int *o_outputs_number) const override {
+                *o_outputs_number = out_descriptions_.size();
+                return out_descriptions_.data();
+            }
+        };
+
+        template<typename T, int index, bool input, bool aux, internal_::string_literal name>
+        struct descriptor : virtual port_dispatcher {
+        public:
+            descriptor() {
+                constexpr auto name_ = name.value;
+                if (input)
+                    register_in_descriptor(describe_io<T>(index, static_cast<const char *>(name_), aux));
+                else
+                    register_out_descriptor(describe_io<T>(index, static_cast<const char *>(name_), aux));
+            }
+
+            ~descriptor() override = default;
+        };
+
+        template<typename T, int index, internal_::string_literal name>
+        struct in : virtual descriptor<T, index, true, false, name>, NodeIn<T, index> {};
+
+        template<typename T, int index, internal_::string_literal name>
+        struct out : virtual descriptor<T, index, false, false, name>, NodeOut<T, index> {};
+
+        namespace aux {
+            template<typename T, int index, internal_::string_literal name>
+            struct in : virtual descriptor<T, index, true, true, name>, NodeIn<T, index> {};
+
+            template<typename T, int index, internal_::string_literal name>
+            struct out : virtual descriptor<T, index, false, true, name>, NodeOut<T, index> {};
+        }
     }
 
     template<typename T>
@@ -983,25 +1041,25 @@ namespace ex::nodes {
             static_cast<NodeIn<T, input_index> *>(static_cast<N *>(this))->remove_all();
         }
 
-        template<typename T, int idx>
-        bool has_output() {
-            return static_cast<OutIndexer<T> *>(static_cast<N *>(this))->has(idx);
-        }
-
-        template<typename T>
-        bool has_output(const int idx) {
-            return static_cast<OutIndexer<T> *>(static_cast<N *>(this))->has(idx);
-        }
-
-        template<typename T, int idx>
-        bool has_input() {
-            return static_cast<InIndexer<T> *>(static_cast<N *>(this))->has(idx);
-        }
-
-        template<typename T>
-        bool has_input(const int idx) {
-            return static_cast<InIndexer<T> *>(static_cast<N *>(this))->has(idx);
-        }
+//        template<typename T, int idx>
+//        bool has_output() {
+//            return static_cast<OutIndexer<T> *>(static_cast<N *>(this))->has(idx);
+//        }
+//
+//        template<typename T>
+//        bool has_output(const int idx) {
+//            return static_cast<OutIndexer<T> *>(static_cast<N *>(this))->has(idx);
+//        }
+//
+//        template<typename T, int idx>
+//        bool has_input() {
+//            return static_cast<InIndexer<T> *>(static_cast<N *>(this))->has(idx);
+//        }
+//
+//        template<typename T>
+//        bool has_input(const int idx) {
+//            return static_cast<InIndexer<T> *>(static_cast<N *>(this))->has(idx);
+//        }
     };
 
     class clock final : public virtual IN_, public virtual OUT_ {

@@ -9,6 +9,27 @@ int main(const int argc, char **argv) {
     ex::test::Node1 node1;
     node1.deserialize("123");
 
+    const auto a = node1.pull<float>(3, 0);
+    const auto b = node1.pull<int, 2>(0);
+
+    std::cout << "a: " << a << ", b: " << b << '\n';
+
+    int size_i = 0;
+    const auto inputs = node1.describe_inputs(&size_i);
+
+    int size_o = 0;
+    const auto outputs = node1.describe_outputs(&size_o);
+
+    for (int i = 0; i < size_i; i++) {
+        const auto &[type_id, index, aux, name] = inputs[i];
+        std::cout << "input: " << index << " (" << type_id << "), " << aux << ", " << name << "\n";
+    }
+
+    for (int i = 0; i < size_o; i++) {
+        const auto &[type_id, index, aux, name] = outputs[i];
+        std::cout << "output: " << index << " (" << type_id << "), " << aux << ", " << name << "\n";
+    }
+    
     argparse::ArgumentParser program("exmotion", "0.0.1");
     program.add_description(R"desc(
                 To list available capture devices on linux you can use:
