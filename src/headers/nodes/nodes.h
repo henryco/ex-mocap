@@ -357,350 +357,66 @@ namespace ex::nodes {
     template<typename Mutex_, typename T>
     class InputStore : public virtual Input<T> {
     private:
-        Output<T> *(**output_array_2) = nullptr;
-        Metadata *metadata_array      = nullptr;
-        int       metadata_count      = 0;
-        int       output_count        = 0;
-
+        io_node *store = nullptr;
         Mutex_ mutex_;
 
     public:
         ~InputStore() override {
-            if (metadata_array != nullptr) {
-                free(metadata_array);
-            }
-            if (output_array_2 != nullptr) {
-                for (int i = 0; i < output_count; i++) {
-                    if (output_array_2[i] != nullptr)
-                        free(output_array_2[i]);
-                }
-                free(output_array_2);
-            }
-        }
-
-        const Metadata * get_metadata(int *return_size) {
-            std::lock_guard guard(mutex_);
-
-            if (metadata_array == nullptr || metadata_count <= 0) {
-                *return_size = 0;
-                return nullptr;
-            }
-            *return_size = metadata_count;
-            return metadata_array;
-        }
-
-    private:
-        void find_output_array(const int input_index, const int output_index, int *main_index_o, int *main_size_o, int *meta_index_o = nullptr) {
-            if (input_index < 0
-                || metadata_array == nullptr
-                || output_array_2 == nullptr)
-            {
-                *main_index_o = -1;
-                *main_size_o  = -1;
-                if (meta_index_o != nullptr)
-                    *meta_index_o = -1;
-                return;
-            }
-
-            for (int i = 0; i < metadata_count; i++) {
-                if (metadata_array[i].input_index == input_index
-                    && ((output_index >= 0 && metadata_array[i].output_index == output_index)
-                        || (output_index < 0 && metadata_array[i].output_index > (-1)))
-                    && metadata_array[i].item_index   > (-1)
-                    && metadata_array[i].main_index   > (-1)
-                    && metadata_array[i].main_size    > (-1))
-                {
-                    const int main_index = metadata_array[i].main_index;
-                    const int item_index = metadata_array[i].item_index;
-                    const int main_size  = metadata_array[i].main_size;
-                    if (output_array_2[main_index] != nullptr
-                        && output_array_2[main_index][item_index] != nullptr)
-                    {
-                        *main_index_o = main_index;
-                        *main_size_o  = main_size;
-                        if (meta_index_o != nullptr)
-                            *meta_index_o = i;
-                        return;
-                    }
-                }
-            }
-
-            *main_index_o = -1;
-            *main_size_o  = -1;
-            if (meta_index_o != nullptr)
-                *meta_index_o = -1;
-        }
-
-    public:
-
-        Output<T> *get_connection(const Metadata &metadata) {
-            std::lock_guard guard(mutex_);
-
-            if (output_array_2 == nullptr || output_count <= 0)
-                return nullptr;
-
-            return output_array_2[metadata.main_index][metadata.item_index];
-        }
-
-        Output<T> **get_connections(const int input_index, int *out_size = nullptr) {
-            std::lock_guard guard(mutex_);
-
-            int main_index_o = -1;
-            int main_size_o  = -1;
-            find_output_array(input_index, -1, &main_index_o, &main_size_o);
-
-            if (main_index_o == -1 || main_size_o == -1)
-                return nullptr;
-
-            if (out_size != nullptr)
-                *out_size = main_size_o;
-
-            return output_array_2[main_index_o];
+            // TODO
         }
 
         void remove_connection(const int input_index) {
             detach_all(input_index);
         }
 
-        bool is_attached(Output<T> *output_ptr, const int output_index, const int input_index) override {
-            std::lock_guard guard(mutex_);
-            if (output_ptr == nullptr)
-                return false;
-
-            int main_index = -1;
-            int main_size  = -1;
-
-            find_output_array(input_index, output_index, &main_index, &main_size);
-            if (main_index < 0 || main_size < 0)
-                return false;
-
-            for (int i = 0; i < main_size; i++) {
-                if (output_array_2[main_index][i] == output_ptr)
-                    return true;
-            }
-
-            return false;
-        }
-
-        bool is_attached(const int input_index) override {
-            std::lock_guard guard(mutex_);
-            int main_index = -1;
-            int main_size  = -1;
-            find_output_array(input_index, -1, &main_index, &main_size);
-            return !((main_index < 0) || (main_size < 0));
+        const io_node *list_inputs() const {
+            return store;
         }
 
         bool attach(Output<T> *output_ptr, const int output_index, const int input_index) override {
             std::lock_guard guard(mutex_);
 
-            if (metadata_array == nullptr) {
-
-                if (output_array_2 != nullptr) {
-                    for (int i = 0; i < output_count; i++) {
-                        if (output_array_2[i] != nullptr)
-                            free(output_array_2[i]);
-                    }
-                    free(output_array_2);
-                }
-
-                metadata_array       = static_cast<Metadata *>(malloc(sizeof(Metadata)));
-                output_array_2       = static_cast<Output<T> ** *>(malloc(sizeof(Output<T> **)));
-                output_array_2[0]    = static_cast<Output<T> **>(malloc(sizeof(Output<T> *)));
-                output_array_2[0][0] = output_ptr;
-
-                metadata_array[0].output_index = output_index;
-                metadata_array[0].input_index  = input_index;
-                metadata_array[0].item_index   = 0;
-                metadata_array[0].main_index   = 0;
-                metadata_array[0].main_size    = 1;
-
-                metadata_count     = 1;
-                output_count       = 1;
-
-                return true;
-            }
-
-            if (is_attached(output_ptr, output_index, input_index)) {
+            if (output_ptr == nullptr)
                 return false;
-            }
 
-            int main_index = -1;
-            int main_size  = -1;
-            find_output_array(input_index, output_index, &main_index, &main_size);
+            if (is_attached(output_ptr, output_index, input_index))
+                return false;
 
-            const int new_size = std::max(metadata_count + 1, 0);
-            const int i        = metadata_count;
-
-            if (main_index < 0 || main_size < 0) {
-                const int size_2 = std::max(output_count + 1, 0);
-                const int j      = output_count;
-
-                metadata_array = static_cast<Metadata *>(realloc(metadata_array, new_size * sizeof(Metadata)));
-                metadata_array[i].output_index = output_index;
-                metadata_array[i].input_index  = input_index;
-                metadata_array[i].main_index   = j;
-                metadata_array[i].item_index   = 0;
-                metadata_array[i].main_size    = 1;
-
-                output_array_2       = static_cast<Output<T> ** *>(realloc(output_array_2, size_2 * sizeof(Output<T> **)));
-                output_array_2[j]    = static_cast<Output<T> **>(malloc(sizeof(Output<T> *)));
-                output_array_2[j][0] = output_ptr;
-
-                metadata_count = new_size;
-                output_count   = size_2;
-
+            if (store == nullptr) {
+                store = new io_node(static_cast<IO *>(output_ptr), input_index, output_index);
                 return true;
             }
 
-            const int size_2 = main_size + 1;
-            const int j      = main_index;
-            const int k      = main_size;
-
-            metadata_array = static_cast<Metadata *>(realloc(metadata_array, new_size * sizeof(Metadata)));
-            metadata_array[i].output_index = output_index;
-            metadata_array[i].input_index  = input_index;
-            metadata_array[i].main_size    = size_2;
-            metadata_array[i].main_index   = j;
-            metadata_array[i].item_index   = k;
-
-            output_array_2[j]    = static_cast<Output<T> **>(realloc(output_array_2[j], size_2 * sizeof(Output<T> *)));
-            output_array_2[j][k] = output_ptr;
-
-            metadata_count = new_size;
-
-            for (int p = 0; p < metadata_count; p++) {
-                if (metadata_array[p].input_index == input_index) {
-                    metadata_array[p].main_size = size_2;
-                }
+            io_node *head = store;
+            while (head->next != nullptr) {
+                head = head->next;
             }
 
+            head->next = new io_node(static_cast<IO *>(output_ptr), input_index, output_index);
             return true;
         }
 
         bool detach(Output<T> *output_ptr, const int output_index, const int input_index) override {
             std::lock_guard guard(mutex_);
-
-            if (output_ptr == nullptr) {
-                return false;
-            }
-
-            int meta_index = -1;
-            int main_index = -1;
-            int main_size  = -1;
-
-            find_output_array(input_index, output_index, &main_index, &main_size, &meta_index);
-            if (main_index < 0 || main_size < 0) {
-                return true;
-            }
-
-            int j = -1;
-            for (int i = 0; i < main_size; i++) {
-                if (output_array_2[main_index][i] == output_ptr) {
-                    j = i;
-                    break;
-                }
-            }
-
-            if (j < 0) {
-                return false;
-            }
-
-            const int size_1 = std::max(metadata_count - 1, 0);
-            const int size_2 = std::max(main_size - 1, 0);
-            const int l      = meta_index;
-            const int k      = main_index;
-
-            metadata_array[l]    = metadata_array[size_1];
-            output_array_2[k][j] = output_array_2[k][size_2];
-
-            metadata_array    = static_cast<Metadata *>(realloc(metadata_array, size_1 * sizeof(Metadata)));
-            output_array_2[k] = static_cast<Output<T> **>(realloc(output_array_2[k], size_2 * sizeof(Output<T> *)));
-
-            if (size_2 <= 0) {
-                const int new_size = std::max(output_count - 1, 0);
-
-                output_array_2[k] = output_array_2[new_size];
-                output_array_2 = static_cast<Output<T> ** *>(realloc(output_array_2, new_size * sizeof(Output<T> **)));
-
-                for (int p = 0; p < metadata_count; p++) {
-                    if (metadata_array[p].main_index == new_size) {
-                        metadata_array[p].main_index = k;
-                    }
-                }
-
-                output_count = new_size;
-            }
-
-            metadata_count = size_1;
-
-            for (int p = 0; p < metadata_count; p++) {
-                if (metadata_array[p].input_index == input_index) {
-                    metadata_array[p].main_size = size_2;
-                }
-            }
-
-            if (metadata_count <= 0)
-                metadata_array = nullptr;
-            if (output_count <= 0)
-                output_array_2 = nullptr;
-
+            // TODO
             return false;
         }
 
         void detach_all(const int input_index) override {
             std::lock_guard guard(mutex_);
-            if (!is_attached(input_index)) {
-                return;
-            }
+            // TODO
+        }
 
-            int main_index = -1;
-            int main_size  = -1;
+        bool is_attached(Output<T> *output_ptr, const int output_index, const int input_index) override {
+            std::lock_guard guard(mutex_);
+            // TODO
+            return false;
+        }
 
-            find_output_array(input_index, -1, &main_index, &main_size);
-            if (main_index < 0 || main_size < 0) {
-                return;
-            }
-
-            int count = 0;
-            for (int i = 0; i < metadata_count; i++) {
-                if (metadata_array[i].input_index == input_index) {
-                    count++;
-                }
-            }
-
-            const int new_size_1 = std::max(metadata_count - count, 0);
-            auto      new_meta_1 = static_cast<Metadata *>(malloc(new_size_1 * sizeof(Metadata)));
-
-            int m = 0;
-            for (int i = 0; i < metadata_count; i++) {
-                if (metadata_array[i].input_index != input_index) {
-                    new_meta_1[m++] = metadata_array[i];
-                }
-            }
-
-            const int new_size = std::max(output_count - 1, 0);
-            const int k        = main_index;
-
-            output_array_2[k] = output_array_2[new_size];
-            output_array_2 = static_cast<Output<T> ** *>(realloc(output_array_2, new_size * sizeof(Output<T> **)));
-
-
-            free(metadata_array);
-            metadata_array = new_meta_1;
-            metadata_count = new_size_1;
-
-            for (int p = 0; p < metadata_count; p++) {
-                if (metadata_array[p].main_index == new_size) {
-                    metadata_array[p].main_index = k;
-                }
-            }
-
-            output_count = new_size;
-
-            if (metadata_count <= 0)
-                metadata_array = nullptr;
-            if (output_count <= 0)
-                output_array_2 = nullptr;
+        bool is_attached(const int input_index) override {
+            std::lock_guard guard(mutex_);
+            // TODO
+            return false;
         }
     };
 
@@ -770,9 +486,11 @@ namespace ex::nodes {
 
         template<typename T>
         void _pull_inputs(const int clock_i, const int type_index) {
-            int             size     = -1;
-            const Metadata *metadata = static_cast<InputStore<null_mutex, T> *>(this)->get_metadata(&size);
-            for (int i = 0; i < size; i++) {
+            const io_node *inputs = static_cast<InputStore<null_mutex, T> *>(this)->list_inputs();
+            const io_node *head = inputs;
+
+            int i = 0;
+            while (head != nullptr) {
                 const char &byte = flags[type_index][i / bytes];
                 const int   n_th = i % bytes;
 
@@ -780,18 +498,26 @@ namespace ex::nodes {
                     continue;
                 }
 
-                // clear bit for given input
                 flags[type_index][i / bytes] &= ~(1 << n_th);
 
-                const auto &meta       = metadata[i];
-                Output<T>  *connection = static_cast<InputStore<null_mutex, T> *>(this)->get_connection(meta);
-                const T     data       = connection->out(static_cast<T *>(nullptr), meta.output_index, clock_i);
-                const bool  once       = static_cast<CallbackInput<T> *>(this)->on_input(data, meta.input_index,
-                                                                                         meta.output_index, clock_i);
+                auto connection = dynamic_cast<Output<T> *>(head->io_ptr);
+                if (connection == nullptr) {
+                    head = head->next;
+                    i++;
+                    continue;
+                }
+
+                const T    data = connection->out(static_cast<T *>(nullptr), head->index_out, clock_i);
+                const bool once =
+                        static_cast<CallbackInput<T> *>(this)->on_input(data, head->index_in, head->index_out, clock_i);
+
                 if (once) {
                     // set a bit for given input
                     flags[type_index][i / bytes] |= (1 << n_th);
                 }
+
+                head = head->next;
+                i++;
             }
         }
 
@@ -1100,9 +826,11 @@ namespace ex::nodes {
         void time_stop() {
             if (target_fps <= 0)
                 return;
+
             const auto                  stop_time  = std::chrono::steady_clock::now();
             const std::chrono::duration frame_time = stop_time - start_time;
-            const double target = 1.0 / static_cast<double>(target_fps);
+            const double                target     = 1.0 / static_cast<double>(target_fps);
+
             if (const double sleep_time = target - frame_time.count(); sleep_time > 0)
                 std::this_thread::sleep_for(std::chrono::duration<double>(sleep_time));
         }
