@@ -97,6 +97,8 @@ namespace ex::nodes {
     public:
         ~IN() override = default;
 
+        virtual void in_any(const void *data_ptr, std::size_t size, int input_index, int output_index, int clock_i) = 0;
+
         virtual bool attach_any(IO *io_ptr, int output_index, int input_index) = 0;
 
         virtual bool detach_any(IO *output_ptr, int output_index, int input_index) = 0;
@@ -489,21 +491,45 @@ namespace ex::nodes {
                 flags[type_index][i / bytes] &= ~(1 << n_th);
 
                 auto connection = dynamic_cast<Output<T> *>(head->io_ptr);
-                if (connection == nullptr) {
+                if (connection != nullptr) {
+
+                    const T    data = connection->out(static_cast<T *>(nullptr), head->index_out, clock_i);
+                    const bool once = static_cast<CallbackInput<T> *>(this)->on_input(data, head->index_in,
+                                                                                      head->index_out, clock_i);
+
+                    if (once) {
+                        // set a bit for given input
+                        flags[type_index][i / bytes] |= (1 << n_th);
+                    }
+
                     head = head->next;
                     i++;
                     continue;
                 }
 
-                const T    data = connection->out(static_cast<T *>(nullptr), head->index_out, clock_i);
-                const bool once =
-                        static_cast<CallbackInput<T> *>(this)->on_input(data, head->index_in, head->index_out, clock_i);
-
-                if (once) {
-                    // set a bit for given input
-                    flags[type_index][i / bytes] |= (1 << n_th);
+                const auto out_ = dynamic_cast<OUT *>(head->io_ptr);
+                if (out_ == nullptr) {
+                    head = head->next;
+                    i++;
+                    continue;
                 }
 
+                std::size_t size_      = 0;
+                const void *result_ptr = out_->out_any(head->index_out, clock_i, &size_);
+                if (result_ptr == nullptr || size_ <= 0) {
+                    head = head->next;
+                    i++;
+                    continue;
+                }
+
+                const auto in_ = dynamic_cast<IN *>(this);
+                if (in_ == nullptr) {
+                    head = head->next;
+                    i++;
+                    continue;
+                }
+
+                in_->in_any(result_ptr, size_, head->index_in, head->index_out, clock_i);
                 head = head->next;
                 i++;
             }
@@ -902,7 +928,7 @@ namespace ex::nodes {
 
         void *out_any(const int _, const int clock_i, std::size_t *__) override {
             time_start();
-            io_node  *head = store;
+            io_node    *head = store;
             std::size_t size = 0;
             while (head != nullptr) {
                 if (const auto out = dynamic_cast<OUT *>(head->io_ptr); out != nullptr)
@@ -911,6 +937,10 @@ namespace ex::nodes {
             }
             time_stop();
             return nullptr;
+        }
+
+        void in_any(const void *data_ptr, std::size_t size, int input_index, int output_index, int clock_i) override {
+            // do nothing
         }
 
         bool attach_any(IO *io_ptr, const int output_index, const int _) override {

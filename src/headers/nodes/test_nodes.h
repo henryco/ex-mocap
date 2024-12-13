@@ -62,6 +62,10 @@ namespace ex::test {
             return nullptr;
         }
 
+        void in_any(const void *data_ptr, const std::size_t size, const int input_index, const  int output_index, const int clock_i) override {
+            // TODO
+        }
+
         float on_output(float *null_ptr, const int output_index, const int clock_i) override {
             // TODO
             return 3;
@@ -96,12 +100,15 @@ namespace ex::test {
         public nodes::io::out<char, 5, "Output char">,
 
         public nodes::ReactiveIn<float, short>,
-        public nodes::ReactiveOut<bool, char>
-    {
+        public nodes::ReactiveOut<bool, char> {
     public:
         void *on_any_output(const int output_index, const int clock_i, std::size_t *size) override {
             // TODO
             return nullptr;
+        }
+
+        void in_any(const void *data_ptr, const std::size_t size, const int input_index, const  int output_index, const int clock_i) override {
+            // TODO
         }
 
         bool on_output(bool *null_ptr, const int output_index, const int clock_i) override {
