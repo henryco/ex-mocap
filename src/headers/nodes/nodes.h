@@ -138,7 +138,8 @@ namespace ex::nodes {
     };
 
     template<typename O, int N>
-    class NodeOut : public virtual Output<O>, public virtual OutIndex<O> {
+    class NodeOut : public virtual Output<O>,
+                    public virtual OutIndex<O> {
     public:
         ~NodeOut() override = default;
 
@@ -156,7 +157,8 @@ namespace ex::nodes {
     };
 
     template<typename I, int N>
-    class NodeIn : public virtual Input<I>, public virtual InIndex<I> {
+    class NodeIn : public virtual Input<I>,
+                   public virtual InIndex<I> {
     public:
         ~NodeIn() override = default;
 
@@ -703,7 +705,9 @@ namespace ex::nodes {
     };
 
     template<typename... Types>
-    class KeepIn : public AnyIn<Types...>, public KeepInput<Types...> {
+    class KeepIn : public AnyIn<Types...>,
+                   public KeepInput<Types...>
+    {
     public:
         ~KeepIn() override = default;
     };
@@ -724,7 +728,10 @@ namespace ex::nodes {
     };
 
     template<typename ... Types>
-    class ReactiveIn : public virtual ReactiveState, public KeepIn<Types...>, public virtual CallbackInput<Types>... {
+    class ReactiveIn : public virtual ReactiveState,
+                       public KeepIn<Types...>,
+                       public virtual CallbackInput<Types>...
+    {
     private:
         constexpr static int bytes = EX_MAX_PORT_CONNECTIONS / 8;
         char                 flags[sizeof...(Types)][bytes] = {};
@@ -775,7 +782,9 @@ namespace ex::nodes {
     };
 
     template<typename T>
-    class ReactiveOutput : public virtual ReactiveState, public virtual Output<T> {
+    class ReactiveOutput : public virtual ReactiveState,
+                           public virtual Output<T>
+    {
     public:
         ~ReactiveOutput() override = default;
 
@@ -831,7 +840,9 @@ namespace ex::nodes {
         virtual Description const *describe_outputs(int *o_outputs_number) const = 0;
     };
 
-    class IODescriptor : public virtual InputDescriptor, public virtual OutputDescriptor {
+    class IODescriptor : public virtual InputDescriptor,
+                         public virtual OutputDescriptor
+    {
     public:
         ~IODescriptor() override = default;
     };
@@ -1046,7 +1057,9 @@ namespace ex::nodes {
         }
     };
 
-    class clock final : public virtual IN_, public virtual OUT_ {
+    class clock final : public virtual IN_,
+                        public virtual OUT_
+    {
     private:
         std::chrono::time_point<std::chrono::steady_clock> start_time;
 
