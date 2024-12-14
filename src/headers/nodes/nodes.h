@@ -28,7 +28,7 @@ namespace ex::nodes {
             indexes.push_back(index);
         }
 
-        bool has_input_index(const int index) {
+        bool has_input_index(const int index) const {
             for (int i = 0; i < indexes.size(); i++) {
                 if (indexes[i] == index)
                     return true;
@@ -49,7 +49,7 @@ namespace ex::nodes {
             indexes.push_back(index);
         }
 
-        bool has_output_index(const int index) {
+        bool has_output_index(const int index) const {
             for (int i = 0; i < indexes.size(); i++) {
                 if (indexes[i] == index)
                     return true;
@@ -117,7 +117,7 @@ namespace ex::nodes {
 
         virtual O out(O *null_ptr, int output_index, int clock_i) = 0;
 
-        bool output_present() {
+        bool output_present() const {
             return true;
         }
     };
@@ -148,7 +148,7 @@ namespace ex::nodes {
             return is_attached(ptr, output_index, input_index);
         }
 
-        bool input_present() {
+        bool input_present() const {
             return true;
         }
 
@@ -177,7 +177,7 @@ namespace ex::nodes {
             return this->out(static_cast<O *>(nullptr), N, clock_i);
         }
 
-        bool node_present() {
+        bool node_present() const {
             return true;
         }
     };
@@ -192,7 +192,7 @@ namespace ex::nodes {
             InIndex<I>::add_input_index(N);
         }
 
-        bool node_present() {
+        bool node_present() const {
             return true;
         }
 
@@ -349,9 +349,11 @@ namespace ex::nodes {
     };
 
     struct null_mutex {
+        // ReSharper disable CppMemberFunctionMayBeConst
         void lock() { /*empty*/ }
         void unlock() noexcept { /*empty*/ }
         bool try_lock() { return true; }
+        // ReSharper restore CppMemberFunctionMayBeConst
     };
 
     template<typename Mutex_, typename T>
@@ -897,7 +899,7 @@ namespace ex::nodes {
             start_time = std::chrono::steady_clock::now();
         }
 
-        void time_stop() {
+        void time_stop() const {
             if (target_fps <= 0)
                 return;
 
@@ -931,8 +933,8 @@ namespace ex::nodes {
 
         void *out_any(const int _, const int clock_i, std::size_t *__) override {
             time_start();
-            io_node    *head = store;
-            std::size_t size = 0;
+            const io_node *head = store;
+            std::size_t    size = 0;
             while (head != nullptr) {
                 if (const auto out = dynamic_cast<OUT *>(head->io_ptr); out != nullptr)
                     out->out_any(head->index_out, clock_i, &size);
