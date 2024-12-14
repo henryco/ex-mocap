@@ -107,6 +107,8 @@ namespace ex::nodes {
 
         virtual void detach_all_any(int input_index) = 0;
 
+        virtual void detach_all_any() = 0;
+
         virtual const io_node* list_connections() const = 0;
     };
 
@@ -161,6 +163,8 @@ namespace ex::nodes {
         virtual bool is_attached(int input_index) = 0;
 
         virtual void detach_all(int input_index) = 0;
+
+        virtual void detach_all() = 0;
     };
 
     template<typename O, int N>
@@ -263,6 +267,10 @@ namespace ex::nodes {
             ((_detach_all<Types>(input_index)), ...);
         }
 
+        void detach_all_any() override {
+            ((_detach_all<Types>()), ...);
+        }
+
         bool is_attached_any(const int input_index) override {
             bool result = false;
             bool stop = false;
@@ -325,6 +333,14 @@ namespace ex::nodes {
         }
 
         template<typename T>
+        void _detach_all() {
+            auto in = dynamic_cast<Input<T> *>(this);
+            if (in == nullptr)
+                return;
+            in->detach_all();
+        }
+
+        template<typename T>
         void _is_attached_any(const int input_index, bool *result, bool *stop) {
             if (*stop)
                 return;
@@ -364,7 +380,11 @@ namespace ex::nodes {
 
     public:
         ~InputStore() override {
-            // TODO
+            while (store != nullptr) {
+                io_node *next_ = store->next;
+                delete store;
+                store = next_;
+            }
         }
 
         void remove_connection(const int input_index) {
@@ -400,24 +420,97 @@ namespace ex::nodes {
 
         bool detach(Output<T> *output_ptr, const int output_index, const int input_index) override {
             std::lock_guard guard(mutex_);
-            // TODO
-            return false;
+
+            if (output_ptr == nullptr)
+                return false;
+
+            io_node *prev = nullptr;
+            io_node *head = store;
+            int      any  = 0;
+
+            while (head != nullptr) {
+                if (head->io_ptr == static_cast<IO *>(output_ptr)
+                    && (head->index_out == output_index || output_index == -1)
+                    && head->index_in == input_index)
+                {
+                    if (prev == nullptr) {
+                        store = head->next;
+                        delete head;
+
+                        if (output_index >= 0)
+                            return true;
+
+                        head = store;
+                    } else {
+                        prev->next = head->next;
+                        delete head;
+
+                        if (output_index >= 0)
+                            return true;
+
+                        head = prev->next;
+                    }
+                    any++;
+                }
+                prev = head;
+                head = head->next;
+            }
+            return any > 0;
         }
 
         void detach_all(const int input_index) override {
             std::lock_guard guard(mutex_);
-            // TODO
+
+            io_node *prev = nullptr;
+            io_node *head = store;
+
+            while (head != nullptr) {
+                if (head->index_in == input_index) {
+                    if (prev == nullptr) {
+                        store = head->next;
+                        delete head;
+                        head = store;
+                    } else {
+                        prev->next = head->next;
+                        delete head;
+                        head = prev->next;
+                    }
+                }
+                prev = head;
+                head = head->next;
+            }
+        }
+
+        void detach_all() override {
+            std::lock_guard guard(mutex_);
+            while (store != nullptr) {
+                io_node *next_ = store->next;
+                delete store;
+                store = next_;
+            }
         }
 
         bool is_attached(Output<T> *output_ptr, const int output_index, const int input_index) override {
             std::lock_guard guard(mutex_);
-            // TODO
+            const io_node  *head = store;
+            while (head != nullptr) {
+                if (head->index_in == input_index
+                    && head->index_out == output_index
+                    && head->io_ptr == static_cast<IO *>(output_ptr))
+                    return true;
+                head = head->next;
+            }
             return false;
         }
 
         bool is_attached(const int input_index) override {
             std::lock_guard guard(mutex_);
-            // TODO
+            const io_node  *head = store;
+            while (head != nullptr) {
+                if (head->index_in == input_index)
+                    return true;
+                head = head->next;
+            }
             return false;
         }
     };
@@ -1017,6 +1110,10 @@ namespace ex::nodes {
             return store != nullptr;
         }
 
+        void detach_all_any() override {
+            detach_all_any(0);
+        }
+
         void detach_all_any(const int _) override {
             while (store != nullptr) {
                 io_node *next_ = store->next;
@@ -1056,7 +1153,7 @@ namespace ex::nodes {
         }
 
         void detach_all() {
-            detach_all_any(0);
+            detach_all_any();
         }
 
         void set_target_fps(const int fps) {
