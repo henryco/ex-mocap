@@ -97,8 +97,6 @@ namespace ex::nodes {
     public:
         ~IN() override = default;
 
-        virtual void in_any(const void *data_ptr, std::size_t size, int input_index, int output_index, int clock_i) = 0;
-
         virtual bool attach_any(IO *io_ptr, int output_index, int input_index) = 0;
 
         virtual bool detach_any(IO *output_ptr, int output_index, int input_index) = 0;
@@ -543,10 +541,6 @@ namespace ex::nodes {
 
         virtual bool on_any_input(const void *data_ptr, std::size_t size, int input_index, int output_index, int clock_i) = 0;
 
-        void in_any(const void *data_ptr, const std::size_t size, const  int input_index, const  int output_index, const int clock_i) override {
-            on_any_input(data_ptr, size, input_index, output_index, clock_i);
-        }
-
         void update_state(const int clock_i, const bool once) override {
             if (last_clock_i == clock_i && once)
                 return;
@@ -946,10 +940,6 @@ namespace ex::nodes {
             }
             time_stop();
             return nullptr;
-        }
-
-        void in_any(const void *data_ptr, std::size_t size, int input_index, int output_index, int clock_i) override {
-            // do nothing
         }
 
         bool attach_any(IO *io_ptr, const int output_index, const int _) override {
