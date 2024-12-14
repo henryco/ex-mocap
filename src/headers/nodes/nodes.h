@@ -109,7 +109,7 @@ namespace ex::nodes {
 
         virtual void detach_all_any() = 0;
 
-        virtual const io_node* list_connections() const = 0;
+        virtual io_node* list_connections() const = 0;
     };
 
     template<typename O>
@@ -391,7 +391,7 @@ namespace ex::nodes {
             detach_all(input_index);
         }
 
-        const io_node *list_inputs() const {
+        io_node *list_inputs() const {
             return store;
         }
 
@@ -528,8 +528,23 @@ namespace ex::nodes {
             return static_cast<InputStore<null_mutex, T>*>(this)->remove_connection(input_index);
         }
 
-        const io_node *list_connections() const override {
-            return nullptr; // TODO
+        io_node *list_connections() const override {
+            io_node *head = nullptr;
+            ((list_connections_<Types>(&head)), ...);
+            return head;
+        }
+
+    private:
+        template<typename T>
+        void list_connections_(io_node **node_list) const {
+            io_node *next = static_cast<const InputStore<null_mutex, T> *>(this)->list_inputs();
+            if (next == nullptr || node_list == nullptr)
+                return;
+            if (*node_list == nullptr) {
+                *node_list = next;
+                return;
+            }
+            (*node_list)->next = next;
         }
     };
 
@@ -1020,7 +1035,7 @@ namespace ex::nodes {
             return std::numeric_limits<int>::min() + 1;
         }
 
-        const io_node *list_connections() const override {
+        io_node *list_connections() const override {
             return store;
         }
 
