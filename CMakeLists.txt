@@ -91,7 +91,6 @@ set(HEADER_FILES
         src/headers/boot.h
 
         src/headers/imgui/gui.h
-        src/headers/logic/logic.h
         src/headers/utils/gl_utils.h
         src/headers/utils/log_utils.h
         src/headers/utils/gui_utils.h
@@ -108,7 +107,6 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
         src/sources/imgui/gui.cpp
-        src/sources/logic/logic.cpp
 
         src/sources/boot_gui.cpp
         src/sources/boot_terminal.cpp
