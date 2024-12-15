@@ -3,9 +3,9 @@
 //
 
 #include "../headers/boot.h"
-#include "../headers/gl/gl_utils.h"
 #include "../headers/imgui/gui.h"
 #include "../headers/cl/cl_gl_interop.h"
+#include "../headers/utils/gl_utils.h"
 
 #include <GLFW/glfw3.h>
 #include <iostream>

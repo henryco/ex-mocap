@@ -2,7 +2,7 @@
 // Created by henryco on 26/11/24.
 //
 
-#include "../../headers/gl/gl_utils.h"
+#include "../../headers/utils/gl_utils.h"
 
 #include <iostream>
 
