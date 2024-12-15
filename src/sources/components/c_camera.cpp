@@ -69,12 +69,6 @@ namespace ex::cmp {
                 return true;
         }
     }
-    void CameraNode::grab_frame(const int clock_i) {
-        if (clock_i == last_clock_)
-            return;
-        last_clock_ = clock_i;
-        last_frame_ = camera_.capture();
-    }
 
     xm::ocl::Image2D CameraNode::on_output(xm::ocl::Image2D *_, const int __, const int clock_i) {
         if (!enabled_)
@@ -87,6 +81,13 @@ namespace ex::cmp {
         }
         grab_frame(clock_i);
         return last_frame_;
+    }
+
+    void CameraNode::grab_frame(const int clock_i) {
+        if (clock_i == last_clock_)
+            return;
+        last_clock_ = clock_i;
+        last_frame_ = camera_.capture();
     }
 
 } // namespace ex::cmp
