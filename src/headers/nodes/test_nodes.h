@@ -5,6 +5,9 @@
 #ifndef EX_MOTION_TEST_NODES_H
 #define EX_MOTION_TEST_NODES_H
 
+#include <iostream>
+
+
 #include "nodes.h"
 
 namespace ex::test {
