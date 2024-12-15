@@ -6,9 +6,13 @@
 
 namespace ex::camera {
 
+    void Camera::open(const config &config) {
+        // TODO
+    }
 
-    Camera::~Camera() {
-        close();
+    xm::ocl::Image2D Camera::capture() {
+        // TODO
+        return xm::ocl::Image2D();
     }
 
     int  Camera::get_capture_api() const {
@@ -16,44 +20,31 @@ namespace ex::camera {
     }
 
     uint Camera::get_device_index() const {
-        return 0;
+        return platform::dev::get_device_index(device_id);
     }
 
     config const &Camera::get_config() const {
-        return {};
+        return config_;
     }
 
-    void Camera::open(const config &config) {
-
-    }
-
-    void Camera::close() {
-
-    }
-
-    xm::ocl::Image2D Camera::capture() {
-        return xm::ocl::Image2D();
-    }
-
-    void Camera::set_control(platform::dev::control_id id, int value) {
-
-    }
-
-    int Camera::get_control(platform::dev::control_id id) const {
-        return 0;
+    void Camera::set_control(const platform::dev::control_id id, const int value) {
+        platform::dev::set_control_value(device_id, id, value);
     }
 
     std::vector<platform::dev::VideoControl> Camera::get_controls() const {
-        return {};
+        return platform::dev::list_controls(device_id);
     }
 
     void Camera::reset_controls() {
-
+        platform::dev::reset_controls(device_id);
     }
 
-    void Camera::set_fast_mode(bool fast) {
-
+    void Camera::set_fast_mode(const bool fast) {
+        this->fast = fast;
     }
 
+    void Camera::close() {
+        cap_.release();
+    }
 
 } // namespace ex::camera

@@ -35,14 +35,15 @@ namespace ex::camera {
         static inline const auto log =
             logs::get_logger("camera");
 
-        bool             fast = false;
-        config           config_;
         cv::VideoCapture cap_;
+        std::string      device_id;
+        config           config_;
+        bool             fast = false;
 
     public:
         Camera() = default;
 
-        ~Camera();
+        ~Camera() = default;
 
         int get_capture_api() const;
 
@@ -57,8 +58,6 @@ namespace ex::camera {
         xm::ocl::Image2D capture();
 
         void set_control(platform::dev::control_id id, int value);
-
-        int get_control(platform::dev::control_id id) const;
 
         std::vector<platform::dev::VideoControl> get_controls() const;
 
