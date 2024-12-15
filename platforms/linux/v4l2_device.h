@@ -6,18 +6,17 @@
 #define EX_MOTION_V4L2_DEVICE_H
 
 #include <linux/videodev2.h>
-#include <cstdint>
 #include <string>
 #include <vector>
 
 namespace ex::platform::dev::v4l2 {
 
-    struct v4l2_queryctrl_ext : public v4l2_queryctrl {
+    struct v4l2_queryctrl_ext : v4l2_queryctrl {
         __s32 value;
     };
 
-    typedef struct v4l2_queryctrl_ext V4L2_QueryCtrl;
-    typedef struct v4l2_control V4L2_Control;
+    typedef v4l2_queryctrl_ext V4L2_QueryCtrl;
+    typedef v4l2_control V4L2_Control;
 
     struct V4L2Device {
         std::string device_id;
@@ -33,11 +32,11 @@ namespace ex::platform::dev::v4l2 {
      *
      * This function retrieves the video4linux2 (v4l2) camera properties for a specified camera ID.
      *
-     * @param id The ID of the camera.
+     * @param device_id The ID of the camera.
      * @return The camera properties in a structure.
      *
      * @note This function requires the v4l2 library to be installed.
-     * In general it is already installed in most of linux distributions.
+     * In general, it is already installed in most of linux distributions.
      */
     std::vector<V4L2_QueryCtrl> get_camera_props(const std::string &device_id);
 
