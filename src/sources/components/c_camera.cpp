@@ -70,7 +70,7 @@ namespace ex::cmp {
         }
     }
 
-    xm::ocl::Image2D CameraNode::on_output(xm::ocl::Image2D *null_ptr, int output_index, int clock_i) {
+    xm::ocl::Image2D CameraNode::on_output(xm::ocl::Image2D *null_ptr, int _, int clock_i) {
         if (!enabled_)
             return {};
         if (!initialized || (updated_ && !freeze_)) {
