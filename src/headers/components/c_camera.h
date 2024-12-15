@@ -10,6 +10,22 @@
 
 namespace ex::cmp {
 
+    #define CAM_       0
+    #define CAM_FAST   1
+    #define CAM_FLIP_H 2
+    #define CAM_FLIP_V 3
+    #define CAM_ROTATE 4
+    #define CAM_WIDTH  5
+    #define CAM_HEIGHT 6
+    #define CAM_BUFFER 7
+    #define CAM_FPS    8
+    #define CAM_X      9
+    #define CAM_Y      10
+    #define CAM_W      11
+    #define CAM_H      12
+    #define CAM_CODEC  13
+    #define CAM_UUID   14
+
     class CameraNode : public nodes::Node<CameraNode>,
                        public nodes::State<camera::Camera>,
 
@@ -17,23 +33,23 @@ namespace ex::cmp {
 
                        public nodes::io::out<xm::ocl::Image2D, 0, "Captured frame">,
 
-                       public nodes::io::in <bool,        1,  "Fast mode">,
-                       public nodes::io::in <bool,        2,  "Flip horizontal">,
-                       public nodes::io::in <bool,        3,  "Flip vertical">,
-                       public nodes::io::in <bool,        4,  "Rotate">,
-                       public nodes::io::in <int,         5,  "Width">,
-                       public nodes::io::in <int,         6,  "Height">,
-                       public nodes::io::in <int,         7,  "Buffer">,
-                       public nodes::io::in <int,         8,  "FPS">,
-                       public nodes::io::in <int,         9,  "x">,
-                       public nodes::io::in <int,         10, "y">,
-                       public nodes::io::in <int,         11, "w">,
-                       public nodes::io::in <int,         12, "h">,
-                       public nodes::io::in <const char*, 13, "codec">,
-                       public nodes::io::in <const char*, 14, "uuid">,
+                       public nodes::io::in<bool,         CAM_FAST,   "Fast mode">,
+                       public nodes::io::in<bool,         CAM_FLIP_H, "Flip horizontal">,
+                       public nodes::io::in<bool,         CAM_FLIP_V, "Flip vertical">,
+                       public nodes::io::in<bool,         CAM_ROTATE, "Rotate">,
+                       public nodes::io::in<int,          CAM_WIDTH,  "Width">,
+                       public nodes::io::in<int,          CAM_HEIGHT, "Height">,
+                       public nodes::io::in<int,          CAM_BUFFER, "Buffer">,
+                       public nodes::io::in<int,          CAM_FPS,    "FPS">,
+                       public nodes::io::in<int,          CAM_X,      "Region x">,
+                       public nodes::io::in<int,          CAM_Y,      "Region y">,
+                       public nodes::io::in<int,          CAM_W,      "Region width">,
+                       public nodes::io::in<int,          CAM_H,      "Region height">,
+                       public nodes::io::in<const char *, CAM_CODEC,  "codec">,
+                       public nodes::io::in<const char *, CAM_UUID,   "uuid">,
 
                        public nodes::ReactiveOut<xm::ocl::Image2D>,
-                       public nodes::ReactiveIn<bool, int, const char*> {
+                       public nodes::ReactiveIn<bool, int, const char *> {
     private:
         static inline const auto log = logs::get_logger("camera_node");
 
