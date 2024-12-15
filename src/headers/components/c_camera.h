@@ -25,6 +25,8 @@ namespace ex::cmp {
     #define CAM_H      12
     #define CAM_CODEC  13
     #define CAM_UUID   14
+    #define CAM_FREEZE 15
+    #define CAM_ENABLE 16
 
     class CameraNode : public nodes::Node<CameraNode>,
                        public nodes::State<camera::Camera>,
@@ -37,6 +39,8 @@ namespace ex::cmp {
                        public nodes::io::in<bool,         CAM_FLIP_H, "Flip horizontal">,
                        public nodes::io::in<bool,         CAM_FLIP_V, "Flip vertical">,
                        public nodes::io::in<bool,         CAM_ROTATE, "Rotate">,
+                       public nodes::io::in<bool,         CAM_FREEZE, "Freeze settings">,
+                       public nodes::io::in<bool,         CAM_ENABLE, "ON/OFF camera">,
                        public nodes::io::in<int,          CAM_WIDTH,  "Width">,
                        public nodes::io::in<int,          CAM_HEIGHT, "Height">,
                        public nodes::io::in<int,          CAM_BUFFER, "Buffer">,
@@ -45,8 +49,8 @@ namespace ex::cmp {
                        public nodes::io::in<int,          CAM_Y,      "Region y">,
                        public nodes::io::in<int,          CAM_W,      "Region width">,
                        public nodes::io::in<int,          CAM_H,      "Region height">,
-                       public nodes::io::in<const char *, CAM_CODEC,  "codec">,
-                       public nodes::io::in<const char *, CAM_UUID,   "uuid">,
+                       public nodes::io::in<const char *, CAM_CODEC,  "CODEC">,
+                       public nodes::io::in<const char *, CAM_UUID,   "UUID">,
 
                        public nodes::ReactiveOut<xm::ocl::Image2D>,
                        public nodes::ReactiveIn<bool, int, const char *> {
@@ -55,6 +59,11 @@ namespace ex::cmp {
 
         camera::config config_;
         camera::Camera camera_;
+
+        bool initialized = false;
+        bool enabled_    = false;
+        bool updated_    = false;
+        bool freeze_     = false;
 
     public:
         CameraNode() = default;
@@ -70,6 +79,15 @@ namespace ex::cmp {
         bool on_input(int data, int input_index, int output_index, int clock_i) override;
 
         bool on_input(const char *data, int input_index, int output_index, int clock_i) override;
+
+    protected:
+        template <typename T>
+        bool update_value(T* ptr, T value) {
+            if (*ptr != value)
+                updated_ = true;
+            *ptr = value;
+            return true;
+        }
     };
 
 }

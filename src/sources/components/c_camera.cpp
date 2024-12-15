@@ -16,18 +16,21 @@ namespace ex::cmp {
 
     bool CameraNode::on_input(const bool data, const int input_index, const int _, const int clock_i) {
         switch (input_index) {
+            case CAM_ENABLE:
+                enabled_ = data;
+                return true;
+            case CAM_FREEZE:
+                freeze_ = data;
+                return true;
             case CAM_FAST:
                 camera_.set_fast_mode(data);
                 return true;
             case CAM_FLIP_H:
-                config_.flip_x = data;
-                return true;
+                return update_value(&config_.flip_x, data);
             case CAM_FLIP_V:
-                config_.flip_y = data;
-                return true;
+                return update_value(&config_.flip_y, data);
             case CAM_ROTATE:
-                config_.rotate = data;
-                return true;
+                return update_value(&config_.rotate, data);
             default:
                 return true;
         }
@@ -36,29 +39,21 @@ namespace ex::cmp {
     bool CameraNode::on_input(const int data, const int input_index, const int _, const int clock_i) {
         switch (input_index) {
             case CAM_WIDTH:
-                config_.width = data;
-                return true;
+                return update_value(&config_.width, data);
             case CAM_HEIGHT:
-                config_.height = data;
-                return true;
+                return update_value(&config_.height, data);
             case CAM_BUFFER:
-                config_.buffer = data;
-                return true;
+                return update_value(&config_.buffer, data);
             case CAM_FPS:
-                config_.fps = data;
-                return true;
+                return update_value(&config_.fps, data);
             case CAM_X:
-                config_.x = data;
-                return true;
+                return update_value(&config_.x, data);
             case CAM_Y:
-                config_.y = data;
-                return true;
+                return update_value(&config_.y, data);
             case CAM_W:
-                config_.w = data;
-                return true;
+                return update_value(&config_.w, data);
             case CAM_H:
-                config_.h = data;
-                return true;
+                return update_value(&config_.h, data);
             default:
                 return true;
         }
@@ -67,17 +62,23 @@ namespace ex::cmp {
     bool CameraNode::on_input(const char *data, const int input_index, const int _, const int clock_i) {
         switch (input_index) {
             case CAM_CODEC:
-                config_.codec = std::string(data);
-                return true;
+                return update_value(&config_.codec, std::string(data));
             case CAM_UUID:
-                config_.uuid = std::string(data);
-                return true;
+                return update_value(&config_.uuid, std::string(data));
             default:
                 return true;
         }
     }
 
     xm::ocl::Image2D CameraNode::on_output(xm::ocl::Image2D *null_ptr, int output_index, int clock_i) {
+        if (!enabled_)
+            return {};
+        if (!initialized || (updated_ && !freeze_)) {
+            camera_.close();
+            camera_.open(config_);
+            initialized = true;
+            updated_ = false;
+        }
         return camera_.capture();
     }
 
