@@ -104,6 +104,7 @@ set(HEADER_FILES
         src/headers/nodes/nodes.h
         src/headers/nodes/test_nodes.h
         src/headers/core/camera.h
+        src/headers/components/c_camera.h
 )
 
 set(SOURCE_FILES
@@ -128,6 +129,7 @@ set(SOURCE_FILES
         src/sources/imgui/layout/gui_layout_workspace.cpp
         src/sources/imgui/layout/gui_layout_main_content.cpp
         src/sources/core/camera.cpp
+        src/sources/components/c_camera.cpp
 )
 
 # =================== OpenCL kernels generation =====================

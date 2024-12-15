@@ -7,7 +7,6 @@
 
 #include <algorithm>
 #include <cstdlib>
-#include <fmt/core.h>
 #include <mutex>
 #include <thread>
 #include <vector>
@@ -564,6 +563,13 @@ namespace ex::nodes {
         virtual bool on_input(T data, int input_index, int output_index, int clock_i) = 0;
     };
 
+    class AnyInputCallback {
+    public:
+        virtual ~AnyInputCallback() = default;
+
+        virtual bool on_any_input(const void *data_ptr, std::size_t size, int input_index, int output_index, int clock_i) = 0;
+    };
+
     class ReactiveState {
     public:
         virtual ~ReactiveState() = default;
@@ -573,6 +579,7 @@ namespace ex::nodes {
 
     template<typename ... Types>
     class ReactiveIn : public virtual ReactiveState,
+                       public virtual AnyInputCallback,
                        public KeepIn<Types...>,
                        public virtual CallbackInput<Types>...
     {
@@ -649,7 +656,7 @@ namespace ex::nodes {
     public:
         ~ReactiveIn() override = default;
 
-        virtual bool on_any_input(const void *data_ptr, std::size_t size, int input_index, int output_index, int clock_i) = 0;
+//        virtual bool on_any_input(const void *data_ptr, std::size_t size, int input_index, int output_index, int clock_i) = 0;
 
         void update_state(const int clock_i, const bool once) override {
             if (last_clock_i == clock_i && once)
@@ -679,16 +686,37 @@ namespace ex::nodes {
         }
     };
 
+    class AnyOutputCallback {
+    public:
+        virtual ~AnyOutputCallback() = default;
+
+        virtual void *on_any_output(int output_index, int clock_i, std::size_t* size) = 0;
+    };
+
     template<typename ... Types>
-    class ReactiveOut : public ReactiveOutput<Types>... {
+    class ReactiveOut : public virtual AnyOutputCallback, public ReactiveOutput<Types>...{
     public:
         ~ReactiveOut() override = default;
 
-        virtual void *on_any_output(int output_index, int clock_i, std::size_t* size) = 0;
+//        virtual void *on_any_output(int output_index, int clock_i, std::size_t* size) = 0;
 
         void *out_any(const int output_index, const int clock_i, std::size_t* size) override {
             static_cast<ReactiveState *>(this)->update_state(clock_i, false);
             return on_any_output(output_index, clock_i, size);
+        }
+    };
+
+    class DefaultAny : public AnyOutputCallback, public AnyInputCallback {
+    public:
+        ~DefaultAny() override = default;
+
+        bool on_any_input(const void *data, std::size_t size, int input_index, int output_index, int clock_i) override {
+            return true;
+        }
+
+        void *on_any_output(int output_index, int clock_i, std::size_t *size) override {
+            *size = -1;
+            return nullptr;
         }
     };
 
@@ -918,7 +946,8 @@ namespace ex::nodes {
     class BaseNode : public virtual IN,
                      public virtual OUT,
                      public virtual NodeDescriptor,
-                     public virtual IODescriptor
+                     public virtual IODescriptor,
+                     public virtual DefaultAny
     {
     public:
         ~BaseNode() override = default;
