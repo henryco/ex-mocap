@@ -65,6 +65,9 @@ namespace ex::cmp {
         bool updated_    = false;
         bool freeze_     = false;
 
+        xm::ocl::Image2D last_frame_;
+        int              last_clock_ = -1;
+
     public:
         CameraNode() = default;
 
@@ -81,6 +84,8 @@ namespace ex::cmp {
         bool on_input(const char *data, int input_index, int output_index, int clock_i) override;
 
     protected:
+        void grab_frame(int clock_i);
+
         template <typename T>
         bool update_value(T* ptr, T value) {
             if (*ptr != value)
