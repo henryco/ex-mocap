@@ -62,7 +62,7 @@ namespace ex::nodes {
     public:
         virtual ~State() = default;
 
-        virtual const T * get() const = 0;
+        virtual T * get() = 0;
     };
 
     class IO {
