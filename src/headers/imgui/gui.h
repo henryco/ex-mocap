@@ -8,7 +8,6 @@
 #include "../utils/log_utils.h"
 #include "../state.h"
 
-#include <IconsLucide.h>
 #include <GLFW/glfw3.h>
 
 namespace ex::gui {
