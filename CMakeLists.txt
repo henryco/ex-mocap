@@ -96,6 +96,11 @@ set(HEADER_FILES
         src/headers/utils/log_utils.h
         src/headers/utils/gui_utils.h
         src/headers/cl/cl_gl_interop.h
+        src/headers/cl/cl_kernel.h
+        src/headers/cl/ocl_container.h
+        src/headers/cl/ocl_data.h
+        src/headers/cl/ocl_interop.h
+        src/headers/cl/ocl_interop_ext.h
         src/headers/imgui/gui_layout.h
         src/headers/nodes/nodes.h
         src/headers/nodes/test_nodes.h
@@ -112,6 +117,10 @@ set(SOURCE_FILES
         src/sources/utils/log_utils.cpp
         src/sources/utils/gui_utils.cpp
         src/sources/cl/cl_gl_interop.cpp
+        src/sources/cl/cl_kernel.cpp
+        src/sources/cl/ocl_container.cpp
+        src/sources/cl/ocl_data.cpp
+        src/sources/cl/ocl_interop.cpp
         src/sources/imgui/layout/gui_layout_menu_top.cpp
         src/sources/imgui/layout/gui_layout_pane_left.cpp
         src/sources/imgui/layout/gui_layout_pane_right.cpp
