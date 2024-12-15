@@ -2,42 +2,10 @@
 #include <filesystem>
 
 #include "headers/boot.h"
-#include "headers/nodes/test_nodes.h"
 #include "headers/utils/log_utils.h"
 
 int main(const int argc, char **argv) {
-    ex::test::Node1 node1;
 
-    std::cout << "ID: " << node1.get_id() << '\n';
-    std::cout << "name: " << node1.get_node_name() << '\n';
-
-    node1.deserialize("123");
-
-    const auto a = node1.pull<float>(3, 0);
-    const auto b = node1.pull<int, 2>(0);
-
-    std::cout << "1. " << node1.has_output<int, 2>() << "\n";
-    std::cout << "2. " << node1.has_output<int>(2) << "\n";
-    std::cout << "3. " << node1.has_output<int>(7) << "\n";
-
-    std::cout << "a: " << a << ", b: " << b << '\n';
-
-    int size_i = 0;
-    const auto inputs = node1.describe_inputs(&size_i);
-
-    int size_o = 0;
-    const auto outputs = node1.describe_outputs(&size_o);
-
-    for (int i = 0; i < size_i; i++) {
-        const auto &[type_id, index, aux, name] = inputs[i];
-        std::cout << "input: " << index << " (" << type_id << "), " << aux << ", " << name << "\n";
-    }
-
-    for (int i = 0; i < size_o; i++) {
-        const auto &[type_id, index, aux, name] = outputs[i];
-        std::cout << "output: " << index << " (" << type_id << "), " << aux << ", " << name << "\n";
-    }
-    
     argparse::ArgumentParser program("exmotion", "0.0.1");
     program.add_description(R"desc(
                 To list available capture devices on linux you can use:
