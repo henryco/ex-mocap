@@ -11,15 +11,14 @@
 namespace ex::cmp {
 
     #define CAM_       0
-    #define CAM_FAST   1
-    #define CAM_WIDTH  2
-    #define CAM_HEIGHT 3
-    #define CAM_BUFFER 4
-    #define CAM_FPS    5
-    #define CAM_CODEC  6
-    #define CAM_UUID   7
-    #define CAM_FREEZE 8
-    #define CAM_ENABLE 9
+    #define CAM_WIDTH  1
+    #define CAM_HEIGHT 2
+    #define CAM_BUFFER 3
+    #define CAM_FPS    4
+    #define CAM_CODEC  5
+    #define CAM_UUID   6
+    #define CAM_FREEZE 7
+    #define CAM_ENABLE 8
 
     class CameraNode : public nodes::Node<CameraNode>,
                        public nodes::State<camera::Camera>,
@@ -28,7 +27,6 @@ namespace ex::cmp {
 
                        public nodes::io::out<xm::ocl::Image2D, 0, "Captured frame">,
 
-                       public nodes::io::in<bool,         CAM_FAST,   "Fast mode">,
                        public nodes::io::in<bool,         CAM_FREEZE, "Freeze settings">,
                        public nodes::io::in<bool,         CAM_ENABLE, "ON/OFF camera">,
                        public nodes::io::in<int,          CAM_WIDTH,  "Width">,
@@ -43,6 +41,7 @@ namespace ex::cmp {
     private:
         static inline const auto log = logs::get_logger("camera_node");
 
+        std::string    device_uuid;
         camera::config config_;
         camera::Camera camera_;
 

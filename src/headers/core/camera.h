@@ -15,12 +15,11 @@
 namespace ex::camera {
 
     struct config {
-        std::string uuid;
-        std::string codec;
-        int         width;
-        int         height;
-        int         buffer;
-        int         fps;
+        std::string codec  = "";
+        int         width  = -1;
+        int         height = -1;
+        int         buffer = -1;
+        int         fps    = -1;
     };
 
     class Camera {
@@ -34,7 +33,6 @@ namespace ex::camera {
         cv::VideoCapture cap_;
         std::string      device_id;
         config           config_;
-        bool             fast = false;
 
     public:
         Camera() = default;
@@ -47,7 +45,9 @@ namespace ex::camera {
 
         config const &get_config() const;
 
-        void open(const config &config);
+        void open(std::string const &device_uuid);
+
+        void open(std::string const &device_uuid, const config &config);
 
         void close();
 
@@ -58,8 +58,6 @@ namespace ex::camera {
         std::vector<platform::dev::VideoControl> get_controls() const;
 
         void reset_controls();
-
-        void set_fast_mode(bool fast = true);
 
         std::vector<platform::dev::DeviceCapability> get_capabilities();
     };

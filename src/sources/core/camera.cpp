@@ -6,8 +6,63 @@
 
 namespace ex::camera {
 
-    void Camera::open(const config &config) {
-        // TODO
+    int fourCC(const char *name) {
+        return cv::VideoWriter::fourcc(
+                name[0],
+                name[1],
+                name[2],
+                name[3]);
+    }
+
+    void Camera::open(std::string const &device_uuid) {
+        close();
+        cap_.open(platform::dev::get_device_index(device_uuid),
+            platform::dev::get_device_index(device_uuid));
+        device_id = device_uuid;
+        cap_called_ = false;
+    }
+
+    void Camera::open(std::string const &device_uuid, const config &prop) {
+        close();
+        std::vector<int> params;
+
+        if (prop.codec.size() >= 4) {
+            params.push_back(cv::CAP_PROP_FOURCC);
+            params.push_back(fourCC(prop.codec.c_str()));
+        }
+
+        if (prop.width > 0 && prop.height > 0) {
+            params.push_back(cv::CAP_PROP_FRAME_WIDTH);
+            params.push_back(prop.width);
+
+            params.push_back(cv::CAP_PROP_FRAME_HEIGHT);
+            params.push_back(prop.height);
+        }
+
+        if (prop.fps > 0) {
+            params.push_back(cv::CAP_PROP_FPS);
+            params.push_back(prop.fps);
+        }
+
+        if (prop.buffer >= 0) {
+            params.push_back(cv::CAP_PROP_BUFFERSIZE);
+            params.push_back(prop.buffer);
+        }
+
+        if (params.size() > 0) {
+            cap_.open(platform::dev::get_device_index(device_uuid),
+            platform::dev::get_device_index(device_uuid),
+            params);
+        }
+
+        else {
+            cap_.open(platform::dev::get_device_index(device_uuid),
+                platform::dev::get_device_index(device_uuid));
+        }
+
+        config_ = prop;
+        device_id = device_uuid;
+        cap_called_ = false;
     }
 
     xm::ocl::Image2D Camera::capture() {
@@ -37,10 +92,6 @@ namespace ex::camera {
 
     void Camera::reset_controls() {
         platform::dev::reset_controls(device_id);
-    }
-
-    void Camera::set_fast_mode(const bool fast) {
-        this->fast = fast;
     }
 
     std::vector<platform::dev::DeviceCapability> Camera::get_capabilities() {

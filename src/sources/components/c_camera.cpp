@@ -22,9 +22,6 @@ namespace ex::cmp {
             case CAM_FREEZE:
                 freeze_ = data;
                 return true;
-            case CAM_FAST:
-                camera_.set_fast_mode(data);
-                return true;
             default:
                 return true;
         }
@@ -50,7 +47,7 @@ namespace ex::cmp {
             case CAM_CODEC:
                 return update_value(&config_.codec, std::string(data));
             case CAM_UUID:
-                return update_value(&config_.uuid, std::string(data));
+                return update_value(&device_uuid, std::string(data));
             default:
                 return true;
         }
@@ -61,7 +58,7 @@ namespace ex::cmp {
             return {};
         if (!initialized || (updated_ && !freeze_)) {
             camera_.close();
-            camera_.open(config_);
+            camera_.open(device_uuid, config_);
             initialized = true;
             updated_ = false;
         }
