@@ -200,9 +200,7 @@ namespace ex::platform::dev {
     }
 
     std::vector<DeviceCapability> list_capabilities(const std::string &device_uuid) {
-        const char *device = get_device_id(device_uuid).c_str();
-
-        const int file_descriptor = open(device, O_RDWR);
+        const int file_descriptor = open(get_device_id(device_uuid).c_str(), O_RDWR);
         if (file_descriptor == -1) {
             perror("Opening video device");
             return {};
