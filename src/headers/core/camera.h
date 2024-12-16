@@ -21,13 +21,6 @@ namespace ex::camera {
         int         height;
         int         buffer;
         int         fps;
-        int         x;
-        int         y;
-        int         w;
-        int         h;
-        bool        flip_x;
-        bool        flip_y;
-        bool        rotate;
     };
 
     class Camera {

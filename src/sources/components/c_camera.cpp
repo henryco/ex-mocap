@@ -25,12 +25,6 @@ namespace ex::cmp {
             case CAM_FAST:
                 camera_.set_fast_mode(data);
                 return true;
-            case CAM_FLIP_H:
-                return update_value(&config_.flip_x, data);
-            case CAM_FLIP_V:
-                return update_value(&config_.flip_y, data);
-            case CAM_ROTATE:
-                return update_value(&config_.rotate, data);
             default:
                 return true;
         }
@@ -46,14 +40,6 @@ namespace ex::cmp {
                 return update_value(&config_.buffer, data);
             case CAM_FPS:
                 return update_value(&config_.fps, data);
-            case CAM_X:
-                return update_value(&config_.x, data);
-            case CAM_Y:
-                return update_value(&config_.y, data);
-            case CAM_W:
-                return update_value(&config_.w, data);
-            case CAM_H:
-                return update_value(&config_.h, data);
             default:
                 return true;
         }
