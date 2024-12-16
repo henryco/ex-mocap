@@ -395,6 +395,7 @@ namespace ex::nodes {
         }
 
         bool attach(Output<T> *output_ptr, const int output_index, const int input_index) override {
+            // TODO SORTED INSERT
             std::lock_guard guard(mutex_);
 
             if (output_ptr == nullptr)

@@ -38,7 +38,8 @@ namespace ex::cmp {
                        public nodes::io::in<const char *, CAM_UUID,   "UUID">,
 
                        public nodes::ReactiveOut<xm::ocl::iop::ClImagePromise>,
-                       public nodes::ReactiveIn<bool, int, const char *> {
+                       public nodes::ReactiveIn<bool, int, const char *>
+    {
     private:
         static inline const auto log = logs::get_logger("camera_node");
 
