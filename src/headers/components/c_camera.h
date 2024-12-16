@@ -5,6 +5,7 @@
 #ifndef C_CAMERA_H
 #define C_CAMERA_H
 
+#include "../cl/ocl_interop.h"
 #include "../core/camera.h"
 #include "../nodes/nodes.h"
 
@@ -25,7 +26,7 @@ namespace ex::cmp {
 
                        public nodes::id::name<"camera_node">,
 
-                       public nodes::io::out<xm::ocl::Image2D, 0, "Captured frame">,
+                       public nodes::io::out<xm::ocl::iop::ClImagePromise, 0, "Captured frame">,
 
                        public nodes::io::in<bool,         CAM_FREEZE, "Freeze settings">,
                        public nodes::io::in<bool,         CAM_ENABLE, "ON/OFF camera">,
@@ -36,7 +37,7 @@ namespace ex::cmp {
                        public nodes::io::in<const char *, CAM_CODEC,  "CODEC">,
                        public nodes::io::in<const char *, CAM_UUID,   "UUID">,
 
-                       public nodes::ReactiveOut<xm::ocl::Image2D>,
+                       public nodes::ReactiveOut<xm::ocl::iop::ClImagePromise>,
                        public nodes::ReactiveIn<bool, int, const char *> {
     private:
         static inline const auto log = logs::get_logger("camera_node");
@@ -50,7 +51,7 @@ namespace ex::cmp {
         bool updated_    = false;
         bool freeze_     = false;
 
-        xm::ocl::Image2D last_frame_;
+        xm::ocl::iop::ClImagePromise last_frame_;
         int              last_clock_ = -1;
 
     public:
@@ -62,7 +63,7 @@ namespace ex::cmp {
 
         bool on_input(bool data, int input_index, int output_index, int clock_i) override;
 
-        xm::ocl::Image2D on_output(xm::ocl::Image2D *null_ptr, int output_index, int clock_i) override;
+        xm::ocl::iop::ClImagePromise on_output(xm::ocl::iop::ClImagePromise *null_ptr, int output_index, int clock_i) override;
 
         bool on_input(int data, int input_index, int output_index, int clock_i) override;
 
