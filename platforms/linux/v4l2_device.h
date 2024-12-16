@@ -27,6 +27,8 @@ namespace ex::platform::dev::v4l2 {
 
     std::vector<V4L2Device> list_usb_camera_devices();
 
+    std::string get_device_id(const std::string &device_uuid);
+
     /**
      * @brief Retrieves camera properties for a given camera ID.
      *

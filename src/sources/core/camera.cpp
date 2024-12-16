@@ -43,7 +43,16 @@ namespace ex::camera {
         this->fast = fast;
     }
 
+    std::vector<platform::dev::DeviceCapability> Camera::get_capabilities() {
+        if (!cap_called_) {
+            capabilities_ = platform::dev::list_capabilities(device_id);
+            cap_called_ = true;
+        }
+        return capabilities_;
+    }
+
     void Camera::close() {
+        cap_called_ = false;
         cap_.release();
     }
 

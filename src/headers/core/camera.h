@@ -35,6 +35,9 @@ namespace ex::camera {
         static inline const auto log =
             logs::get_logger("camera");
 
+        std::vector<platform::dev::DeviceCapability> capabilities_;
+        bool                                         cap_called_ = false;
+
         cv::VideoCapture cap_;
         std::string      device_id;
         config           config_;
@@ -64,6 +67,8 @@ namespace ex::camera {
         void reset_controls();
 
         void set_fast_mode(bool fast = true);
+
+        std::vector<platform::dev::DeviceCapability> get_capabilities();
     };
 
 }

@@ -151,7 +151,7 @@ namespace ex::platform::dev {
             return properties;
         }
 
-        bool set_camera_prop(const std::string &device_id, uint prop_id, int prop_value) {
+        bool set_camera_prop(const std::string &device_id, const uint prop_id, const int prop_value) {
             // not the most efficient way to pass data, but it's ok
             return set_camera_prop(device_id, {
                                                       .id = prop_id,
@@ -161,10 +161,7 @@ namespace ex::platform::dev {
 
         bool set_camera_prop(const std::string &device_id, V4L2_Control control) {
             // not the most efficient way to pass data, but it's ok.
-            return set_camera_prop(
-                    device_id,
-                    std::vector<V4L2_Control>({control})
-                            )[0];
+            return set_camera_prop(device_id, std::vector({control}))[0];
         }
 
         std::vector<bool> set_camera_prop(const std::string &device, std::vector<V4L2_Control> controls) {
@@ -197,10 +194,32 @@ namespace ex::platform::dev {
             close(file_descriptor);
             return results;
         }
+
+        std::string get_device_id(const std::string &device_uuid) {
+            if (device_uuid.starts_with("/dev/video")) {
+                return device_uuid;
+            }
+
+            const auto split_idx = device_uuid.find(':');
+            if (split_idx == std::string::npos) {
+                throw std::invalid_argument("invalid device uuid " + device_uuid);
+            }
+
+            const auto index = device_uuid.substr(0, split_idx);
+            const auto uuid  = device_uuid.substr(split_idx + 1);
+
+            for (const auto &device: v4l2::devices_list) {
+                if (device.uuid == uuid && device.index == index) {
+                    return device.device_id;
+                }
+            }
+
+            throw std::invalid_argument("invalid device uuid " + device_uuid);
+        }
     }
 
     std::vector<DeviceCapability> list_capabilities(const std::string &device_uuid) {
-        const int file_descriptor = open(get_device_id(device_uuid).c_str(), O_RDWR);
+        const int file_descriptor = open(v4l2::get_device_id(device_uuid).c_str(), O_RDWR);
         if (file_descriptor == -1) {
             perror("Opening video device");
             return {};
@@ -266,28 +285,6 @@ namespace ex::platform::dev {
         return vec;
     }
 
-    std::string get_device_id(const std::string &device_uuid) {
-        if (device_uuid.starts_with("/dev/video")) {
-            return device_uuid;
-        }
-
-        const auto split_idx = device_uuid.find(':');
-        if (split_idx == std::string::npos) {
-            throw std::invalid_argument("invalid device uuid " + device_uuid);
-        }
-
-        const auto index = device_uuid.substr(0, split_idx);
-        const auto uuid  = device_uuid.substr(split_idx + 1);
-
-        for (const auto &device: v4l2::devices_list) {
-            if (device.uuid == uuid && device.index == index) {
-                return device.device_id;
-            }
-        }
-
-        throw std::invalid_argument("invalid device uuid " + device_uuid);
-    }
-
     int get_capture_api() {
         return 200; // V4L2
     }
@@ -339,7 +336,7 @@ namespace ex::platform::dev {
     }
 
     std::vector<VideoControl> list_controls(const std::string &device_uuid) {
-        const auto device_id = get_device_id(device_uuid);
+        const auto device_id = v4l2::get_device_id(device_uuid);
         const auto camera_props = v4l2::get_camera_props(device_id);
 
         std::vector<VideoControl> props;
@@ -358,12 +355,12 @@ namespace ex::platform::dev {
         return props;
     }
 
-    bool set_control_value(const VideoDevice &device, uint prop_id, int value) {
+    bool set_control_value(const VideoDevice &device, const uint prop_id, const int value) {
         return set_control_value(device.uuid, prop_id, value);
     }
 
-    bool set_control_value(const std::string &device_uuid, uint prop_id, int value) {
-        const auto device_id = get_device_id(device_uuid);
+    bool set_control_value(const std::string &device_uuid, const uint prop_id, const int value) {
+        const auto device_id = v4l2::get_device_id(device_uuid);
         return v4l2::set_camera_prop(device_id, prop_id, value);
     }
 

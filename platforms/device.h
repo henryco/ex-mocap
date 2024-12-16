@@ -55,8 +55,6 @@ namespace ex::platform::dev {
 
     int get_device_index(const VideoDevice &device);
 
-    std::string get_device_id(const std::string &device_uuid);
-
     void reset_controls(const std::string &device_uuid);
 
     void reset_controls(const VideoDevice &device);
