@@ -65,7 +65,7 @@ namespace ex::camera {
         cap_called_ = false;
     }
 
-    xm::ocl::Image2D Camera::capture() {
+    xm::ocl::iop::ClImagePromise Camera::capture() {
         // TODO
         return xm::ocl::Image2D();
     }

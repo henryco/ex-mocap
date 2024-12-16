@@ -9,8 +9,8 @@
 #include <string>
 
 #include "../../../platforms/device.h"
+#include "../cl/ocl_interop.h"
 #include "../utils/log_utils.h"
-#include "../cl/ocl_data.h"
 
 namespace ex::camera {
 
@@ -51,7 +51,7 @@ namespace ex::camera {
 
         void close();
 
-        xm::ocl::Image2D capture();
+        xm::ocl::iop::ClImagePromise capture();
 
         void set_control(platform::dev::control_id id, int value);
 
