@@ -53,6 +53,8 @@ namespace ex::camera {
 
         xm::ocl::iop::ClImagePromise capture();
 
+        bool grab();
+
         void set_control(platform::dev::control_id id, int value);
 
         std::vector<platform::dev::VideoControl> get_controls() const;

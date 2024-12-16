@@ -69,6 +69,9 @@ namespace ex::camera {
         // TODO
         return xm::ocl::Image2D();
     }
+    bool Camera::grab() {
+        return cap_.grab();
+    }
 
     int  Camera::get_capture_api() const {
         return platform::dev::get_capture_api();

@@ -27,6 +27,7 @@ namespace ex::cmp {
                        public nodes::id::name<"camera_node">,
 
                        public nodes::io::out<xm::ocl::iop::ClImagePromise, 0, "Captured frame">,
+                       public nodes::io::out<bool,                         1, "Sync grabbed">,
 
                        public nodes::io::in<bool,         CAM_FREEZE, "Freeze settings">,
                        public nodes::io::in<bool,         CAM_ENABLE, "ON/OFF camera">,
@@ -37,7 +38,7 @@ namespace ex::cmp {
                        public nodes::io::in<const char *, CAM_CODEC,  "CODEC">,
                        public nodes::io::in<const char *, CAM_UUID,   "UUID">,
 
-                       public nodes::ReactiveOut<xm::ocl::iop::ClImagePromise>,
+                       public nodes::ReactiveOut<bool, xm::ocl::iop::ClImagePromise>,
                        public nodes::ReactiveIn<bool, int, const char *>
     {
     private:
@@ -66,12 +67,16 @@ namespace ex::cmp {
 
         xm::ocl::iop::ClImagePromise on_output(xm::ocl::iop::ClImagePromise *null_ptr, int output_index, int clock_i) override;
 
+        bool on_output(bool *null_ptr, int output_index, int clock_i) override;
+
         bool on_input(int data, int input_index, int output_index, int clock_i) override;
 
         bool on_input(const char *data, int input_index, int output_index, int clock_i) override;
 
     protected:
-        void grab_frame(int clock_i);
+        void capture_frame(int clock_i);
+
+        void init_camera_if_needed();
 
         template <typename T>
         bool update_value(T* ptr, T value) {

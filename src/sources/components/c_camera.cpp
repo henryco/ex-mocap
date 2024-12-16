@@ -56,17 +56,28 @@ namespace ex::cmp {
     xm::ocl::iop::ClImagePromise CameraNode::on_output(xm::ocl::iop::ClImagePromise *_, const int __, const int clock_i) {
         if (!enabled_)
             return {};
+        init_camera_if_needed();
+        capture_frame(clock_i);
+        return last_frame_;
+    }
+
+    bool CameraNode::on_output(bool *_, const int __, const int clock_i) {
+        if (!enabled_)
+            return false;
+        init_camera_if_needed();
+        return camera_.grab();
+    }
+
+    void CameraNode::init_camera_if_needed() {
         if (!initialized || (updated_ && !freeze_)) {
             camera_.close();
             camera_.open(device_uuid, config_);
             initialized = true;
-            updated_ = false;
+            updated_    = false;
         }
-        grab_frame(clock_i);
-        return last_frame_;
     }
 
-    void CameraNode::grab_frame(const int clock_i) {
+    void CameraNode::capture_frame(const int clock_i) {
         if (clock_i == last_clock_)
             return;
         last_clock_ = clock_i;
