@@ -10,10 +10,11 @@
 #include <iostream>
 #include <vector>
 
-#include <sys/ioctl.h>
 #include <algorithm>
-#include <unistd.h>
+#include <cstring>
 #include <fcntl.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 
 namespace ex::platform::dev {
 
@@ -29,6 +30,14 @@ namespace ex::platform::dev {
             std::string content;
             std::getline(file, content);
             return content;
+        }
+
+        void fourcc_to_chars(const uint32_t fourcc, char *out) {
+            out[0] = fourcc & 0xFF;
+            out[1] = (fourcc >> 8) & 0xFF;
+            out[2] = (fourcc >> 16) & 0xFF;
+            out[3] = (fourcc >> 24) & 0xFF;
+            out[4] = '\0';
         }
 
         std::vector<v4l2::V4L2Device> list_usb_camera_devices() {
@@ -188,6 +197,75 @@ namespace ex::platform::dev {
             close(file_descriptor);
             return results;
         }
+    }
+
+    std::vector<DeviceCapability> list_capabilities(const std::string &device_uuid) {
+        const char *device = get_device_id(device_uuid).c_str();
+
+        const int file_descriptor = open(device, O_RDWR);
+        if (file_descriptor == -1) {
+            perror("Opening video device");
+            return {};
+        }
+
+        // Query device capabilities
+        v4l2_capability cap;
+        if (ioctl(file_descriptor, VIDIOC_QUERYCAP, &cap) == -1) {
+            perror("Querying capabilities");
+            close(file_descriptor);
+            return {};
+        }
+
+        std::vector<DeviceCapability> vec;
+
+        try {
+            v4l2_fmtdesc fmt;
+            memset(&fmt, 0, sizeof(fmt));
+            fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+            while (ioctl(file_descriptor, VIDIOC_ENUM_FMT, &fmt) == 0) {
+                char format[5];
+                v4l2::fourcc_to_chars(fmt.pixelformat, format);
+
+                // Enumerate resolutions for each format
+                v4l2_frmsizeenum frmsize;
+                memset(&frmsize, 0, sizeof(frmsize));
+                frmsize.pixel_format = fmt.pixelformat;
+
+                while (ioctl(file_descriptor, VIDIOC_ENUM_FRAMESIZES, &frmsize) == 0) {
+                    if (frmsize.type == V4L2_FRMSIZE_TYPE_DISCRETE) {
+
+                        // Enumerate frame intervals for each resolution
+                        v4l2_frmivalenum frmival;
+                        memset(&frmival, 0, sizeof(frmival));
+                        frmival.pixel_format = fmt.pixelformat;
+                        frmival.width = frmsize.discrete.width;
+                        frmival.height = frmsize.discrete.height;
+
+                        while (ioctl(file_descriptor, VIDIOC_ENUM_FRAMEINTERVALS, &frmival) == 0) {
+                            if (frmival.type == V4L2_FRMIVAL_TYPE_DISCRETE) {
+                                DeviceCapability capability = {};
+                                capability.format_4cc = std::string(reinterpret_cast<const char *>(fmt.pixelformat), 5);
+                                capability.description = std::string(reinterpret_cast<const char *>(fmt.description), 32);
+                                capability.width = frmsize.discrete.width;
+                                capability.height = frmsize.discrete.height;
+                                capability.refresh_rate =
+                                        static_cast<double>(frmival.discrete.denominator) / frmival.discrete.numerator;
+                                vec.push_back(capability);
+                            }
+                            frmival.index++;
+                        }
+                    }
+                    frmsize.index++;
+                }
+                fmt.index++;
+            }
+        } catch (...) {
+            close(file_descriptor);
+            throw;
+        }
+        close(file_descriptor);
+        return vec;
     }
 
     std::string get_device_id(const std::string &device_uuid) {

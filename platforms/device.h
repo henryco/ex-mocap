@@ -27,6 +27,14 @@ namespace ex::platform::dev {
         std::string name;
     };
 
+    struct DeviceCapability {
+        std::string description;
+        std::string format_4cc;
+        int refresh_rate;
+        int width;
+        int height;
+    };
+
     int get_capture_api();
 
     void refresh();
@@ -37,6 +45,8 @@ namespace ex::platform::dev {
 
     std::vector<VideoControl> list_controls(const VideoDevice &device);
 
+    std::vector<DeviceCapability> list_capabilities(const std::string &device_uuid);
+
     bool set_control_value(const std::string &device_uuid, control_id prop_id, int value);
 
     bool set_control_value(const VideoDevice &device, control_id prop_id, int value);
@@ -44,6 +54,8 @@ namespace ex::platform::dev {
     int get_device_index(const std::string &device_uuid);
 
     int get_device_index(const VideoDevice &device);
+
+    std::string get_device_id(const std::string &device_uuid);
 
     void reset_controls(const std::string &device_uuid);
 
