@@ -279,7 +279,8 @@ namespace ex::platform::dev {
             }
         } catch (...) {
             close(file_descriptor);
-            throw;
+            perror("Querying capabilities");
+            return {};
         }
         close(file_descriptor);
         return vec;
