@@ -153,6 +153,9 @@ namespace ex::nodes {
             return true;
         }
 
+        /**
+         * This function guarantee to keep list of connections ordered asc by input_index!
+         */
         virtual bool attach(Output<I> *output_ptr, int output_index, int input_index) = 0;
 
         virtual bool detach(Output<I> *output_ptr, int output_index, int input_index) = 0;
@@ -395,7 +398,6 @@ namespace ex::nodes {
         }
 
         bool attach(Output<T> *output_ptr, const int output_index, const int input_index) override {
-            // TODO SORTED INSERT
             std::lock_guard guard(mutex_);
 
             if (output_ptr == nullptr)
@@ -409,8 +411,24 @@ namespace ex::nodes {
                 return true;
             }
 
+            io_node *prev = nullptr;
             io_node *head = store;
+
             while (head->next != nullptr) {
+
+                if (head->index_in > input_index) {
+                    if (prev == nullptr) {
+                        store = new io_node(static_cast<IO *>(output_ptr), input_index, output_index);
+                        store->next = head;
+                        return true;
+                    }
+
+                    prev->next = new io_node(static_cast<IO *>(output_ptr), input_index, output_index);
+                    prev->next->next = head;
+                    return true;
+                }
+
+                prev = head;
                 head = head->next;
             }
 
