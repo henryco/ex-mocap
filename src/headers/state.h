@@ -11,10 +11,11 @@
 namespace ex {
 
     typedef struct State {
-        GLFWwindow  *window      = nullptr;
-        cl_context   ocl_context = nullptr;
-        cl_device_id ocl_device  = nullptr;
-        bool         gl_sharing  = false;
+        const char  *project_path = nullptr;
+        GLFWwindow  *window       = nullptr;
+        cl_context   ocl_context  = nullptr;
+        cl_device_id ocl_device   = nullptr;
+        bool         gl_sharing   = false;
 
     } State;
 

@@ -14,9 +14,9 @@
 
 namespace ex::boot {
 
-    const auto log = ex::logs::get_logger("boot_gui");
+    const auto log = logs::get_logger("boot_gui");
 
-    GLFWwindow *init_gl_context(ex::State &state) {
+    GLFWwindow *init_gl_context(State &state) {
         if (!glfwInit()) {
             std::cerr << "Failed to initialize GLFW";
             return nullptr;
@@ -28,7 +28,7 @@ namespace ex::boot {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        const auto window = ex::gl::create_window("ExMoCap");
+        const auto window = gl::create_window("ExMoCap");
         log->info("Window created");
         state.window = window;
 
@@ -44,9 +44,9 @@ namespace ex::boot {
         return window;
     }
 
-    void init_cl_context(ex::State &state, GLFWwindow *window) {
-        std::vector<ex::cl::utils::device_platform> cl_device_platforms;
-        ex::cl::utils::get_device_platforms(cl_device_platforms);
+    void init_cl_context(State &state, GLFWwindow *window) {
+        std::vector<cl::utils::device_platform> cl_device_platforms;
+        get_device_platforms(cl_device_platforms);
         log->info("Queried cl_device_platforms: {}", cl_device_platforms.size());
 
         if (cl_device_platforms.empty()) {
@@ -58,7 +58,7 @@ namespace ex::boot {
         for (auto &[platform, device, gl_sharing] : cl_device_platforms) {
             if (!gl_sharing)
                 continue;
-            ocl_context = ex::cl::utils::create_cl_gl_context(window, platform, device);
+            ocl_context = cl::utils::create_cl_gl_context(window, platform, device);
             if (ocl_context != nullptr) {
                 state.gl_sharing = true;
                 state.ocl_device = device;
@@ -81,7 +81,7 @@ namespace ex::boot {
 
     int gui(int argc, char **argv, const char *project_path) {
 
-        State state {};
+        State state{ .project_path = project_path };
         log->info("Application context created");
 
         const auto window = init_gl_context(state);
