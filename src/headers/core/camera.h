@@ -28,6 +28,9 @@ namespace ex::camera {
         static inline const auto log =
             logs::get_logger("camera");
 
+        cl_context   ocl_context = nullptr;
+        cl_device_id ocl_device  = nullptr;
+
         cl_command_queue queue       = nullptr;
         bool             cap_called_ = false;
         bool             initialized = false;
@@ -38,7 +41,7 @@ namespace ex::camera {
         config           config_;
 
     public:
-        Camera() = default;
+        Camera(cl_context context, cl_device_id device);
 
         ~Camera();
 

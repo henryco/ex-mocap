@@ -6,6 +6,10 @@
 
 namespace ex::cmp {
 
+    CameraNode::CameraNode(cl_context context, cl_device_id device) : camera_(context, device) {}
+
+    CameraNode::CameraNode(const camera::Camera &camera) : camera_(camera) {}
+
     CameraNode::~CameraNode() {
         camera_.close();
     }

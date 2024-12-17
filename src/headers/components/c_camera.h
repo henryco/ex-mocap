@@ -33,16 +33,16 @@ namespace ex::cmp {
     private:
         static inline const auto log = logs::get_logger("camera_node");
 
-        std::string    device_uuid;
-        camera::config config_;
         camera::Camera camera_;
+        promise_i      last_frame_;
 
-        bool      enabled_    = true;
-        int       last_clock_ = -1;
-        promise_i last_frame_;
+        bool enabled_    = true;
+        int  last_clock_ = -1;
 
     public:
-        CameraNode() = default;
+        CameraNode(cl_context context, cl_device_id device);
+
+        CameraNode(const camera::Camera &camera);
 
         ~CameraNode() override;
 

@@ -17,6 +17,7 @@ namespace ex::camera {
 
     void Camera::open(std::string const &device_uuid) {
         close();
+        queue = xm::ocl::create_queue_device(ocl_context, ocl_device, true, false);
         cap_.open(platform::dev::get_device_index(device_uuid),
             platform::dev::get_device_index(device_uuid));
         device_id = device_uuid;
@@ -26,8 +27,9 @@ namespace ex::camera {
 
     void Camera::open(std::string const &device_uuid, const config &prop) {
         close();
-        std::vector<int> params;
+        queue = xm::ocl::create_queue_device(ocl_context, ocl_device, true, false);
 
+        std::vector<int> params;
         if (prop.codec.size() >= 4) {
             params.push_back(cv::CAP_PROP_FOURCC);
             params.push_back(fourCC(prop.codec.c_str()));
@@ -82,6 +84,9 @@ namespace ex::camera {
     bool Camera::grab() {
         return cap_.grab();
     }
+
+    Camera::Camera(cl_context context, cl_device_id device)
+    : ocl_context(context), ocl_device(device) {}
 
     Camera::~Camera() {
         if (queue != nullptr)
