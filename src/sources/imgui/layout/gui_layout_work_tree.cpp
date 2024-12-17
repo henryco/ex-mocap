@@ -13,42 +13,39 @@ namespace ex::gui {
                 0);
         // TODO
 
-        ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV;
-        ImGuiTreeNodeFlags tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
+        constexpr auto flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV;
+        constexpr auto tree_bull_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+        constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
 
-        if (ImGui::BeginTable("TableWithTreeNodes", 2,flags)) {
-            // Disable table headers
-            ImGui::TableSetupScrollFreeze(0, 0); // Disable freezing rows/columns
+        if (ImGui::BeginTable("TableWorkTreeTable", 2,flags)) {
+            constexpr float ctrl_width  = 60.f;
+            constexpr float min_width  = 100.f;
+            const float fixed_width = ImGui::GetContentRegionAvail().x - ctrl_width - ImGui::GetStyle().ItemSpacing.x;
+            const float items_width = std::max(min_width, fixed_width);
 
-            // Row 1
-            ImGui::TableNextRow();
+            ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthFixed, items_width);
+            ImGui::TableSetupColumn("Controls", ImGuiTableColumnFlags_WidthFixed, ctrl_width);
 
-            // Column 1: Tree Node 1
-            ImGui::TableSetColumnIndex(0);
-            if (ImGui::TreeNode("Node 1"))
-            {
-                ImGui::Text("Child Item 1");
-                ImGui::TreePop();
+            for (int i = 0; i < 5; i++) {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                const bool open = ImGui::TreeNodeEx(("Node: " + std::to_string(i)).c_str(), tree_node_flags);
+
+                ImGui::TableNextColumn();
+                ImGui::TextDisabled("--");
+
+                if (open) {
+                    for (int n = 0; n < 3; n++) {
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::TreeNodeEx(("Inner" + std::to_string(n)).c_str(), tree_node_flags | tree_bull_flags);
+
+                        ImGui::TableNextColumn();
+                        ImGui::TextDisabled("++");
+                    }
+                    ImGui::TreePop();
+                }
             }
-
-            // Column 2: Some Content
-            ImGui::TableSetColumnIndex(1);
-            ImGui::Text("Content for Node 1");
-
-            // Row 2
-            ImGui::TableNextRow();
-
-            // Column 1: Tree Node 2
-            ImGui::TableSetColumnIndex(0);
-            if (ImGui::TreeNode("Node 2"))
-            {
-                ImGui::Text("Child Item 2");
-                ImGui::TreePop();
-            }
-
-            // Column 2: Some Content
-            ImGui::TableSetColumnIndex(1);
-            ImGui::Text("Content for Node 2");
 
             ImGui::EndTable();
         }
