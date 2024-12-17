@@ -117,6 +117,11 @@ namespace ex::boot {
         glfwDestroyWindow(window);
         glfwTerminate();
 
+        if (state.ocl_context != nullptr)
+            clReleaseContext(state.ocl_context);
+        if (state.ocl_device != nullptr)
+            clReleaseDevice(state.ocl_device);
+
         return 0;
     }
 
