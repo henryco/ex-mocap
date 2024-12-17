@@ -58,6 +58,10 @@ namespace ex::gui {
         if (!gui.view.show_left)
             return;
         const auto old_width = gui.view.pane_width_left;
+
+        ImGuiStyle& style = ImGui::GetStyle();
+        ImVec2 default_window_padding = style.WindowPadding;
+        style.WindowPadding = ImVec2(0, 0);
         ImGui::BeginChild("LeftPane",
                           ImVec2(gui.view.pane_width_left, 0),
                           0
@@ -66,14 +70,22 @@ namespace ex::gui {
                           reset_flag(gui));
 
         {
-            ImGui::Text("%d", ex::gui::is_docking_empty(gui.docking.dock_left_id));
-            // TODO
-            ImGui::Separator();
+            style.WindowPadding = ImVec2(0, default_window_padding.y + 1);
+            ImGui::BeginChild("InnerLeftHeader", ImVec2(gui.view.pane_width_left, 28),
+                ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoDecoration);
+            {
+                ImGui::Text(" ");
+                // TODO
+                ImGui::Separator();
+            }
+            ImGui::EndChild();
+
             show_left_dock_space(state, gui);
         }
 
         gui.view.pane_width_left = ImGui::GetWindowWidth();
         ImGui::EndChild();
+        style.WindowPadding = default_window_padding;
         ImGui::SameLine();
 
         re_size.inc_x = (!re_size.inc_x) && (old_width != gui.view.pane_width_left);

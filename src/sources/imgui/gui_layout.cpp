@@ -88,6 +88,8 @@ namespace ex::gui {
             show_work_tree(state, gui);
             show_workspace_switcher(state, gui);
             show_floating_window(state, gui);
+
+            ImGui::ShowMetricsWindow();
         }
         ImGui::End();
 

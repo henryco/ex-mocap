@@ -12,7 +12,47 @@ namespace ex::gui {
                 ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - 10),
                 0);
         // TODO
-        ImGui::Text("test");
+
+        ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_NoPadOuterX;
+        ImGuiTreeNodeFlags tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
+
+        if (ImGui::BeginTable("TableWithTreeNodes", 2,flags)) {
+            // Disable table headers
+            ImGui::TableSetupScrollFreeze(0, 0); // Disable freezing rows/columns
+
+            // Row 1
+            ImGui::TableNextRow();
+
+            // Column 1: Tree Node 1
+            ImGui::TableSetColumnIndex(0);
+            if (ImGui::TreeNode("Node 1"))
+            {
+                ImGui::Text("Child Item 1");
+                ImGui::TreePop();
+            }
+
+            // Column 2: Some Content
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("Content for Node 1");
+
+            // Row 2
+            ImGui::TableNextRow();
+
+            // Column 1: Tree Node 2
+            ImGui::TableSetColumnIndex(0);
+            if (ImGui::TreeNode("Node 2"))
+            {
+                ImGui::Text("Child Item 2");
+                ImGui::TreePop();
+            }
+
+            // Column 2: Some Content
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("Content for Node 2");
+
+            ImGui::EndTable();
+        }
+
         ImGui::EndChild();
     }
 
