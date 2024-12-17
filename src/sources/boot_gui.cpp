@@ -59,6 +59,7 @@ namespace ex::boot {
             ocl_context = ex::cl::utils::create_cl_gl_context(window, platform, device);
             if (ocl_context != nullptr) {
                 state.gl_sharing = true;
+                state.ocl_device = device;
                 log->info("CL context created");
                 break;
             }
@@ -69,6 +70,7 @@ namespace ex::boot {
             const auto device = cl_device_platforms[0].device;
             ocl_context       = ex::cl::utils::create_cl_context(device);
             state.gl_sharing  = false;
+            state.ocl_device = device;
             log->info("Default CL context created");
         }
 

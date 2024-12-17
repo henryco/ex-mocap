@@ -5,15 +5,16 @@
 #ifndef EX_MOTION_STATE_H
 #define EX_MOTION_STATE_H
 
-#include <GLFW/glfw3.h>
 #include <CL/cl.h>
+#include <GLFW/glfw3.h>
 
 namespace ex {
 
     typedef struct State {
-        GLFWwindow *window     = nullptr;
-        cl_context ocl_context = nullptr;
-        bool       gl_sharing  = false;
+        GLFWwindow  *window      = nullptr;
+        cl_context   ocl_context = nullptr;
+        cl_device_id ocl_device  = nullptr;
+        bool         gl_sharing  = false;
 
     } State;
 
