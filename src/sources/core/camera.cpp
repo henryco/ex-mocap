@@ -3,6 +3,7 @@
 //
 
 #include "../../headers/core/camera.h"
+#include "../../headers/cl/cl_kernel.h"
 
 namespace ex::camera {
 
@@ -20,6 +21,7 @@ namespace ex::camera {
             platform::dev::get_device_index(device_uuid));
         device_id = device_uuid;
         cap_called_ = false;
+        initialized = true;
     }
 
     void Camera::open(std::string const &device_uuid, const config &prop) {
@@ -63,14 +65,27 @@ namespace ex::camera {
         config_ = prop;
         device_id = device_uuid;
         cap_called_ = false;
+        initialized = true;
     }
 
     xm::ocl::iop::ClImagePromise Camera::capture() {
-        // TODO
+        if (!initialized)
+            return {};
+
+        cv::Mat frame;
+        cap_.retrieve(frame);
+
+
         return xm::ocl::Image2D();
     }
+
     bool Camera::grab() {
         return cap_.grab();
+    }
+
+    Camera::~Camera() {
+        if (queue != nullptr)
+            clReleaseCommandQueue(queue);
     }
 
     int  Camera::get_capture_api() const {
@@ -106,8 +121,12 @@ namespace ex::camera {
     }
 
     void Camera::close() {
-        cap_called_ = false;
         cap_.release();
+        cap_called_ = false;
+        initialized = false;
+        if (queue != nullptr)
+            clReleaseCommandQueue(queue);
+        queue = nullptr;
     }
 
 } // namespace ex::camera

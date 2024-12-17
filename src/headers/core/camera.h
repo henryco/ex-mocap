@@ -13,6 +13,7 @@
 #include "../utils/log_utils.h"
 
 namespace ex::camera {
+    using dev_caps = std::vector<platform::dev::DeviceCapability>;
 
     struct config {
         std::string codec  = "";
@@ -27,17 +28,19 @@ namespace ex::camera {
         static inline const auto log =
             logs::get_logger("camera");
 
-        std::vector<platform::dev::DeviceCapability> capabilities_;
-        bool                                         cap_called_ = false;
+        cl_command_queue queue       = nullptr;
+        bool             cap_called_ = false;
+        bool             initialized = false;
 
         cv::VideoCapture cap_;
+        dev_caps         capabilities_;
         std::string      device_id;
         config           config_;
 
     public:
         Camera() = default;
 
-        ~Camera() = default;
+        ~Camera();
 
         int get_capture_api() const;
 
