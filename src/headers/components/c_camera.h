@@ -11,36 +11,22 @@
 
 namespace ex::cmp {
 
-    #define CAM_       0
-    #define CAM_WIDTH  1
-    #define CAM_HEIGHT 2
-    #define CAM_BUFFER 3
-    #define CAM_FPS    4
-    #define CAM_CODEC  5
-    #define CAM_UUID   6
-    #define CAM_FREEZE 7
-    #define CAM_ENABLE 8
+#define CAM_          0
+#define CAM_OUT_FRAME 1
+#define CAM_OUT_SYNC  2
+#define CAM_IN_ENABLE 3
 
     class CameraNode : public nodes::Node<CameraNode>,
                        public nodes::State<camera::Camera>,
 
                        public nodes::id::name<"camera_node">,
 
-                       public nodes::io::out<xm::ocl::iop::ClImagePromise, 0, "Captured frame">,
-                       public nodes::io::out<bool,                         1, "Sync grabbed">,
-
-                       public nodes::io::in<bool,         CAM_FREEZE, "Freeze settings">,
-                       public nodes::io::in<bool,         CAM_ENABLE, "ON/OFF camera">,
-                       public nodes::io::in<int,          CAM_WIDTH,  "Width">,
-                       public nodes::io::in<int,          CAM_HEIGHT, "Height">,
-                       public nodes::io::in<int,          CAM_BUFFER, "Buffer">,
-                       public nodes::io::in<int,          CAM_FPS,    "FPS">,
-                       public nodes::io::in<const char *, CAM_CODEC,  "CODEC">,
-                       public nodes::io::in<const char *, CAM_UUID,   "UUID">,
+                       public nodes::io::out<xm::ocl::iop::ClImagePromise, CAM_OUT_FRAME, "Captured frame">,
+                       public nodes::io::out<bool,                         CAM_OUT_SYNC,  "Sync grabbed">,
+                       public nodes::io::in<bool,                          CAM_IN_ENABLE, "ON/OFF camera">,
 
                        public nodes::ReactiveOut<bool, xm::ocl::iop::ClImagePromise>,
-                       public nodes::ReactiveIn<bool, int, const char *>
-    {
+                       public nodes::ReactiveIn<bool> {
     private:
         static inline const auto log = logs::get_logger("camera_node");
 
@@ -48,13 +34,9 @@ namespace ex::cmp {
         camera::config config_;
         camera::Camera camera_;
 
-        bool initialized = false;
-        bool enabled_    = false;
-        bool updated_    = false;
-        bool freeze_     = false;
-
+        bool                         enabled_    = true;
+        int                          last_clock_ = -1;
         xm::ocl::iop::ClImagePromise last_frame_;
-        int              last_clock_ = -1;
 
     public:
         CameraNode() = default;
@@ -63,28 +45,14 @@ namespace ex::cmp {
 
         camera::Camera *get() override;
 
-        bool on_input(bool data, int input_index, int output_index, int clock_i) override;
+        bool on_input(bool data, int input_index, int _, int clock_i) override;
 
-        xm::ocl::iop::ClImagePromise on_output(xm::ocl::iop::ClImagePromise *null_ptr, int output_index, int clock_i) override;
+        xm::ocl::iop::ClImagePromise on_output(xm::ocl::iop::ClImagePromise *_, int __, int clock_i) override;
 
-        bool on_output(bool *null_ptr, int output_index, int clock_i) override;
-
-        bool on_input(int data, int input_index, int output_index, int clock_i) override;
-
-        bool on_input(const char *data, int input_index, int output_index, int clock_i) override;
+        bool on_output(bool *_, int __, int clock_i) override;
 
     protected:
         void capture_frame(int clock_i);
-
-        void init_camera_if_needed();
-
-        template <typename T>
-        bool update_value(T* ptr, T value) {
-            if (*ptr != value)
-                updated_ = true;
-            *ptr = value;
-            return true;
-        }
     };
 
 }

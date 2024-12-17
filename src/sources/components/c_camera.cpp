@@ -16,38 +16,9 @@ namespace ex::cmp {
 
     bool CameraNode::on_input(const bool data, const int input_index, const int _, const int clock_i) {
         switch (input_index) {
-            case CAM_ENABLE:
+            case CAM_IN_ENABLE:
                 enabled_ = data;
                 return true;
-            case CAM_FREEZE:
-                freeze_ = data;
-                return true;
-            default:
-                return true;
-        }
-    }
-
-    bool CameraNode::on_input(const int data, const int input_index, const int _, const int clock_i) {
-        switch (input_index) {
-            case CAM_WIDTH:
-                return update_value(&config_.width, data);
-            case CAM_HEIGHT:
-                return update_value(&config_.height, data);
-            case CAM_BUFFER:
-                return update_value(&config_.buffer, data);
-            case CAM_FPS:
-                return update_value(&config_.fps, data);
-            default:
-                return true;
-        }
-    }
-
-    bool CameraNode::on_input(const char *data, const int input_index, const int _, const int clock_i) {
-        switch (input_index) {
-            case CAM_CODEC:
-                return update_value(&config_.codec, std::string(data));
-            case CAM_UUID:
-                return update_value(&device_uuid, std::string(data));
             default:
                 return true;
         }
@@ -56,7 +27,6 @@ namespace ex::cmp {
     xm::ocl::iop::ClImagePromise CameraNode::on_output(xm::ocl::iop::ClImagePromise *_, const int __, const int clock_i) {
         if (!enabled_)
             return {};
-        init_camera_if_needed();
         capture_frame(clock_i);
         return last_frame_;
     }
@@ -64,17 +34,7 @@ namespace ex::cmp {
     bool CameraNode::on_output(bool *_, const int __, const int clock_i) {
         if (!enabled_)
             return false;
-        init_camera_if_needed();
         return camera_.grab();
-    }
-
-    void CameraNode::init_camera_if_needed() {
-        if (!initialized || (updated_ && !freeze_)) {
-            camera_.close();
-            camera_.open(device_uuid, config_);
-            initialized = true;
-            updated_    = false;
-        }
     }
 
     void CameraNode::capture_frame(const int clock_i) {
