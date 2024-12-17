@@ -18,6 +18,9 @@ namespace ex::gui {
         constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
 
         if (ImGui::BeginTable("TableWorkTreeTable", 2,flags)) {
+            const auto old_indent_spacing = ImGui::GetStyle().IndentSpacing;
+            ImGui::GetStyle().IndentSpacing = 10.0f;
+
             constexpr float ctrl_width  = 60.f;
             constexpr float min_width  = 100.f;
             const float fixed_width = ImGui::GetContentRegionAvail().x - ctrl_width - ImGui::GetStyle().ItemSpacing.x;
@@ -47,6 +50,7 @@ namespace ex::gui {
                 }
             }
 
+            ImGui::GetStyle().IndentSpacing = old_indent_spacing;
             ImGui::EndTable();
         }
 
