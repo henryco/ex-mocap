@@ -5,6 +5,12 @@
 #include "../../../headers/imgui/gui_layout.h"
 
 namespace ex::gui {
+    constexpr auto flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV;
+    constexpr auto tree_bull_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+    constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
+
+    constexpr float ctrl_width  = 60.f;
+    constexpr float min_width  = 100.f;
 
     void work_tree_content(ex::State &state, GuiState &gui) {
         ImGui::BeginChild(
@@ -13,16 +19,10 @@ namespace ex::gui {
                 0);
         // TODO
 
-        constexpr auto flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV;
-        constexpr auto tree_bull_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-        constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
-
         if (ImGui::BeginTable("TableWorkTreeTable", 2,flags)) {
             const auto old_indent_spacing = ImGui::GetStyle().IndentSpacing;
             ImGui::GetStyle().IndentSpacing = 10.0f;
 
-            constexpr float ctrl_width  = 60.f;
-            constexpr float min_width  = 100.f;
             const float fixed_width = ImGui::GetContentRegionAvail().x - ctrl_width - ImGui::GetStyle().ItemSpacing.x;
             const float items_width = std::max(min_width, fixed_width);
 
