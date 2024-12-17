@@ -76,9 +76,7 @@ namespace ex::camera {
 
         cv::Mat frame;
         cap_.retrieve(frame);
-
-
-        return xm::ocl::Image2D();
+        return xm::ocl::iop::from_cv_mat(frame, queue);
     }
 
     bool Camera::grab() {
