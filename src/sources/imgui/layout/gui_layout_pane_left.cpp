@@ -6,6 +6,17 @@
 
 namespace ex::gui {
 
+    void show_left_pane_header(ex::State &state, GuiState &gui) {
+        ImGui::BeginChild("InnerLeftHeader", ImVec2(gui.view.pane_width_left, 28),
+                ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoDecoration);
+        {
+            ImGui::Text(" ");
+            // TODO
+            ImGui::Separator();
+        }
+        ImGui::EndChild();
+    }
+
     void show_left_dock_space(ex::State &state, GuiState &gui) {
         static bool first_time = true;
 
@@ -68,18 +79,10 @@ namespace ex::gui {
                                   | ImGuiChildFlags_Borders
                                   | ImGuiChildFlags_ResizeX,
                           reset_flag(gui));
-
         {
             style.WindowPadding = ImVec2(0, default_window_padding.y + 1);
-            ImGui::BeginChild("InnerLeftHeader", ImVec2(gui.view.pane_width_left, 28),
-                ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoDecoration);
-            {
-                ImGui::Text(" ");
-                // TODO
-                ImGui::Separator();
-            }
-            ImGui::EndChild();
-
+            show_left_pane_header(state, gui);
+            style.WindowPadding = ImVec2(0, 0);
             show_left_dock_space(state, gui);
         }
 
