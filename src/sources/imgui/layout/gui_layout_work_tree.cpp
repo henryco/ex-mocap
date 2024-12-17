@@ -13,7 +13,7 @@ namespace ex::gui {
                 0);
         // TODO
 
-        ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_NoPadOuterX;
+        ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV;
         ImGuiTreeNodeFlags tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
 
         if (ImGui::BeginTable("TableWithTreeNodes", 2,flags)) {
