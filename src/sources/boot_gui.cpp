@@ -10,6 +10,8 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+#include "../headers/logic.h"
+
 namespace ex::boot {
 
     const auto log = ex::logs::get_logger("boot_gui");
@@ -79,7 +81,7 @@ namespace ex::boot {
 
     int gui(int argc, char **argv, const char *project_path) {
 
-        ex::State state {};
+        State state {};
         log->info("Application context created");
 
         const auto window = init_gl_context(state);
@@ -88,7 +90,7 @@ namespace ex::boot {
         const auto gui = ex::gui::GUI(window);
         log->info("ImGUI context created");
 
-        // TODO INITIALIZATION
+        auto logic = main::create_logic(state);
 
         log->info("Initialization complete");
 
@@ -98,8 +100,7 @@ namespace ex::boot {
 
             glfwPollEvents();
 
-            // TODO LOGIC
-
+            logic.run(state);
             gui.build(state);
 
             int display_w, display_h;
