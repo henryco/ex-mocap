@@ -11,8 +11,8 @@ namespace ex::gui {
                 ImVec2((re_size.inc_x || gui.window.resized) ? 0 : gui.view.pane_width_right, 28),
                 ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoDecoration);
         {
-            ImGui::Text(" ");
-            // TODO
+            if (right_pane_menu == nullptr) ImGui::Dummy(ImVec2(10, 12));
+            else right_pane_menu(state, gui);
             ImGui::Separator();
         }
         ImGui::EndChild();

@@ -54,7 +54,7 @@ namespace ex::gui {
         }
     }
 
-    ex::logs::logger logger() {
+    logs::logger logger() {
         static ex::logs::logger log = ex::logs::get_logger("gui_layout");
         return log;
     }
@@ -89,7 +89,7 @@ namespace ex::gui {
             show_workspace_switcher(state, gui);
             show_floating_window(state, gui);
 
-            ImGui::ShowMetricsWindow();
+//            ImGui::ShowMetricsWindow();
         }
         ImGui::End();
 

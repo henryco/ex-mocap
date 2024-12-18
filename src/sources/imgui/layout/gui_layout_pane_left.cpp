@@ -10,8 +10,8 @@ namespace ex::gui {
         ImGui::BeginChild("InnerLeftHeader", ImVec2(gui.view.pane_width_left, 28),
                 ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoDecoration);
         {
-            ImGui::Text(" ");
-            // TODO
+            if (left_pane_menu == nullptr) ImGui::Dummy(ImVec2(10, 12));
+            else left_pane_menu(state, gui);
             ImGui::Separator();
         }
         ImGui::EndChild();
