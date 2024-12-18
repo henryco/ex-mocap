@@ -29,10 +29,17 @@ namespace ex::gui {
             ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthFixed, items_width);
             ImGui::TableSetupColumn("Controls", ImGuiTableColumnFlags_WidthFixed, ctrl_width);
 
+            static int selected_node = -1;
+
             for (int i = 0; i < 5; i++) {
+                const auto c_flag = tree_node_flags | (selected_node == i ? ImGuiTreeNodeFlags_Selected : 0);
+
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                const bool open = ImGui::TreeNodeEx(("Node: " + std::to_string(i)).c_str(), tree_node_flags);
+                const bool open = ImGui::TreeNodeEx(("Node: " + std::to_string(i)).c_str(), c_flag);
+
+                if (ImGui::IsItemClicked())
+                    selected_node = i;
 
                 ImGui::TableNextColumn();
                 ImGui::TextDisabled("--");
