@@ -10,26 +10,15 @@
 #include "components/c_camera.h"
 #include "nodes/nodes.h"
 #include "state.h"
+#include "state/mappers.h"
 #include "utils/log_utils.h"
 
 namespace ex::main {
 
-    struct DataMappers {
-        void (*from_base)(nodes::BaseNode *from, TreeNode *to) = nullptr;
-        void (*from_tree)(TreeNode *from, nodes::BaseNode *to) = nullptr;
-        nodes::BaseNode *(*instance)(const State &state)       = nullptr;
-    };
-
-    namespace map::camera {
-        void from_base(nodes::BaseNode *from, TreeNode *to);
-        void from_tree(TreeNode *from, nodes::BaseNode *to);
-        nodes::BaseNode *instance(const State &state);
-    }
-
     class Logic {
     private:
         static inline const std::map<std::size_t, DataMappers> mappers_ = {
-            { cmp::CameraNode::get_node_id(), { map::camera::from_base, map::camera::from_tree, map::camera::instance } },
+            { cmp::CameraNode::get_node_id(), map::camera::mappers },
         };
 
         std::map<std::size_t, nodes::BaseNode *> nodes_ = {};

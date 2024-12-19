@@ -106,6 +106,7 @@ set(HEADER_FILES
         src/headers/core/camera.h
         src/headers/components/c_camera.h
         src/headers/logic.h
+        src/headers/state/mappers.h
 )
 
 set(SOURCE_FILES
@@ -132,6 +133,7 @@ set(SOURCE_FILES
         src/sources/core/camera.cpp
         src/sources/components/c_camera.cpp
         src/sources/logic.cpp
+        src/sources/state/mappers_camera.cpp
 )
 
 # =================== OpenCL kernels generation =====================
