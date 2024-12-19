@@ -16,19 +16,19 @@
 namespace ex::main {
 
     struct DataMappers {
-        void (*from)(nodes::BaseNode *node, TreeNode *state) = nullptr;
-        void (*to)(TreeNode *state, nodes::BaseNode *node)   = nullptr;
+        void (*from_base)(nodes::BaseNode *from, TreeNode *to) = nullptr;
+        void (*from_tree)(TreeNode *from, nodes::BaseNode *to) = nullptr;
     };
 
     namespace map::camera {
-        void from(nodes::BaseNode *node, TreeNode *state);
-        void to(TreeNode *state, nodes::BaseNode *node);
+        void from_base(nodes::BaseNode *from, TreeNode *to);
+        void from_tree(TreeNode *from, nodes::BaseNode *to);
     }
 
     class Logic {
     private:
         static inline const std::map<std::size_t, DataMappers> mappers_ = {
-            { cmp::CameraNode::get_node_id(), { .from = map::camera::from, .to = map::camera::to } },
+            { cmp::CameraNode::get_node_id(), { map::camera::from_base, map::camera::from_tree } },
         };
 
     public:

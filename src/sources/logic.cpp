@@ -11,11 +11,11 @@
 namespace ex::main {
 
     namespace map::camera {
-        void from(nodes::BaseNode *node, TreeNode *state) {
+        void from_base(nodes::BaseNode *from, TreeNode *to) {
             Logic::log->info("FROM");
         }
 
-        void to(TreeNode *state, nodes::BaseNode *node) {
+        void from_tree(TreeNode *from, nodes::BaseNode *to) {
             Logic::log->info("TO");
         }
     }
