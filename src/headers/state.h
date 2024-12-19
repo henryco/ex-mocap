@@ -18,6 +18,8 @@ namespace ex {
         std::size_t id_node    = -1;
         std::size_t id_local   = -1;
         bool        updated    = false;
+        bool        deleted    = false;
+        bool        created    = false;
     };
 
     struct State {

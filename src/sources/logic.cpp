@@ -2,21 +2,28 @@
 // Created by xd on 17/12/24.
 //
 
-#include "../headers/logic.h"
-
 #include <map>
-
+#include "../headers/logic.h"
 #include "../headers/components/c_camera.h"
 
 namespace ex::main {
 
+    #define update_threshold 1000
+
     namespace map::camera {
         void from_base(nodes::BaseNode *from, TreeNode *to) {
             Logic::log->info("FROM");
+            // TODO
         }
 
         void from_tree(TreeNode *from, nodes::BaseNode *to) {
             Logic::log->info("TO");
+            auto *node = dynamic_cast<cmp::CameraNode *>(to);
+            if (node == nullptr)
+                return;
+
+            auto camera = node->get();
+            // TODO
         }
     }
 
@@ -29,13 +36,60 @@ namespace ex::main {
     void Logic::initialize(State &state) {
         log->info("main logic initialization started");
         // TODO
-
         log->info("main logic initialization complete");
     }
 
     void Logic::run(State &state) {
+        if (state.work_tree == nullptr) {
+            // TODO RESET
+            return;
+        }
+        process_(state);
+        synchronize_(state);
+    }
+
+    void Logic::process_(State &state) {
         // TODO
     }
 
+    void Logic::synchronize_(State &state) {
+        const auto now = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+        if (const auto elapsed = now - timestamp; elapsed < update_threshold)
+            return;
+
+        timestamp = now;
+
+        for (std::size_t i = 0; i < state.work_tree->children_n; i++) {
+            traverse_(state, &state.work_tree->children[i]);
+        }
+    }
+
+    void Logic::traverse_(State &state, TreeNode *node) {
+        if (node == nullptr)
+            return;
+
+        if (node->deleted) {
+            // TODO rebuild tree
+            return;
+        }
+
+        for (std::size_t i = 0; i < node->children_n; i++) {
+            traverse_(state, &node->children[i]);
+        }
+
+        if (node->created) {
+            node->created             = false;
+            nodes::BaseNode *new_node = nullptr;
+            mappers_.at(node->id_node).from_tree(node, new_node);
+            nodes_.emplace(node->id_local, new_node);
+        }
+
+        if (node->updated) {
+            node->updated = false;
+            mappers_.at(node->id_node).from_tree(node, nodes_.at(node->id_local));
+        }
+
+        mappers_.at(node->id_node).from_base(nodes_.at(node->id_local), node);
+    }
 
 } // namespace ex::logic

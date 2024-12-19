@@ -7,7 +7,6 @@
 
 #include <map>
 
-
 #include "components/c_camera.h"
 #include "nodes/nodes.h"
 #include "state.h"
@@ -31,6 +30,10 @@ namespace ex::main {
             { cmp::CameraNode::get_node_id(), { map::camera::from_base, map::camera::from_tree } },
         };
 
+        std::map<std::size_t, nodes::BaseNode *> nodes_ = {};
+
+        long timestamp = 0;
+
     public:
         static inline const auto log = logs::get_logger("logic");
 
@@ -41,6 +44,13 @@ namespace ex::main {
         void initialize(State& state);
 
         void run(State &state);
+
+    protected:
+        void traverse_(State &state, TreeNode *node);
+
+        void synchronize_(State &state);
+
+        void process_(State &state);
     };
 
     Logic create_logic(State& state);
