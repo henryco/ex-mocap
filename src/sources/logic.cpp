@@ -3,6 +3,7 @@
 //
 
 #include "../headers/logic.h"
+#include "../headers/components/c_camera.h"
 
 namespace ex::main {
 
@@ -14,7 +15,7 @@ namespace ex::main {
 
     void Logic::initialize(State &state) {
         log->info("main logic initialization started");
-
+        log->info("node_id: {}", cmp::CameraNode::get_node_id());
         // TODO
 
         log->info("main logic initialization complete");
