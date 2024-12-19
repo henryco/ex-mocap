@@ -725,7 +725,7 @@ namespace ex::nodes {
         }
     };
 
-    class DefaultAny : public AnyOutputCallback, public AnyInputCallback {
+    class DefaultAny : public virtual AnyOutputCallback, public virtual AnyInputCallback {
     public:
         ~DefaultAny() override = default;
 

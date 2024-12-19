@@ -17,6 +17,7 @@ namespace ex {
         std::size_t children_n = 0;
         std::size_t id_node    = -1;
         std::size_t id_local   = -1;
+        bool        disabled   = false;
         bool        updated    = false;
         bool        deleted    = false;
         bool        created    = false;
@@ -30,6 +31,12 @@ namespace ex {
         bool         gl_sharing   = false;
         TreeNode    *work_tree    = nullptr;
     };
+
+    namespace state {
+        struct camera {
+            // TODO
+        };
+    }
 
 }
 

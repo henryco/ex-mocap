@@ -12,18 +12,34 @@ namespace ex::main {
 
     namespace map::camera {
         void from_base(nodes::BaseNode *from, TreeNode *to) {
-            Logic::log->info("FROM");
+            auto *node = dynamic_cast<cmp::CameraNode *>(from);
+            if (node == nullptr) {
+                to->disabled = true;
+                to->deleted  = true;
+                return;
+            }
+
+            if (to->data == nullptr) {
+                to->data = new state::camera{};
+            }
+
+            auto data = static_cast<state::camera *>(to->data);
+            auto camera = node->get();
+
             // TODO
         }
 
         void from_tree(TreeNode *from, nodes::BaseNode *to) {
-            Logic::log->info("TO");
             auto *node = dynamic_cast<cmp::CameraNode *>(to);
             if (node == nullptr)
                 return;
 
             auto camera = node->get();
             // TODO
+        }
+
+        nodes::BaseNode *instance(const State &state) {
+            return new cmp::CameraNode(state.ocl_context, state.ocl_device);
         }
     }
 
@@ -78,10 +94,10 @@ namespace ex::main {
         }
 
         if (node->created) {
-            node->created             = false;
-            nodes::BaseNode *new_node = nullptr;
+            nodes::BaseNode *new_node = mappers_.at(node->id_node).instance(state);
             mappers_.at(node->id_node).from_tree(node, new_node);
             nodes_.emplace(node->id_local, new_node);
+            node->created = false;
         }
 
         if (node->updated) {
@@ -92,4 +108,4 @@ namespace ex::main {
         mappers_.at(node->id_node).from_base(nodes_.at(node->id_local), node);
     }
 
-} // namespace ex::logic
+}
