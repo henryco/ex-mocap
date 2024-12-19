@@ -15,23 +15,25 @@
 
 namespace ex::main {
 
-    namespace mappers {
-        struct DataMappers {
-            void (*from)(nodes::BaseNode *node, TreeNode *state) = nullptr;
-            void (*to)(TreeNode *state, nodes::BaseNode *node)   = nullptr;
-        };
+    struct DataMappers {
+        void (*from)(nodes::BaseNode *node, TreeNode *state) = nullptr;
+        void (*to)(TreeNode *state, nodes::BaseNode *node)   = nullptr;
+    };
+
+    namespace map::camera {
+        void from(nodes::BaseNode *node, TreeNode *state);
+        void to(TreeNode *state, nodes::BaseNode *node);
     }
 
     class Logic {
     private:
-        static inline const auto log =
-            logs::get_logger("logic");
-
-        static inline std::map<std::size_t, mappers::DataMappers> mappers_ = {
-            {cmp::CameraNode::get_node_id(), {}}
+        static inline const std::map<std::size_t, DataMappers> mappers_ = {
+            { cmp::CameraNode::get_node_id(), { .from = map::camera::from, .to = map::camera::to } },
         };
 
     public:
+        static inline const auto log = logs::get_logger("logic");
+
         Logic() = default;
 
         ~Logic() = default;

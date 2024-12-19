@@ -10,6 +10,16 @@
 
 namespace ex::main {
 
+    namespace map::camera {
+        void from(nodes::BaseNode *node, TreeNode *state) {
+            Logic::log->info("FROM");
+        }
+
+        void to(TreeNode *state, nodes::BaseNode *node) {
+            Logic::log->info("TO");
+        }
+    }
+
     Logic create_logic(State &state) {
         Logic logic;
         logic.initialize(state);
@@ -19,6 +29,7 @@ namespace ex::main {
     void Logic::initialize(State &state) {
         log->info("main logic initialization started");
         // TODO
+
         log->info("main logic initialization complete");
     }
 
