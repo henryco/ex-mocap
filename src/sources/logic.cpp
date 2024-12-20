@@ -19,12 +19,13 @@ namespace ex::main {
     void Logic::initialize(State &state) {
         log->info("main logic initialization started");
         // TODO
+        restore_(state);
         log->info("main logic initialization complete");
     }
 
     void Logic::run(State &state) {
         if (state.work_tree == nullptr) {
-            // TODO RESET
+            restore_(state);
             return;
         }
         process_(state);
@@ -48,7 +49,7 @@ namespace ex::main {
         }
 
         if (rewire) {
-            // TODO
+            rewire_(state);
         }
     }
 
@@ -91,6 +92,14 @@ namespace ex::main {
         }
 
         mappers_.at(node->id_node).from_base(state, node_ptr, node);
+    }
+
+    void Logic::rewire_(State &state) {
+        // TODO
+    }
+
+    void Logic::restore_(State &state) {
+        // TODO
     }
 
 }

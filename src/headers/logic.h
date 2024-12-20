@@ -42,6 +42,10 @@ namespace ex::main {
         void synchronize_(State &state);
 
         void process_(State &state);
+
+        void rewire_(State &state);
+
+        void restore_(State &state);
     };
 
     Logic create_logic(State& state);
