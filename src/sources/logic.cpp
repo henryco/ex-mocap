@@ -80,12 +80,17 @@ namespace ex::main {
             *rewire = true;
         }
 
+        if (node->is_group || !nodes_.contains(node->id_local))
+            return;
+
+        nodes::BaseNode *node_ptr = nodes_.at(node->id_local);
+
         if (node->updated) {
-            mappers_.at(node->id_node).from_tree(state, node, nodes_.at(node->id_local));
+            mappers_.at(node->id_node).from_tree(state, node, node_ptr);
             node->updated = false;
         }
 
-        mappers_.at(node->id_node).from_base(state, nodes_.at(node->id_local), node);
+        mappers_.at(node->id_node).from_base(state, node_ptr, node);
     }
 
 }
