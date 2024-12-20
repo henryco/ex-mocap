@@ -34,6 +34,7 @@ namespace ex::camera {
         cl_command_queue queue       = nullptr;
         bool             cap_called_ = false;
         bool             initialized = false;
+        bool             grab_called = false;
 
         cv::VideoCapture cap_;
         dev_caps         capabilities_;
@@ -57,7 +58,7 @@ namespace ex::camera {
 
         void close();
 
-        xm::ocl::iop::ClImagePromise capture();
+        xm::ocl::iop::ClImagePromise capture(bool force_grab = false);
 
         bool grab();
 

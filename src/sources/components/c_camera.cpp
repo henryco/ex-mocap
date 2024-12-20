@@ -43,7 +43,7 @@ namespace ex::cmp {
             return;
         last_clock_ = clock_i;
         last_frame_ = {
-            .image_promise = camera_.capture(),
+            .image_promise = camera_.capture(true),
             .sync_         = &CameraNode::sync_grab,
             .ctx___        = &this->camera_,
         };

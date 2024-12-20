@@ -22,6 +22,7 @@ namespace ex::camera {
             platform::dev::get_device_index(device_uuid));
         device_id = device_uuid;
         cap_called_ = false;
+        grab_called = false;
         initialized = true;
     }
 
@@ -67,19 +68,25 @@ namespace ex::camera {
         config_ = prop;
         device_id = device_uuid;
         cap_called_ = false;
+        grab_called = false;
         initialized = true;
     }
 
-    xm::ocl::iop::ClImagePromise Camera::capture() {
+    xm::ocl::iop::ClImagePromise Camera::capture(const bool force_grab) {
         if (!initialized)
+            return {};
+
+        if (force_grab && !grab_called)
             return {};
 
         cv::Mat frame;
         cap_.retrieve(frame);
+        grab_called = false;
         return xm::ocl::iop::from_cv_mat(frame, queue);
     }
 
     bool Camera::grab() {
+        grab_called = true;
         return cap_.grab();
     }
 
@@ -126,6 +133,7 @@ namespace ex::camera {
     void Camera::close() {
         cap_.release();
         cap_called_ = false;
+        grab_called = false;
         initialized = false;
         if (queue != nullptr)
             clReleaseCommandQueue(queue);
