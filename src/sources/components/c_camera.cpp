@@ -30,24 +30,21 @@ namespace ex::cmp {
         }
     }
 
-    promise_i CameraNode::on_output(promise_i *_, const int __, const int clock_i) {
+    proto::image CameraNode::on_output(proto::image *_, const int __, const int clock_i) {
         if (!enabled_)
             return {};
         capture_frame(clock_i);
         return last_frame_;
     }
 
-    bool CameraNode::on_output(bool *_, const int __, const int clock_i) {
-        if (!enabled_)
-            return false;
-        return camera_.grab();
-    }
-
     void CameraNode::capture_frame(const int clock_i) {
         if (clock_i == last_clock_)
             return;
         last_clock_ = clock_i;
-        last_frame_ = camera_.capture();
+        last_frame_ = {
+            .image_promise = camera_.capture(),
+//            .sync = camera_.grab()
+        };
     }
 
 } // namespace ex::cmp

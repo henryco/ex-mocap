@@ -107,6 +107,7 @@ set(HEADER_FILES
         src/headers/components/c_camera.h
         src/headers/logic.h
         src/headers/state/mappers.h
+        src/headers/components/image_protocol.h
 )
 
 set(SOURCE_FILES
