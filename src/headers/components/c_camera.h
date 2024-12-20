@@ -51,6 +51,8 @@ namespace ex::cmp {
 
     protected:
         void capture_frame(int clock_i);
+
+        static bool sync_grab(void *ctx);
     };
 
 }

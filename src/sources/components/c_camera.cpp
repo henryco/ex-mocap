@@ -3,6 +3,7 @@
 //
 
 #include "../../headers/components/c_camera.h"
+#include "../../headers/state/mappers.h"
 
 namespace ex::cmp {
 
@@ -43,8 +44,13 @@ namespace ex::cmp {
         last_clock_ = clock_i;
         last_frame_ = {
             .image_promise = camera_.capture(),
-//            .sync = camera_.grab()
+            .sync_         = &CameraNode::sync_grab,
+            .ctx___        = &this->camera_,
         };
+    }
+
+    bool CameraNode::sync_grab(void *ctx) {
+        return static_cast<camera::Camera*>(ctx)->grab();
     }
 
 } // namespace ex::cmp

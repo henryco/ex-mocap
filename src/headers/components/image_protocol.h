@@ -12,11 +12,16 @@ namespace ex::proto {
 
     struct image {
         promise_i image_promise;
-        bool (*sync)() = nullptr;
+        bool (*sync_)(void *ctx) = nullptr;
+        void *ctx___             = nullptr;
+
+        bool sync() const {
+            return sync_(ctx___);
+        }
     };
 
     inline image from(const image &proto, const promise_i &promise) {
-        return {promise, proto.sync};
+        return {promise, proto.sync_, proto.ctx___};
     }
 
 }
