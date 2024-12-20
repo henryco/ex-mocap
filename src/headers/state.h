@@ -11,12 +11,15 @@
 namespace ex {
 
     struct TreeNode {
+        void       *data       = nullptr;
         TreeNode   *parent     = nullptr;
         TreeNode   *children   = nullptr;
-        void       *data       = nullptr;
-        std::size_t children_n = 0;
-        std::size_t id_node    = -1;
+
+        std::size_t children_n = -1;
         std::size_t id_local   = -1;
+        std::size_t id_node    = -1;
+
+        bool        is_group   = false;
         bool        disabled   = false;
         bool        updated    = false;
         bool        deleted    = false;
