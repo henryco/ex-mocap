@@ -22,7 +22,7 @@ namespace ex::cmp {
                        public nodes::id::name<"camera_node">,
 
                        public nodes::io::out<proto::image, CAM_OUT_FRAME, "Captured frame">,
-                       public nodes::io::in<bool,          CAM_IN_ENABLE, "ON/OFF camera">,
+                       public nodes::io::aux::in<bool,     CAM_IN_ENABLE, "ON/OFF camera">,
 
                        public nodes::ReactiveOut<proto::image>,
                        public nodes::ReactiveIn<bool>
