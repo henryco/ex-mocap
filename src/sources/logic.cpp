@@ -71,7 +71,7 @@ namespace ex::main {
                 nodes::BaseNode *new_node = nullptr;
 
                 new_node = nodes_.contains(node->id_local)
-                                   ? mappers_.at(node->id_node).update(state, node, nodes_.at(node->id_local))
+                                   ? mappers_.at(node->id_node).re_instance(state, node, nodes_.at(node->id_local))
                                    : mappers_.at(node->id_node).instance(state);
 
                 mappers_.at(node->id_node).from_tree(state, node, new_node);

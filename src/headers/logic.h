@@ -15,13 +15,16 @@
 
 namespace ex::main {
 
+    using local_id_ = std::size_t;
+    using type_id_  = std::size_t;
+
     class Logic {
     private:
-        static inline const std::map<std::size_t, DataMappers> mappers_ = {
+        static inline const std::map<type_id_, DataMappers> mappers_ = {
             { cmp::CameraNode::get_node_id(), map::camera::mappers },
         };
 
-        std::map<std::size_t, nodes::BaseNode *> nodes_ = {};
+        std::map<local_id_, nodes::BaseNode *> nodes_ = {};
 
         long timestamp = 0;
 

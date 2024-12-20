@@ -34,7 +34,7 @@ namespace ex::map::camera {
         // TODO
     }
 
-    nodes::BaseNode *update(State &state, TreeNode *from, nodes::BaseNode *src) {
+    nodes::BaseNode *re_instance(State &state, TreeNode *from, nodes::BaseNode *src) {
         return src;
     }
 
