@@ -42,34 +42,47 @@ namespace ex::main {
 
         timestamp = now;
 
+        bool rewire = false;
         for (std::size_t i = 0; i < state.work_tree->children_n; i++) {
-            traverse_(state, &state.work_tree->children[i]);
+            traverse_(state, &state.work_tree->children[i], &rewire);
+        }
+
+        if (rewire) {
+            // TODO
         }
     }
 
-    void Logic::traverse_(State &state, TreeNode *node) {
+    void Logic::traverse_(State &state, TreeNode *node, bool *rewire) {
         if (node == nullptr)
             return;
 
         if (node->deleted) {
-            // TODO rebuild tree
+            *rewire = true;
             return;
         }
 
         for (std::size_t i = 0; i < node->children_n; i++) {
-            traverse_(state, &node->children[i]);
+            traverse_(state, &node->children[i], rewire);
         }
 
         if (node->created) {
-            nodes::BaseNode *new_node = mappers_.at(node->id_node).instance(state);
-            mappers_.at(node->id_node).from_tree(state, node, new_node);
-            nodes_.emplace(node->id_local, new_node);
+            if (!node->is_group) {
+                nodes::BaseNode *new_node = nullptr;
+
+                new_node = nodes_.contains(node->id_local)
+                                   ? mappers_.at(node->id_node).update(state, node, nodes_.at(node->id_local))
+                                   : mappers_.at(node->id_node).instance(state);
+
+                mappers_.at(node->id_node).from_tree(state, node, new_node);
+                nodes_.emplace(node->id_local, new_node);
+            }
             node->created = false;
+            *rewire = true;
         }
 
         if (node->updated) {
-            node->updated = false;
             mappers_.at(node->id_node).from_tree(state, node, nodes_.at(node->id_local));
+            node->updated = false;
         }
 
         mappers_.at(node->id_node).from_base(state, nodes_.at(node->id_local), node);

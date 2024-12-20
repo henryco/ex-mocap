@@ -34,6 +34,10 @@ namespace ex::map::camera {
         // TODO
     }
 
+    nodes::BaseNode *update(State &state, TreeNode *from, nodes::BaseNode *src) {
+        return src;
+    }
+
     nodes::BaseNode *instance(const State &state) {
         return new cmp::CameraNode(state.ocl_context, state.ocl_device);
     }

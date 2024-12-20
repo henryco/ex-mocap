@@ -37,7 +37,7 @@ namespace ex::main {
         void run(State &state);
 
     protected:
-        void traverse_(State &state, TreeNode *node);
+        void traverse_(State &state, TreeNode *node, bool *rewire);
 
         void synchronize_(State &state);
 

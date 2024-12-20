@@ -9,19 +9,23 @@
 #include "../state.h"
 
 namespace ex {
+    using node_ = nodes::BaseNode;
+
     struct DataMappers {
-        void (*from_base)(State &state, nodes::BaseNode *from, TreeNode *to) = nullptr;
-        void (*from_tree)(State &state, TreeNode *from, nodes::BaseNode *to) = nullptr;
-        nodes::BaseNode *(*instance)(const State &state)                     = nullptr;
+        void (*from_base)(State &state, node_ *from, TreeNode *to) = nullptr;
+        void (*from_tree)(State &state, TreeNode *from, node_ *to) = nullptr;
+        node_ *(*update)(State &state, TreeNode *from, node_ *src) = nullptr;
+        node_ *(*instance)(const State &state)                     = nullptr;
     };
 }
 
 namespace ex::map::camera {
-    void             from_base(State &state, nodes::BaseNode *from, TreeNode *to);
-    void             from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
-    nodes::BaseNode *instance(const State &state);
+    void   from_base(State &state, node_ *from, TreeNode *to);
+    void   from_tree(State &state, TreeNode *from, node_ *to);
+    node_ *update(State &state, TreeNode *from, node_ *src);
+    node_ *instance(const State &state);
 
-    static constexpr DataMappers mappers = { from_base, from_tree, instance };
+    static constexpr DataMappers mappers = { from_base, from_tree, update, instance };
 }
 
 #endif //MAPPERS_H
