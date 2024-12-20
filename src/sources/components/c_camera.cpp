@@ -6,9 +6,11 @@
 
 namespace ex::cmp {
 
-    CameraNode::CameraNode(cl_context context, cl_device_id device) : camera_(context, device) {}
+    CameraNode::CameraNode(cl_context context, cl_device_id device)
+    : camera_(context, device) {}
 
-    CameraNode::CameraNode(const camera::Camera &camera) : camera_(camera) {}
+    CameraNode::CameraNode(const camera::Camera &camera)
+    : camera_(camera) {}
 
     CameraNode::~CameraNode() {
         camera_.close();
@@ -28,7 +30,7 @@ namespace ex::cmp {
         }
     }
 
-    xm::ocl::iop::ClImagePromise CameraNode::on_output(xm::ocl::iop::ClImagePromise *_, const int __, const int clock_i) {
+    promise_i CameraNode::on_output(promise_i *_, const int __, const int clock_i) {
         if (!enabled_)
             return {};
         capture_frame(clock_i);
