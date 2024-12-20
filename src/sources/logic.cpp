@@ -62,17 +62,17 @@ namespace ex::main {
 
         if (node->created) {
             nodes::BaseNode *new_node = mappers_.at(node->id_node).instance(state);
-            mappers_.at(node->id_node).from_tree(node, new_node);
+            mappers_.at(node->id_node).from_tree(state, node, new_node);
             nodes_.emplace(node->id_local, new_node);
             node->created = false;
         }
 
         if (node->updated) {
             node->updated = false;
-            mappers_.at(node->id_node).from_tree(node, nodes_.at(node->id_local));
+            mappers_.at(node->id_node).from_tree(state, node, nodes_.at(node->id_local));
         }
 
-        mappers_.at(node->id_node).from_base(nodes_.at(node->id_local), node);
+        mappers_.at(node->id_node).from_base(state, nodes_.at(node->id_local), node);
     }
 
 }
