@@ -15,6 +15,18 @@
 
 namespace ex::main {
 
+    struct simple_list {
+        TreeNode    *node = nullptr;
+        simple_list *next = nullptr;
+
+        ~simple_list() {
+            if (next != nullptr) {
+                delete next;
+                next = nullptr;
+            }
+        }
+    };
+
     using local_id_ = std::size_t;
     using type_id_  = std::size_t;
 
@@ -52,7 +64,7 @@ namespace ex::main {
 
         void restore_(State &state);
 
-        void build_(State &state, TreeNode *node);
+        void build_(State &state, TreeNode *node, simple_list *list);
 
         void deserialize_(State &state);
     };

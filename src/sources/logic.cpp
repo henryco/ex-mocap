@@ -100,17 +100,73 @@ namespace ex::main {
 
     void Logic::rewire_(State &state) {
         clock_.detach_all();
-        for (auto& [local_id, node] : nodes_) {
+        for (auto &[local_id, node]: nodes_) {
             node->detach_all_any();
         }
-        build_(state, state.work_tree);
+
+        simple_list current = { state.work_tree };
+        build_(state, state.work_tree, &current);
     }
 
-    void Logic::build_(State &state, TreeNode *node) {
-        if (node == nullptr)
+    void connect_nodes__(TreeNode *from, TreeNode *to) {
+        // TODO
+    }
+
+    void Logic::build_(State &state, TreeNode *node, simple_list *group_list) {
+        if (node == nullptr || group_list == nullptr)
             return;
-        for (std::size_t i = 0; i < node->children_n; i++) {
-            build_(state, &node->children[i]);
+
+        if (node->is_group) {
+            TreeNode   *non_group = nullptr;
+            TreeNode   *curr_node = nullptr;
+            simple_list list      = {};
+
+            for (std::size_t i = 0; i < node->children_n; i++) {
+                curr_node = &node->children[i];
+
+                if (!curr_node->is_group) {
+                    non_group = curr_node;
+
+                } else {
+
+                    build_(state, curr_node, &list);
+                }
+
+            }
+
+            if (curr_node != nullptr && !curr_node->is_group) {
+                // add last non-group element within group to list
+                simple_list *head = group_list;
+                while (true) {
+                    if (head->next == nullptr)
+                        break;
+                    head = head->next;
+                }
+                head->next = new simple_list(non_group);
+            }
+        }
+
+        else {
+            if (node->children_n > 0) {
+                simple_list list = {};
+                for (std::size_t i = 0; i < node->children_n; i++) {
+                    build_(state, &node->children[i], &list);
+                }
+
+                auto head = list.next;
+                while (head != nullptr) {
+                    connect_nodes__(head->node, node);
+                    head = head->next;
+                }
+            }
+
+            simple_list *head = group_list;
+            while (true) {
+                if (head->next == nullptr)
+                    break;
+                head = head->next;
+            }
+            head->next = new simple_list(node);
         }
     }
 
