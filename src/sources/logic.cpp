@@ -18,7 +18,7 @@ namespace ex::main {
 
     void Logic::initialize(State &state) {
         log->info("main logic initialization started");
-        clock_.set_target_fps(state.clock_freq);
+        deserialize_(state);
         restore_(state);
         log->info("main logic initialization complete");
     }
@@ -30,6 +30,10 @@ namespace ex::main {
         }
         synchronize_(state);
         process_(state);
+    }
+
+    void Logic::deserialize_(State &state) {
+        // TODO
     }
 
     void Logic::process_(State &_) {
@@ -95,11 +99,23 @@ namespace ex::main {
     }
 
     void Logic::rewire_(State &state) {
-        // TODO
+        clock_.detach_all();
+        for (auto& [local_id, node] : nodes_) {
+            node->detach_all_any();
+        }
+        build_(state, state.work_tree);
+    }
+
+    void Logic::build_(State &state, TreeNode *node) {
+        if (node == nullptr)
+            return;
+        for (std::size_t i = 0; i < node->children_n; i++) {
+            build_(state, &node->children[i]);
+        }
     }
 
     void Logic::restore_(State &state) {
         // TODO
     }
 
-}
+} // namespace ex::main

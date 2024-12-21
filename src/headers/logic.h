@@ -51,6 +51,10 @@ namespace ex::main {
         void rewire_(State &state);
 
         void restore_(State &state);
+
+        void build_(State &state, TreeNode *node);
+
+        void deserialize_(State &state);
     };
 
     Logic create_logic(State& state);
