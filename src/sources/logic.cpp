@@ -18,7 +18,7 @@ namespace ex::main {
 
     void Logic::initialize(State &state) {
         log->info("main logic initialization started");
-        // TODO
+        clock_.set_target_fps(state.clock_freq);
         restore_(state);
         log->info("main logic initialization complete");
     }
@@ -28,12 +28,12 @@ namespace ex::main {
             restore_(state);
             return;
         }
-        process_(state);
         synchronize_(state);
+        process_(state);
     }
 
-    void Logic::process_(State &state) {
-        // TODO
+    void Logic::process_(State &_) {
+        clock_.next();
     }
 
     void Logic::synchronize_(State &state) {

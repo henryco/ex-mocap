@@ -29,10 +29,11 @@ namespace ex {
     struct State {
         const char  *project_path = nullptr;
         GLFWwindow  *window       = nullptr;
+        TreeNode    *work_tree    = nullptr;
         cl_context   ocl_context  = nullptr;
         cl_device_id ocl_device   = nullptr;
+        short        clock_freq   = -1;
         bool         gl_sharing   = false;
-        TreeNode    *work_tree    = nullptr;
     };
 
     namespace state {

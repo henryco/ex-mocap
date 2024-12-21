@@ -28,6 +28,8 @@ namespace ex::main {
 
         long timestamp = 0;
 
+        nodes::clock clock_;
+
     public:
         static inline const auto log = logs::get_logger("logic");
 
