@@ -32,8 +32,22 @@ namespace ex::main {
         process_(state);
     }
 
+    void Logic::serialize(State &state) {
+        // TODO write to json
+    }
+
     void Logic::deserialize_(State &state) {
-        // TODO
+        // TODO read from json
+    }
+
+    void Logic::restore_(State &state) {
+        if (state.work_tree != nullptr)
+            delete state.work_tree;
+        state.work_tree = new TreeNode();
+        state.work_tree->children_n = 0;
+        state.work_tree->is_group   = true;
+
+        // TODO build from IO nodes
     }
 
     void Logic::process_(State &_) {
@@ -116,7 +130,7 @@ namespace ex::main {
     void connect_nodes__(TreeNode *from, TreeNode *to) {
         if (from == nullptr || to == nullptr)
             return;
-        // TODO
+        // TODO connect IO nodes
     }
 
     simple_list *get_head_(simple_list *node) {
@@ -173,10 +187,6 @@ namespace ex::main {
                 head = head->next;
             }
         }
-    }
-
-    void Logic::restore_(State &state) {
-        // TODO
     }
 
 } // namespace ex::main

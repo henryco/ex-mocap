@@ -55,6 +55,8 @@ namespace ex::main {
 
         void run(State &state);
 
+        void serialize(State &state);
+
     protected:
         void traverse_(State &state, TreeNode *node, bool *rewire);
 
