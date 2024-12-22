@@ -197,7 +197,34 @@ namespace ex::main {
             return;
         }
 
-        // TODO connect to clock
+        int outputs_num = 0;
+        const auto outputs = base_node->describe_outputs(&outputs_num);
+
+        for (std::size_t i = 0; i < outputs_num; i++) {
+            const auto &output = outputs[i];
+            if (output.aux)
+                continue;
+
+            if (clock_.attach(base_node, output.index)) {
+                log->debug("Node {} [{}][{}] (main) attached to clock",
+                    base_node->get_node_name(), node->id_local, output.index);
+                return;
+            }
+        }
+
+        for (std::size_t i = 0; i < outputs_num; i++) {
+            const auto &output = outputs[i];
+            if (!output.aux)
+                continue;
+
+            if (clock_.attach(base_node, output.index)) {
+                log->debug("Node {} [{}][{}] (aux) attached to clock",
+                    base_node->get_node_name(), node->id_local, output.index);
+                return;
+            }
+        }
+
+        log->error("Cannot connect node to clock");
     }
 
     void Logic::cleanup_(State &_) {
