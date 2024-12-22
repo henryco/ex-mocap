@@ -50,9 +50,8 @@ namespace ex {
                     head->parent = nullptr;
                     head = _parent;
                 }
+
             }
-
-
         }
     };
 
