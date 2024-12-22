@@ -176,6 +176,27 @@ namespace ex::main {
 
         cleanup_(state);
 
+        const simple_list *head = get_head_(&current);
+        if (head == nullptr) {
+            return;
+        }
+
+        const TreeNode *node = head->node;
+        if (node == nullptr) {
+            return;
+        }
+
+        if (!nodes_.contains(node->id_local)) {
+            log->error("Node does not exist: {}", node->id_local);
+            return;
+        }
+
+        nodes::BaseNode *base_node = nodes_.at(node->id_local);
+        if (base_node == nullptr) {
+            log->error("Node is nullptr: {}", node->id_local);
+            return;
+        }
+
         // TODO connect to clock
     }
 
