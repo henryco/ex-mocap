@@ -20,6 +20,7 @@ namespace ex::main {
         simple_list *next = nullptr;
 
         ~simple_list() {
+            // hopefully it will not end up with stack overflow :/
             if (next != nullptr) {
                 delete next;
                 next = nullptr;
