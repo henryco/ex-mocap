@@ -10,6 +10,23 @@ namespace ex::main {
 
     #define update_threshold 1000
 
+    void connect_nodes__(TreeNode *from, TreeNode *to) {
+        if (from == nullptr || to == nullptr)
+            return;
+        // TODO connect IO nodes
+    }
+
+    simple_list *get_head_(simple_list *node) {
+        if (node == nullptr)
+            return nullptr;
+        simple_list *head = node;
+        while (true) {
+            if (head->next == nullptr)
+                return head;
+            head = head->next;
+        }
+    }
+
     Logic create_logic(State &state) {
         Logic logic;
         logic.initialize(state);
@@ -176,23 +193,6 @@ namespace ex::main {
                 it = counter_.erase(it);
             } else
                 ++it;
-        }
-    }
-
-    void connect_nodes__(TreeNode *from, TreeNode *to) {
-        if (from == nullptr || to == nullptr)
-            return;
-        // TODO connect IO nodes
-    }
-
-    simple_list *get_head_(simple_list *node) {
-        if (node == nullptr)
-            return nullptr;
-        simple_list *head = node;
-        while (true) {
-            if (head->next == nullptr)
-                return head;
-            head = head->next;
         }
     }
 
