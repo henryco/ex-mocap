@@ -10,12 +10,6 @@ namespace ex::main {
 
     #define update_threshold 1000
 
-    void connect_nodes__(TreeNode *from, TreeNode *to) {
-        if (from == nullptr || to == nullptr)
-            return;
-        // TODO connect IO nodes
-    }
-
     simple_list *get_head_(simple_list *node) {
         if (node == nullptr)
             return nullptr;
@@ -269,7 +263,7 @@ namespace ex::main {
             return;
         }
 
-        connect_nodes__(previous, node);
+        connect_nodes_(previous, node);
         for (std::size_t i = 0; i < node->children_n; i++) {
             TreeNode *curr_node = &node->children[i];
 
@@ -283,10 +277,16 @@ namespace ex::main {
             const simple_list *head = list.next;
             while (head != nullptr) {
                 // collect results of the group traversal
-                connect_nodes__(head->node, node);
+                connect_nodes_(head->node, node);
                 head = head->next;
             }
         }
+    }
+
+    void Logic::connect_nodes_(TreeNode *from, TreeNode *to) {
+        if (from == nullptr || to == nullptr)
+            return;
+        // TODO connect IO nodes
     }
 
 } // namespace ex::main

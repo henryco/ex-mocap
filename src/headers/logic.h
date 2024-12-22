@@ -75,6 +75,8 @@ namespace ex::main {
         void deserialize_(State &state);
 
         void cleanup_(State &state);
+
+        void connect_nodes_(TreeNode *from, TreeNode *to);
     };
 
     Logic create_logic(State& state);
