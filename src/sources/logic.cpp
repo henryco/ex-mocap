@@ -105,68 +105,69 @@ namespace ex::main {
         }
 
         simple_list current = { state.work_tree };
-        build_(state, state.work_tree, &current);
+        build_tree_(state, state.work_tree, nullptr, &current);
     }
 
     void connect_nodes__(TreeNode *from, TreeNode *to) {
+        if (from == nullptr || to == nullptr)
+            return;
         // TODO
     }
 
-    void Logic::build_(State &state, TreeNode *node, simple_list *group_list) {
+    simple_list *get_head_(simple_list *node) {
+        if (node == nullptr)
+            return nullptr;
+        simple_list *head = node;
+        while (true) {
+            if (head->next == nullptr)
+                return head;
+            head = head->next;
+        }
+    }
+
+    void Logic::build_tree_(State &state, TreeNode *node, TreeNode *previous, simple_list *group_list) {
         if (node == nullptr || group_list == nullptr)
             return;
 
         if (node->is_group) {
-            TreeNode   *non_group = nullptr;
-            TreeNode   *curr_node = nullptr;
-            simple_list list      = {};
+            TreeNode *prev_node = previous;
+            TreeNode *curr_node = nullptr;
 
             for (std::size_t i = 0; i < node->children_n; i++) {
                 curr_node = &node->children[i];
 
+                build_tree_(state, curr_node, prev_node, group_list);
+
                 if (!curr_node->is_group) {
-                    non_group = curr_node;
-
-                } else {
-
-                    build_(state, curr_node, &list);
+                    prev_node = curr_node;
                 }
-
             }
 
             if (curr_node != nullptr && !curr_node->is_group) {
                 // add last non-group element within group to list
-                simple_list *head = group_list;
-                while (true) {
-                    if (head->next == nullptr)
-                        break;
-                    head = head->next;
-                }
-                head->next = new simple_list(non_group);
+                get_head_(group_list)->next = new simple_list(curr_node);
             }
             return;
         }
 
-        if (node->children_n > 0) {
-            simple_list list = {};
-            for (std::size_t i = 0; i < node->children_n; i++) {
-                build_(state, &node->children[i], &list);
-            }
+        connect_nodes__(previous, node);
+        for (std::size_t i = 0; i < node->children_n; i++) {
+            TreeNode *curr_node = &node->children[i];
 
-            auto head = list.next;
+            // non-group element can contain only groups as children
+            if (!curr_node->is_group)
+                continue;
+
+            simple_list list = {};
+            build_tree_(state, curr_node, nullptr, &list);
+
+            const simple_list *head = list.next;
             while (head != nullptr) {
+                // collect results of the group traversal
                 connect_nodes__(head->node, node);
                 head = head->next;
             }
         }
-
-        simple_list *head = group_list;
-        while (true) {
-            if (head->next == nullptr)
-                break;
-            head = head->next;
-        }
-        head->next = new simple_list(node);
     }
 
     void Logic::restore_(State &state) {

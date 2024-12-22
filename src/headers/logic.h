@@ -64,7 +64,7 @@ namespace ex::main {
 
         void restore_(State &state);
 
-        void build_(State &state, TreeNode *node, simple_list *list);
+        void build_tree_(State &state, TreeNode *node, TreeNode *previous, simple_list *group_list);
 
         void deserialize_(State &state);
     };
