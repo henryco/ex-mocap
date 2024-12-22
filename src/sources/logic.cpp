@@ -156,6 +156,27 @@ namespace ex::main {
 
         simple_list current = { state.work_tree };
         build_tree_(state, state.work_tree, nullptr, &current);
+
+        cleanup_(state);
+
+        // TODO connect to clock
+    }
+
+    void Logic::cleanup_(State &_) {
+        for (auto it = counter_.begin(); it != counter_.end(); /*nop*/) {
+            const auto id_local = it->first;
+            if (it->second <= 0) {
+                mappers_.at(types_.at(id_local)).cleanup(data_.at(id_local));
+                types_.erase(id_local);
+                data_.erase(id_local);
+
+                delete nodes_.at(id_local);
+                nodes_.erase(id_local);
+
+                it = counter_.erase(it);
+            } else
+                ++it;
+        }
     }
 
     void connect_nodes__(TreeNode *from, TreeNode *to) {

@@ -73,6 +73,8 @@ namespace ex::main {
         void build_tree_(State &state, TreeNode *node, TreeNode *previous, simple_list *group_list);
 
         void deserialize_(State &state);
+
+        void cleanup_(State &state);
     };
 
     Logic create_logic(State& state);
