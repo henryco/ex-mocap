@@ -38,8 +38,16 @@ namespace ex::map::camera {
         return src;
     }
 
-    nodes::BaseNode *instance(const State &state) {
+    nodes::BaseNode *instance(const State &state, TreeNode *from) {
+        if (from->data != nullptr)
+            delete static_cast<state::camera *>(from->data);
+        from->data = new state::camera{};
         return new cmp::CameraNode(state.ocl_context, state.ocl_device);
+    }
+
+    void cleanup(void *data) {
+        if (data != nullptr)
+            delete static_cast<state::camera *>(data);
     }
 
 }

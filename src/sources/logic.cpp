@@ -88,13 +88,23 @@ namespace ex::main {
             if (!node->is_group) {
                 nodes::BaseNode *new_node = nullptr;
 
+                // create or duplicate node
                 new_node = nodes_.contains(node->id_local)
                                    ? mappers_.at(node->id_node).re_instance(state, node, nodes_.at(node->id_local))
-                                   : mappers_.at(node->id_node).instance(state);
-
-                mappers_.at(node->id_node).from_tree(state, node, new_node);
+                                   : mappers_.at(node->id_node).instance(state, node);
                 nodes_.emplace(node->id_local, new_node);
 
+                // update data storage
+                if (data_.contains(node->id_local)) {
+                    if (void *data = data_.at(node->id_local); data != node->data) {
+                        data_.erase(node->id_local);
+                        data_.emplace(node->id_local, node->data);
+                        mappers_.at(node->id_node).cleanup(data);
+                    }
+                } else
+                    data_.emplace(node->id_local, node->data);
+
+                // update node ptr counter
                 if (counter_.contains(node->id_local))
                     counter_.at(node->id_local)++;
                 else

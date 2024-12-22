@@ -39,6 +39,7 @@ namespace ex::main {
 
         std::map<local_id_, nodes::BaseNode *> nodes_   = {};
         std::map<local_id_, int>               counter_ = {};
+        std::map<local_id_, void *>            data_    = {};
 
         long timestamp = 0;
 
