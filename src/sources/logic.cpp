@@ -33,7 +33,7 @@ namespace ex::main {
     }
 
     void Logic::serialize(State &state) {
-        // TODO write to json
+        // TODO write to json from clock
     }
 
     void Logic::deserialize_(State &state) {
