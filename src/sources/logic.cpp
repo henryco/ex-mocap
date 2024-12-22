@@ -94,6 +94,15 @@ namespace ex::main {
                                    : mappers_.at(node->id_node).instance(state, node);
                 nodes_.emplace(node->id_local, new_node);
 
+
+                // update types storage
+                if (types_.contains(node->id_local)) {
+                    types_.erase(node->id_local);
+                    types_.emplace(node->id_local, node->id_node);
+                } else
+                    types_.emplace(node->id_local, node->id_node);
+
+
                 // update data storage
                 if (data_.contains(node->id_local)) {
                     if (void *data = data_.at(node->id_local); data != node->data) {
@@ -103,6 +112,7 @@ namespace ex::main {
                     }
                 } else
                     data_.emplace(node->id_local, node->data);
+
 
                 // update node ptr counter
                 if (counter_.contains(node->id_local))
