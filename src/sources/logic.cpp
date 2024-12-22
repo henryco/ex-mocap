@@ -80,6 +80,11 @@ namespace ex::main {
 
                 mappers_.at(node->id_node).from_tree(state, node, new_node);
                 nodes_.emplace(node->id_local, new_node);
+
+                if (counter_.contains(node->id_local))
+                    counter_.at(node->id_local)++;
+                else
+                    counter_.emplace(node->id_local, 1);
             }
             node->created = false;
             *rewire = true;
