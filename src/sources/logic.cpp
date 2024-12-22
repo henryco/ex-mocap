@@ -144,30 +144,29 @@ namespace ex::main {
                 }
                 head->next = new simple_list(non_group);
             }
+            return;
         }
 
-        else {
-            if (node->children_n > 0) {
-                simple_list list = {};
-                for (std::size_t i = 0; i < node->children_n; i++) {
-                    build_(state, &node->children[i], &list);
-                }
-
-                auto head = list.next;
-                while (head != nullptr) {
-                    connect_nodes__(head->node, node);
-                    head = head->next;
-                }
+        if (node->children_n > 0) {
+            simple_list list = {};
+            for (std::size_t i = 0; i < node->children_n; i++) {
+                build_(state, &node->children[i], &list);
             }
 
-            simple_list *head = group_list;
-            while (true) {
-                if (head->next == nullptr)
-                    break;
+            auto head = list.next;
+            while (head != nullptr) {
+                connect_nodes__(head->node, node);
                 head = head->next;
             }
-            head->next = new simple_list(node);
         }
+
+        simple_list *head = group_list;
+        while (true) {
+            if (head->next == nullptr)
+                break;
+            head = head->next;
+        }
+        head->next = new simple_list(node);
     }
 
     void Logic::restore_(State &state) {
