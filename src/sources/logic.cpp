@@ -37,17 +37,28 @@ namespace ex::main {
     }
 
     void Logic::deserialize_(State &state) {
-        // TODO read from json
+        // TODO read from json to clock
     }
 
     void Logic::restore_(State &state) {
         if (state.work_tree != nullptr)
             delete state.work_tree;
+
         state.work_tree = new TreeNode();
         state.work_tree->children_n = 0;
         state.work_tree->is_group   = true;
 
-        // TODO build from IO nodes
+        for (auto &[local_id, data]: data_) {
+            mappers_.at(types_.at(local_id)).cleanup(data);
+        }
+
+        // I see the potential memory leak here for "nodes_"
+        counter_.clear();
+        nodes_.clear();
+        types_.clear();
+        data_.clear();
+
+        // TODO build from IO nodes (clock)
     }
 
     void Logic::process_(State &_) {
