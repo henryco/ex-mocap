@@ -24,6 +24,30 @@ namespace ex {
         bool        updated    = false;
         bool        deleted    = false;
         bool        created    = false;
+
+        ~TreeNode() {
+            TreeNode *head = children;
+            if (head == nullptr)
+                return;
+            while (true) {
+                if (head->children == nullptr)
+                    break;
+                head = head->children;
+            }
+
+            while (true) {
+                if (head->children != nullptr) {
+                    delete head->children;
+                    head->children = nullptr;
+                }
+
+                if (head->parent == this || head->parent == nullptr)
+                    return;
+                TreeNode *_parent = head->parent;
+                head->parent = nullptr;
+                head = _parent;
+            }
+        }
     };
 
     struct State {
