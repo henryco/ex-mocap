@@ -64,8 +64,8 @@ namespace ex::main {
         }
 
         // I see the potential memory leak here for "nodes_"
+        ptr_counter_.clear();
         view_data_.clear();
-        counter_.clear();
         nodes_.clear();
 
         // TODO build from IO nodes (clock)
@@ -97,6 +97,7 @@ namespace ex::main {
             return;
 
         if (node->deleted) {
+            // TODO
             *rewire = true;
             return;
         }
@@ -107,7 +108,6 @@ namespace ex::main {
 
         if (node->created) {
             if (!node->is_group) {
-                nodes::BaseNode *new_node = nullptr;
 
                 if (node->id_local < 0) {
                     static std::size_t c_ = 1;
@@ -115,27 +115,34 @@ namespace ex::main {
                 }
 
                 // create or duplicate node
-                new_node = nodes_.contains(node->id_local)
-                                   ? mappers_.at(node->id_node).re_instance(state, node, nodes_.at(node->id_local))
-                                   : mappers_.at(node->id_node).instance(state, node);
-                nodes_.emplace(node->id_local, new_node);
+                const DataMappers &mappers = mappers_.at(node->id_node);
+                if (nodes_.contains(node->id_local)) {
+                    // basically we create reference
+                    nodes::BaseNode *old_one = nodes_.at(node->id_local);
+                    if (nodes::BaseNode *new_one = mappers.re_instance(state, node, old_one); old_one != new_one) {
+                        nodes_.erase(node->id_local);
+                        nodes_.emplace(node->id_local, new_one);
+                    }
+                } else
+                    nodes_.emplace(node->id_local, mappers.instance(state, node));
+
 
                 // update data storage
                 if (view_data_.contains(node->id_local)) {
                     if (void *data = view_data_.at(node->id_local); data != node->data) {
                         view_data_.erase(node->id_local);
                         view_data_.emplace(node->id_local, node->data);
-                        mappers_.at(node->id_node).cleanup(data);
+                        mappers.cleanup(data);
                     }
                 } else
                     view_data_.emplace(node->id_local, node->data);
 
 
                 // update node ptr counter
-                if (counter_.contains(node->id_local))
-                    counter_.at(node->id_local)++;
+                if (ptr_counter_.contains(node->id_local))
+                    ptr_counter_.at(node->id_local)++;
                 else
-                    counter_.emplace(node->id_local, 1);
+                    ptr_counter_.emplace(node->id_local, 1);
             }
             node->created = false;
             *rewire = true;
@@ -217,7 +224,7 @@ namespace ex::main {
     }
 
     void Logic::cleanup_(State &_) {
-        for (auto it = counter_.begin(); it != counter_.end(); /*nop*/) {
+        for (auto it = ptr_counter_.begin(); it != ptr_counter_.end(); /*nop*/) {
             const auto id_local = it->first;
             if (it->second <= 0) {
                 mappers_.at(nodes_.at(id_local)->get_type_id()).cleanup(view_data_.at(id_local));
@@ -226,7 +233,7 @@ namespace ex::main {
                 delete nodes_.at(id_local);
                 nodes_.erase(id_local);
 
-                it = counter_.erase(it);
+                it = ptr_counter_.erase(it);
             } else
                 ++it;
         }
