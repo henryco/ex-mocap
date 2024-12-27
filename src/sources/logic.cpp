@@ -63,7 +63,10 @@ namespace ex::main {
             mappers_.at(nodes_.at(local_id)->get_type_id()).cleanup(data);
         }
 
-        // I see the potential memory leak here for "nodes_"
+        for (auto &[_, data]: nodes_) {
+            delete data;
+        }
+
         ptr_counter_.clear();
         view_data_.clear();
         nodes_.clear();
@@ -172,7 +175,7 @@ namespace ex::main {
 
     void Logic::rewire_(State &state) {
         clock_.detach_all();
-        for (auto &[local_id, node]: nodes_) {
+        for (auto &[_, node]: nodes_) {
             node->detach_all_any();
         }
 
