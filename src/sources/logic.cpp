@@ -109,6 +109,11 @@ namespace ex::main {
             if (!node->is_group) {
                 nodes::BaseNode *new_node = nullptr;
 
+                if (node->id_local < 0) {
+                    static std::size_t c_ = 1;
+                    node->id_local        = c_++;
+                }
+
                 // create or duplicate node
                 new_node = nodes_.contains(node->id_local)
                                    ? mappers_.at(node->id_node).re_instance(state, node, nodes_.at(node->id_local))
