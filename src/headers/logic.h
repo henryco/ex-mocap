@@ -37,10 +37,9 @@ namespace ex::main {
             { cmp::CameraNode::get_node_id(), map::camera::mappers },
         };
 
-        std::map<local_id_, nodes::BaseNode *> nodes_   = {};
-        std::map<local_id_, type_id_>          types_   = {};
-        std::map<local_id_, void *>            data_    = {};
-        std::map<local_id_, int>               counter_ = {};
+        std::map<local_id_, nodes::BaseNode *> nodes_     = {};
+        std::map<local_id_, void *>            view_data_ = {};
+        std::map<local_id_, int>               counter_   = {};
 
         long timestamp = 0;
 

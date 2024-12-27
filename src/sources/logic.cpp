@@ -59,15 +59,14 @@ namespace ex::main {
         state.work_tree->children_n = 0;
         state.work_tree->is_group   = true;
 
-        for (auto &[local_id, data]: data_) {
-            mappers_.at(types_.at(local_id)).cleanup(data);
+        for (auto &[local_id, data]: view_data_) {
+            mappers_.at(nodes_.at(local_id)->get_type_id()).cleanup(data);
         }
 
         // I see the potential memory leak here for "nodes_"
+        view_data_.clear();
         counter_.clear();
         nodes_.clear();
-        types_.clear();
-        data_.clear();
 
         // TODO build from IO nodes (clock)
     }
@@ -116,24 +115,15 @@ namespace ex::main {
                                    : mappers_.at(node->id_node).instance(state, node);
                 nodes_.emplace(node->id_local, new_node);
 
-
-                // update types storage
-                if (types_.contains(node->id_local)) {
-                    types_.erase(node->id_local);
-                    types_.emplace(node->id_local, node->id_node);
-                } else
-                    types_.emplace(node->id_local, node->id_node);
-
-
                 // update data storage
-                if (data_.contains(node->id_local)) {
-                    if (void *data = data_.at(node->id_local); data != node->data) {
-                        data_.erase(node->id_local);
-                        data_.emplace(node->id_local, node->data);
+                if (view_data_.contains(node->id_local)) {
+                    if (void *data = view_data_.at(node->id_local); data != node->data) {
+                        view_data_.erase(node->id_local);
+                        view_data_.emplace(node->id_local, node->data);
                         mappers_.at(node->id_node).cleanup(data);
                     }
                 } else
-                    data_.emplace(node->id_local, node->data);
+                    view_data_.emplace(node->id_local, node->data);
 
 
                 // update node ptr counter
@@ -225,9 +215,8 @@ namespace ex::main {
         for (auto it = counter_.begin(); it != counter_.end(); /*nop*/) {
             const auto id_local = it->first;
             if (it->second <= 0) {
-                mappers_.at(types_.at(id_local)).cleanup(data_.at(id_local));
-                types_.erase(id_local);
-                data_.erase(id_local);
+                mappers_.at(nodes_.at(id_local)->get_type_id()).cleanup(view_data_.at(id_local));
+                view_data_.erase(id_local);
 
                 delete nodes_.at(id_local);
                 nodes_.erase(id_local);
