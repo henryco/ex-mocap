@@ -42,7 +42,10 @@ namespace ex::map::camera {
         if (from->data != nullptr)
             delete static_cast<state::camera *>(from->data);
         from->data = new state::camera{};
-        return new cmp::CameraNode(state.ocl_context, state.ocl_device);
+
+        nodes::BaseNode *node = new cmp::CameraNode(state.ocl_context, state.ocl_device);
+        node->set_id(from->id_local);
+        return node;
     }
 
     void cleanup(void *data) {
