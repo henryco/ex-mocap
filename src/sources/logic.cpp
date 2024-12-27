@@ -92,12 +92,21 @@ namespace ex::main {
         }
     }
 
+    void Logic::mark_deleted_(TreeNode *node) {
+        node->deleted = true;
+        if (ptr_counter_.contains(node->id_local))
+            ptr_counter_.at(node->id_local)--;
+        for (std::size_t i = 0; i < node->children_n; i++) {
+            mark_deleted_(&node->children[i]);
+        }
+    }
+
     void Logic::traverse_(State &state, TreeNode *node, bool *rewire) {
         if (node == nullptr)
             return;
 
         if (node->deleted) {
-            // TODO
+            mark_deleted_(node);
             *rewire = true;
             return;
         }
@@ -170,7 +179,7 @@ namespace ex::main {
         simple_list current = { state.work_tree };
         build_tree_(state, state.work_tree, nullptr, &current);
 
-        cleanup_(state);
+        gc_(state);
 
         const simple_list *head = get_head_(&current);
         if (head == nullptr) {
@@ -223,7 +232,7 @@ namespace ex::main {
         log->error("Cannot connect node to clock");
     }
 
-    void Logic::cleanup_(State &_) {
+    void Logic::gc_(State &_) {
         for (auto it = ptr_counter_.begin(); it != ptr_counter_.end(); /*nop*/) {
             const auto id_local = it->first;
             if (it->second <= 0) {
