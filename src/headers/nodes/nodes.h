@@ -70,6 +70,8 @@ namespace ex::nodes {
         virtual ~IO() = default;
 
         virtual const std::size_t get_type_id() const = 0;
+
+        virtual const std::size_t get_id() const = 0;
     };
 
     struct io_node {
@@ -972,8 +974,19 @@ namespace ex::nodes {
                      public virtual IODescriptor,
                      public virtual DefaultAny
     {
+    protected:
+        std::size_t local_id = -1;
+
     public:
         ~BaseNode() override = default;
+
+        const std::size_t get_id() const override {
+            return local_id;
+        }
+
+        void set_id(const std::size_t id) {
+            local_id = id;
+        }
     };
 
     template <typename N>
@@ -1081,6 +1094,10 @@ namespace ex::nodes {
 
         ~clock() override {
             detach_all_any(0);
+        }
+
+        const std::size_t get_id() const override {
+            return std::numeric_limits<int>::min() + 1;
         }
 
         const std::size_t get_type_id() const override {
