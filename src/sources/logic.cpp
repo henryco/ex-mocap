@@ -299,7 +299,26 @@ namespace ex::main {
     void Logic::connect_nodes_(TreeNode *from, TreeNode *to) {
         if (from == nullptr || to == nullptr)
             return;
+
+        auto node_dst = nodes_.at(to->id_local);
+        auto node_src = nodes_.at(from->id_local);
+
+        if (node_dst == nullptr || node_src == nullptr) {
+            log->error("One of nodes does not exist: {}, {}", to->id_local, from->id_local);
+            return;
+        }
+
+        int        inputs_num  = 0;
+        int        outputs_num = 0;
+        const auto inputs      = node_dst->describe_inputs(&inputs_num);
+        const auto outputs     = node_src->describe_outputs(&outputs_num);
+
+
+        for (std::size_t i = 0; i < inputs_num; i++) {
+
+        }
         // TODO connect IO nodes
+
     }
 
 } // namespace ex::main

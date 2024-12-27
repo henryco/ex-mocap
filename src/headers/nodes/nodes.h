@@ -742,10 +742,10 @@ namespace ex::nodes {
     };
 
     struct Description {
-        const std::size_t type_id;
-        const int         index;
-        const bool        aux;
-        const char       *name;
+        std::size_t type_id;
+        int         index;
+        bool        aux;
+        const char *name;
     };
 
     template<typename T>
@@ -762,14 +762,24 @@ namespace ex::nodes {
     public:
         virtual ~InputDescriptor () = default;
 
-        virtual Description const *describe_inputs(int *o_inputs_number) const = 0;
+        /**
+         * Guarantee of data being sorted ASC by index
+         * @param o_inputs_number size of the array returned
+         * @return raw (pointer) array
+         */
+        virtual Description const * const describe_inputs(int *o_inputs_number) const = 0;
     };
 
     class OutputDescriptor {
     public:
         virtual ~OutputDescriptor () = default;
 
-        virtual Description const *describe_outputs(int *o_outputs_number) const = 0;
+        /**
+         * Guarantee of data being sorted ASC by index
+         * @param o_outputs_number size of the array returned
+         * @return raw (pointer) array
+         */
+        virtual Description const * const describe_outputs(int *o_outputs_number) const = 0;
     };
 
     class IODescriptor : public virtual InputDescriptor,
@@ -850,19 +860,31 @@ namespace ex::nodes {
             ~port_dispatcher() override = default;
 
             void register_in_descriptor(const Description &descriptor) {
-                in_descriptions_.push_back(descriptor);
+                const int index = descriptor.index;
+                for (int i = in_descriptions_.size() - 1; i >= 0; i--) {
+                    if (in_descriptions_[i].index <= index) {
+                        in_descriptions_.insert(in_descriptions_.begin() + i + 1, descriptor);
+                        return;
+                    }
+                }
             }
 
             void register_out_descriptor(const Description &descriptor) {
-                out_descriptions_.push_back(descriptor);
+                const int index = descriptor.index;
+                for (int i = out_descriptions_.size() - 1; i >= 0; i--) {
+                    if (out_descriptions_[i].index <= index) {
+                        out_descriptions_.insert(out_descriptions_.begin() + i + 1, descriptor);
+                        return;
+                    }
+                }
             }
 
-            const Description *describe_inputs(int *o_inputs_number) const override {
+            const Description * const describe_inputs(int *o_inputs_number) const override {
                 *o_inputs_number = in_descriptions_.size();
                 return in_descriptions_.data();
             }
 
-            const Description *describe_outputs(int *o_outputs_number) const override {
+            const Description * const describe_outputs(int *o_outputs_number) const override {
                 *o_outputs_number = out_descriptions_.size();
                 return out_descriptions_.data();
             }
