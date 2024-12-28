@@ -24,6 +24,7 @@ namespace ex {
         bool        updated    = false;
         bool        deleted    = false;
         bool        created    = false;
+        bool        connected  = false;
 
         ~TreeNode() {
             for (std::size_t i = 0; i < children_n; i++) {

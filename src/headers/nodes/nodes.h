@@ -763,7 +763,7 @@ namespace ex::nodes {
         virtual ~InputDescriptor () = default;
 
         /**
-         * Guarantee of data being sorted ASC by index
+         * Guarantee of data being sorted ASC by type and then index
          * @param o_inputs_number size of the array returned
          * @return raw (pointer) array
          */
@@ -775,7 +775,7 @@ namespace ex::nodes {
         virtual ~OutputDescriptor () = default;
 
         /**
-         * Guarantee of data being sorted ASC by index
+         * Guarantee of data being sorted ASC by type and then index
          * @param o_outputs_number size of the array returned
          * @return raw (pointer) array
          */
@@ -860,23 +860,27 @@ namespace ex::nodes {
             ~port_dispatcher() override = default;
 
             void register_in_descriptor(const Description &descriptor) {
-                const int index = descriptor.index;
+                const std::size_t type_ = descriptor.type_id;
+                const int         index = descriptor.index;
                 for (int i = in_descriptions_.size() - 1; i >= 0; i--) {
-                    if (in_descriptions_[i].index <= index) {
+                    if (out_descriptions_[i].type_id <= type_ && out_descriptions_[i].index <= index) {
                         in_descriptions_.insert(in_descriptions_.begin() + i + 1, descriptor);
                         return;
                     }
                 }
+                in_descriptions_.insert(in_descriptions_.begin(), descriptor);
             }
 
             void register_out_descriptor(const Description &descriptor) {
-                const int index = descriptor.index;
+                const std::size_t type_ = descriptor.type_id;
+                const int         index = descriptor.index;
                 for (int i = out_descriptions_.size() - 1; i >= 0; i--) {
-                    if (out_descriptions_[i].index <= index) {
+                    if (out_descriptions_[i].type_id <= type_ && out_descriptions_[i].index <= index) {
                         out_descriptions_.insert(out_descriptions_.begin() + i + 1, descriptor);
                         return;
                     }
                 }
+                out_descriptions_.insert(out_descriptions_.begin(), descriptor);
             }
 
             const Description * const describe_inputs(int *o_inputs_number) const override {

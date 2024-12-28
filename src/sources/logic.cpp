@@ -300,8 +300,8 @@ namespace ex::main {
         if (from == nullptr || to == nullptr)
             return;
 
-        auto node_dst = nodes_.at(to->id_local);
-        auto node_src = nodes_.at(from->id_local);
+        nodes::BaseNode *node_dst = nodes_.at(to->id_local);
+        nodes::BaseNode *node_src = nodes_.at(from->id_local);
 
         if (node_dst == nullptr || node_src == nullptr) {
             log->error("One of nodes does not exist: {}, {}", to->id_local, from->id_local);
@@ -313,12 +313,45 @@ namespace ex::main {
         const auto inputs      = node_dst->describe_inputs(&inputs_num);
         const auto outputs     = node_src->describe_outputs(&outputs_num);
 
+        // [a2    c4 c5 c6 d7 e8    g9   ] <- in
+        // [   b1 c2 c3    d4    f5 g6 g7] <- out
 
-        for (std::size_t i = 0; i < inputs_num; i++) {
+        // [a2 c4 c5 c6 d7 e8 g9] <-  in
+        // [b1 c2 c3 d4 f5 g6 g7] <- out
 
+        // heavily relying on fact that descriptions arrays sorted by [type, index] asc
+
+        int connects_num = 0;
+        for (int i = 0, k = 0; i < inputs_num && k < outputs_num; /*nop*/) {
+            const std::size_t type__in = inputs[i].type_id;
+            const std::size_t type_out = outputs[k].type_id;
+
+            if (inputs[i].aux || type__in < type_out) {
+                i++;
+                continue;
+            }
+
+            if (outputs[i].aux || type_out < type__in) {
+                k++;
+                continue;
+            }
+
+            const int  idx_in   = inputs[i].index;
+            const int  idx_out  = outputs[k].index;
+            const bool attached = node_dst->attach_any(node_src, idx_out, idx_in);
+
+            if (!attached) {
+                log->warn("Cannot connect nodes: [{}]: {} -> [{}]: {}",
+                    outputs[k].name, outputs[k].index, inputs[i].name, inputs[i].index);
+            }
+
+            connects_num += attached;
+
+            i++;
+            k++;
         }
-        // TODO connect IO nodes
 
+        to->connected = (connects_num > 0);
     }
 
 } // namespace ex::main
