@@ -21,6 +21,27 @@ namespace ex::main {
         }
     }
 
+    void add_node(TreeNode *parent, TreeNode *node) {
+        if (parent == nullptr || node == nullptr)
+            return;
+
+        node->parent = parent;
+
+        const int new_size = std::max(0, static_cast<int>(parent->children_n)) + 1;
+
+        auto **children = new TreeNode*[new_size];
+        for (int i = 0; i < new_size; i++)
+            children[i] = parent->children[i];
+
+        children[new_size - 1] = node;
+
+        if (parent->children != nullptr)
+            delete parent->children;
+
+        parent->children_n = new_size;
+        parent->children   = children;
+    }
+
     Logic create_logic(State &state) {
         Logic logic;
         logic.initialize(state);
@@ -41,8 +62,11 @@ namespace ex::main {
             delete state.work_tree;
 
         state.work_tree = new TreeNode();
-        state.work_tree->children_n = 0;
+        state.work_tree->name       = "root";
         state.work_tree->is_group   = true;
+        state.work_tree->children_n = 3;
+
+        // TODO CREATE SAMPLE TREE ...
 
         // TODO REMOVE
 
@@ -102,7 +126,7 @@ namespace ex::main {
 
         bool rewire = false;
         for (std::size_t i = 0; i < state.work_tree->children_n; i++) {
-            traverse_(state, &state.work_tree->children[i], &rewire);
+            traverse_(state, state.work_tree->children[i], &rewire);
         }
 
         if (rewire) {
@@ -115,7 +139,7 @@ namespace ex::main {
         if (ptr_counter_.contains(node->id_local))
             ptr_counter_.at(node->id_local)--;
         for (std::size_t i = 0; i < node->children_n; i++) {
-            mark_deleted_(&node->children[i]);
+            mark_deleted_(node->children[i]);
         }
     }
 
@@ -130,7 +154,7 @@ namespace ex::main {
         }
 
         for (std::size_t i = 0; i < node->children_n; i++) {
-            traverse_(state, &node->children[i], rewire);
+            traverse_(state, node->children[i], rewire);
         }
 
         if (node->created) {
@@ -275,7 +299,7 @@ namespace ex::main {
             TreeNode *curr_node = nullptr;
 
             for (std::size_t i = 0; i < node->children_n; i++) {
-                curr_node = &node->children[i];
+                curr_node = node->children[i];
 
                 build_tree_(state, curr_node, prev_node, group_list);
 
@@ -293,7 +317,7 @@ namespace ex::main {
 
         connect_nodes_(previous, node);
         for (std::size_t i = 0; i < node->children_n; i++) {
-            TreeNode *curr_node = &node->children[i];
+            TreeNode *curr_node = node->children[i];
 
             // non-group element can contain only groups as children
             if (!curr_node->is_group)

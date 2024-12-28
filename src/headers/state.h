@@ -14,7 +14,7 @@ namespace ex {
         void       *data       = nullptr;
         const char *name       = nullptr;
         TreeNode   *parent     = nullptr;
-        TreeNode   *children   = nullptr;
+        TreeNode  **children   = nullptr;
 
         std::size_t children_n = -1;
         std::size_t id_local   = -1;
@@ -28,32 +28,33 @@ namespace ex {
         bool        connected  = false;
 
         ~TreeNode() {
-            for (std::size_t i = 0; i < children_n; i++) {
-
-                TreeNode *head = &children[i];
-                if (head == nullptr)
-                    continue;
-
-                while (true) {
-                    if (head->children == nullptr)
-                        break;
-                    head = head->children;
-                }
-
-                while (true) {
-                    if (head->children != nullptr) {
-                        delete head->children;
-                        head->children = nullptr;
-                    }
-
-                    if (head->parent == this || head->parent == nullptr)
-                        break;
-                    TreeNode *_parent = head->parent;
-                    head->parent = nullptr;
-                    head = _parent;
-                }
-
-            }
+//            for (std::size_t i = 0; i < children_n; i++) {
+//
+//                TreeNode *head = children[i];
+//                if (head == nullptr)
+//                    continue;
+//
+//                while (true) {
+//                    if (head->children == nullptr)
+//                        break;
+//                    head = head->children;
+//                }
+//
+//                while (true) {
+//                    if (head->children != nullptr) {
+//                        delete head->children;
+//                        head->children = nullptr;
+//                    }
+//
+//                    if (head->parent == this || head->parent == nullptr)
+//                        break;
+//                    TreeNode *_parent = head->parent;
+//                    head->parent = nullptr;
+//                    head = _parent;
+//                }
+//
+//            }
+            // TODO FIXME
         }
     };
 
