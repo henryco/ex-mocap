@@ -29,8 +29,23 @@ namespace ex::main {
 
     void Logic::initialize(State &state) {
         log->info("main logic initialization started");
-        deserialize_(state);
-        restore_(state);
+
+        // TODO UNCOMMENT
+        // deserialize_(state);
+        // restore_(state);
+        // TODO UNCOMMENT
+
+
+        // TODO REMOVE
+        if (state.work_tree != nullptr)
+            delete state.work_tree;
+
+        state.work_tree = new TreeNode();
+        state.work_tree->children_n = 0;
+        state.work_tree->is_group   = true;
+
+        // TODO REMOVE
+
         log->info("main logic initialization complete");
     }
 

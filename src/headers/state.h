@@ -12,6 +12,7 @@ namespace ex {
 
     struct TreeNode {
         void       *data       = nullptr;
+        const char *name       = nullptr;
         TreeNode   *parent     = nullptr;
         TreeNode   *children   = nullptr;
 
