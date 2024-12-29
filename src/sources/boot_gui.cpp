@@ -116,13 +116,13 @@ namespace ex::boot {
             glfwSwapBuffers(window);
         }
 
-        glfwDestroyWindow(window);
-        glfwTerminate();
-
         if (state.ocl_context != nullptr)
             clReleaseContext(state.ocl_context);
         if (state.ocl_device != nullptr)
             clReleaseDevice(state.ocl_device);
+
+        glfwDestroyWindow(window);
+        glfwTerminate();
 
         return 0;
     }
