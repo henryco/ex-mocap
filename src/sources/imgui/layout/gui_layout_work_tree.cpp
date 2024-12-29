@@ -88,9 +88,9 @@ namespace ex::gui {
 
             if (open) {
                 for (int i = 1; i < node->children_n; i++) {
-                    ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+                    ImGui::Unindent();
                     show_tree_node(state, gui, node->children[i], selected);
-                    ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+                    ImGui::Indent();
                 }
 
                 ImGui::TreePop();
@@ -113,9 +113,9 @@ namespace ex::gui {
 
         if (open) {
             for (int i = 0; i < node->children_n; i++) {
-                ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+                ImGui::Unindent();
                 show_tree_node(state, gui, node->children[i], selected);
-                ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+                ImGui::Indent();
             }
             ImGui::TreePop();
         }
