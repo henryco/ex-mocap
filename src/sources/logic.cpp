@@ -45,27 +45,28 @@ namespace ex::main {
         state.work_tree->is_group   = true;
         state.work_tree->children_n = 0;
 
+        std::size_t local_id_ct = 1;
         for (int i = 0; i < 5; i++) {
             const auto node = new TreeNode();
-            node->name      = ("Node " + std::to_string(i + 1)).c_str();
-            node->is_group  = i < 2;
-            node->id_local  = i;
+            node->name      = "Node";
+            node->is_group  = i > 2;
+            node->id_local  = local_id_ct++;
             node->id_node   = 0;
 
-            if (i < 2) { // inside a group
+            if (i > 2) { // inside a group
                 for (int k = 0; k < 3; k++) {
                     const auto sub = new TreeNode();
-                    sub->name      = ("Sub-one " + std::to_string(k)).c_str();
+                    sub->name      = "Sub one";
                     sub->is_group  = k == 1;
-                    sub->id_local  = i * 3 + k;
+                    sub->id_local  = local_id_ct++;
                     sub->id_node   = 1;
 
                     if (k == 1) { // inside a group
                         for (int z = 0; z < 5; z++) {
                             const auto sub_2 = new TreeNode();
-                            sub_2->name      = ("Sub-zero " + std::to_string(z)).c_str();
+                            sub_2->name      = "Sub zero";
                             sub_2->is_group  = false;
-                            sub_2->id_local  = z;
+                            sub_2->id_local  = local_id_ct++;
                             sub_2->id_node   = 2;
 
                             sub->add_node(sub_2);
@@ -74,12 +75,13 @@ namespace ex::main {
                         const auto inputs = new TreeNode();
                         inputs->name      = "inputs";
                         inputs->is_group  = true;
+                        inputs->id_local = local_id_ct++;
 
                         for (int z = 0; z < 3; z++) {
                             const auto in = new TreeNode();
-                            in->name      = ("input " + std::to_string(z)).c_str();
+                            in->name      = "Input!";
                             in->is_group  = false;
-                            in->id_local = z;
+                            in->id_local = local_id_ct++;
                             in->id_node  = 3;
 
                             inputs->add_node(in);
@@ -94,22 +96,23 @@ namespace ex::main {
 
             else { // inside a regular element
                 const auto inputs = new TreeNode();
-                inputs->name      = "inputs";
+                inputs->name      = "Inputs.";
                 inputs->is_group  = true;
+                inputs->id_local = local_id_ct++;
 
                 for (int k = 0; k < 4; k++) { // inside inputs group
                     const auto sub = new TreeNode();
-                    sub->name      = ("Sub-in " + std::to_string(k)).c_str();
+                    sub->name      = "Sub in";
                     sub->is_group  = k == 1 || k == 2;
-                    sub->id_local  = i * 3 + k;
+                    sub->id_local  = local_id_ct++;
                     sub->id_node   = 4;
 
                     if (k == 1 || k == 2) { // inside a group
                         for (int z = 0; z < 6; z++) {
                             const auto in = new TreeNode();
-                            in->name      = ("input " + std::to_string(z)).c_str();
+                            in->name      = "in in";
                             in->is_group  = false;
-                            in->id_local = z;
+                            in->id_local = local_id_ct++;
                             in->id_node  = 5;
 
                             sub->add_node(in);
@@ -118,12 +121,13 @@ namespace ex::main {
                         const auto another_in = new TreeNode();
                         another_in->name      = "another_in";
                         another_in->is_group  = true;
+                        another_in->id_local = local_id_ct++;
 
                         for (int p = 0; p < 2; p++) {
                             const auto sub_3 = new TreeNode();
-                            sub_3->name      = ("input another " + std::to_string(p)).c_str();
+                            sub_3->name      = "another in";
                             sub_3->is_group  = false;
-                            sub_3->id_local = p;
+                            sub_3->id_local = local_id_ct++;
                             sub_3->id_node  = 6;
 
                             another_in->add_node(sub_3);

@@ -12,12 +12,51 @@ namespace ex::gui {
     constexpr float ctrl_width  = 60.f;
     constexpr float min_width  = 100.f;
 
-    void work_tree_content(ex::State &state, GuiState &gui) {
+    void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected) {
+        const auto c_flag = tree_node_flags | (*selected == node->id_local ? ImGuiTreeNodeFlags_Selected : 0);
+
+        ImGui::PushID(node->id_local);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+
+        if (node->children_n > 0) {
+            const bool open = ImGui::TreeNodeEx(node->name, c_flag);
+
+            if (ImGui::IsItemClicked())
+                *selected = node->id_local;
+
+            ImGui::TableNextColumn();
+            ImGui::TextDisabled("--");
+
+            if (open) {
+                for (int i = 0; i < node->children_n; i++)
+                    show_tree_node(state, gui, node->children[i], selected);
+                ImGui::TreePop();
+            }
+
+            ImGui::PopID();
+            return;
+        }
+
+        ImGui::TreeNodeEx(node->name, c_flag | tree_bull_flags);
+
+        if (ImGui::IsItemClicked())
+            *selected = node->id_local;
+
+        ImGui::TableNextColumn();
+        ImGui::TextDisabled("++");
+        ImGui::PopID();
+    }
+
+    void work_tree_content(State &state, GuiState &gui) {
+        if (state.work_tree == nullptr)
+            return;
+
         ImGui::BeginChild(
                 "WorkTreeContent",
                 ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - 10),
                 0);
-        // TODO
 
         if (ImGui::BeginTable("TableWorkTreeTable", 2,flags)) {
             const auto old_indent_spacing = ImGui::GetStyle().IndentSpacing;
@@ -29,33 +68,37 @@ namespace ex::gui {
             ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthFixed, items_width);
             ImGui::TableSetupColumn("Controls", ImGuiTableColumnFlags_WidthFixed, ctrl_width);
 
-            static int selected_node = -1;
+            static std::size_t selected_node = -1;
 
-            for (int i = 0; i < 5; i++) {
-                const auto c_flag = tree_node_flags | (selected_node == i ? ImGuiTreeNodeFlags_Selected : 0);
-
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                const bool open = ImGui::TreeNodeEx(("Node: " + std::to_string(i)).c_str(), c_flag);
-
-                if (ImGui::IsItemClicked())
-                    selected_node = i;
-
-                ImGui::TableNextColumn();
-                ImGui::TextDisabled("--");
-
-                if (open) {
-                    for (int n = 0; n < 3; n++) {
-                        ImGui::TableNextRow();
-                        ImGui::TableNextColumn();
-                        ImGui::TreeNodeEx(("Inner" + std::to_string(n)).c_str(), tree_node_flags | tree_bull_flags);
-
-                        ImGui::TableNextColumn();
-                        ImGui::TextDisabled("++");
-                    }
-                    ImGui::TreePop();
-                }
+            for (int i = 0; i < state.work_tree->children_n; i++) {
+                show_tree_node(state, gui, state.work_tree->children[i], &selected_node);
             }
+
+//            for (int i = 0; i < 5; i++) {
+//                const auto c_flag = tree_node_flags | (selected_node == i ? ImGuiTreeNodeFlags_Selected : 0);
+//
+//                ImGui::TableNextRow();
+//                ImGui::TableNextColumn();
+//                const bool open = ImGui::TreeNodeEx(("Node: " + std::to_string(i)).c_str(), c_flag);
+//
+//                if (ImGui::IsItemClicked())
+//                    selected_node = i;
+//
+//                ImGui::TableNextColumn();
+//                ImGui::TextDisabled("--");
+//
+//                if (open) {
+//                    for (int n = 0; n < 3; n++) {
+//                        ImGui::TableNextRow();
+//                        ImGui::TableNextColumn();
+//                        ImGui::TreeNodeEx(("Inner" + std::to_string(n)).c_str(), tree_node_flags | tree_bull_flags);
+//
+//                        ImGui::TableNextColumn();
+//                        ImGui::TextDisabled("++");
+//                    }
+//                    ImGui::TreePop();
+//                }
+//            }
 
             ImGui::GetStyle().IndentSpacing = old_indent_spacing;
             ImGui::EndTable();
