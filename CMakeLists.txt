@@ -135,6 +135,7 @@ set(SOURCE_FILES
         src/sources/components/c_camera.cpp
         src/sources/logic.cpp
         src/sources/state/mappers_camera.cpp
+        src/sources/state.cpp
 )
 
 # =================== OpenCL kernels generation =====================

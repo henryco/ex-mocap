@@ -27,31 +27,10 @@ namespace ex {
         bool        created    = false;
         bool        connected  = false;
 
-        void add_node(TreeNode *node) {
-            if (node == nullptr)
-                return;
+        ~TreeNode();
 
-            node->parent = this;
+        void add_node(TreeNode *node);
 
-            const int curr_n = static_cast<int>(this->children_n);
-            const int new_size = (curr_n < 0 ? 0 : curr_n) + 1;
-
-            auto **children = new TreeNode*[new_size];
-            for (int i = 0; i < new_size; i++)
-                children[i] = this->children[i];
-
-            children[new_size - 1] = node;
-
-            if (this->children != nullptr)
-                delete this->children;
-
-            this->children_n = new_size;
-            this->children   = children;
-        }
-
-        ~TreeNode() {
-            // TODO
-        }
     };
 
     struct State {
