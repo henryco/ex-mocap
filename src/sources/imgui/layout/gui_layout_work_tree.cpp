@@ -65,6 +65,7 @@ namespace ex::gui {
 
             if (open)
                 ImGui::TreePop();
+
             ImGui::PopID();
             return;
         }
