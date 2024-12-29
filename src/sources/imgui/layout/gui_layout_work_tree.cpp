@@ -74,32 +74,6 @@ namespace ex::gui {
                 show_tree_node(state, gui, state.work_tree->children[i], &selected_node);
             }
 
-//            for (int i = 0; i < 5; i++) {
-//                const auto c_flag = tree_node_flags | (selected_node == i ? ImGuiTreeNodeFlags_Selected : 0);
-//
-//                ImGui::TableNextRow();
-//                ImGui::TableNextColumn();
-//                const bool open = ImGui::TreeNodeEx(("Node: " + std::to_string(i)).c_str(), c_flag);
-//
-//                if (ImGui::IsItemClicked())
-//                    selected_node = i;
-//
-//                ImGui::TableNextColumn();
-//                ImGui::TextDisabled("--");
-//
-//                if (open) {
-//                    for (int n = 0; n < 3; n++) {
-//                        ImGui::TableNextRow();
-//                        ImGui::TableNextColumn();
-//                        ImGui::TreeNodeEx(("Inner" + std::to_string(n)).c_str(), tree_node_flags | tree_bull_flags);
-//
-//                        ImGui::TableNextColumn();
-//                        ImGui::TextDisabled("++");
-//                    }
-//                    ImGui::TreePop();
-//                }
-//            }
-
             ImGui::GetStyle().IndentSpacing = old_indent_spacing;
             ImGui::EndTable();
         }
