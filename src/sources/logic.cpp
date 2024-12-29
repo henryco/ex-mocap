@@ -43,10 +43,103 @@ namespace ex::main {
         state.work_tree = new TreeNode();
         state.work_tree->name       = "root";
         state.work_tree->is_group   = true;
-        state.work_tree->children_n = 3;
+        state.work_tree->children_n = 0;
 
-        // TODO CREATE SAMPLE TREE ...
+        for (int i = 0; i < 5; i++) {
+            const auto node = new TreeNode();
+            node->name      = ("Node " + std::to_string(i + 1)).c_str();
+            node->is_group  = i < 2;
+            node->id_local  = i;
+            node->id_node   = 0;
 
+            if (i < 2) { // inside a group
+                for (int k = 0; k < 3; k++) {
+                    const auto sub = new TreeNode();
+                    sub->name      = ("Sub-one " + std::to_string(k)).c_str();
+                    sub->is_group  = k == 1;
+                    sub->id_local  = i * 3 + k;
+                    sub->id_node   = 1;
+
+                    if (k == 1) { // inside a group
+                        for (int z = 0; z < 5; z++) {
+                            const auto sub_2 = new TreeNode();
+                            sub_2->name      = ("Sub-zero " + std::to_string(z)).c_str();
+                            sub_2->is_group  = false;
+                            sub_2->id_local  = z;
+                            sub_2->id_node   = 2;
+
+                            sub->add_node(sub_2);
+                        }
+                    } else {
+                        const auto inputs = new TreeNode();
+                        inputs->name      = "inputs";
+                        inputs->is_group  = true;
+
+                        for (int z = 0; z < 3; z++) {
+                            const auto in = new TreeNode();
+                            in->name      = ("input " + std::to_string(z)).c_str();
+                            in->is_group  = false;
+                            in->id_local = z;
+                            in->id_node  = 3;
+
+                            inputs->add_node(in);
+                        }
+
+                        sub->add_node(inputs);
+                    }
+
+                    node->add_node(sub);
+                }
+            }
+
+            else { // inside a regular element
+                const auto inputs = new TreeNode();
+                inputs->name      = "inputs";
+                inputs->is_group  = true;
+
+                for (int k = 0; k < 4; k++) { // inside inputs group
+                    const auto sub = new TreeNode();
+                    sub->name      = ("Sub-in " + std::to_string(k)).c_str();
+                    sub->is_group  = k == 1 || k == 2;
+                    sub->id_local  = i * 3 + k;
+                    sub->id_node   = 4;
+
+                    if (k == 1 || k == 2) { // inside a group
+                        for (int z = 0; z < 6; z++) {
+                            const auto in = new TreeNode();
+                            in->name      = ("input " + std::to_string(z)).c_str();
+                            in->is_group  = false;
+                            in->id_local = z;
+                            in->id_node  = 5;
+
+                            sub->add_node(in);
+                        }
+                    } else {
+                        const auto another_in = new TreeNode();
+                        another_in->name      = "another_in";
+                        another_in->is_group  = true;
+
+                        for (int p = 0; p < 2; p++) {
+                            const auto sub_3 = new TreeNode();
+                            sub_3->name      = ("input another " + std::to_string(p)).c_str();
+                            sub_3->is_group  = false;
+                            sub_3->id_local = p;
+                            sub_3->id_node  = 6;
+
+                            another_in->add_node(sub_3);
+                        }
+
+                        sub->add_node(another_in);
+                    }
+
+                    inputs->add_node(sub);
+                }
+
+                node->add_node(inputs);
+            }
+
+            state.work_tree->add_node(node);
+        }
         // TODO REMOVE
 
         log->info("main logic initialization complete");

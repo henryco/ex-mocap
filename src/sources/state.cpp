@@ -20,7 +20,7 @@ namespace ex {
         const int new_size = (curr_n < 0 ? 0 : curr_n) + 1;
 
         auto **children = new TreeNode*[new_size];
-        for (int i = 0; i < new_size; i++)
+        for (int i = 0; i < new_size - 1; i++)
             children[i] = this->children[i];
 
         children[new_size - 1] = node;
