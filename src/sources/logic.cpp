@@ -21,27 +21,6 @@ namespace ex::main {
         }
     }
 
-    void add_node(TreeNode *parent, TreeNode *node) {
-        if (parent == nullptr || node == nullptr)
-            return;
-
-        node->parent = parent;
-
-        const int new_size = std::max(0, static_cast<int>(parent->children_n)) + 1;
-
-        auto **children = new TreeNode*[new_size];
-        for (int i = 0; i < new_size; i++)
-            children[i] = parent->children[i];
-
-        children[new_size - 1] = node;
-
-        if (parent->children != nullptr)
-            delete parent->children;
-
-        parent->children_n = new_size;
-        parent->children   = children;
-    }
-
     Logic create_logic(State &state) {
         Logic logic;
         logic.initialize(state);

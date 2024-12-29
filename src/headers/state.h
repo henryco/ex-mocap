@@ -27,34 +27,30 @@ namespace ex {
         bool        created    = false;
         bool        connected  = false;
 
+        void add_node(TreeNode *node) {
+            if (node == nullptr)
+                return;
+
+            node->parent = this;
+
+            const int curr_n = static_cast<int>(this->children_n);
+            const int new_size = (curr_n < 0 ? 0 : curr_n) + 1;
+
+            auto **children = new TreeNode*[new_size];
+            for (int i = 0; i < new_size; i++)
+                children[i] = this->children[i];
+
+            children[new_size - 1] = node;
+
+            if (this->children != nullptr)
+                delete this->children;
+
+            this->children_n = new_size;
+            this->children   = children;
+        }
+
         ~TreeNode() {
-//            for (std::size_t i = 0; i < children_n; i++) {
-//
-//                TreeNode *head = children[i];
-//                if (head == nullptr)
-//                    continue;
-//
-//                while (true) {
-//                    if (head->children == nullptr)
-//                        break;
-//                    head = head->children;
-//                }
-//
-//                while (true) {
-//                    if (head->children != nullptr) {
-//                        delete head->children;
-//                        head->children = nullptr;
-//                    }
-//
-//                    if (head->parent == this || head->parent == nullptr)
-//                        break;
-//                    TreeNode *_parent = head->parent;
-//                    head->parent = nullptr;
-//                    head = _parent;
-//                }
-//
-//            }
-            // TODO FIXME
+            // TODO
         }
     };
 
