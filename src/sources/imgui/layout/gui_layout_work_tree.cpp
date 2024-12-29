@@ -13,15 +13,17 @@ namespace ex::gui {
     constexpr float min_width  = 100.f;
 
     void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected) {
-        const auto c_flag = tree_node_flags | (*selected == node->id_local ? ImGuiTreeNodeFlags_Selected : 0);
 
-        ImGui::PushID(node->id_local);
+        if (!node->is_group) {
+            // Not a group just regular element
 
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::PushID(node->id_local);
 
-        if (node->children_n > 0) {
-            const bool open = ImGui::TreeNodeEx(node->name, c_flag);
+            const auto c_bullet = node->children_n > 0 ? 0 : tree_bull_flags;
+            const auto c_flag = tree_node_flags | (*selected == node->id_local ? ImGuiTreeNodeFlags_Selected : 0);
+            const bool open = ImGui::TreeNodeEx(node->name, c_flag | c_bullet);
 
             if (ImGui::IsItemClicked())
                 *selected = node->id_local;
@@ -30,8 +32,13 @@ namespace ex::gui {
             ImGui::TextDisabled("--");
 
             if (open) {
-                for (int i = 0; i < node->children_n; i++)
-                    show_tree_node(state, gui, node->children[i], selected);
+                // Regular element but it has children
+
+                if (node->children_n > 0) {
+                    const auto next = node->children[0];
+                    for (int i = 0; i < next->children_n; i++)
+                        show_tree_node(state, gui, next->children[i], selected);
+                }
                 ImGui::TreePop();
             }
 
@@ -39,13 +46,79 @@ namespace ex::gui {
             return;
         }
 
-        ImGui::TreeNodeEx(node->name, c_flag | tree_bull_flags);
+        // It's a group
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+
+        if (node->children_n <= 0) {
+            // Group but it has no children (an empty one)
+
+            ImGui::PushID(node->id_local);
+            const auto c_flag = tree_node_flags | (*selected == node->id_local ? ImGuiTreeNodeFlags_Selected : 0);
+            const bool open = ImGui::TreeNodeEx(node->name, c_flag);
+
+            if (ImGui::IsItemClicked())
+                *selected = node->id_local;
+
+            ImGui::TableNextColumn();
+            ImGui::TextDisabled("");
+
+            if (open)
+                ImGui::TreePop();
+            ImGui::PopID();
+            return;
+        }
+
+        // It's a group, and it has children (not an empty)
+        const auto first = node->children[0];
+
+        if (first->children_n <= 0) {
+            // Group with children, where the first element _HAS NO_ it's own children
+
+            ImGui::PushID(first->id_local);
+
+            const auto c_flag = tree_node_flags | (*selected == first->id_local ? ImGuiTreeNodeFlags_Selected : 0);
+            const bool open = ImGui::TreeNodeEx(first->name, c_flag);
+
+            if (ImGui::IsItemClicked())
+                *selected = first->id_local;
+
+            ImGui::TableNextColumn();
+            ImGui::TextDisabled("++");
+
+            if (open) {
+                for (int i = 1; i < node->children_n; i++) {
+                    ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+                    show_tree_node(state, gui, node->children[i], selected);
+                    ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+                }
+
+                ImGui::TreePop();
+            }
+
+            ImGui::PopID();
+            return;
+        }
+
+        // Group with children, where the first element _HAS_ its own children
+        ImGui::PushID(node->id_local);
+        const auto c_flag = tree_node_flags | (*selected == node->id_local ? ImGuiTreeNodeFlags_Selected : 0);
+        const bool open = ImGui::TreeNodeEx(node->name, c_flag);
 
         if (ImGui::IsItemClicked())
             *selected = node->id_local;
 
         ImGui::TableNextColumn();
-        ImGui::TextDisabled("++");
+        ImGui::TextDisabled("");
+
+        if (open) {
+            for (int i = 0; i < node->children_n; i++) {
+                ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+                show_tree_node(state, gui, node->children[i], selected);
+                ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+            }
+            ImGui::TreePop();
+        }
         ImGui::PopID();
     }
 
