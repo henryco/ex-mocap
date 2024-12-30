@@ -2,17 +2,26 @@
 // Created by xd on 02/12/24.
 //
 
+#include <iostream>
+
+
 #include "../../../headers/imgui/gui_layout.h"
 
 namespace ex::gui {
     constexpr auto flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV;
     constexpr auto tree_bull_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+    constexpr auto tree_arr_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
     constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
 
     constexpr float ctrl_width  = 60.f;
     constexpr float min_width  = 100.f;
 
-    void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected) {
+    void draw_down_arrow(const ImVec2& center) {
+        ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+        draw_list->AddText(center, IM_COL32(0, 0, 0, 200), ICON_LC_MOVE_DOWN);
+    }
+
+    void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected, const int n = 0) {
 
         if (!node->is_group) {
             // Not a group just regular element
@@ -35,7 +44,7 @@ namespace ex::gui {
                 // Regular element but it has children
                 const auto next = node->children[0];
                 for (int i = 0; i < next->children_n; i++)
-                    show_tree_node(state, gui, next->children[i], selected);
+                    show_tree_node(state, gui, next->children[i], selected, n + 1);
                 ImGui::TreePop();
             }
 
@@ -68,24 +77,31 @@ namespace ex::gui {
         const auto first = node->children[0];
 
         if (first->children_n <= 0) {
-            // Group with children, where the first element _HAS NO_ it's own children
+            // Group with children, where the first element _HAS NO_ its own children
+
             ImGui::PushID(first->id_local);
             const auto c_flag = tree_node_flags | (*selected == first->id_local ? ImGuiTreeNodeFlags_Selected : 0);
-            const bool open = ImGui::TreeNodeEx(first->name, c_flag);
+            ImGui::TreeNodeEx(first->name, c_flag | ImGuiTreeNodeFlags_DefaultOpen | tree_bull_flags);
 
             if (ImGui::IsItemClicked())
                 *selected = first->id_local;
 
             ImGui::TableNextColumn();
-            ImGui::TextDisabled("++");
+            ImGui::TextDisabled("");
 
-            if (open && node->children_n > 1) {
+            if (node->children_n > 1) {
                 for (int i = 1; i < node->children_n; i++) {
-                    ImGui::Unindent();
-                    show_tree_node(state, gui, node->children[i], selected);
-                    ImGui::Indent();
+
+                    if (i != node->children_n - 1) {
+                        const float cursor_x = ImGui::GetItemRectMin().x + (10 * n);
+                        const float cursor_y = ImGui::GetCursorScreenPos().y + 2;
+                        const float arrowSize = ImGui::GetFontSize();
+                        const ImVec2 arrowCenter(cursor_x + arrowSize, cursor_y + arrowSize * 0.5f);
+                        draw_down_arrow(arrowCenter);
+                    }
+
+                    show_tree_node(state, gui, node->children[i], selected, n + 1);
                 }
-                ImGui::TreePop();
             }
 
             ImGui::PopID();
@@ -106,7 +122,7 @@ namespace ex::gui {
         if (open) {
             for (int i = 0; i < node->children_n; i++) {
                 ImGui::Unindent();
-                show_tree_node(state, gui, node->children[i], selected);
+                show_tree_node(state, gui, node->children[i], selected, n + 1);
                 ImGui::Indent();
             }
             ImGui::TreePop();
@@ -120,12 +136,12 @@ namespace ex::gui {
 
         ImGui::BeginChild(
                 "WorkTreeContent",
-                ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - 10),
+                ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - 20),
                 0);
 
-        if (ImGui::BeginTable("TableWorkTreeTable", 2,flags)) {
+        if (ImGui::BeginTable("TableWorkTreeTable", 2, flags)) {
             const auto old_indent_spacing = ImGui::GetStyle().IndentSpacing;
-            ImGui::GetStyle().IndentSpacing = 10.0f;
+            ImGui::GetStyle().IndentSpacing = 20.0f;
 
             const float fixed_width = ImGui::GetContentRegionAvail().x - ctrl_width - ImGui::GetStyle().ItemSpacing.x;
             const float items_width = std::max(min_width, fixed_width);
@@ -135,9 +151,11 @@ namespace ex::gui {
 
             static std::size_t selected_node = -1;
 
+            ImGui::Indent();
             for (int i = 0; i < state.work_tree->children_n; i++) {
-                show_tree_node(state, gui, state.work_tree->children[i], &selected_node);
+                show_tree_node(state, gui, state.work_tree->children[i], &selected_node, 1);
             }
+            ImGui::Unindent();
 
             ImGui::GetStyle().IndentSpacing = old_indent_spacing;
             ImGui::EndTable();
