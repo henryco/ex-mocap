@@ -16,9 +16,8 @@ namespace ex::gui {
     constexpr float ctrl_width  = 60.f;
     constexpr float min_width  = 100.f;
 
-    void draw_down_arrow(const ImVec2& center) {
+    void draw_brackets() {
         ImDrawList* draw_list = ImGui::GetForegroundDrawList();
-        draw_list->AddText(center, IM_COL32(0, 0, 0, 200), ICON_LC_MOVE_DOWN);
     }
 
     void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected, const int n = 0) {
@@ -79,6 +78,7 @@ namespace ex::gui {
         if (first->children_n <= 0) {
             // Group with children, where the first element _HAS NO_ its own children
 
+            ImGui::Indent();
             ImGui::PushID(first->id_local);
             const auto c_flag = tree_node_flags | (*selected == first->id_local ? ImGuiTreeNodeFlags_Selected : 0);
             ImGui::TreeNodeEx(first->name, c_flag | ImGuiTreeNodeFlags_DefaultOpen | tree_bull_flags);
@@ -91,20 +91,12 @@ namespace ex::gui {
 
             if (node->children_n > 1) {
                 for (int i = 1; i < node->children_n; i++) {
-
-                    if (i != node->children_n - 1) {
-                        const float cursor_x = ImGui::GetItemRectMin().x + (10 * n);
-                        const float cursor_y = ImGui::GetCursorScreenPos().y + 2;
-                        const float arrowSize = ImGui::GetFontSize();
-                        const ImVec2 arrowCenter(cursor_x + arrowSize, cursor_y + arrowSize * 0.5f);
-                        draw_down_arrow(arrowCenter);
-                    }
-
                     show_tree_node(state, gui, node->children[i], selected, n + 1);
                 }
             }
 
             ImGui::PopID();
+            ImGui::Unindent();
             return;
         }
 
