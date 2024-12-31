@@ -80,8 +80,13 @@ namespace ex::gui {
 
             ImGui::Indent();
             ImGui::PushID(first->id_local);
+
+            const ImVec2 outer_start = ImGui::GetCursorScreenPos();
+
             const auto c_flag = tree_node_flags | (*selected == first->id_local ? ImGuiTreeNodeFlags_Selected : 0);
             ImGui::TreeNodeEx(first->name, c_flag | ImGuiTreeNodeFlags_DefaultOpen | tree_bull_flags);
+
+            const ImVec2 inner_start = ImGui::GetCursorScreenPos();
 
             if (ImGui::IsItemClicked())
                 *selected = first->id_local;
@@ -97,6 +102,18 @@ namespace ex::gui {
 
             ImGui::PopID();
             ImGui::Unindent();
+
+            const ImVec2 inner_end = ImGui::GetCursorScreenPos();
+
+            const auto p1 = ImVec2(inner_start.x, outer_start.y);
+            const auto p2 = ImVec2(inner_start.x, inner_end.y - 7.f);
+
+//            const auto p3 = ImVec2(inner_start.x, outer_start.y);
+//            const auto p4 = ImVec2(inner_start.x, inner_end.y - 7.f);
+
+            ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+            draw_list->AddLine(p1, p2, IM_COL32(0, 0, 0, 255), 1.f);
+
             return;
         }
 
