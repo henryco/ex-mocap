@@ -104,25 +104,11 @@ namespace ex::gui {
         }
 
         // Group with children, where the first element _HAS_ its own children
-        ImGui::PushID(node->id_local);
-        const auto c_flag = tree_node_flags | (*selected == node->id_local ? ImGuiTreeNodeFlags_Selected : 0);
-        const bool open = ImGui::TreeNodeEx(node->name, c_flag);
-
-        if (ImGui::IsItemClicked())
-            *selected = node->id_local;
-
-        ImGui::TableNextColumn();
-        ImGui::TextDisabled("");
-
-        if (open) {
-            for (int i = 0; i < node->children_n; i++) {
-                ImGui::Unindent();
-                show_tree_node(state, gui, node->children[i], selected, n + 1);
-                ImGui::Indent();
-            }
-            ImGui::TreePop();
+        const ImVec2 outer_start = brackets_start();
+        for (int i = 0; i < node->children_n; i++) {
+            show_tree_node(state, gui, node->children[i], selected, n + 1);
         }
-        ImGui::PopID();
+        brackets_end(outer_start);
     }
 
     void work_tree_content(State &state, GuiState &gui) {
