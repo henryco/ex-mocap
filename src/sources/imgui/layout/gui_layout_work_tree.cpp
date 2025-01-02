@@ -134,11 +134,11 @@ namespace ex::gui {
 
             static std::size_t selected_node = -1;
 
-            ImGui::Indent();
+            ImGui::Indent(10.f);
             for (int i = 0; i < state.work_tree->children_n; i++) {
                 show_tree_node(state, gui, state.work_tree->children[i], &selected_node, 1, i == state.work_tree->children_n - 1);
             }
-            ImGui::Unindent();
+            ImGui::Unindent(10.f);
 
             ImGui::GetStyle().IndentSpacing = old_indent_spacing;
             ImGui::EndTable();
