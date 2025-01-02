@@ -117,6 +117,9 @@ namespace ex::gui {
     }
 
     void brackets_end(const ImVec2 &start, const float indent) {
+        constexpr auto color = IM_COL32(0, 0, 0, 120);
+        constexpr auto thickness = 1.2f;
+
         const ImVec2 inner_end = ImGui::GetCursorScreenPos();
 
         const auto p1 = ImVec2(start.x, start.y + 2.f);
@@ -126,9 +129,9 @@ namespace ex::gui {
         const auto p4 = ImVec2(p2.x + 5.f, p2.y);
 
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        draw_list->AddLine(p1, p2, IM_COL32(0, 0, 0, 255), 1.2f);
-        draw_list->AddLine(p1, p3, IM_COL32(0, 0, 0, 255), 1.2f);
-        draw_list->AddLine(p2, p4, IM_COL32(0, 0, 0, 255), 1.2f);
+        draw_list->AddLine(p1, p2, color, thickness);
+        draw_list->AddLine(p1, p3, color, thickness);
+        draw_list->AddLine(p2, p4, color, thickness);
 
         ImGui::Unindent(indent <= 0 ? 7.f : indent);
     }
