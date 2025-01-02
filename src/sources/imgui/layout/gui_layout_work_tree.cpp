@@ -14,7 +14,7 @@ namespace ex::gui {
     constexpr float ctrl_width   = 60.f;
     constexpr float min_width    = 100.f;
 
-    void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected, const int n) {
+    void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected) {
         if (!node->is_group) {
             // Not a group just regular element
 
@@ -41,7 +41,7 @@ namespace ex::gui {
                 // Regular element but it has children
                 const auto next = node->children[0];
                 for (int i = 0; i < next->children_n; i++)
-                    show_tree_node(state, gui, next->children[i], selected, n + 1);
+                    show_tree_node(state, gui, next->children[i], selected);
                 ImGui::TreePop();
 
                 ImGui::Unindent();
@@ -93,7 +93,7 @@ namespace ex::gui {
 
                 if (node->children_n > 1) {
                     for (int i = 1; i < node->children_n; i++) {
-                        show_tree_node(state, gui, node->children[i], selected, n + 1);
+                        show_tree_node(state, gui, node->children[i], selected);
                     }
                 }
 
@@ -107,7 +107,7 @@ namespace ex::gui {
         // Group with children, where the first element _HAS_ its own children
         const ImVec2 outer_start = brackets_start();
         for (int i = 0; i < node->children_n; i++) {
-            show_tree_node(state, gui, node->children[i], selected, n + 1);
+            show_tree_node(state, gui, node->children[i], selected);
         }
         brackets_end(outer_start);
     }
@@ -135,7 +135,7 @@ namespace ex::gui {
 
             ImGui::Indent(10.f);
             for (int i = 0; i < state.work_tree->children_n; i++) {
-                show_tree_node(state, gui, state.work_tree->children[i], &selected_node, 1);
+                show_tree_node(state, gui, state.work_tree->children[i], &selected_node);
             }
             ImGui::Unindent(10.f);
 
