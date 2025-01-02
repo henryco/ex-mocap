@@ -103,8 +103,8 @@ namespace ex::gui {
 
             const ImVec2 inner_end = ImGui::GetCursorScreenPos();
 
-            const auto p1 = ImVec2(inner_start.x + 2.f, outer_start.y + 2.f);
-            const auto p2 = ImVec2(inner_start.x + 2.f, inner_end.y - 6.f);
+            const auto p1 = ImVec2(inner_start.x, outer_start.y + 2.f);
+            const auto p2 = ImVec2(inner_start.x, inner_end.y - 6.f);
 
             const auto p3 = ImVec2(p1.x + 5.f, p1.y);
             const auto p4 = ImVec2(p2.x + 5.f, p2.y);
