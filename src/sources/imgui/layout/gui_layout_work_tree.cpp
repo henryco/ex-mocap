@@ -78,6 +78,8 @@ namespace ex::gui {
         if (first->children_n <= 0) {
             // Group with children, where the first element _HAS NO_ its own children
 
+            ImGui::Indent(7.f);
+
             ImGui::PushID(first->id_local);
 
             const ImVec2 outer_start = ImGui::GetCursorScreenPos();
@@ -114,6 +116,8 @@ namespace ex::gui {
             draw_list->AddLine(p1, p3, IM_COL32(0, 0, 0, 255), 1.2f);
             draw_list->AddLine(p2, p4, IM_COL32(0, 0, 0, 255), 1.2f);
 
+
+            ImGui::Unindent(7.f);
             return;
         }
 
