@@ -20,7 +20,7 @@ namespace ex::gui {
         ImDrawList* draw_list = ImGui::GetForegroundDrawList();
     }
 
-    void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected, const int n = 0) {
+    void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected, const int n, const bool last) {
 
         if (!node->is_group) {
             // Not a group just regular element
@@ -45,7 +45,7 @@ namespace ex::gui {
                 // Regular element but it has children
                 const auto next = node->children[0];
                 for (int i = 0; i < next->children_n; i++)
-                    show_tree_node(state, gui, next->children[i], selected, n + 1);
+                    show_tree_node(state, gui, next->children[i], selected, n + 1, i == next->children_n - 1);
                 ImGui::TreePop();
 
                 brackets_end_half(pos);
@@ -96,7 +96,7 @@ namespace ex::gui {
 
                 if (node->children_n > 1) {
                     for (int i = 1; i < node->children_n; i++) {
-                        show_tree_node(state, gui, node->children[i], selected, n + 1);
+                        show_tree_node(state, gui, node->children[i], selected, n + 1, false);
                     }
                 }
 
@@ -110,7 +110,7 @@ namespace ex::gui {
         // Group with children, where the first element _HAS_ its own children
         const ImVec2 outer_start = brackets_start();
         for (int i = 0; i < node->children_n; i++) {
-            show_tree_node(state, gui, node->children[i], selected, n + 1);
+            show_tree_node(state, gui, node->children[i], selected, n + 1, i == node->children_n - 1);
         }
         brackets_end(outer_start);
     }
@@ -138,7 +138,7 @@ namespace ex::gui {
 
             ImGui::Indent();
             for (int i = 0; i < state.work_tree->children_n; i++) {
-                show_tree_node(state, gui, state.work_tree->children[i], &selected_node, 1);
+                show_tree_node(state, gui, state.work_tree->children[i], &selected_node, 1, i == state.work_tree->children_n - 1);
             }
             ImGui::Unindent();
 

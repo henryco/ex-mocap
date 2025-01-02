@@ -38,6 +38,8 @@ namespace ex::gui {
     void brackets_end(const ImVec2 &start, float indent = 0.f);
 
     void brackets_end_half(const ImVec2 &start, float indent = 0.f);
+
+    void draw_backward_arrow(const ImVec2 &start);
 }
 
 #endif // EX_MOTION_GUI_UTILS_H
