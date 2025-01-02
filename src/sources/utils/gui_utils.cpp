@@ -127,8 +127,8 @@ namespace ex::gui {
         const auto p1 = ImVec2(start.x, start.y + 2.f);
         const auto p2 = ImVec2(start.x, inner_end.y - 6.f);
 
-        const auto p3 = ImVec2(p1.x + 5.f, p1.y);
-        const auto p4 = ImVec2(p2.x + 5.f, p2.y);
+        const auto p3 = ImVec2(p1.x + 7.f, p1.y);
+        const auto p4 = ImVec2(p2.x + 7.f, p2.y);
 
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         draw_list->AddLine(p1, p2, color, thickness);
@@ -150,7 +150,7 @@ namespace ex::gui {
         const auto p1 = ImVec2(start.x - off, start.y + 2.f);
         const auto p2 = ImVec2(start.x - off, inner_end.y - 6.f);
 
-        const auto p4 = ImVec2(p2.x + 5.f, p2.y);
+        const auto p4 = ImVec2(p2.x + 7.f, p2.y);
 
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         draw_list->AddLine(p1, p2, color, thickness);
