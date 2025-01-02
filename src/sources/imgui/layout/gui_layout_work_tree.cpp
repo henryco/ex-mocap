@@ -2,9 +2,6 @@
 // Created by xd on 02/12/24.
 //
 
-#include <iostream>
-
-
 #include "../../../headers/imgui/gui_layout.h"
 
 namespace ex::gui {
@@ -13,12 +10,9 @@ namespace ex::gui {
     constexpr auto tree_arr_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
     constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
 
-    constexpr float ctrl_width  = 60.f;
-    constexpr float min_width  = 100.f;
-
-    void draw_brackets() {
-        ImDrawList* draw_list = ImGui::GetForegroundDrawList();
-    }
+    constexpr float tree_spacing = 20.f;
+    constexpr float ctrl_width   = 60.f;
+    constexpr float min_width    = 100.f;
 
     void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected, const int n, const bool last) {
 
@@ -121,12 +115,12 @@ namespace ex::gui {
 
         ImGui::BeginChild(
                 "WorkTreeContent",
-                ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - 20),
+                ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - tree_spacing),
                 0);
 
         if (ImGui::BeginTable("TableWorkTreeTable", 2, flags)) {
             const auto old_indent_spacing = ImGui::GetStyle().IndentSpacing;
-            ImGui::GetStyle().IndentSpacing = 20.0f;
+            ImGui::GetStyle().IndentSpacing = tree_spacing;
 
             const float fixed_width = ImGui::GetContentRegionAvail().x - ctrl_width - ImGui::GetStyle().ItemSpacing.x;
             const float items_width = std::max(min_width, fixed_width);
