@@ -139,4 +139,22 @@ namespace ex::gui {
         ImGui::Unindent(indent <= 0 ? 7.f : indent);
     }
 
+    void brackets_end_half(const ImVec2 &start, const float indent) {
+        const float off = indent <= 0 ? 13.f : indent;
+
+        constexpr auto color = IM_COL32(0, 0, 0, 120);
+        constexpr auto thickness = 1.2f;
+
+        const ImVec2 inner_end = ImGui::GetCursorScreenPos();
+
+        const auto p1 = ImVec2(start.x - off, start.y + 2.f);
+        const auto p2 = ImVec2(start.x - off, inner_end.y - 6.f);
+
+        const auto p4 = ImVec2(p2.x + 5.f, p2.y);
+
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        draw_list->AddLine(p1, p2, color, thickness);
+        draw_list->AddLine(p2, p4, color, thickness);
+    }
+
 } // namespace ex::gui

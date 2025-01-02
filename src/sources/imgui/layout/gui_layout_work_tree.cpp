@@ -33,6 +33,8 @@ namespace ex::gui {
             const auto c_flag = tree_node_flags | (*selected == node->id_local ? ImGuiTreeNodeFlags_Selected : 0);
             const bool open = ImGui::TreeNodeEx(node->name, c_flag | c_bullet);
 
+            const auto pos = ImGui::GetCursorScreenPos();
+
             if (ImGui::IsItemClicked())
                 *selected = node->id_local;
 
@@ -45,6 +47,8 @@ namespace ex::gui {
                 for (int i = 0; i < next->children_n; i++)
                     show_tree_node(state, gui, next->children[i], selected, n + 1);
                 ImGui::TreePop();
+
+                brackets_end_half(pos);
             }
 
             ImGui::PopID();
