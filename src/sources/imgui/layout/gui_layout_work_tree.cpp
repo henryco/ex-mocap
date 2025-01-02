@@ -29,10 +29,10 @@ namespace ex::gui {
             if (open && node->children_n > 0)
                 ImGui::Indent();
 
-            const auto pos = ImGui::GetCursorScreenPos();
-
             if (ImGui::IsItemClicked())
                 *selected = node->id_local;
+
+            const auto pos = ImGui::GetCursorScreenPos();
 
             ImGui::TableNextColumn();
             ImGui::TextDisabled("--");
