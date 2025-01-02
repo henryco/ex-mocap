@@ -78,46 +78,28 @@ namespace ex::gui {
         if (first->children_n <= 0) {
             // Group with children, where the first element _HAS NO_ its own children
 
-            ImGui::Indent(7.f);
+            const ImVec2 outer_start = brackets_start();
+            {
+                ImGui::PushID(first->id_local);
+                const auto c_flag = tree_node_flags | (*selected == first->id_local ? ImGuiTreeNodeFlags_Selected : 0);
+                ImGui::TreeNodeEx(first->name, c_flag | ImGuiTreeNodeFlags_DefaultOpen | tree_bull_flags);
 
-            ImGui::PushID(first->id_local);
+                if (ImGui::IsItemClicked())
+                    *selected = first->id_local;
 
-            const ImVec2 outer_start = ImGui::GetCursorScreenPos();
+                ImGui::TableNextColumn();
+                ImGui::TextDisabled("");
 
-            const auto c_flag = tree_node_flags | (*selected == first->id_local ? ImGuiTreeNodeFlags_Selected : 0);
-            ImGui::TreeNodeEx(first->name, c_flag | ImGuiTreeNodeFlags_DefaultOpen | tree_bull_flags);
-
-            const ImVec2 inner_start = ImGui::GetCursorScreenPos();
-
-            if (ImGui::IsItemClicked())
-                *selected = first->id_local;
-
-            ImGui::TableNextColumn();
-            ImGui::TextDisabled("");
-
-            if (node->children_n > 1) {
-                for (int i = 1; i < node->children_n; i++) {
-                    show_tree_node(state, gui, node->children[i], selected, n + 1);
+                if (node->children_n > 1) {
+                    for (int i = 1; i < node->children_n; i++) {
+                        show_tree_node(state, gui, node->children[i], selected, n + 1);
+                    }
                 }
+
+                ImGui::PopID();
             }
 
-            ImGui::PopID();
-
-            const ImVec2 inner_end = ImGui::GetCursorScreenPos();
-
-            const auto p1 = ImVec2(inner_start.x, outer_start.y + 2.f);
-            const auto p2 = ImVec2(inner_start.x, inner_end.y - 6.f);
-
-            const auto p3 = ImVec2(p1.x + 5.f, p1.y);
-            const auto p4 = ImVec2(p2.x + 5.f, p2.y);
-
-            ImDrawList* draw_list = ImGui::GetForegroundDrawList();
-            draw_list->AddLine(p1, p2, IM_COL32(0, 0, 0, 255), 1.2f);
-            draw_list->AddLine(p1, p3, IM_COL32(0, 0, 0, 255), 1.2f);
-            draw_list->AddLine(p2, p4, IM_COL32(0, 0, 0, 255), 1.2f);
-
-
-            ImGui::Unindent(7.f);
+            brackets_end(outer_start);
             return;
         }
 

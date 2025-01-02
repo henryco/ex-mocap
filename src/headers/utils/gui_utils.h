@@ -32,6 +32,10 @@ namespace ex::gui {
     bool toggle_button(const char *label, const bool &state);
 
     bool plain_tooltip(const char *label);
+
+    ImVec2 brackets_start(float indent = 0.f);
+
+    void brackets_end(const ImVec2 &start, float indent = 0.f);
 }
 
 #endif // EX_MOTION_GUI_UTILS_H
