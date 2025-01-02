@@ -113,7 +113,9 @@ namespace ex::gui {
 
     ImVec2 brackets_start(const float indent) {
         ImGui::Indent(indent <= 0 ? 7.f : indent);
-        return ImGui::GetCursorScreenPos();
+        const auto pos = ImGui::GetCursorScreenPos();
+        ImGui::Indent(14.f);
+        return pos;
     }
 
     void brackets_end(const ImVec2 &start, const float indent) {
@@ -133,6 +135,7 @@ namespace ex::gui {
         draw_list->AddLine(p1, p3, color, thickness);
         draw_list->AddLine(p2, p4, color, thickness);
 
+        ImGui::Unindent(14.f);
         ImGui::Unindent(indent <= 0 ? 7.f : indent);
     }
 
