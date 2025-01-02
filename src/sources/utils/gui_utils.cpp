@@ -120,6 +120,8 @@ namespace ex::gui {
 
     void brackets_end(const ImVec2 &start, const float indent) {
         constexpr auto color = IM_COL32(0, 0, 0, 120);
+        constexpr auto color_2 = IM_COL32(0, 0, 0, 150);
+
         constexpr auto thickness = 1.25f;
 
         const ImVec2 inner_end = ImGui::GetCursorScreenPos();
@@ -134,6 +136,18 @@ namespace ex::gui {
         draw_list->AddLine(p1, p2, color, thickness);
         draw_list->AddLine(p1, p3, color, thickness);
         draw_list->AddLine(p2, p4, color, thickness);
+
+        const auto p5 = ImVec2(p1.x - 4.f, p2.y - 0.f);
+        const auto p6 = ImVec2(p5.x - 6.f, p2.y - 0.f);
+        const auto p7 = ImVec2(p6.x, p6.y - 10.f);
+
+        draw_list->AddLine(p5, p6, color_2, thickness);
+        draw_list->AddLine(p6, p7, color_2, thickness);
+
+        const auto p0 = ImVec2(p7.x + 0.5, p7.y);
+        const auto p8 = ImVec2(p0.x - 3.f, p0.y + 3.f);
+        const auto p9 = ImVec2(p0.x + 3.f, p0.y + 3.f);
+        draw_list->AddTriangleFilled(p0, p8, p9, color_2);
 
         ImGui::Unindent(13.f);
         ImGui::Unindent(indent <= 0 ? 7.f : indent);
