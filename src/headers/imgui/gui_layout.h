@@ -8,6 +8,7 @@
 #include "../state.h"
 #include "../utils/gui_utils.h"
 #include "../utils/log_utils.h"
+#include "gui_state.h"
 
 #include <imgui_internal.h>
 
@@ -15,57 +16,6 @@
 #include <imgui.h>
 
 namespace ex::gui {
-
-    typedef struct Docking {
-        ImGuiID dock_left_id     = 0;
-        ImGuiID dock_left_top_id = 0;
-        ImGuiID dock_left_bot_id = 0;
-
-        ImGuiID dock_right_id = 0;
-    } Docking;
-
-    typedef struct View {
-        float pane_width_left     = 350.0f;
-        float pane_width_right    = 350.0f;
-        float pane_height_bottom  = 200.0f;
-        float pane_height_content = 0.f;
-
-        float main_width  = 0.f;
-        float main_height = 0.f;
-        float main_free_x = 0.f;
-        float main_free_y = 0.f;
-
-        bool show_right = true;
-        bool show_left  = true;
-        bool show_logs  = true;
-        bool show_menu  = true;
-
-        bool highlight_logs = true;
-        bool expanded_logs  = false;
-        bool follow_logs    = false;
-
-        bool reset   = false;
-        bool docking = false;
-
-        bool first_run = true;
-    } View;
-
-    typedef struct ReSize {
-        bool inc_x = false;
-        bool inc_y = false;
-    } ReSize;
-
-    typedef struct Window {
-        bool resized = false;
-        bool reset   = false;
-        bool exit    = false;
-    } Window;
-
-    typedef struct GuiState {
-        Docking docking;
-        Window  window;
-        View    view;
-    } GuiState;
 
     static constexpr float offset_main_h = 8.f;
     static constexpr float offset_main_v = 23.f;

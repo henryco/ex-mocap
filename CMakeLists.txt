@@ -108,6 +108,8 @@ set(HEADER_FILES
         src/headers/logic.h
         src/headers/state/mappers.h
         src/headers/components/image_protocol.h
+        src/headers/imgui/gui_mappers.h
+        src/headers/imgui/gui_state.h
 )
 
 set(SOURCE_FILES
