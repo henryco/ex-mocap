@@ -125,7 +125,7 @@ namespace ex::gui {
         const auto p3 = ImVec2(p1.x + 5.f, p1.y);
         const auto p4 = ImVec2(p2.x + 5.f, p2.y);
 
-        ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
         draw_list->AddLine(p1, p2, IM_COL32(0, 0, 0, 255), 1.2f);
         draw_list->AddLine(p1, p3, IM_COL32(0, 0, 0, 255), 1.2f);
         draw_list->AddLine(p2, p4, IM_COL32(0, 0, 0, 255), 1.2f);

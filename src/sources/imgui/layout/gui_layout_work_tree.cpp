@@ -8,7 +8,7 @@
 #include "../../../headers/imgui/gui_layout.h"
 
 namespace ex::gui {
-    constexpr auto flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV;
+    constexpr auto flags = ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV;
     constexpr auto tree_bull_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen;
     constexpr auto tree_arr_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
     constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
