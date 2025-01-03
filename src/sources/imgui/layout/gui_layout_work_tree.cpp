@@ -32,8 +32,13 @@ namespace ex::gui {
 
             const auto pos = ImGui::GetCursorScreenPos();
 
-            ImGui::TableNextColumn();
-            ImGui::TextDisabled("--");
+            if (ImGui::IsItemHovered()) {
+                ImGui::TableNextColumn();
+                ImGui::TextDisabled("");
+            } else {
+                ImGui::TableNextColumn();
+                ImGui::TextDisabled(node->children_n > 0 ? "++" : "-");
+            }
 
             if (open && node->children_n > 0) {
                 // Regular element but it has children
@@ -66,8 +71,13 @@ namespace ex::gui {
             if (ImGui::IsItemClicked())
                 *selected = node->id_local;
 
-            ImGui::TableNextColumn();
-            ImGui::TextDisabled("");
+            if (ImGui::IsItemHovered()) {
+                ImGui::TableNextColumn();
+                ImGui::TextDisabled("");
+            } else {
+                ImGui::TableNextColumn();
+                ImGui::TextDisabled("--");
+            }
 
             ImGui::PopID();
             return;
@@ -90,8 +100,13 @@ namespace ex::gui {
                 if (ImGui::IsItemClicked())
                     *selected = first->id_local;
 
-                ImGui::TableNextColumn();
-                ImGui::TextDisabled("");
+                if (ImGui::IsItemHovered()) {
+                    ImGui::TableNextColumn();
+                    ImGui::TextDisabled("");
+                } else {
+                    ImGui::TableNextColumn();
+                    ImGui::TextDisabled("~~");
+                }
 
                 if (node->children_n > 1) {
                     for (int i = 1; i < node->children_n; i++) {
