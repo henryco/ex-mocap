@@ -110,6 +110,7 @@ set(HEADER_FILES
         src/headers/components/image_protocol.h
         src/headers/imgui/gui_mappers.h
         src/headers/imgui/gui_state.h
+        src/headers/imgui/cmp/test_cmp.h
 )
 
 set(SOURCE_FILES
@@ -138,6 +139,7 @@ set(SOURCE_FILES
         src/sources/logic.cpp
         src/sources/state/mappers_camera.cpp
         src/sources/state.cpp
+        src/sources/imgui/cmp/test_cmp.cpp
 )
 
 # =================== OpenCL kernels generation =====================

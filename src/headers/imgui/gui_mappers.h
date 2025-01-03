@@ -9,7 +9,7 @@
 
 namespace ex::gui {
     struct GuiMapper {
-        bool (*draw_tree_node)(GuiState &gui, bool selected) = nullptr;
+        bool (*draw_tree_node)(GuiState &gui, const char *name, bool nested, bool selected) = nullptr;
     };
 }
 

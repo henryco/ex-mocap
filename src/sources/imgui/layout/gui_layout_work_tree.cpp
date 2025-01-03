@@ -7,7 +7,6 @@
 namespace ex::gui {
     constexpr auto flags = ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV;
     constexpr auto tree_bull_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-    constexpr auto tree_arr_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
     constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
 
     constexpr float tree_spacing = 20.f;
