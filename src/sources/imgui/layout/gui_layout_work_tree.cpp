@@ -135,7 +135,7 @@ namespace ex::gui {
 
         ImGui::BeginChild(
                 "WorkTreeContent",
-                ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - tree_spacing),
+                ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - 10),
                 0);
 
         if (ImGui::BeginTable("TableWorkTreeTable", 2, flags)) {
@@ -207,7 +207,6 @@ namespace ex::gui {
 
         ImGui::BeginChild("WorkTreeBox", ImVec2(0, 0), 0, ImGuiWindowFlags_NoDecoration);
         work_tree_content(state, gui);
-//        ImGui::Separator();
         ImGui::Spacing();
         ImGui::Spacing();
         work_tree_buttons(state, gui);

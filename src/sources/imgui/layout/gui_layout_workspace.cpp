@@ -44,7 +44,6 @@ namespace ex::gui {
 
         ImGui::BeginChild("WorkSpaceBox", ImVec2(0, 0), 0, ImGuiWindowFlags_NoDecoration);
         workspace_tree(state, gui);
-//        ImGui::Separator();
         ImGui::Spacing();
         ImGui::Spacing();
         workspace_buttons(state, gui);
