@@ -8,7 +8,7 @@ namespace ex::gui {
     constexpr auto flags = ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV;
 
     constexpr float tree_spacing = 20.f;
-    constexpr float ctrl_width   = 60.f;
+    constexpr float ctrl_width   = 40.f;
     constexpr float min_width    = 100.f;
 
     void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected, const bool last) {
@@ -37,7 +37,7 @@ namespace ex::gui {
                 ImGui::TextDisabled("");
             } else {
                 ImGui::TableNextColumn();
-                ImGui::TextDisabled(node->children_n > 0 ? ICON_LC_ARROW_DOWN_RIGHT : (last ? ICON_LC_ARROW_LEFT : ""));
+                ImGui::TextDisabled(node->children_n > 0 ? ICON_LC_ARROW_DOWN_RIGHT : "");
             }
 
             if (open && node->children_n > 0) {
