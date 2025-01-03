@@ -82,7 +82,7 @@ namespace ex::gui {
             const ImVec2 outer_start = brackets_start();
             {
                 ImGui::PushID(first->id_local);
-                node_mappers_.at(node->id_node).draw_tree_node(
+                node_mappers_.at(first->id_node).draw_tree_node(
                     gui, first->name,
                     false,
                     *selected == first->id_local);

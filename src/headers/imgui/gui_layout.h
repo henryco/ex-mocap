@@ -32,10 +32,10 @@ namespace ex::gui {
 
     static inline const std::map<type_id_, ex::gui::GuiMapper> node_mappers_ = {
         { 0, ex::gui::test::one::mapper },
-        { 1, ex::gui::test::two::mapper },
-        { 2, ex::gui::test::one::mapper },
-        { 3, ex::gui::test::two::mapper },
-        { 4, ex::gui::test::one::mapper },
+        { 1, ex::gui::test::tri::mapper },
+        { 2, ex::gui::test::two::mapper },
+        { 3, ex::gui::test::one::mapper },
+        { 4, ex::gui::test::tri::mapper },
         { 5, ex::gui::test::two::mapper },
         { 6, ex::gui::test::one::mapper },
     };

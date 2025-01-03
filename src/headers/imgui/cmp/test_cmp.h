@@ -19,6 +19,11 @@ namespace ex::gui::test {
         static constexpr GuiMapper mapper = { draw_tree_node };
     }
 
+    namespace tri {
+        bool draw_tree_node(GuiState &gui, const char *name, bool nested, bool selected);
+        static constexpr GuiMapper mapper = { draw_tree_node };
+    }
+
 }
 
 #endif //TEST_CMP_H
