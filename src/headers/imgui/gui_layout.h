@@ -14,8 +14,14 @@
 
 #include <IconsLucide.h>
 #include <imgui.h>
+#include <map>
+
+#include "cmp/test_cmp.h"
+#include "gui_mappers.h"
 
 namespace ex::gui {
+
+    using type_id_  = std::size_t;
 
     static constexpr float offset_main_h = 8.f;
     static constexpr float offset_main_v = 23.f;
@@ -23,6 +29,16 @@ namespace ex::gui {
 
     static void (*left_pane_menu)(State &state, GuiState &gui)  = nullptr;
     static void (*right_pane_menu)(State &state, GuiState &gui) = nullptr;
+
+    static inline const std::map<type_id_, ex::gui::GuiMapper> node_mappers_ = {
+        { 0, ex::gui::test::one::mapper },
+        { 1, ex::gui::test::two::mapper },
+        { 2, ex::gui::test::one::mapper },
+        { 3, ex::gui::test::two::mapper },
+        { 4, ex::gui::test::one::mapper },
+        { 5, ex::gui::test::two::mapper },
+        { 6, ex::gui::test::one::mapper },
+    };
 
     namespace layout {
         /**

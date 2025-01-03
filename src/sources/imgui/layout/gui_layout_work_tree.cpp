@@ -6,8 +6,6 @@
 
 namespace ex::gui {
     constexpr auto flags = ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV;
-    constexpr auto tree_bull_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-    constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
 
     constexpr float tree_spacing = 20.f;
     constexpr float ctrl_width   = 60.f;
@@ -19,11 +17,12 @@ namespace ex::gui {
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::PushID(node->id_local);
 
-            const auto c_bullet = node->children_n > 0 ? 0 : tree_bull_flags;
-            const auto c_flag = tree_node_flags | (*selected == node->id_local ? ImGuiTreeNodeFlags_Selected : 0);
-            const bool open = ImGui::TreeNodeEx(node->name, c_flag | c_bullet);
+            ImGui::PushID(node->id_local);
+            const bool open = node_mappers_.at(node->id_node).draw_tree_node(
+                gui, node->name,
+                node->children_n > 0,
+                *selected == node->id_local);
 
             if (open && node->children_n > 0)
                 ImGui::Indent();
@@ -59,8 +58,10 @@ namespace ex::gui {
             // Group but it has no children (an empty one)
 
             ImGui::PushID(node->id_local);
-            const auto c_flag = tree_node_flags | (*selected == node->id_local ? ImGuiTreeNodeFlags_Selected : 0);
-            ImGui::TreeNodeEx(node->name, c_flag);
+            node_mappers_.at(node->id_node).draw_tree_node(
+                gui, node->name,
+                false,
+                *selected == node->id_local);
 
             if (ImGui::IsItemClicked())
                 *selected = node->id_local;
@@ -81,8 +82,10 @@ namespace ex::gui {
             const ImVec2 outer_start = brackets_start();
             {
                 ImGui::PushID(first->id_local);
-                const auto c_flag = tree_node_flags | (*selected == first->id_local ? ImGuiTreeNodeFlags_Selected : 0);
-                ImGui::TreeNodeEx(first->name, c_flag | ImGuiTreeNodeFlags_DefaultOpen | tree_bull_flags);
+                node_mappers_.at(node->id_node).draw_tree_node(
+                    gui, first->name,
+                    false,
+                    *selected == first->id_local);
 
                 if (ImGui::IsItemClicked())
                     *selected = first->id_local;
