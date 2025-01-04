@@ -5,6 +5,8 @@
 #ifndef GUI_STATE_H
 #define GUI_STATE_H
 
+#include "../state.h"
+
 namespace ex::gui {
     typedef struct Docking {
         unsigned int dock_left_id     = 0;

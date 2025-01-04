@@ -24,6 +24,11 @@ namespace ex::gui::test::one {
         if (!nested) ImGui::Indent();
         return open;
     }
+
+    bool draw_node_window(GuiState &gui, ex::State &state, TreeNode *node) {
+
+        return false;
+    }
 }
 
 namespace ex::gui::test::two {
@@ -41,6 +46,11 @@ namespace ex::gui::test::two {
         if (!nested) ImGui::Indent();
         return open;
     }
+
+    bool draw_node_window(GuiState &gui, ex::State &state, TreeNode *node) {
+
+        return false;
+    }
 }
 
 namespace ex::gui::test::tri {
@@ -51,5 +61,10 @@ namespace ex::gui::test::tri {
         const auto c_flag = tree_node_flags | (selected ? ImGuiTreeNodeFlags_Selected : 0);
         const auto c_bullet = nested ? 0 : tree_bull_flags;
         return ImGui::TreeNodeEx(name, c_flag | c_bullet);
+    }
+
+    bool draw_node_window(GuiState &gui, ex::State &state, TreeNode *node) {
+
+        return false;
     }
 }
