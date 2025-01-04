@@ -6,28 +6,6 @@
 
 namespace ex::gui {
 
-    void show_floating_window(ex::State &state, GuiState &gui) {
-
-        static bool docked = false;
-        static bool show = true;
-
-        if (!show)
-            return;
-
-        static bool *watch = nullptr;
-        if (watch != nullptr && !(*watch))
-            return;
-
-        bool *ptr = (!docked || gui.view.docking) ? &show : nullptr;
-
-        ex::gui::next_no_close();
-        ImGui::Begin("My Window3", ptr, reset_flag(gui, true) | ImGuiWindowFlags_NoCollapse);
-        docked = ex::gui::window_is_docked();
-        watch = watch_parent_dock(gui);
-        ImGui::Text("This window 3: %d | %d", docked, gui.view.docking);
-        ImGui::End();
-    }
-
     bool is_window_resized() {
         static ImVec2 iwr_last_size = {};
         const auto current_size = ImGui::GetContentRegionAvail();
@@ -87,7 +65,7 @@ namespace ex::gui {
 
             show_work_tree(state, gui);
             show_workspace_switcher(state, gui);
-//            show_floating_window(state, gui);
+            show_work_window(state, gui);
 
 //            ImGui::ShowMetricsWindow();
         }

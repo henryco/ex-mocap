@@ -119,5 +119,7 @@ namespace ex::gui {
 
     void show_main_container(ex::State &state, ReSize &re_size, GuiState &gui);
 
+    void show_work_window(ex::State &state, GuiState &gui);
+
 }
 #endif // EX_MOTION_GUI_LAYOUT_H
