@@ -12,7 +12,7 @@ namespace ex::gui {
             return;
 
         const auto n_type = state.active_node->id_node;
-        if (node_mappers_.contains(n_type)) {
+        if (!node_mappers_.contains(n_type)) {
             return;
         }
 
