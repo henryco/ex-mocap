@@ -12,7 +12,6 @@
 
 #include <imgui_internal.h>
 
-#include <IconsLucide.h>
 #include <imgui.h>
 #include <map>
 

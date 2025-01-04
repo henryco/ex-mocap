@@ -5,6 +5,7 @@
 #include "../../headers/imgui/gui.h"
 #include "../../headers/imgui/gui_layout.h"
 
+#include <IconsLucide.h>
 #include <IconsLucide.h_lucide.ttf.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>

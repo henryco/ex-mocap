@@ -3,6 +3,7 @@
 //
 
 #include "../../../headers/imgui/gui_layout.h"
+#include <IconsLucide.h>
 
 namespace ex::gui {
     constexpr auto flags = ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV;
