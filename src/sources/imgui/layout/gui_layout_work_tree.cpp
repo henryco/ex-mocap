@@ -12,7 +12,7 @@ namespace ex::gui {
     constexpr float ctrl_width   = 40.f;
     constexpr float min_width    = 100.f;
 
-    void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected, const bool last) {
+    void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected, TreeNode **active) {
         if (!node->is_group) {
             // Not a group just regular element
 
@@ -28,8 +28,10 @@ namespace ex::gui {
             if (open && node->children_n > 0)
                 ImGui::Indent();
 
-            if (ImGui::IsItemClicked())
+            if (ImGui::IsItemClicked()) {
                 *selected = node->id_local;
+                *active = node;
+            }
 
             const auto pos = ImGui::GetCursorScreenPos();
 
@@ -45,7 +47,7 @@ namespace ex::gui {
                 // Regular element but it has children
                 const auto next = node->children[0];
                 for (int i = 0; i < next->children_n; i++)
-                    show_tree_node(state, gui, next->children[i], selected, i == next->children_n - 1);
+                    show_tree_node(state, gui, next->children[i], selected, active);
                 ImGui::TreePop();
 
                 ImGui::Unindent();
@@ -69,8 +71,10 @@ namespace ex::gui {
                 false,
                 *selected == node->id_local);
 
-            if (ImGui::IsItemClicked())
+            if (ImGui::IsItemClicked()) {
                 *selected = node->id_local;
+                *active = node;
+            }
 
             if (ImGui::IsItemHovered()) {
                 ImGui::TableNextColumn();
@@ -98,8 +102,10 @@ namespace ex::gui {
                     false,
                     *selected == first->id_local);
 
-                if (ImGui::IsItemClicked())
+                if (ImGui::IsItemClicked()) {
                     *selected = first->id_local;
+                    *active = first;
+                }
 
                 if (ImGui::IsItemHovered()) {
                     ImGui::TableNextColumn();
@@ -111,7 +117,7 @@ namespace ex::gui {
 
                 if (node->children_n > 1) {
                     for (int i = 1; i < node->children_n; i++) {
-                        show_tree_node(state, gui, node->children[i], selected, i == node->children_n - 1);
+                        show_tree_node(state, gui, node->children[i], selected, active);
                     }
                 }
 
@@ -125,7 +131,7 @@ namespace ex::gui {
         // Group with children, where the first element _HAS_ its own children
         const ImVec2 outer_start = brackets_start();
         for (int i = 0; i < node->children_n; i++) {
-            show_tree_node(state, gui, node->children[i], selected, i == node->children_n - 1);
+            show_tree_node(state, gui, node->children[i], selected, active);
         }
         brackets_end(outer_start);
     }
@@ -150,15 +156,18 @@ namespace ex::gui {
             ImGui::TableSetupColumn("Controls", ImGuiTableColumnFlags_WidthFixed, ctrl_width);
 
             static std::size_t selected_node = -1;
+            TreeNode *active_node = nullptr;
 
             ImGui::Indent(10.f);
             for (int i = 0; i < state.work_tree->children_n; i++) {
-                show_tree_node(state, gui, state.work_tree->children[i], &selected_node, i == state.work_tree->children_n - 1);
+                show_tree_node(state, gui, state.work_tree->children[i], &selected_node, &active_node);
             }
             ImGui::Unindent(10.f);
 
             ImGui::GetStyle().IndentSpacing = old_indent_spacing;
             ImGui::EndTable();
+
+            state.active_node = active_node;
         }
 
         ImGui::EndChild();

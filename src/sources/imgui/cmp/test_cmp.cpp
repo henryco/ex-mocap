@@ -3,11 +3,28 @@
 //
 
 #include "../../../headers/imgui/cmp/test_cmp.h"
+#include "../../../headers/utils/gui_utils.h"
 
 #include <IconsLucide.h>
 #include <string>
 
 #include "imgui.h"
+
+namespace ex::gui::test {
+    inline int reset_flag_(GuiState &gui, const bool standalone = false) {
+        return gui.view.reset ? (ImGuiWindowFlags_NoSavedSettings
+                                 | (standalone ? ImGuiWindowFlags_AlwaysAutoResize : 0))
+                              : 0;
+    }
+
+    inline bool *watch_parent_dock_(GuiState &gui) {
+        if (ex::gui::window_withing_dock(gui.docking.dock_left_id))
+            return &gui.view.show_left;
+        if (ex::gui::window_withing_dock(gui.docking.dock_right_id))
+            return &gui.view.show_right;
+        return nullptr;
+    }
+}
 
 namespace ex::gui::test::one {
     constexpr auto tree_bull_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
@@ -26,8 +43,26 @@ namespace ex::gui::test::one {
     }
 
     bool draw_node_window(GuiState &gui, ex::State &state, TreeNode *node) {
+        static bool docked = false;
+        static bool show = true;
 
-        return false;
+        if (!show) {
+            return false;
+        }
+
+        static bool *watch = nullptr;
+        if (watch != nullptr && !(*watch))
+            return false;
+
+        bool *ptr = (!docked || gui.view.docking) ? &show : nullptr;
+
+        ImGui::Begin(node->name, ptr, reset_flag_(gui, true) | ImGuiWindowFlags_NoCollapse);
+        docked = ex::gui::window_is_docked();
+        watch = watch_parent_dock_(gui);
+        ImGui::Text("This window: %d | %d", docked, gui.view.docking);
+        ImGui::End();
+
+        return show;
     }
 }
 
@@ -48,8 +83,26 @@ namespace ex::gui::test::two {
     }
 
     bool draw_node_window(GuiState &gui, ex::State &state, TreeNode *node) {
+        static bool docked = false;
+        static bool show = true;
 
-        return false;
+        if (!show) {
+            return false;
+        }
+
+        static bool *watch = nullptr;
+        if (watch != nullptr && !(*watch))
+            return false;
+
+        bool *ptr = (!docked || gui.view.docking) ? &show : nullptr;
+
+        ImGui::Begin(node->name, ptr, reset_flag_(gui, true) | ImGuiWindowFlags_NoCollapse);
+        docked = ex::gui::window_is_docked();
+        watch = watch_parent_dock_(gui);
+        ImGui::Text("This window: %d | %d", docked, gui.view.docking);
+        ImGui::End();
+
+        return show;
     }
 }
 
@@ -64,7 +117,25 @@ namespace ex::gui::test::tri {
     }
 
     bool draw_node_window(GuiState &gui, ex::State &state, TreeNode *node) {
+        static bool docked = false;
+        static bool show = true;
 
-        return false;
+        if (!show) {
+            return false;
+        }
+
+        static bool *watch = nullptr;
+        if (watch != nullptr && !(*watch))
+            return false;
+
+        bool *ptr = (!docked || gui.view.docking) ? &show : nullptr;
+
+        ImGui::Begin(node->name, ptr, reset_flag_(gui, true) | ImGuiWindowFlags_NoCollapse);
+        docked = ex::gui::window_is_docked();
+        watch = watch_parent_dock_(gui);
+        ImGui::Text("This window: %d | %d", docked, gui.view.docking);
+        ImGui::End();
+
+        return show;
     }
 }
