@@ -42,7 +42,7 @@ namespace ex::gui::test::one {
         return open;
     }
 
-    bool draw_node_window(GuiState &gui, ex::State &state, TreeNode *node) {
+    bool draw_node_window(GuiState &gui, ex::State &state, TreeNode *node, bool first_time) {
         static bool docked = false;
         static bool show = true;
 
@@ -55,6 +55,9 @@ namespace ex::gui::test::one {
             return false;
 
         bool *ptr = (!docked || gui.view.docking) ? &show : nullptr;
+
+        ex::gui::next_no_close();
+        ImGui::SetNextWindowDockID(gui.docking.dock_right_id, (gui.view.reset || first_time) ? ImGuiCond_Always : ImGuiCond_Once);
 
         ImGui::Begin(node->name, ptr, reset_flag_(gui, true) | ImGuiWindowFlags_NoCollapse);
         docked = ex::gui::window_is_docked();
@@ -82,7 +85,7 @@ namespace ex::gui::test::two {
         return open;
     }
 
-    bool draw_node_window(GuiState &gui, ex::State &state, TreeNode *node) {
+    bool draw_node_window(GuiState &gui, ex::State &state, TreeNode *node, bool first_time) {
         static bool docked = false;
         static bool show = true;
 
@@ -95,6 +98,9 @@ namespace ex::gui::test::two {
             return false;
 
         bool *ptr = (!docked || gui.view.docking) ? &show : nullptr;
+
+        ex::gui::next_no_close();
+        ImGui::SetNextWindowDockID(gui.docking.dock_right_id, (gui.view.reset || first_time) ? ImGuiCond_Always : ImGuiCond_Once);
 
         ImGui::Begin(node->name, ptr, reset_flag_(gui, true) | ImGuiWindowFlags_NoCollapse);
         docked = ex::gui::window_is_docked();
@@ -116,7 +122,7 @@ namespace ex::gui::test::tri {
         return ImGui::TreeNodeEx(name, c_flag | c_bullet);
     }
 
-    bool draw_node_window(GuiState &gui, ex::State &state, TreeNode *node) {
+    bool draw_node_window(GuiState &gui, ex::State &state, TreeNode *node, bool first_time) {
         static bool docked = false;
         static bool show = true;
 
@@ -129,6 +135,9 @@ namespace ex::gui::test::tri {
             return false;
 
         bool *ptr = (!docked || gui.view.docking) ? &show : nullptr;
+
+        ex::gui::next_no_close();
+        ImGui::SetNextWindowDockID(gui.docking.dock_right_id, (gui.view.reset || first_time) ? ImGuiCond_Always : ImGuiCond_Once);
 
         ImGui::Begin(node->name, ptr, reset_flag_(gui, true) | ImGuiWindowFlags_NoCollapse);
         docked = ex::gui::window_is_docked();

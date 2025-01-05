@@ -16,13 +16,14 @@ namespace ex::gui {
             return;
         }
 
-        ex::gui::next_no_close();
-        ImGui::SetNextWindowDockID(gui.docking.dock_right_id, (gui.view.reset || !prev_show) ? ImGuiCond_Always : ImGuiCond_Once);
-
-        const auto show = node_mappers_.at(n_type).draw_node_window(gui, state, state.active_node);
-        if (!show)
-            state.active_node = nullptr;
-        prev_show = show;
+        ImGui::PushID(state.active_node->id_local);
+        {
+            const auto show = node_mappers_.at(n_type).draw_node_window(gui, state, state.active_node, !prev_show);
+            if (!show)
+                state.active_node = nullptr;
+            prev_show = show;
+        }
+        ImGui::PopID();
     }
 
 }
