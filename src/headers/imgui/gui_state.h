@@ -16,7 +16,7 @@ namespace ex::gui {
         bool       *visible = nullptr;
 
         bool docked  = false;
-        bool show    = false;
+        bool show    = true;
     };
 
     struct Docking {
