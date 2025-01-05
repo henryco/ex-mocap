@@ -166,7 +166,14 @@ namespace ex::gui {
             ImGui::Unindent(10.f);
 
             if (active_node != nullptr) {
+                if (gui.active_node != nullptr && gui.active_node->node != active_node) {
+                    delete gui.active_node;
+                    gui.active_node = new NodeWindow{ .node = active_node };
+                }
 
+                if (gui.active_node == nullptr) {
+                    gui.active_node = new NodeWindow{ .node = active_node };
+                }
             }
 
             ImGui::GetStyle().IndentSpacing = old_indent_spacing;
