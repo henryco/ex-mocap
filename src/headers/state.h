@@ -13,7 +13,6 @@ namespace ex {
     struct TreeNode {
         void       *data       = nullptr;
         const char *name       = nullptr;
-        const char *uuid       = nullptr;
         TreeNode   *parent     = nullptr;
         TreeNode  **children   = nullptr;
 
@@ -31,8 +30,6 @@ namespace ex {
         ~TreeNode();
 
         void add_node(TreeNode *node);
-
-        void gen_uuid();
     };
 
     struct State {
@@ -43,8 +40,6 @@ namespace ex {
         cl_device_id ocl_device   = nullptr;
         short        clock_freq   = -1;
         bool         gl_sharing   = false;
-
-        TreeNode    *active_node  = nullptr;
     };
 
     namespace state {

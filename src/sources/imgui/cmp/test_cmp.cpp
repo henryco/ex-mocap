@@ -42,33 +42,28 @@ namespace ex::gui::test::one {
         return open;
     }
 
-    bool draw_node_window(GuiState &gui, ex::State &state, TreeNode *node, bool first_time) {
-        static bool docked = false;
-        static bool show = true;
-
-        if (!show) {
-            return false;
-        }
-
-        static bool *watch = nullptr;
-        if (watch != nullptr && !(*watch))
+    bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *node, const bool first_time) {
+        if (!node->show)
             return false;
 
-        bool *ptr = (!docked || gui.view.docking) ? &show : nullptr;
+        if (node->visible != nullptr && !(*node->visible))
+            return false;
+
+        bool *ptr = (!node->docked || gui.view.docking) ? &node->show : nullptr;
 
         ex::gui::next_no_close();
         ImGui::SetNextWindowDockID(gui.docking.dock_right_id, (gui.view.reset || first_time) ? ImGuiCond_Always : ImGuiCond_Once);
 
         if (node->uuid == nullptr)
-            node->gen_uuid();
+            gen_uuid(node);
 
         ImGui::Begin(node->uuid, ptr, reset_flag_(gui, true) | ImGuiWindowFlags_NoCollapse);
-        docked = ex::gui::window_is_docked();
-        watch = watch_parent_dock_(gui);
-        ImGui::Text("This window: %d | %d", docked, gui.view.docking);
+        node->docked = ex::gui::window_is_docked();
+        node->visible = watch_parent_dock_(gui);
+        ImGui::Text("This window: %d | %d", node->docked, gui.view.docking);
         ImGui::End();
 
-        return show;
+        return node->show;
     }
 }
 
@@ -88,33 +83,28 @@ namespace ex::gui::test::two {
         return open;
     }
 
-    bool draw_node_window(GuiState &gui, ex::State &state, TreeNode *node, bool first_time) {
-        static bool docked = false;
-        static bool show = true;
-
-        if (!show) {
-            return false;
-        }
-
-        static bool *watch = nullptr;
-        if (watch != nullptr && !(*watch))
+    bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *node, const bool first_time) {
+        if (!node->show)
             return false;
 
-        bool *ptr = (!docked || gui.view.docking) ? &show : nullptr;
+        if (node->visible != nullptr && !(*node->visible))
+            return false;
+
+        bool *ptr = (!node->docked || gui.view.docking) ? &node->show : nullptr;
 
         ex::gui::next_no_close();
         ImGui::SetNextWindowDockID(gui.docking.dock_right_id, (gui.view.reset || first_time) ? ImGuiCond_Always : ImGuiCond_Once);
 
         if (node->uuid == nullptr)
-            node->gen_uuid();
+            gen_uuid(node);
 
         ImGui::Begin(node->uuid, ptr, reset_flag_(gui, true) | ImGuiWindowFlags_NoCollapse);
-        docked = ex::gui::window_is_docked();
-        watch = watch_parent_dock_(gui);
-        ImGui::Text("This window: %d | %d", docked, gui.view.docking);
+        node->docked = ex::gui::window_is_docked();
+        node->visible = watch_parent_dock_(gui);
+        ImGui::Text("This window: %d | %d", node->docked, gui.view.docking);
         ImGui::End();
 
-        return show;
+        return node->show;
     }
 }
 
@@ -128,32 +118,27 @@ namespace ex::gui::test::tri {
         return ImGui::TreeNodeEx(name, c_flag | c_bullet);
     }
 
-    bool draw_node_window(GuiState &gui, ex::State &state, TreeNode *node, bool first_time) {
-        static bool docked = false;
-        static bool show = true;
-
-        if (!show) {
-            return false;
-        }
-
-        static bool *watch = nullptr;
-        if (watch != nullptr && !(*watch))
+    bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *node, const bool first_time) {
+        if (!node->show)
             return false;
 
-        bool *ptr = (!docked || gui.view.docking) ? &show : nullptr;
+        if (node->visible != nullptr && !(*node->visible))
+            return false;
+
+        bool *ptr = (!node->docked || gui.view.docking) ? &node->show : nullptr;
 
         ex::gui::next_no_close();
         ImGui::SetNextWindowDockID(gui.docking.dock_right_id, (gui.view.reset || first_time) ? ImGuiCond_Always : ImGuiCond_Once);
 
         if (node->uuid == nullptr)
-            node->gen_uuid();
+            gen_uuid(node);
 
         ImGui::Begin(node->uuid, ptr, reset_flag_(gui, true) | ImGuiWindowFlags_NoCollapse);
-        docked = ex::gui::window_is_docked();
-        watch = watch_parent_dock_(gui);
-        ImGui::Text("This window: %d | %d", docked, gui.view.docking);
+        node->docked = ex::gui::window_is_docked();
+        node->visible = watch_parent_dock_(gui);
+        ImGui::Text("This window: %d | %d", node->docked, gui.view.docking);
         ImGui::End();
 
-        return show;
+        return node->show;
     }
 }

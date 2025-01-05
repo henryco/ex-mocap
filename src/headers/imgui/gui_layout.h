@@ -30,8 +30,6 @@ namespace ex::gui {
     static void (*left_pane_menu)(State &state, GuiState &gui)  = nullptr;
     static void (*right_pane_menu)(State &state, GuiState &gui) = nullptr;
 
-    static inline std::map<local_id_, TreeNode *> tree_node_map_ = {};
-
     static inline const std::map<type_id_, ex::gui::GuiMapper> node_mappers_ = {
         { 0, ex::gui::test::one::mapper },
         { 1, ex::gui::test::tri::mapper },

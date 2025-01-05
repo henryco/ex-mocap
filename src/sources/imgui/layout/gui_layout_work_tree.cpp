@@ -157,11 +157,17 @@ namespace ex::gui {
 
             static std::size_t selected_node = -1;
 
+            TreeNode *active_node = nullptr;
+
             ImGui::Indent(10.f);
             for (int i = 0; i < state.work_tree->children_n; i++) {
-                show_tree_node(state, gui, state.work_tree->children[i], &selected_node, &state.active_node);
+                show_tree_node(state, gui, state.work_tree->children[i], &selected_node, &active_node);
             }
             ImGui::Unindent(10.f);
+
+            if (active_node != nullptr) {
+
+            }
 
             ImGui::GetStyle().IndentSpacing = old_indent_spacing;
             ImGui::EndTable();
