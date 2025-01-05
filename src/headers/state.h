@@ -13,6 +13,7 @@ namespace ex {
     struct TreeNode {
         void       *data       = nullptr;
         const char *name       = nullptr;
+        const char *uuid       = nullptr;
         TreeNode   *parent     = nullptr;
         TreeNode  **children   = nullptr;
 
@@ -31,6 +32,7 @@ namespace ex {
 
         void add_node(TreeNode *node);
 
+        void gen_uuid();
     };
 
     struct State {
