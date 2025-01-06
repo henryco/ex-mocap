@@ -30,7 +30,6 @@ namespace ex::gui {
     void show_work_window(ex::State &state, GuiState &gui) {
         static std::map<std::size_t, NodeWindow<TreeNode> *> pinned_windows;
         static NodeWindow<TreeNode> *active_window = nullptr;
-        static bool prev_show = false;
 
         if (state.active_node == nullptr || state.active_node->deleted)
             return;
@@ -45,8 +44,7 @@ namespace ex::gui {
         if (active_window == nullptr)
             return;
 
-        const auto show = node_mappers_.at(n_type).draw_node_window(gui, state, active_window, !prev_show);
-        prev_show = show;
+        const auto show = node_mappers_.at(n_type).draw_node_window(gui, state, active_window);
         if (!show) {
             delete active_window;
             state.active_node = nullptr;
@@ -55,7 +53,7 @@ namespace ex::gui {
             active_window->pinned |= !active_window->docked;
             // TODO implement different logic (but for now its good enough)
         }
-//
+
 //        if (active_window->pinned && !pinned_windows.contains(active_window->node->id_local)) {
 //            pinned_windows.emplace(active_window->node->id_local, active_window);
 //        }
