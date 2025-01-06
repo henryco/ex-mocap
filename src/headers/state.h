@@ -36,12 +36,11 @@ namespace ex {
         const char  *project_path = nullptr;
         GLFWwindow  *window       = nullptr;
         TreeNode    *work_tree    = nullptr;
+        TreeNode    *active_node  = nullptr;
         cl_context   ocl_context  = nullptr;
         cl_device_id ocl_device   = nullptr;
         short        clock_freq   = -1;
         bool         gl_sharing   = false;
-
-        TreeNode *active_node = nullptr;
     };
 
     namespace state {
