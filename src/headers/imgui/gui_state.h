@@ -5,19 +5,7 @@
 #ifndef GUI_STATE_H
 #define GUI_STATE_H
 
-#include "../state.h"
-
 namespace ex::gui {
-
-    template <typename NODE_>
-    struct NodeWindow {
-        const char *uuid    = nullptr;
-        NODE_      *node    = nullptr;
-        bool       *visible = nullptr;
-
-        bool docked  = false;
-        bool show    = true;
-    };
 
     struct Docking {
         unsigned int dock_left_id     = 0;
@@ -68,8 +56,6 @@ namespace ex::gui {
         Docking docking;
         Window  window;
         View    view;
-
-        NodeWindow<TreeNode> *active_node = nullptr;
     };
 }
 

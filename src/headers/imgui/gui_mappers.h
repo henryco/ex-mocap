@@ -14,6 +14,16 @@
 
 namespace ex::gui {
 
+    template <typename NODE_>
+    struct NodeWindow {
+        const char *uuid    = nullptr;
+        NODE_      *node    = nullptr;
+        bool       *visible = nullptr;
+
+        bool docked  = false;
+        bool show    = true;
+    };
+
     inline void gen_uuid(NodeWindow<TreeNode> *window) {
         const auto s_uuid =
                 std::string(std::string(window->node->name) + "##" + std::to_string(window->node->id_local) + "/" +

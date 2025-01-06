@@ -166,13 +166,12 @@ namespace ex::gui {
             ImGui::Unindent(10.f);
 
             if (active_node != nullptr) {
-                if (gui.active_node != nullptr && gui.active_node->node != active_node) {
-                    delete gui.active_node;
-                    gui.active_node = new NodeWindow{ .node = active_node };
+                if (state.active_node != nullptr && state.active_node != active_node) {
+                    state.active_node = active_node;
                 }
 
-                if (gui.active_node == nullptr) {
-                    gui.active_node = new NodeWindow{ .node = active_node };
+                if (state.active_node == nullptr) {
+                    state.active_node = active_node;
                 }
             }
 
