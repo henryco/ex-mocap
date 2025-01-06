@@ -43,13 +43,11 @@ namespace ex::gui::test::one {
     }
 
     bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *node, const bool first_time) {
-        if (!node->show)
-            return false;
-
         if (node->visible != nullptr && !(*node->visible))
             return false;
 
-        bool *ptr = (!node->docked || gui.view.docking) ? &node->show : nullptr;
+        bool show = true;
+        bool *ptr = (!node->docked || gui.view.docking) ? &show : nullptr;
 
         ex::gui::next_no_close();
         ImGui::SetNextWindowDockID(gui.docking.dock_right_id, (gui.view.reset || first_time) ? ImGuiCond_Always : ImGuiCond_Once);
@@ -60,7 +58,7 @@ namespace ex::gui::test::one {
         ImGui::Text("This window: %d | %d", node->docked, gui.view.docking);
         ImGui::End();
 
-        return node->show;
+        return show;
     }
 }
 
@@ -81,13 +79,11 @@ namespace ex::gui::test::two {
     }
 
     bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *node, const bool first_time) {
-        if (!node->show)
-            return false;
-
         if (node->visible != nullptr && !(*node->visible))
             return false;
 
-        bool *ptr = (!node->docked || gui.view.docking) ? &node->show : nullptr;
+        bool show = true;
+        bool *ptr = (!node->docked || gui.view.docking) ? &show : nullptr;
 
         ex::gui::next_no_close();
         ImGui::SetNextWindowDockID(gui.docking.dock_right_id, (gui.view.reset || first_time) ? ImGuiCond_Always : ImGuiCond_Once);
@@ -98,7 +94,7 @@ namespace ex::gui::test::two {
         ImGui::Text("This window: %d | %d", node->docked, gui.view.docking);
         ImGui::End();
 
-        return node->show;
+        return show;
     }
 }
 
@@ -113,13 +109,11 @@ namespace ex::gui::test::tri {
     }
 
     bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *node, const bool first_time) {
-        if (!node->show)
-            return false;
-
         if (node->visible != nullptr && !(*node->visible))
             return false;
 
-        bool *ptr = (!node->docked || gui.view.docking) ? &node->show : nullptr;
+        bool show = true;
+        bool *ptr = (!node->docked || gui.view.docking) ? &show : nullptr;
 
         ex::gui::next_no_close();
         ImGui::SetNextWindowDockID(gui.docking.dock_right_id, (gui.view.reset || first_time) ? ImGuiCond_Always : ImGuiCond_Once);
@@ -130,6 +124,6 @@ namespace ex::gui::test::tri {
         ImGui::Text("This window: %d | %d", node->docked, gui.view.docking);
         ImGui::End();
 
-        return node->show;
+        return show;
     }
 }

@@ -20,8 +20,8 @@ namespace ex::gui {
         NODE_      *node    = nullptr;
         bool       *visible = nullptr;
 
-        bool docked  = false;
-        bool show    = true;
+        bool docked = false;
+        bool pinned = false;
     };
 
     inline void gen_uuid(NodeWindow<TreeNode> *window) {
