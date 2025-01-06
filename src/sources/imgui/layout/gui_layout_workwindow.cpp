@@ -50,6 +50,21 @@ namespace ex::gui {
     void show_work_window(ex::State &state, GuiState &gui) {
         update_active_window(state.active_node);
 
+        for (auto it = pinned_windows__.begin(); it != pinned_windows__.end();) {
+            const auto window = it->second;
+            if (window != nullptr && window->node == active_window__->node) {
+                ++it;
+                continue;
+            }
+            if (!render_window(state, gui, window)) {
+                if (window != nullptr)
+                    delete window;
+                it = pinned_windows__.erase(it);
+            } else {
+                ++it;
+            }
+        }
+
         if (!render_window(state, gui, active_window__)) {
             if (active_window__ != nullptr) {
                 if (active_window__->node != nullptr)
@@ -62,17 +77,6 @@ namespace ex::gui {
             active_window__->pinned |= !active_window__->docked;
             if (active_window__->pinned && !pinned_windows__.contains(active_window__->node->id_local)) {
                 pinned_windows__.emplace(active_window__->node->id_local, active_window__);
-            }
-        }
-
-        for (auto it = pinned_windows__.begin(); it != pinned_windows__.end();) {
-            auto window = it->second;
-            if (window != active_window__ && !render_window(state, gui, window)) {
-                if (window != nullptr)
-                    delete window;
-                it = pinned_windows__.erase(it);
-            } else {
-                ++it;
             }
         }
     }
