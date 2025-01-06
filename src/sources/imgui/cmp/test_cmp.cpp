@@ -47,7 +47,7 @@ namespace ex::gui::test::one {
             return false;
 
         bool show = true;
-        bool *ptr = (!node->docked || gui.view.docking) ? &show : nullptr;
+        bool *ptr = (node->pinned || !node->docked || gui.view.docking) ? &show : nullptr;
 
         ex::gui::next_no_close();
         ImGui::SetNextWindowDockID(gui.docking.dock_right_id, (gui.view.reset || first_time) ? ImGuiCond_Always : ImGuiCond_Once);
@@ -83,7 +83,7 @@ namespace ex::gui::test::two {
             return false;
 
         bool show = true;
-        bool *ptr = (!node->docked || gui.view.docking) ? &show : nullptr;
+        bool *ptr = (node->pinned || !node->docked || gui.view.docking) ? &show : nullptr;
 
         ex::gui::next_no_close();
         ImGui::SetNextWindowDockID(gui.docking.dock_right_id, (gui.view.reset || first_time) ? ImGuiCond_Always : ImGuiCond_Once);
@@ -113,7 +113,7 @@ namespace ex::gui::test::tri {
             return false;
 
         bool show = true;
-        bool *ptr = (!node->docked || gui.view.docking) ? &show : nullptr;
+        bool *ptr = (node->pinned || !node->docked || gui.view.docking) ? &show : nullptr;
 
         ex::gui::next_no_close();
         ImGui::SetNextWindowDockID(gui.docking.dock_right_id, (gui.view.reset || first_time) ? ImGuiCond_Always : ImGuiCond_Once);
