@@ -7,6 +7,7 @@
 namespace ex::gui {
 
     void show_work_window(ex::State &state, GuiState &gui) {
+        static std::map<std::size_t, NodeWindow<TreeNode> *> pinned_windows;
         static NodeWindow<TreeNode> *active_window = nullptr;
         static bool prev_show = false;
 
@@ -46,6 +47,8 @@ namespace ex::gui {
             active_window->pinned |= !active_window->docked;
             // TODO implement different logic (but for now its good enough)
         }
+
+        // TODO
     }
 
 }
