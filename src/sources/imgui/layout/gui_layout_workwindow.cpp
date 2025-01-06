@@ -6,6 +6,27 @@
 
 namespace ex::gui {
 
+    void update_active_window(NodeWindow<TreeNode> **active_window, TreeNode *active_node) {
+        if (active_node == nullptr) {
+            if (*active_window != nullptr)
+                delete *active_window;
+            *active_window = nullptr;
+            return;
+        }
+
+        if (*active_window == nullptr) {
+            *active_window = new NodeWindow{ .node = active_node };
+            gen_uuid(*active_window);
+            return;
+        }
+
+        if (*active_window != nullptr && (*active_window)->node != active_node) {
+            delete *active_window;
+            *active_window = new NodeWindow{ .node = active_node };
+            gen_uuid(*active_window);
+        }
+    }
+
     void show_work_window(ex::State &state, GuiState &gui) {
         static std::map<std::size_t, NodeWindow<TreeNode> *> pinned_windows;
         static NodeWindow<TreeNode> *active_window = nullptr;
@@ -19,20 +40,7 @@ namespace ex::gui {
             return;
         }
 
-        if (state.active_node == nullptr) {
-            if (active_window != nullptr)
-                delete active_window;
-            active_window = nullptr;
-        }
-        else if (active_window == nullptr) {
-            active_window = new NodeWindow{ .node = state.active_node };
-            gen_uuid(active_window);
-        }
-        else if (active_window != nullptr && active_window->node != state.active_node) {
-            delete active_window;
-            active_window = new NodeWindow{ .node = state.active_node };
-            gen_uuid(active_window);
-        }
+        update_active_window(&active_window, state.active_node);
 
         if (active_window == nullptr)
             return;
@@ -47,7 +55,10 @@ namespace ex::gui {
             active_window->pinned |= !active_window->docked;
             // TODO implement different logic (but for now its good enough)
         }
-
+//
+//        if (active_window->pinned && !pinned_windows.contains(active_window->node->id_local)) {
+//            pinned_windows.emplace(active_window->node->id_local, active_window);
+//        }
         // TODO
     }
 
