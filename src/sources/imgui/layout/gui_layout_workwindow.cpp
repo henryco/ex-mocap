@@ -34,10 +34,12 @@ namespace ex::gui {
         }
 
         const auto show = node_mappers_.at(n_type).draw_node_window(gui, state, active_window, !prev_show);
-//        if (!show) {
-//            delete gui.active_node;
-//            gui.active_node = nullptr;
-//        }
+        if (!show) {
+            if (active_window != nullptr)
+                delete active_window;
+            active_window = nullptr;
+            state.active_node = nullptr;
+        }
         prev_show = show;
     }
 
