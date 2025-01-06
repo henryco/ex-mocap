@@ -55,7 +55,7 @@ namespace ex::gui::test::one {
         ImGui::Begin(node->uuid, ptr, reset_flag_(gui, true) | ImGuiWindowFlags_NoCollapse);
         node->docked = ex::gui::window_is_docked();
         node->visible = watch_parent_dock_(gui);
-        ImGui::Text("This window: %d | %d", node->docked, gui.view.docking);
+        ImGui::Text("This window: %d | %d | %d", node->docked, node->pinned, gui.view.docking);
         ImGui::End();
 
         return show;
@@ -91,7 +91,7 @@ namespace ex::gui::test::two {
         ImGui::Begin(node->uuid, ptr, reset_flag_(gui, true) | ImGuiWindowFlags_NoCollapse);
         node->docked = ex::gui::window_is_docked();
         node->visible = watch_parent_dock_(gui);
-        ImGui::Text("This window: %d | %d", node->docked, gui.view.docking);
+        ImGui::Text("This window: %d | %d | %d", node->docked, node->pinned, gui.view.docking);
         ImGui::End();
 
         return show;
@@ -121,7 +121,7 @@ namespace ex::gui::test::tri {
         ImGui::Begin(node->uuid, ptr, reset_flag_(gui, true) | ImGuiWindowFlags_NoCollapse);
         node->docked = ex::gui::window_is_docked();
         node->visible = watch_parent_dock_(gui);
-        ImGui::Text("This window: %d | %d", node->docked, gui.view.docking);
+        ImGui::Text("This window: %d | %d | %d", node->docked, node->pinned, gui.view.docking);
         ImGui::End();
 
         return show;

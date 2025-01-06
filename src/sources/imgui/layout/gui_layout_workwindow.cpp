@@ -33,16 +33,19 @@ namespace ex::gui {
             gen_uuid(active_window);
         }
 
+        if (active_window == nullptr)
+            return;
+
         const auto show = node_mappers_.at(n_type).draw_node_window(gui, state, active_window, !prev_show);
         prev_show = show;
         if (!show) {
-            if (active_window != nullptr)
-                delete active_window;
+            delete active_window;
             state.active_node = nullptr;
             active_window     = nullptr;
+        } else {
+            active_window->pinned |= !active_window->docked;
+            // TODO implement different logic (but for now its good enough)
         }
-
-
     }
 
 }
