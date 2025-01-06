@@ -53,6 +53,9 @@ namespace ex::gui {
         for (auto it = pinned_windows__.begin(); it != pinned_windows__.end();) {
             const auto window = it->second;
             if (window != nullptr && window->node == active_window__->node) {
+                active_window__->visible = window->visible;
+                active_window__->pinned  = window->pinned;
+                active_window__->docked  = window->docked;
                 ++it;
                 continue;
             }
