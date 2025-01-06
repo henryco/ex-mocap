@@ -7,7 +7,14 @@
 namespace ex::gui {
 
     void update_active_window(NodeWindow<TreeNode> **active_window, TreeNode *active_node) {
-        if (active_node == nullptr) {
+        if (active_node == nullptr || active_node->deleted) {
+            if (*active_window != nullptr)
+                delete *active_window;
+            *active_window = nullptr;
+            return;
+        }
+
+        if (!node_mappers_.contains(active_node->id_node)) {
             if (*active_window != nullptr)
                 delete *active_window;
             *active_window = nullptr;
@@ -31,19 +38,12 @@ namespace ex::gui {
         static std::map<std::size_t, NodeWindow<TreeNode> *> pinned_windows;
         static NodeWindow<TreeNode> *active_window = nullptr;
 
-        if (state.active_node == nullptr || state.active_node->deleted)
-            return;
-
-        const auto n_type = state.active_node->id_node;
-        if (!node_mappers_.contains(n_type)) {
-            return;
-        }
-
         update_active_window(&active_window, state.active_node);
 
         if (active_window == nullptr)
             return;
 
+        const auto n_type = state.active_node->id_node;
         const auto show = node_mappers_.at(n_type).draw_node_window(gui, state, active_window);
         if (!show) {
             delete active_window;
