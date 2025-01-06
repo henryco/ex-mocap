@@ -6,58 +6,78 @@
 
 namespace ex::gui {
 
-    void update_active_window(NodeWindow<TreeNode> **active_window, TreeNode *active_node) {
+    static std::map<std::size_t, NodeWindow<TreeNode> *> pinned_windows__;
+    static NodeWindow<TreeNode>                         *active_window__ = nullptr;
+
+    void update_active_window(TreeNode *active_node) {
         if (active_node == nullptr || active_node->deleted) {
-            if (*active_window != nullptr)
-                delete *active_window;
-            *active_window = nullptr;
+            if (active_window__ != nullptr)
+                delete active_window__;
+            active_window__ = nullptr;
             return;
         }
 
         if (!node_mappers_.contains(active_node->id_node)) {
-            if (*active_window != nullptr)
-                delete *active_window;
-            *active_window = nullptr;
+            if (active_window__ != nullptr)
+                delete active_window__;
+            active_window__ = nullptr;
             return;
         }
 
-        if (*active_window == nullptr) {
-            *active_window = new NodeWindow{ .node = active_node };
-            gen_uuid(*active_window);
+        if (active_window__ == nullptr) {
+            active_window__ = new NodeWindow{ .node = active_node };
+            gen_uuid(active_window__);
             return;
         }
 
-        if (*active_window != nullptr && (*active_window)->node != active_node) {
-            delete *active_window;
-            *active_window = new NodeWindow{ .node = active_node };
-            gen_uuid(*active_window);
+        if (active_window__->node != active_node) {
+            delete active_window__;
+            active_window__ = new NodeWindow{ .node = active_node };
+            gen_uuid(active_window__);
         }
     }
 
+    bool render_window(ex::State &state, GuiState &gui, NodeWindow<TreeNode> *window) {
+        if (window == nullptr || window->node == nullptr || window->node->deleted)
+            return false;
+        const auto n_type = window->node->id_node;
+        if (!node_mappers_.contains(n_type))
+            return false;
+        return node_mappers_.at(n_type).draw_node_window(gui, state, window);
+    }
+
     void show_work_window(ex::State &state, GuiState &gui) {
-        static std::map<std::size_t, NodeWindow<TreeNode> *> pinned_windows;
-        static NodeWindow<TreeNode> *active_window = nullptr;
+        update_active_window(state.active_node);
 
-        update_active_window(&active_window, state.active_node);
-
-        if (active_window == nullptr)
-            return;
-
-        const auto n_type = state.active_node->id_node;
-        const auto show = node_mappers_.at(n_type).draw_node_window(gui, state, active_window);
-        if (!show) {
-            delete active_window;
+        if (!render_window(state, gui, active_window__)) {
+            if (active_window__ != nullptr) {
+                if (active_window__->node != nullptr)
+                    pinned_windows__.erase(active_window__->node->id_local);
+                delete active_window__;
+            }
+            active_window__   = nullptr;
             state.active_node = nullptr;
-            active_window     = nullptr;
         } else {
-            active_window->pinned |= !active_window->docked;
-            // TODO implement different logic (but for now its good enough)
+            active_window__->pinned |= !active_window__->docked;
+            if (active_window__->pinned && !pinned_windows__.contains(active_window__->node->id_local)) {
+                pinned_windows__.emplace(active_window__->node->id_local, active_window__);
+            }
         }
 
-//        if (active_window->pinned && !pinned_windows.contains(active_window->node->id_local)) {
-//            pinned_windows.emplace(active_window->node->id_local, active_window);
-//        }
-        // TODO
+        for (auto it = pinned_windows__.begin(); it != pinned_windows__.end();) {
+            const auto window = it->second;
+            if (window == active_window__) {
+                ++it;
+                continue;
+            }
+            if (!render_window(state, gui, window)) {
+                if (window != nullptr)
+                    delete window;
+                it = pinned_windows__.erase(it);
+            } else {
+                ++it;
+            }
+        }
     }
 
 }
