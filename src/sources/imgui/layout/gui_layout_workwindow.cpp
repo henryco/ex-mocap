@@ -11,14 +11,14 @@ namespace ex::gui {
 
     void update_active_window(TreeNode *active_node) {
         if (active_node == nullptr || active_node->deleted) {
-            if (active_window__ != nullptr)
+            if (active_window__ != nullptr && !active_window__->pinned)
                 delete active_window__;
             active_window__ = nullptr;
             return;
         }
 
         if (!node_mappers_.contains(active_node->id_node)) {
-            if (active_window__ != nullptr)
+            if (active_window__ != nullptr && !active_window__->pinned)
                 delete active_window__;
             active_window__ = nullptr;
             return;
@@ -31,7 +31,8 @@ namespace ex::gui {
         }
 
         if (active_window__->node != active_node) {
-            delete active_window__;
+            if (!active_window__->pinned)
+                delete active_window__;
             active_window__ = new NodeWindow{ .node = active_node };
             gen_uuid(active_window__);
         }
@@ -65,12 +66,8 @@ namespace ex::gui {
         }
 
         for (auto it = pinned_windows__.begin(); it != pinned_windows__.end();) {
-            const auto window = it->second;
-            if (window == active_window__) {
-                ++it;
-                continue;
-            }
-            if (!render_window(state, gui, window)) {
+            auto window = it->second;
+            if (window != active_window__ && !render_window(state, gui, window)) {
                 if (window != nullptr)
                     delete window;
                 it = pinned_windows__.erase(it);
