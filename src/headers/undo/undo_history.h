@@ -46,6 +46,14 @@ namespace ex::undo {
             }
         }
 
+        bool can_undo() {
+            return target_ != nullptr && target_->prev != nullptr;
+        }
+
+        bool can_redo() {
+            return target_ != nullptr && target_->next != nullptr;
+        }
+
         void push(const char *name, std::function<void(T *)> *undo, std::function<void(T *)> *redo) {
             static std::size_t counter = 0;
 
@@ -129,6 +137,7 @@ namespace ex::undo {
 
                 current = direction ? current->next : current->prev;
             }
+            target_ = current;
         }
     };
 

@@ -42,13 +42,18 @@ namespace ex::gui {
             }
 
             if (ImGui::BeginMenu("Edit")) {
-                if (ImGui::MenuItem("Undo", "Ctrl+Z")) {
-                    // TODO
+
+                if (ImGui::MenuItem("Undo", "Ctrl+Z", false, undo_history().can_undo())) {
+                    undo_history().undo();
+                    undo_history().apply(&state);
                 }
-                if (ImGui::MenuItem("Redo", "Ctrl+Y", false, false)) {
-                    // TODO
+                if (ImGui::MenuItem("Redo", "Ctrl+Y", false, undo_history().can_redo())) {
+                    undo_history().redo();
+                    undo_history().apply(&state);
                 }
+
                 ImGui::Separator();
+
                 if (ImGui::MenuItem("Cut", "Ctrl+X")) {
                     // TODO
                 }

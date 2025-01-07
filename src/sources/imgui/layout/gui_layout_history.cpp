@@ -18,11 +18,11 @@ namespace ex::gui {
     }
 
     bool test_init_history() { // TODO REMOVE
-        undo_history_.push("test 1", nullptr, nullptr);
-        undo_history_.push("test 2", nullptr, nullptr);
-        undo_history_.push("test 3", nullptr, nullptr);
-        undo_history_.push("test 4", nullptr, nullptr);
-        undo_history_.push("test 5", nullptr, nullptr);
+        undo_history().push("test 1", nullptr, nullptr);
+        undo_history().push("test 2", nullptr, nullptr);
+        undo_history().push("test 3", nullptr, nullptr);
+        undo_history().push("test 4", nullptr, nullptr);
+        undo_history().push("test 5", nullptr, nullptr);
         return true;
     }
 
@@ -38,8 +38,8 @@ namespace ex::gui {
                 ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - 10),
                 0);
 
-        if (undo_history_.current != nullptr) {
-            ImGui::TextDisabled("%s", undo_history_.current->name);
+        if (undo_history().current != nullptr) {
+            ImGui::TextDisabled("%s", undo_history().current->name);
         }
 
         if (ImGui::BeginTable("TableHistory", 1, history::flags)) {
@@ -55,13 +55,13 @@ namespace ex::gui {
             static int selected = -1;
             static int previous = -1;
 
-            if (undo_history_.current != nullptr) {
-                selected = static_cast<int>(undo_history_.current->id);
+            if (undo_history().current != nullptr) {
+                selected = static_cast<int>(undo_history().current->id);
             }
 
             ImGui::Indent(10.f);
 
-            auto head = undo_history_.records;
+            auto head = undo_history().records;
             while (head != nullptr) {
 
                 ImGui::TableNextRow();
@@ -83,8 +83,8 @@ namespace ex::gui {
             ImGui::EndTable();
 
             if (selected >= 0 && selected != previous) {
-                undo_history_.move(static_cast<std::size_t>(selected));
-                undo_history_.apply(&state);
+                undo_history().move(static_cast<std::size_t>(selected));
+                undo_history().apply(&state);
             }
             previous = selected;
         }

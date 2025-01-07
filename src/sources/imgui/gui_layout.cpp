@@ -37,6 +37,11 @@ namespace ex::gui {
         return log;
     }
 
+    ex::undo::history<ex::State> &undo_history() {
+        static ex::undo::history<ex::State> undo_history;
+        return undo_history;
+    }
+
     bool layout::build(ex::State &state) {
         static GuiState gui;
 
