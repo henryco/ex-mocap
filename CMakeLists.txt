@@ -133,7 +133,7 @@ set(SOURCE_FILES
         src/sources/imgui/layout/gui_layout_pane_right.cpp
         src/sources/imgui/layout/gui_layout_logs.cpp
         src/sources/imgui/layout/gui_layout_work_tree.cpp
-        src/sources/imgui/layout/gui_layout_workspace.cpp
+        src/sources/imgui/layout/gui_layout_history.cpp
         src/sources/imgui/layout/gui_layout_main_content.cpp
         src/sources/core/camera.cpp
         src/sources/components/c_camera.cpp

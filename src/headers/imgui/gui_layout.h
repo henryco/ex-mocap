@@ -6,6 +6,7 @@
 #define EX_MOTION_GUI_LAYOUT_H
 
 #include "../state.h"
+#include "../undo/undo_history.h"
 #include "../utils/gui_utils.h"
 #include "../utils/log_utils.h"
 #include "gui_state.h"
@@ -29,6 +30,8 @@ namespace ex::gui {
 
     static void (*left_pane_menu)(State &state, GuiState &gui)  = nullptr;
     static void (*right_pane_menu)(State &state, GuiState &gui) = nullptr;
+
+    static inline ex::undo::history<ex::State> undo_history_;
 
     static inline const std::map<type_id_, ex::gui::GuiMapper> node_mappers_ = {
         { 0, ex::gui::test::one::mapper },
@@ -113,7 +116,7 @@ namespace ex::gui {
 
     void show_work_tree(ex::State &state, GuiState &gui);
 
-    void show_workspace_switcher(ex::State &state, GuiState &gui);
+    void show_history_tree(ex::State &state, GuiState &gui);
 
     void show_main_container(ex::State &state, ReSize &re_size, GuiState &gui);
 
