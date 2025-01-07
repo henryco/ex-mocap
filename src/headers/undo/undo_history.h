@@ -16,12 +16,15 @@ namespace ex::undo {
         const std::size_t  id;
         const char        *name = nullptr;
         const rollback_fn *undo = nullptr;
+        const rollback_fn *redo = nullptr;
         record            *prev = nullptr;
         record            *next = nullptr;
 
         ~record() {
             if (undo != nullptr)
                 delete undo;
+            if (redo != nullptr)
+                delete redo;
             if (next != nullptr)
                 delete next;
         }
@@ -43,18 +46,18 @@ namespace ex::undo {
             }
         }
 
-        void push(const char *name, std::function<void(T *)> *fn) {
+        void push(const char *name, std::function<void(T *)> *undo, std::function<void(T *)> *redo) {
             static std::size_t counter = 0;
 
             if (records == nullptr || current == nullptr) {
-                records = new record<T>(counter++, name, fn, nullptr, nullptr);
+                records = new record<T>(counter++, name, undo, redo, nullptr, nullptr);
                 current = records;
                 target_ = records;
                 return;
             }
 
             if (records->id == current->id && current == records) {
-                records->next = new record<T>(counter++, name, fn, records, nullptr);
+                records->next = new record<T>(counter++, name, undo, redo, records, nullptr);
                 records = records->next;
                 current = records;
                 target_ = records;
@@ -68,7 +71,7 @@ namespace ex::undo {
             record<T> *head = records;
             while (head != nullptr) {
                 if (head->id == current->id && current == head) {
-                    current->next = new record<T>(counter++, name, fn, current, nullptr);
+                    current->next = new record<T>(counter++, name, undo, redo, current, nullptr);
                     current = current->next;
                     records = current;
                     target_ = current;
@@ -118,8 +121,12 @@ namespace ex::undo {
             while (current != nullptr) {
                 if (current->id == target_->id && current == target_)
                     return;
-                if (current->undo != nullptr)
+
+                if (direction && current->redo != nullptr)
+                    current->redo->operator()(state);
+                if (!direction && current->undo != nullptr)
                     current->undo->operator()(state);
+
                 current = direction ? current->next : current->prev;
             }
         }
