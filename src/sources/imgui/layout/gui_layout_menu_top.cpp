@@ -56,13 +56,13 @@ namespace ex::gui {
 
                 ImGui::Separator();
 
-                if (ImGui::MenuItem(ICON_LC_SCISSORS " Cut", "Ctrl+X")) {
+                if (ImGui::MenuItem(ICON_LC_SCISSORS " Cut", "Ctrl+X", false, false)) {
                     // TODO
                 }
-                if (ImGui::MenuItem(ICON_LC_CLIPBOARD_COPY " Copy", "Ctrl+C")) {
+                if (ImGui::MenuItem(ICON_LC_CLIPBOARD_COPY " Copy", "Ctrl+C", false, false)) {
                     // TODO
                 }
-                if (ImGui::MenuItem(ICON_LC_CLIPBOARD_PASTE " Paste", "Ctrl+V")) {
+                if (ImGui::MenuItem(ICON_LC_CLIPBOARD_PASTE " Paste", "Ctrl+V", false, false)) {
                     // TODO
                 }
                 ImGui::EndMenu();

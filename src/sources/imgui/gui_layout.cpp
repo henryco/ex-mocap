@@ -32,6 +32,22 @@ namespace ex::gui {
         }
     }
 
+    void process_shortcuts(ex::State &state, GuiState &gui) {
+        if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_Z)) {
+            if (undo_history().can_undo()) {
+                undo_history().undo();
+                undo_history().apply(&state);
+            }
+        }
+        else if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_Y)) {
+            if (undo_history().can_redo()) {
+                undo_history().redo();
+                undo_history().apply(&state);
+            }
+        }
+        // TODO MORE SHORTCUTS
+    }
+
     logs::logger logger() {
         static ex::logs::logger log = ex::logs::get_logger("gui_layout");
         return log;
@@ -72,6 +88,7 @@ namespace ex::gui {
             show_history_tree(state, gui);
             show_work_window(state, gui);
 
+            process_shortcuts(state, gui);
 //            ImGui::ShowMetricsWindow();
         }
         ImGui::End();
