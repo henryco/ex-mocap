@@ -18,6 +18,12 @@ namespace ex::gui {
     }
 
     void show_history_tree(ex::State &state, GuiState &gui) {
+        // TODO REMOVE
+        static bool init_test = test_init_history();
+        if (init_test)
+            init_test = false;
+        // TODO REMOVE
+
         static bool *watch = nullptr;
         if (watch != nullptr && !(*watch))
             return;
