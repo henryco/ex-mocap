@@ -24,6 +24,8 @@ namespace ex::gui {
             return;
 
         if (ImGui::BeginMenuBar()) {
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 6.0f));
+
             if (ImGui::BeginMenu("File")) {
                 if (ImGui::MenuItem("New")) {
                     // TODO
@@ -43,24 +45,24 @@ namespace ex::gui {
 
             if (ImGui::BeginMenu("Edit")) {
 
-                if (ImGui::MenuItem("Undo", "Ctrl+Z", false, undo_history().can_undo())) {
+                if (ImGui::MenuItem(ICON_LC_UNDO " Undo", "Ctrl+Z", false, undo_history().can_undo())) {
                     undo_history().undo();
                     undo_history().apply(&state);
                 }
-                if (ImGui::MenuItem("Redo", "Ctrl+Y", false, undo_history().can_redo())) {
+                if (ImGui::MenuItem(ICON_LC_REDO " Redo", "Ctrl+Y", false, undo_history().can_redo())) {
                     undo_history().redo();
                     undo_history().apply(&state);
                 }
 
                 ImGui::Separator();
 
-                if (ImGui::MenuItem("Cut", "Ctrl+X")) {
+                if (ImGui::MenuItem(ICON_LC_SCISSORS " Cut", "Ctrl+X")) {
                     // TODO
                 }
-                if (ImGui::MenuItem("Copy", "Ctrl+C")) {
+                if (ImGui::MenuItem(ICON_LC_CLIPBOARD_COPY " Copy", "Ctrl+C")) {
                     // TODO
                 }
-                if (ImGui::MenuItem("Paste", "Ctrl+V")) {
+                if (ImGui::MenuItem(ICON_LC_CLIPBOARD_PASTE " Paste", "Ctrl+V")) {
                     // TODO
                 }
                 ImGui::EndMenu();
@@ -103,7 +105,7 @@ namespace ex::gui {
             }
 
             end_pin_button(state, gui);
-
+            ImGui::PopStyleVar();
             ImGui::EndMenuBar();
         }
     }
