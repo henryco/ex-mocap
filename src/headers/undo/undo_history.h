@@ -37,6 +37,7 @@ namespace ex::undo {
             record<T> *head = records;
             while (head != nullptr) {
                 record<T> *prev = head->prev;
+                head->next = nullptr;
                 delete head;
                 head = prev;
             }
@@ -74,6 +75,7 @@ namespace ex::undo {
                     return;
                 }
                 record<T> *prev = head->prev;
+                head->next = nullptr;
                 delete head;
                 head = prev;
             }
