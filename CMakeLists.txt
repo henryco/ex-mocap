@@ -111,6 +111,7 @@ set(HEADER_FILES
         src/headers/imgui/gui_mappers.h
         src/headers/imgui/gui_state.h
         src/headers/imgui/cmp/test_cmp.h
+        src/headers/undo/undo_history.h
 )
 
 set(SOURCE_FILES

@@ -4,6 +4,8 @@
 
 #include "../../headers/imgui/gui_layout.h"
 
+#include "../../headers/undo/undo_history.h"
+
 namespace ex::gui {
 
     bool is_window_resized() {
@@ -38,6 +40,7 @@ namespace ex::gui {
     }
 
     bool layout::build(ex::State &state) {
+        static ex::undo::history<ex::State> undo_history;
         static GuiState gui;
 
         ReSize re_size = {};
