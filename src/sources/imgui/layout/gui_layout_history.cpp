@@ -7,6 +7,16 @@
 
 namespace ex::gui {
 
+    namespace history {
+        constexpr auto flags = ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_RowBg;
+        constexpr float tree_spacing = 20.f;
+        constexpr float ctrl_width   = 40.f;
+        constexpr float min_width    = 100.f;
+
+        constexpr auto tree_flags = ImGuiTreeNodeFlags_SpanAllColumns | ImGuiTreeNodeFlags_Leaf |
+            ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+    }
+
     bool test_init_history() { // TODO REMOVE
         undo_history_.push("test 1", nullptr);
         undo_history_.push("test 2", nullptr);
@@ -27,8 +37,54 @@ namespace ex::gui {
                 "HistorySpaceTree",
                 ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - 10),
                 0);
-        // TODO
-        ImGui::Text("test undo");
+
+        if (ImGui::BeginTable("TableHistory", 1, history::flags)) {
+
+            const auto old_indent_spacing = ImGui::GetStyle().IndentSpacing;
+            ImGui::GetStyle().IndentSpacing = history::tree_spacing;
+
+            const float fixed_width = ImGui::GetContentRegionAvail().x - history::ctrl_width - ImGui::GetStyle().ItemSpacing.x;
+            const float items_width = std::max(history::min_width, fixed_width);
+
+            ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthFixed, items_width);
+
+            static std::size_t selected = -1;
+
+            if (selected < 0 && undo_history_.current != nullptr) {
+                selected = undo_history_.current->id;
+            }
+
+            ImGui::Indent(10.f);
+
+            auto head = undo_history_.records;
+            while (head != nullptr) {
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+
+                const auto c_flag = history::tree_flags | (selected == head->id ? ImGuiTreeNodeFlags_Selected : 0);
+                ImGui::TreeNodeEx(head->name, c_flag);
+
+                if (ImGui::IsItemClicked()) {
+                    selected = head->id;
+                }
+
+                head = head->prev;
+            }
+
+            ImGui::Unindent(10.f);
+
+            ImGui::GetStyle().IndentSpacing = old_indent_spacing;
+            ImGui::EndTable();
+
+
+            if (selected > 0) {
+                undo_history_.move(selected);
+                undo_history_.apply(&state);
+                selected = -1;
+            }
+        }
+
         ImGui::EndChild();
     }
 
@@ -46,9 +102,7 @@ namespace ex::gui {
 
         ImGui::BeginChild("HistoryBox", ImVec2(0, 0), 0, ImGuiWindowFlags_NoDecoration);
         history_tree(state, gui);
-        ImGui::Spacing();
-        ImGui::Spacing();
-        // TODO ?
+
         ImGui::EndChild();
 
         ImGui::End();

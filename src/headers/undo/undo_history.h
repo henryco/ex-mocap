@@ -119,7 +119,7 @@ namespace ex::undo {
                 if (current->id == target_->id && current == target_)
                     return;
                 if (current->undo != nullptr)
-                    current->undo(state);
+                    current->undo->operator()(state);
                 current = direction ? current->next : current->prev;
             }
         }
