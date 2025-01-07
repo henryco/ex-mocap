@@ -31,6 +31,7 @@ namespace ex::undo {
     struct history {
         record<T> *records = nullptr;
         record<T> *current = nullptr;
+        record<T> *target_ = nullptr;
 
         ~history() {
             record<T> *head = records;
@@ -47,6 +48,7 @@ namespace ex::undo {
             if (records == nullptr || current == nullptr) {
                 records = new record<T>(counter++, name, fn, nullptr, nullptr);
                 current = records;
+                target_ = records;
                 return;
             }
 
@@ -54,8 +56,13 @@ namespace ex::undo {
                 records->next = new record<T>(counter++, name, fn, records, nullptr);
                 records = records->next;
                 current = records;
+                target_ = records;
                 return;
             }
+
+            // - - - - - - - - - - - // records
+            //           x           // current
+            //           > > > > x   // target_
 
             record<T> *head = records;
             while (head != nullptr) {
@@ -63,6 +70,7 @@ namespace ex::undo {
                     current->next = new record<T>(counter++, name, fn, current, nullptr);
                     current = current->next;
                     records = current;
+                    target_ = current;
                     return;
                 }
                 record<T> *prev = head->prev;
@@ -75,7 +83,7 @@ namespace ex::undo {
             record<T> *head = records;
             while (head != nullptr) {
                 if (head->id == id) {
-                    current = head;
+                    target_ = head;
                     return true;
                 }
                 head = head->prev;
@@ -84,24 +92,34 @@ namespace ex::undo {
         }
 
         void redo() {
-            if (records == nullptr || current == nullptr)
+            if (records == nullptr || current == nullptr || target_ == nullptr)
                 return;
-            if (current->next != nullptr)
-                current = current->next;
+            if (target_->next != nullptr)
+                target_ = target_->next;
         }
 
         void undo() {
-            if (records == nullptr || current == nullptr)
+            if (records == nullptr || current == nullptr || target_ == nullptr)
                 return;
-            if (current->prev != nullptr)
-                current = current->prev;
+            if (target_->prev != nullptr)
+                target_ = target_->prev;
         }
 
         void apply(T *state) {
-            if (records == nullptr || current == nullptr)
+            if (records == nullptr || current == nullptr || target_ == nullptr)
                 return;
-            if (current->undo != nullptr)
-                current->undo(state);
+
+            if (target_->id == current->id && current == target_)
+                return;
+
+            const bool direction = target_->id > current->id;
+            while (current != nullptr) {
+                if (current->id == target_->id && current == target_)
+                    return;
+                if (current->undo != nullptr)
+                    current->undo(state);
+                current = direction ? current->next : current->prev;
+            }
         }
     };
 
