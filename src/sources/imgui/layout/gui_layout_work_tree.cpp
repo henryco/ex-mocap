@@ -217,10 +217,17 @@ namespace ex::gui {
             return;
 
         static bool docked = false;
+        static bool show   = true;
+
+        show |= gui.view.reset;
+        bool *ptr = (!docked || gui.view.docking) ? &show : nullptr;
+
+        if (!show)
+            return;
 
         ex::gui::next_auto_hide(docked || gui.view.docking);
         ImGui::SetNextWindowDockID(gui.docking.dock_left_top_id, cond_node());
-        ImGui::Begin("Work tree", nullptr, reset_flag(gui) | ImGuiWindowFlags_NoCollapse);
+        ImGui::Begin("Work tree", ptr, reset_flag(gui) | ImGuiWindowFlags_NoCollapse);
         docked = ex::gui::window_is_multi_docked();
         watch = watch_parent_dock(gui);
 
