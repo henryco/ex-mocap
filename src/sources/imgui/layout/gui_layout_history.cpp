@@ -38,6 +38,10 @@ namespace ex::gui {
                 ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - 10),
                 0);
 
+        if (undo_history_.current != nullptr) {
+            ImGui::TextDisabled("%s", undo_history_.current->name);
+        }
+
         if (ImGui::BeginTable("TableHistory", 1, history::flags)) {
 
             const auto old_indent_spacing = ImGui::GetStyle().IndentSpacing;
@@ -48,10 +52,11 @@ namespace ex::gui {
 
             ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthFixed, items_width);
 
-            static std::size_t selected = -1;
+            static int selected = -1;
+            static int previous = -1;
 
-            if (selected < 0 && undo_history_.current != nullptr) {
-                selected = undo_history_.current->id;
+            if (undo_history_.current != nullptr) {
+                selected = static_cast<int>(undo_history_.current->id);
             }
 
             ImGui::Indent(10.f);
@@ -77,12 +82,11 @@ namespace ex::gui {
             ImGui::GetStyle().IndentSpacing = old_indent_spacing;
             ImGui::EndTable();
 
-
-            if (selected > 0) {
-                undo_history_.move(selected);
+            if (selected >= 0 && selected != previous) {
+                undo_history_.move(static_cast<std::size_t>(selected));
                 undo_history_.apply(&state);
-                selected = -1;
             }
+            previous = selected;
         }
 
         ImGui::EndChild();
