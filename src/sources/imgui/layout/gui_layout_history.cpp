@@ -17,6 +17,12 @@ namespace ex::gui {
     }
 
     void history_tree(ex::State &state, GuiState &gui) {
+        // TODO REMOVE
+        static bool init_test = test_init_history();
+        if (init_test)
+            init_test = false;
+        // TODO REMOVE
+
         ImGui::BeginChild(
                 "HistorySpaceTree",
                 ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - 10),
@@ -27,12 +33,6 @@ namespace ex::gui {
     }
 
     void show_history_tree(ex::State &state, GuiState &gui) {
-        // TODO REMOVE
-        static bool init_test = test_init_history();
-        if (init_test)
-            init_test = false;
-        // TODO REMOVE
-
         static bool *watch = nullptr;
         if (watch != nullptr && !(*watch))
             return;
