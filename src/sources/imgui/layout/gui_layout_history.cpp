@@ -98,9 +98,17 @@ namespace ex::gui {
             return;
 
         static bool docked = false;
+        static bool show   = true;
+
+        show |= gui.view.reset;
+        bool *ptr = (!docked || gui.view.docking) ? &show : nullptr;
+
+        if (!show)
+            return;
+
         ex::gui::next_auto_hide(docked || gui.view.docking);
         ImGui::SetNextWindowDockID(gui.docking.dock_left_bot_id, cond_node());
-        ImGui::Begin("History", nullptr, reset_flag(gui) | ImGuiWindowFlags_NoCollapse);
+        ImGui::Begin("History", ptr, reset_flag(gui) | ImGuiWindowFlags_NoCollapse);
         docked = ex::gui::window_is_multi_docked();
         watch = watch_parent_dock(gui);
 
