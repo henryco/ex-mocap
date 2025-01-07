@@ -42,14 +42,14 @@ namespace ex::undo {
             }
         }
 
-        void push(const char *name, std::function<void(T *)> *fn) {
+        history *push(const char *name, std::function<void(T *)> *fn) {
             static std::size_t counter = 0;
 
             if (records == nullptr || current == nullptr) {
                 records = new record<T>(counter++, name, fn, nullptr, nullptr);
                 current = records;
                 target_ = records;
-                return;
+                return this;
             }
 
             if (records->id == current->id && current == records) {
@@ -57,7 +57,7 @@ namespace ex::undo {
                 records = records->next;
                 current = records;
                 target_ = records;
-                return;
+                return this;
             }
 
             // - - - - - - - - - - - // records
@@ -71,12 +71,13 @@ namespace ex::undo {
                     current = current->next;
                     records = current;
                     target_ = current;
-                    return;
+                    return this;
                 }
                 record<T> *prev = head->prev;
                 delete head;
                 head = prev;
             }
+            return this;
         }
 
         bool move(const std::size_t id) {
