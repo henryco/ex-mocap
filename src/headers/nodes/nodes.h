@@ -863,7 +863,11 @@ namespace ex::nodes {
                 const std::size_t type_ = descriptor.type_id;
                 const int         index = descriptor.index;
                 for (int i = in_descriptions_.size() - 1; i >= 0; i--) {
-                    if (out_descriptions_[i].type_id <= type_ && out_descriptions_[i].index <= index) {
+                    if (in_descriptions_[i].type_id < type_) {
+                        in_descriptions_.insert(in_descriptions_.begin() + i + 1, descriptor);
+                        return;
+                    }
+                    if (in_descriptions_[i].type_id == type_ && in_descriptions_[i].index <= index) {
                         in_descriptions_.insert(in_descriptions_.begin() + i + 1, descriptor);
                         return;
                     }
@@ -875,7 +879,11 @@ namespace ex::nodes {
                 const std::size_t type_ = descriptor.type_id;
                 const int         index = descriptor.index;
                 for (int i = out_descriptions_.size() - 1; i >= 0; i--) {
-                    if (out_descriptions_[i].type_id <= type_ && out_descriptions_[i].index <= index) {
+                    if (out_descriptions_[i].type_id < type_) {
+                        out_descriptions_.insert(out_descriptions_.begin() + i + 1, descriptor);
+                        return;
+                    }
+                    if (out_descriptions_[i].type_id == type_ && out_descriptions_[i].index <= index) {
                         out_descriptions_.insert(out_descriptions_.begin() + i + 1, descriptor);
                         return;
                     }

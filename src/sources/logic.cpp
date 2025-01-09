@@ -460,6 +460,16 @@ namespace ex::main {
         const auto inputs      = node_dst->describe_inputs(&inputs_num);
         const auto outputs     = node_src->describe_outputs(&outputs_num);
 
+        for (int i = 0; i < inputs_num; i++) {
+            log->debug("i: {}, {}, {}", inputs[i].type_id, inputs[i].index, inputs[i].name);
+        }
+
+        log->debug("---");
+
+        for (int i = 0; i < outputs_num; i++) {
+            log->debug("o: {}, {}, {}", outputs[i].type_id, outputs[i].index, outputs[i].name);
+        }
+
         // [a2    c4 c5 c6 d7 e8    g9   ] <- in
         // [   b1 c2 c3    d4    f5 g6 g7] <- out
 
@@ -471,24 +481,25 @@ namespace ex::main {
         // TODO FIXME !!!!!!!!!!!!!
         // TODO FIXME !!!!!!!!!!!!!
         // TODO FIXME !!!!!!!!!!!!!
-        // TODO FIXME !!!!!!!!!!!!!
-        // TODO FIXME !!!!!!!!!!!!!
-        // TODO FIXME !!!!!!!!!!!!!
-        // TODO FIXME !!!!!!!!!!!!!
-        // TODO FIXME !!!!!!!!!!!!!
-        // TODO FIXME !!!!!!!!!!!!!
 
         int connects_num = 0;
         for (int i = 0, k = 0; i < inputs_num && k < outputs_num; /*nop*/) {
+            log->debug("->> {}:{}", i, k);
+
             const std::size_t type__in = inputs[i].type_id;
             const std::size_t type_out = outputs[k].type_id;
+
+            log->debug("type: {}|{}, index: {}|{}, name: {}|{}", type__in, type_out, inputs[i].index, outputs[k].index, inputs[i].name, outputs[k].name);
+            log->debug("i: {}", type__in);
+            log->debug("o: {}", type_out);
+            log->debug("r: {}", (type__in < type_out));
 
             if (inputs[i].aux || type__in < type_out) {
                 i++;
                 continue;
             }
 
-            if (outputs[i].aux || type_out < type__in) {
+            if (outputs[k].aux || type_out < type__in) {
                 k++;
                 continue;
             }
@@ -513,6 +524,7 @@ namespace ex::main {
 
         to->connected = (connects_num > 0);
         log->debug("CONNECTION STATUS: {} -> {} [{}]", from->id_local, to->id_local, to->connected);
+        log->debug(" ");
     }
 
 } // namespace ex::main
