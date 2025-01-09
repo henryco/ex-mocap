@@ -797,7 +797,7 @@ namespace ex::nodes {
     };
 
     template<typename T>
-    class Serializable : public virtual NodeDescriptor {
+    class Serializable : public virtual IO, public virtual NodeDescriptor {
     public:
         ~Serializable() override = default;
 
