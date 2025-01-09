@@ -48,6 +48,7 @@ namespace ex::main {
         std::size_t local_id_ct = 1;
         for (int i = 0; i < 5; i++) {
             const auto node  = new TreeNode();
+            node->created    = true;
             node->children_n = 0;
             node->name       = "Node";
             node->is_group   = i > 2;
@@ -57,6 +58,7 @@ namespace ex::main {
             if (i > 2) { // inside a group
                 for (int k = 0; k < 3; k++) {
                     const auto sub  = new TreeNode();
+                    sub->created    = true;
                     sub->children_n = 0;
                     sub->name       = "Sub one";
                     sub->is_group   = k == 1;
@@ -66,6 +68,7 @@ namespace ex::main {
                     if (k == 1) { // inside a group
                         for (int z = 0; z < 5; z++) {
                             const auto sub_2  = new TreeNode();
+                            sub_2->created    = true;
                             sub_2->children_n = 0;
                             sub_2->name       = "Sub zero";
                             sub_2->is_group   = false;
@@ -76,6 +79,7 @@ namespace ex::main {
                         }
                     } else {
                         const auto inputs  = new TreeNode();
+                        inputs->created    = true;
                         inputs->children_n = 0;
                         inputs->name       = "inputs";
                         inputs->is_group   = true;
@@ -83,6 +87,7 @@ namespace ex::main {
 
                         for (int z = 0; z < 3; z++) {
                             const auto in  = new TreeNode();
+                            in->created    = true;
                             in->children_n = 0;
                             in->name       = "Input!";
                             in->is_group   = false;
@@ -101,6 +106,7 @@ namespace ex::main {
 
             else { // inside a regular element
                 const auto inputs  = new TreeNode();
+                inputs->created    = true;
                 inputs->children_n = 0;
                 inputs->name       = "Inputs.";
                 inputs->is_group   = true;
@@ -108,6 +114,7 @@ namespace ex::main {
 
                 for (int k = 0; k < 4; k++) { // inside inputs group
                     const auto sub  = new TreeNode();
+                    sub->created    = true;
                     sub->children_n = 0;
                     sub->name       = "Sub in";
                     sub->is_group   = k == 1 || k == 2;
@@ -117,6 +124,7 @@ namespace ex::main {
                     if (k == 1 || k == 2) { // inside a group
                         for (int z = 0; z < 6; z++) {
                             const auto in  = new TreeNode();
+                            in->created    = true;
                             in->children_n = 0;
                             in->name       = "in in";
                             in->is_group   = false;
@@ -127,6 +135,7 @@ namespace ex::main {
                         }
                     } else {
                         const auto another_in = new TreeNode();
+                        another_in->created    = true;
                         another_in->children_n = 0;
                         another_in->name       = "another_in";
                         another_in->is_group   = true;
@@ -134,6 +143,7 @@ namespace ex::main {
 
                         for (int p = 0; p < 2; p++) {
                             const auto sub_3  = new TreeNode();
+                            sub_3->created    = true;
                             sub_3->children_n = 0;
                             sub_3->name       = "another in";
                             sub_3->is_group   = false;
@@ -299,6 +309,8 @@ namespace ex::main {
     }
 
     void Logic::rewire_(State &state) {
+        log->debug("rewire");
+
         clock_.detach_all();
         for (auto &[_, node]: nodes_) {
             node->detach_all_any();
@@ -361,6 +373,7 @@ namespace ex::main {
     }
 
     void Logic::gc_(State &_) {
+        log->debug("start node gc");
         for (auto it = ptr_counter_.begin(); it != ptr_counter_.end(); /*nop*/) {
             const auto id_local = it->first;
             if (it->second <= 0) {
@@ -371,14 +384,20 @@ namespace ex::main {
                 nodes_.erase(id_local);
 
                 it = ptr_counter_.erase(it);
+
+                log->debug("node gc remove: {}", id_local);
+
             } else
                 ++it;
         }
+        log->debug("complete node gc");
     }
 
     void Logic::build_tree_(State &state, TreeNode *node, TreeNode *previous, simple_list *group_list) {
         if (node == nullptr || group_list == nullptr)
             return;
+
+        log->debug("build tree: {}, {}", node->id_local, (previous != nullptr ? previous->id_local : -1));
 
         if (node->is_group) {
             TreeNode *prev_node = previous;
@@ -425,6 +444,8 @@ namespace ex::main {
         if (from == nullptr || to == nullptr)
             return;
 
+        log->debug("connect nodes: {} -> {}", from->id_local, to->id_local);
+
         nodes::BaseNode *node_dst = nodes_.at(to->id_local);
         nodes::BaseNode *node_src = nodes_.at(from->id_local);
 
@@ -445,6 +466,16 @@ namespace ex::main {
         // [b1 c2 c3 d4 f5 g6 g7] <- out
 
         // heavily relying on fact that descriptions arrays sorted by [type, index] asc
+
+        // TODO FIXME !!!!!!!!!!!!!
+        // TODO FIXME !!!!!!!!!!!!!
+        // TODO FIXME !!!!!!!!!!!!!
+        // TODO FIXME !!!!!!!!!!!!!
+        // TODO FIXME !!!!!!!!!!!!!
+        // TODO FIXME !!!!!!!!!!!!!
+        // TODO FIXME !!!!!!!!!!!!!
+        // TODO FIXME !!!!!!!!!!!!!
+        // TODO FIXME !!!!!!!!!!!!!
 
         int connects_num = 0;
         for (int i = 0, k = 0; i < inputs_num && k < outputs_num; /*nop*/) {
@@ -468,6 +499,9 @@ namespace ex::main {
             if (!attached) {
                 log->warn("Cannot connect nodes: [{}]: {} -> [{}]: {}",
                     outputs[k].name, outputs[k].index, inputs[i].name, inputs[i].index);
+            } else {
+                log->debug("Connected nodes: [{}]: {} -> [{}]: {}",
+                    outputs[k].name, outputs[k].index, inputs[i].name, inputs[i].index);
             }
 
             connects_num += attached;
@@ -477,6 +511,7 @@ namespace ex::main {
         }
 
         to->connected = (connects_num > 0);
+        log->debug("CONNECTION STATUS: {} -> {} [{}]", from->id_local, to->id_local, to->connected);
     }
 
 } // namespace ex::main

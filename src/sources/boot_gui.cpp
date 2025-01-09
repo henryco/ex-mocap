@@ -101,7 +101,7 @@ namespace ex::boot {
             glfwPollEvents();
 
             // TODO UNCOMMENT
-            // logic.run(state);
+            logic.run(state);
             // TODO UNCOMMENT
             gui.build(state);
 
