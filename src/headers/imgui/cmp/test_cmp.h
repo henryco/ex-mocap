@@ -63,12 +63,12 @@ namespace ex::gui::test {
             return true;
         }
 
-        short on_output(short *null_ptr, int output_index, int clock_i) override {
-            return stored_float + 1;
+        short on_output(short *null_ptr, const int output_index, int clock_i) override {
+            return stored_float + output_index;
         }
 
-        float on_output(float *null_ptr, int output_index, int clock_i) override {
-            return 8 * stored_float;
+        float on_output(float *null_ptr, const int output_index, int clock_i) override {
+            return (8 * stored_float) + output_index;
         }
     };
 
