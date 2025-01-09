@@ -105,7 +105,7 @@ namespace ex::gui {
 
     ex::undo::history<ex::State> &undo_history();
 
-    ex::logs::logger logger();
+    ex::logs::logger &logger();
 
     void show_menu_top_bar(ex::State &state, GuiState &gui);
 

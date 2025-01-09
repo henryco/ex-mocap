@@ -48,7 +48,7 @@ namespace ex::gui {
         // TODO MORE SHORTCUTS
     }
 
-    logs::logger logger() {
+    logs::logger &logger() {
         static ex::logs::logger log = ex::logs::get_logger("gui_layout");
         return log;
     }
