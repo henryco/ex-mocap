@@ -32,7 +32,7 @@ namespace ex::gui::test::one {
 
     bool draw_tree_node(GuiState &gui, const char *name, const bool nested, const bool selected) {
         const auto c_flag = tree_node_flags | (selected ? ImGuiTreeNodeFlags_Selected : 0);
-        const std::string text = std::string(ICON_LC_COMPONENT) + " " + std::string(name);
+        const std::string text = std::string(ICON_LC_COMPONENT) + " 1 " + std::string(name);
         const char *text_2 = text.c_str();
         const auto c_bullet = nested ? 0 : tree_bull_flags;
 
@@ -68,7 +68,7 @@ namespace ex::gui::test::two {
 
     bool draw_tree_node(GuiState &gui, const char *name, const bool nested, const bool selected) {
         const auto c_flag = tree_node_flags | (selected ? ImGuiTreeNodeFlags_Selected : 0);
-        const std::string text = std::string(ICON_LC_WAND_SPARKLES) + " " + std::string(name);
+        const std::string text = std::string(ICON_LC_WAND_SPARKLES) + " 2 " + std::string(name);
         const char *text_2 = text.c_str();
         const auto c_bullet = nested ? 0 : tree_bull_flags;
 
