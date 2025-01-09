@@ -30,6 +30,7 @@ namespace ex::gui::test {
 
     class NodeOne: public nodes::Node<NodeOne>,
                    public nodes::id::name<"node_one">,
+                   public nodes::Serializable<std::string>,
 
                    public nodes::io::out<short, 1, "out 1 s">,
                    public nodes::io::out<short, 2, "out 2 s">,
@@ -48,6 +49,14 @@ namespace ex::gui::test {
         bool stored_bool = false;
         bool stored_char = true;
     public:
+        std::string serialize() const override {
+            return "";
+        }
+
+        void deserialize(const std::string &serialized) override {
+
+        }
+
         bool on_input(const bool data, int input_index, int output_index, int clock_i) override {
             stored_bool = data;
             return true;
@@ -64,16 +73,17 @@ namespace ex::gui::test {
         }
 
         short on_output(short *null_ptr, const int output_index, int clock_i) override {
-            return stored_float + output_index;
+            return stored_float + output_index + 2;
         }
 
         float on_output(float *null_ptr, const int output_index, int clock_i) override {
-            return (8 * stored_float) + output_index;
+            return (1 * stored_float) + output_index + 2;
         }
     };
 
     class NodeTwo: public nodes::Node<NodeTwo>,
                    public nodes::id::name<"node_two">,
+                   public nodes::Serializable<std::string>,
 
                    public nodes::io::out<short, 1, "out 1 s">,
                    public nodes::io::out<short, 2, "out 2 s">,
@@ -92,6 +102,14 @@ namespace ex::gui::test {
         bool stored_bool = false;
         bool stored_char = true;
     public:
+        std::string serialize() const override {
+            return "";
+        }
+
+        void deserialize(const std::string &serialized) override {
+
+        }
+
         bool on_input(const bool data, int input_index, int output_index, int clock_i) override {
             stored_bool = data;
             return true;
@@ -108,16 +126,17 @@ namespace ex::gui::test {
         }
 
         short on_output(short *null_ptr, const int output_index, int clock_i) override {
-            return stored_float + output_index;
+            return stored_float + output_index + 3;
         }
 
         float on_output(float *null_ptr, const int output_index, int clock_i) override {
-            return (8 * stored_float) + output_index;
+            return (3 * stored_float) + output_index + 3;
         }
     };
 
     class NodeTri: public nodes::Node<NodeTri>,
                        public nodes::id::name<"node_tri">,
+                       public nodes::Serializable<std::string>,
 
                        public nodes::io::out<short, 1, "out 1 s">,
                        public nodes::io::out<short, 2, "out 2 s">,
@@ -136,6 +155,14 @@ namespace ex::gui::test {
         bool stored_bool = false;
         bool stored_char = true;
     public:
+        std::string serialize() const override {
+            return "";
+        }
+
+        void deserialize(const std::string &serialized) override {
+
+        }
+
         bool on_input(const bool data, int input_index, int output_index, int clock_i) override {
             stored_bool = data;
             return true;
@@ -152,11 +179,11 @@ namespace ex::gui::test {
         }
 
         short on_output(short *null_ptr, const int output_index, int clock_i) override {
-            return stored_float + output_index;
+            return stored_float + output_index + 4;
         }
 
         float on_output(float *null_ptr, const int output_index, int clock_i) override {
-            return (8 * stored_float) + output_index;
+            return (2 * stored_float) + output_index + 4;
         }
     };
 
