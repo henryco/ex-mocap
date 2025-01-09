@@ -10,7 +10,6 @@ namespace ex::map::camera {
     void from_base(State &state, nodes::BaseNode *from, TreeNode *to) {
         auto *node = dynamic_cast<cmp::CameraNode *>(from);
         if (node == nullptr) {
-            to->disabled = true;
             to->deleted  = true;
             return;
         }
