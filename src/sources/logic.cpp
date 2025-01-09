@@ -397,7 +397,8 @@ namespace ex::main {
         if (node == nullptr || group_list == nullptr)
             return;
 
-        log->debug("build tree: {}, {}", node->id_local, (previous != nullptr ? previous->id_local : -1));
+        log->debug("build tree: {}, {}",
+            node->id_local, (previous != nullptr ? static_cast<int>(previous->id_local) : -1));
 
         if (node->is_group) {
             TreeNode *prev_node = previous;
