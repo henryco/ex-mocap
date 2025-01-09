@@ -7,26 +7,9 @@
 
 #include "../gui_mappers.h"
 #include "../../nodes/nodes.h"
+#include "../../state/mappers.h"
 
 namespace ex::gui::test {
-
-    namespace one {
-        bool draw_tree_node(GuiState &gui, const char *name, bool nested, bool selected);
-        bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *window);
-        static constexpr GuiMapper mapper = { draw_tree_node, draw_node_window };
-    }
-
-    namespace two {
-        bool draw_tree_node(GuiState &gui, const char *name, bool nested, bool selected);
-        bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *window);
-        static constexpr GuiMapper mapper = { draw_tree_node, draw_node_window };
-    }
-
-    namespace tri {
-        bool draw_tree_node(GuiState &gui, const char *name, bool nested, bool selected);
-        bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *window);
-        static constexpr GuiMapper mapper = { draw_tree_node, draw_node_window };
-    }
 
     class NodeOne: public nodes::Node<NodeOne>,
                    public nodes::id::name<"node_one">,
@@ -186,6 +169,45 @@ namespace ex::gui::test {
             return (2 * stored_float) + output_index + 4;
         }
     };
+
+    namespace one {
+        bool draw_tree_node(GuiState &gui, const char *name, bool nested, bool selected);
+        bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *window);
+        static constexpr GuiMapper mapper = { draw_tree_node, draw_node_window };
+
+        void from_base(State &state, nodes::BaseNode *from, TreeNode *to);
+        void from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
+        nodes::BaseNode *re_instance(State &state, TreeNode *from, nodes::BaseNode *src);
+        nodes::BaseNode *instance(const State &state, TreeNode *from);
+        void cleanup(void *data);
+        static constexpr DataMappers data_mappers = { from_base, from_tree, re_instance, instance, cleanup };
+    }
+
+    namespace two {
+        bool draw_tree_node(GuiState &gui, const char *name, bool nested, bool selected);
+        bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *window);
+        static constexpr GuiMapper mapper = { draw_tree_node, draw_node_window };
+
+        void from_base(State &state, nodes::BaseNode *from, TreeNode *to);
+        void from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
+        nodes::BaseNode *re_instance(State &state, TreeNode *from, nodes::BaseNode *src);
+        nodes::BaseNode *instance(const State &state, TreeNode *from);
+        void cleanup(void *data);
+        static constexpr DataMappers data_mappers = { from_base, from_tree, re_instance, instance, cleanup };
+    }
+
+    namespace tri {
+        bool draw_tree_node(GuiState &gui, const char *name, bool nested, bool selected);
+        bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *window);
+        static constexpr GuiMapper mapper = { draw_tree_node, draw_node_window };
+
+        void from_base(State &state, nodes::BaseNode *from, TreeNode *to);
+        void from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
+        nodes::BaseNode *re_instance(State &state, TreeNode *from, nodes::BaseNode *src);
+        nodes::BaseNode *instance(const State &state, TreeNode *from);
+        void cleanup(void *data);
+        static constexpr DataMappers data_mappers = { from_base, from_tree, re_instance, instance, cleanup };
+    }
 
 }
 

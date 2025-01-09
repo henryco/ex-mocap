@@ -60,6 +60,28 @@ namespace ex::gui::test::one {
 
         return show;
     }
+
+    void from_base(State &state, nodes::BaseNode *from, TreeNode *to) {
+
+    }
+
+    void from_tree(State &state, TreeNode *from, nodes::BaseNode *to) {
+
+    }
+
+    nodes::BaseNode *re_instance(State &state, TreeNode *from, nodes::BaseNode *src) {
+        return src;
+    }
+
+    nodes::BaseNode *instance(const State &state, TreeNode *from) {
+        const auto node = new NodeOne();
+        node->set_id(from->id_local);
+        return node;
+    }
+
+    void cleanup(void *data) {
+
+    }
 }
 
 namespace ex::gui::test::two {
@@ -96,6 +118,28 @@ namespace ex::gui::test::two {
 
         return show;
     }
+
+    void from_base(State &state, nodes::BaseNode *from, TreeNode *to) {
+
+    }
+
+    void from_tree(State &state, TreeNode *from, nodes::BaseNode *to) {
+
+    }
+
+    nodes::BaseNode *re_instance(State &state, TreeNode *from, nodes::BaseNode *src) {
+        return src;
+    }
+
+    nodes::BaseNode *instance(const State &state, TreeNode *from) {
+        const auto node = new NodeTwo();
+        node->set_id(from->id_local);
+        return node;
+    }
+
+    void cleanup(void *data) {
+
+    }
 }
 
 namespace ex::gui::test::tri {
@@ -125,5 +169,27 @@ namespace ex::gui::test::tri {
         ImGui::End();
 
         return show;
+    }
+
+    void from_base(State &state, nodes::BaseNode *from, TreeNode *to) {
+
+    }
+
+    void from_tree(State &state, TreeNode *from, nodes::BaseNode *to) {
+
+    }
+
+    nodes::BaseNode *re_instance(State &state, TreeNode *from, nodes::BaseNode *src) {
+        return src;
+    }
+
+    nodes::BaseNode *instance(const State &state, TreeNode *from) {
+        const auto node = new NodeTri();
+        node->set_id(from->id_local);
+        return node;
+    }
+
+    void cleanup(void *data) {
+
     }
 }
