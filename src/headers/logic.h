@@ -8,6 +8,7 @@
 #include <map>
 
 #include "components/c_camera.h"
+#include "imgui/cmp/test_cmp.h"
 #include "nodes/nodes.h"
 #include "state.h"
 #include "state/mappers.h"
@@ -34,7 +35,19 @@ namespace ex::main {
     class Logic {
     private:
         static inline const std::map<type_id_, DataMappers> mappers_ = {
-            { cmp::CameraNode::get_node_id(), map::camera::mappers },
+//            { cmp::CameraNode::get_node_id(), map::camera::mappers },
+
+            // TODO REMOVE
+            { ex::gui::test::NodeOne::get_node_id(), ex::gui::test::one::data_mappers },
+            { ex::gui::test::NodeTwo::get_node_id(), ex::gui::test::two::data_mappers },
+            { ex::gui::test::NodeTri::get_node_id(), ex::gui::test::tri::data_mappers },
+            { 0, ex::gui::test::one::data_mappers },
+            { 1, ex::gui::test::tri::data_mappers },
+            { 2, ex::gui::test::two::data_mappers },
+            { 3, ex::gui::test::one::data_mappers },
+            { 4, ex::gui::test::tri::data_mappers },
+            { 5, ex::gui::test::two::data_mappers },
+            { 6, ex::gui::test::one::data_mappers },
         };
 
         std::map<local_id_, nodes::BaseNode *> nodes_       = {};

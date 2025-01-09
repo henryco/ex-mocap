@@ -32,6 +32,7 @@ namespace ex::gui {
     static void (*right_pane_menu)(State &state, GuiState &gui) = nullptr;
 
     static inline const std::map<type_id_, ex::gui::GuiMapper> node_mappers_ = {
+        // TODO REMOVE
         { 0, ex::gui::test::one::mapper },
         { 1, ex::gui::test::tri::mapper },
         { 2, ex::gui::test::two::mapper },
