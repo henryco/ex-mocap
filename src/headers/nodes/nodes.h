@@ -668,9 +668,11 @@ namespace ex::nodes {
                     // TODO REMOVE
 
                     const T    data = connection->out(static_cast<T *>(nullptr), head->index_out, clock_i);
+                    std::cout << "data: " << data << '\n';
                     const bool once = static_cast<CallbackInput<T> *>(this)->on_input(data, head->index_in,
                                                                                       head->index_out, clock_i);
 
+                    std::cout << "once: " << once << '\n';
                     if (once) {
                         // set a bit for given input
                         flags[type_index][i / bytes] |= (1 << n_th);
@@ -1189,7 +1191,9 @@ namespace ex::nodes {
                     out->out_any(head->index_out, clock_i, &size);
                 head = head->next;
             }
+            std::cout << "finish" << '\n';
             time_stop();
+            std::cout << "stop" << '\n';
             return nullptr;
         }
 
