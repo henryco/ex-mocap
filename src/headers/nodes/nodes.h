@@ -294,6 +294,12 @@ namespace ex::nodes {
                 return;
             }
 
+            auto out = dynamic_cast<Output<T> *>(io_ptr);
+            if (out == nullptr) {
+                *stop = false;
+                return;
+            }
+
             *result = in->attach_io(io_ptr, output_index, input_index);
             *stop = true;
         }
@@ -309,6 +315,12 @@ namespace ex::nodes {
                 return;
             }
 
+            auto out = dynamic_cast<Output<T> *>(io_ptr);
+            if (out == nullptr) {
+                *stop = false;
+                return;
+            }
+
             *result = in->detach_io(io_ptr, output_index, input_index);
             *stop = true;
         }
@@ -320,6 +332,12 @@ namespace ex::nodes {
 
             auto in = dynamic_cast<Input<T> *>(this);
             if (in == nullptr) {
+                *stop = false;
+                return;
+            }
+
+            auto out = dynamic_cast<Output<T> *>(io_ptr);
+            if (out == nullptr) {
                 *stop = false;
                 return;
             }
