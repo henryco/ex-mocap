@@ -1137,8 +1137,8 @@ namespace ex::nodes {
         }
 
         io_node   *store      = nullptr;
-        int        clock_i    = -1;
-        int        target_fps = -1;
+        int        clock_i    = 0;
+        int        target_fps = 0;
 
     public:
         explicit clock(const int target_fps = -1)
@@ -1164,7 +1164,7 @@ namespace ex::nodes {
             time_start();
             const io_node *head = store;
             std::size_t    size = 0;
-            while (head != nullptr) {
+            while (head != nullptr) { // TODO FIXME
                 if (const auto out = dynamic_cast<OUT *>(head->io_ptr); out != nullptr)
                     out->out_any(head->index_out, clock_i, &size);
                 head = head->next;
@@ -1265,7 +1265,7 @@ namespace ex::nodes {
         void next() {
             if (clock_i >= std::numeric_limits<int>::max() - 1)
                 reset();
-            out_any(0, clock_i++, nullptr);
+            out_any(0, ++clock_i, nullptr);
         }
 
         bool is_attached(IO *io_ptr, const int output_index) {
