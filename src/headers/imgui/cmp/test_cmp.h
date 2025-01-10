@@ -28,9 +28,9 @@ namespace ex::gui::test {
                    public nodes::ReactiveIn<bool, char, float>
     {
     private:
-        bool stored_float = 0.f;
+        float stored_float = 0.f;
         bool stored_bool = false;
-        bool stored_char = true;
+        char stored_char = '\0';
     public:
         std::string serialize() const override {
             return "";
@@ -81,9 +81,9 @@ namespace ex::gui::test {
                    public nodes::ReactiveIn<bool, char, float>
     {
     private:
-        bool stored_float = 0.f;
+        float stored_float = 0.f;
         bool stored_bool = false;
-        bool stored_char = true;
+        char stored_char = '\0';
     public:
         std::string serialize() const override {
             return "";
@@ -134,9 +134,9 @@ namespace ex::gui::test {
                        public nodes::ReactiveIn<bool, char, float>
     {
     private:
-        bool stored_float = 0.f;
+        float stored_float = 0.f;
         bool stored_bool = false;
-        bool stored_char = true;
+        char stored_char = '\0';
     public:
         std::string serialize() const override {
             return "";
