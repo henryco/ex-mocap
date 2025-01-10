@@ -633,6 +633,11 @@ namespace ex::nodes {
             const io_node *inputs = static_cast<InputStore<null_mutex, T> *>(this)->list_inputs();
             const io_node *head = inputs;
 
+
+            // TODO FIXME INFINITE LOOP !!!
+            // TODO FIXME INFINITE LOOP !!!
+            // TODO FIXME INFINITE LOOP !!!
+
             int i = 0;
             while (head != nullptr) {
                 const char &byte = flags[type_index][i / bytes];
