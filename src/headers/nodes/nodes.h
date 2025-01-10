@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <iostream>
 #include <mutex>
 #include <thread>
 #include <vector>
@@ -651,6 +652,20 @@ namespace ex::nodes {
 
                 auto connection = dynamic_cast<Output<T> *>(head->io_ptr);
                 if (connection != nullptr) {
+
+                    const auto ioio = static_cast<IO *>(this);
+
+                    // TODO REMOVE
+                    std::cout << "this: "
+                    << ioio->get_type_id() << ": " << ioio->get_id()
+                    << ", ["
+                    << clock_i << ", " << type_index
+                    << "] " << "connection: "
+                    << connection->get_type_id() << ": " << connection->get_id()
+                    << ", " << "index: "
+                    << head->index_out << " -> " << head->index_in
+                    << '\n';
+                    // TODO REMOVE
 
                     const T    data = connection->out(static_cast<T *>(nullptr), head->index_out, clock_i);
                     const bool once = static_cast<CallbackInput<T> *>(this)->on_input(data, head->index_in,
