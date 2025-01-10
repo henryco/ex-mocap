@@ -399,8 +399,8 @@ namespace ex::main {
         if (node == nullptr || group_list == nullptr)
             return;
 
-        log->debug("build tree: {}, {}",
-            node->id_local, (previous != nullptr ? static_cast<int>(previous->id_local) : -1));
+//        log->debug("build tree: {}, {}",
+//            node->id_local, (previous != nullptr ? static_cast<int>(previous->id_local) : -1));
 
         if (node->is_group) {
             TreeNode *prev_node = previous;
@@ -447,7 +447,7 @@ namespace ex::main {
         if (from == nullptr || to == nullptr)
             return;
 
-        log->debug("connect nodes: {} -> {}", from->id_local, to->id_local);
+//        log->debug("connect nodes: {} -> {}", from->id_local, to->id_local);
 
         nodes::BaseNode *node_dst = nodes_.at(to->id_local);
         nodes::BaseNode *node_src = nodes_.at(from->id_local);
