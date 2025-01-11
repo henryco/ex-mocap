@@ -21,7 +21,7 @@ namespace ex::cmp {
         return &camera_;
     }
 
-    bool CameraNode::on_input(const bool data, const int input_index, const int _, const int clock_i) {
+    bool CameraNode::on_input(const bool data, const int input_index, const int _, const int clock_i, Output<bool> *io) {
         switch (input_index) {
             case CAM_IN_ENABLE:
                 enabled_ = data;

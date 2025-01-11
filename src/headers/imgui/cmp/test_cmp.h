@@ -40,18 +40,17 @@ namespace ex::gui::test {
 
         }
 
-        bool on_input(const bool data, int input_index, int output_index, int clock_i) override {
+        bool on_input(const bool data, int input_index, int output_index, int clock_i, Output<bool> *io) override {
             stored_bool = data;
             return true;
         }
 
-        bool on_input(const char data, int input_index, int output_index, int clock_i) override {
+        bool on_input(const char data, int input_index, int output_index, int clock_i, Output<char> *io) override {
             stored_char = data;
             return true;
         }
 
-        bool on_input(const float data, int input_index, int output_index, int clock_i) override {
-//            std::cout << "in_1[" << get_id() << "]: " << data << '\n';
+        bool on_input(const float data, int input_index, int output_index, int clock_i, Output<float> *io) override {
             stored_float = data;
             return true;
         }
@@ -96,18 +95,17 @@ namespace ex::gui::test {
 
         }
 
-        bool on_input(const bool data, int input_index, int output_index, int clock_i) override {
+        bool on_input(const bool data, int input_index, int output_index, int clock_i, Output<bool> *io) override {
             stored_bool = data;
             return true;
         }
 
-        bool on_input(const char data, int input_index, int output_index, int clock_i) override {
+        bool on_input(const char data, int input_index, int output_index, int clock_i, Output<char> *io) override {
             stored_char = data;
             return true;
         }
 
-        bool on_input(const float data, int input_index, int output_index, int clock_i) override {
-//            std::cout << "in_2[" << get_id() << "]: " << data << '\n';
+        bool on_input(const float data, int input_index, int output_index, int clock_i, Output<float> *io) override {
             stored_float = data;
             return true;
         }
@@ -152,18 +150,17 @@ namespace ex::gui::test {
 
         }
 
-        bool on_input(const bool data, int input_index, int output_index, int clock_i) override {
+        bool on_input(const bool data, int input_index, int output_index, int clock_i, Output<bool> *io) override {
             stored_bool = data;
             return true;
         }
 
-        bool on_input(const char data, int input_index, int output_index, int clock_i) override {
+        bool on_input(const char data, int input_index, int output_index, int clock_i, Output<char> *io) override {
             stored_char = data;
             return true;
         }
 
-        bool on_input(const float data, int input_index, int output_index, int clock_i) override {
-//            std::cout << "in_3[" << get_id() << "]: " << data << '\n';
+        bool on_input(const float data, int input_index, int output_index, int clock_i, Output<float> *io) override {
             stored_float = data;
             return true;
         }

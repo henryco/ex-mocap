@@ -85,7 +85,7 @@ namespace ex::test {
             return 5;
         }
 
-        bool on_input(const short data, const int input_index, const int output_index, const int clock_i) override {
+        bool on_input(const short data, const int input_index, const int output_index, const int clock_i, Output<short> *io) override {
             // TODO
             return true;
         }
@@ -126,12 +126,12 @@ namespace ex::test {
             return 'a';
         }
 
-        bool on_input(float data, const int input_index, const int output_index, const int clock_i) override {
+        bool on_input(float data, const int input_index, const int output_index, const int clock_i, Output<float> *io) override {
             // TODO
             return true;
         }
 
-        bool on_input(short data, const int input_index, const int output_index, const int clock_i) override {
+        bool on_input(short data, const int input_index, const int output_index, const int clock_i, Output<short> *io) override {
             // TODO
             return true;
         }

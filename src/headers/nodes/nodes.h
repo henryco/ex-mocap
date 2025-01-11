@@ -623,7 +623,7 @@ namespace ex::nodes {
     public:
         virtual ~CallbackInput() = default;
 
-        virtual bool on_input(T data, int input_index, int output_index, int clock_i) = 0;
+        virtual bool on_input(T data, int input_index, int output_index, int clock_i, Output<T> *io) = 0;
     };
 
     template<typename T>
@@ -638,7 +638,8 @@ namespace ex::nodes {
     public:
         virtual ~AnyInputCallback() = default;
 
-        virtual bool on_any_input(const void *data_ptr, std::size_t size, int input_index, int output_index, int clock_i) = 0;
+        virtual bool on_any_input(const void *data_ptr, std::size_t size, int input_index, int output_index,
+                                  int clock_i, OUT *io) = 0;
     };
 
     class AnyOutputCallback {
@@ -691,7 +692,8 @@ namespace ex::nodes {
 
                     const T    data = connection->out(static_cast<T *>(nullptr), head->index_out, clock_i);
                     const bool once = static_cast<CallbackInput<T> *>(this)->on_input(data, head->index_in,
-                                                                                      head->index_out, clock_i);
+                                                                                      head->index_out, clock_i,
+                                                                                      connection);
                     if (once) {
                         // set a bit for given input
                         flags[type_index][i / bytes] |= (1 << n_th);
@@ -726,7 +728,7 @@ namespace ex::nodes {
                     continue;
                 }
 
-                if (this->on_any_input(result_ptr, size_, head->index_in, head->index_out, clock_i)) {
+                if (this->on_any_input(result_ptr, size_, head->index_in, head->index_out, clock_i, out_)) {
                     // set a bit for given input
                     flags[type_index][i / bytes] |= (1 << n_th);
                 }
@@ -782,7 +784,7 @@ namespace ex::nodes {
     public:
         ~DefaultAny() override = default;
 
-        bool on_any_input(const void *data, std::size_t size, int input_index, int output_index, int clock_i) override {
+        bool on_any_input(const void *data, std::size_t size, int input_index, int output_index, int clock_i, OUT *io) override {
             return true;
         }
 

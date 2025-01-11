@@ -45,7 +45,7 @@ namespace ex::cmp {
 
         camera::Camera *get() override;
 
-        bool on_input(bool data, int input_index, int _, int clock_i) override;
+        bool on_input(bool data, int input_index, int _, int clock_i, Output<bool> *io) override;
 
         proto::image on_output(proto::image *_, int __, int clock_i) override;
 
