@@ -60,16 +60,6 @@ namespace ex::test {
             return "ABC";
         }
 
-        void *on_any_output(const int output_index, const int clock_i, std::size_t *size) override {
-            // TODO
-            return nullptr;
-        }
-
-        bool on_any_input(const void *data_ptr, const std::size_t size, const int input_index, const  int output_index, const int clock_i, OUT *io) override {
-            // TODO
-            return true;
-        }
-
         float on_output(float *null_ptr, const int output_index, const int clock_i, Input<float> *io) override {
             // TODO
             return 3;
@@ -106,16 +96,6 @@ namespace ex::test {
         public nodes::ReactiveIn<float, short>,
         public nodes::ReactiveOut<bool, char> {
     public:
-        void *on_any_output(const int output_index, const int clock_i, std::size_t *size) override {
-            // TODO
-            return nullptr;
-        }
-
-        bool on_any_input(const void *data_ptr, const std::size_t size, const int input_index, const  int output_index, const int clock_i, OUT *io) override {
-            // TODO
-            return true;
-        }
-
         bool on_output(bool *null_ptr, const int output_index, const int clock_i, Input<bool> *io) override {
             // TODO
             return true;

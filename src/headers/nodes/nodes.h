@@ -646,7 +646,7 @@ namespace ex::nodes {
     public:
         virtual ~AnyOutputCallback() = default;
 
-        virtual void *on_any_output(int output_index, int clock_i, std::size_t* size) = 0;
+        virtual void *on_any_output(int output_index, int clock_i, std::size_t* size, IN *io) = 0;
     };
 
     class ReactiveState {
@@ -677,14 +677,29 @@ namespace ex::nodes {
         }
     };
 
+    class ReactiveOutAnyCallback {
+    public:
+        virtual ~ReactiveOutAnyCallback() = default;
+
+        virtual void *out_any(int output_index, int clock_i, std::size_t *size, IN *io) = 0;
+    };
+
     template<typename ... Types>
-    class ReactiveOut : public virtual AnyOutputCallback, public ReactiveOutput<Types>...{
-        public:
+    class ReactiveOut : public virtual AnyOutputCallback,
+                        public ReactiveOutAnyCallback,
+                        public ReactiveOutput<Types>...
+    {
+    public:
         ~ReactiveOut() override = default;
 
-        void *out_any(const int output_index, const int clock_i, std::size_t* size) override {
+        void *out_any(const int output_index, const int clock_i, std::size_t *size, IN *io) override {
             static_cast<ReactiveState *>(this)->update_state(clock_i, false);
-            return on_any_output(output_index, clock_i, size);
+            return on_any_output(output_index, clock_i, size, io);
+        }
+
+        void *out_any(const int output_index, const int clock_i, std::size_t *size) override {
+            static_cast<ReactiveState *>(this)->update_state(clock_i, false);
+            return on_any_output(output_index, clock_i, size, nullptr);
         }
     };
 
@@ -699,6 +714,14 @@ namespace ex::nodes {
         char                 flags[sizeof...(Types)][bytes] = {};
 
         int last_clock_i = -1;
+
+        void *get_any_result_ptr(IO *io_ptr, std::size_t *size, const int index_out, const int clock_i) {
+            if (const auto out_any = dynamic_cast<ReactiveOutAnyCallback *>(io_ptr); out_any != nullptr)
+                return out_any->out_any(index_out, clock_i, size, this);
+            if (const auto out_ = dynamic_cast<OUT *>(io_ptr); out_ != nullptr)
+                out_->out_any(index_out, clock_i, size);
+            return nullptr;
+        }
 
         template<typename T>
         void _pull_inputs(const int clock_i, const int type_index) {
@@ -764,7 +787,8 @@ namespace ex::nodes {
                 }
 
                 std::size_t size_      = 0;
-                const void *result_ptr = out_->out_any(head->index_out, clock_i, &size_);
+                const void *result_ptr = get_any_result_ptr(head->io_ptr, &size_,
+                    head->index_out, clock_i);
                 if (result_ptr == nullptr || size_ <= 0) {
                     head = head->next;
                     i++;
@@ -811,7 +835,7 @@ namespace ex::nodes {
             return true;
         }
 
-        void *on_any_output(int output_index, int clock_i, std::size_t *size) override {
+        void *on_any_output(int output_index, int clock_i, std::size_t *size, IN *io) override {
             *size = -1;
             return nullptr;
         }
