@@ -656,6 +656,21 @@ namespace ex::nodes {
         virtual void update_state(int clock_i, bool once) = 0;
     };
 
+    template<typename T>
+        class ReactiveOutput : public virtual ReactiveState,
+                               public CallbackOutput<T>,
+                               public virtual Output<T>
+    {
+    public:
+        ~ReactiveOutput() override = default;
+
+        T out(T *null_ptr, const int output_index, const int clock_i) override {
+            update_state(clock_i, false);
+            return static_cast<CallbackOutput<T> *>(this)->on_output(
+                null_ptr, output_index, clock_i);
+        }
+    };
+
     template<typename ... Types>
     class ReactiveIn : public virtual ReactiveState,
                        public virtual AnyInputCallback,
@@ -751,21 +766,6 @@ namespace ex::nodes {
 
         void reset_internal_clock() {
             last_clock_i = -1;
-        }
-    };
-
-    template<typename T>
-    class ReactiveOutput : public virtual ReactiveState,
-                           public CallbackOutput<T>,
-                           public virtual Output<T>
-    {
-    public:
-        ~ReactiveOutput() override = default;
-
-        T out(T *null_ptr, const int output_index, const int clock_i) override {
-            update_state(clock_i, false);
-            return static_cast<CallbackOutput<T> *>(this)->on_output(
-                null_ptr, output_index, clock_i);
         }
     };
 
