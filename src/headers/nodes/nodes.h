@@ -631,7 +631,7 @@ namespace ex::nodes {
     public:
         virtual ~CallbackOutput() = default;
 
-        virtual T on_output(T *null_ptr, int output_index, int clock_i) = 0;
+        virtual T on_output(T *null_ptr, int output_index, int clock_i, Input<T> *io) = 0;
     };
 
     class AnyInputCallback {
@@ -657,17 +657,23 @@ namespace ex::nodes {
     };
 
     template<typename T>
-        class ReactiveOutput : public virtual ReactiveState,
-                               public CallbackOutput<T>,
-                               public virtual Output<T>
+    class ReactiveOutput : public virtual ReactiveState,
+                           public CallbackOutput<T>,
+                           public virtual Output<T>
     {
     public:
         ~ReactiveOutput() override = default;
 
+        T out(T *null_ptr, const int output_index, const int clock_i, Input<T> *io) {
+            update_state(clock_i, false);
+            return static_cast<CallbackOutput<T> *>(this)->on_output(
+                null_ptr, output_index, clock_i, io);
+        }
+
         T out(T *null_ptr, const int output_index, const int clock_i) override {
             update_state(clock_i, false);
             return static_cast<CallbackOutput<T> *>(this)->on_output(
-                null_ptr, output_index, clock_i);
+                null_ptr, output_index, clock_i, nullptr);
         }
     };
 
@@ -700,6 +706,23 @@ namespace ex::nodes {
                 }
 
                 flags[type_index][i / bytes] &= ~(1 << n_th);
+
+                auto reactive = dynamic_cast<ReactiveOutput<T> *>(head->io_ptr);
+                if (reactive != nullptr) {
+                    // CASE: OUTPUT EXISTS AND ITS REACTIVE OUTPUT OF MATCHING TYPE
+                    const T    data = reactive->out(static_cast<T *>(nullptr), head->index_out, clock_i, this);
+                    const bool once = static_cast<CallbackInput<T> *>(this)->on_input(data, head->index_in,
+                                                                                      head->index_out, clock_i,
+                                                                                      reactive);
+                    if (once) {
+                        // set a bit for given input
+                        flags[type_index][i / bytes] |= (1 << n_th);
+                    }
+
+                    head = head->next;
+                    i++;
+                    continue;
+                }
 
                 auto connection = dynamic_cast<Output<T> *>(head->io_ptr);
                 if (connection != nullptr) {

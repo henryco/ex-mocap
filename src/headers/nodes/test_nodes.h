@@ -65,22 +65,22 @@ namespace ex::test {
             return nullptr;
         }
 
-        bool on_any_input(const void *data_ptr, const std::size_t size, const int input_index, const  int output_index, const int clock_i) override {
+        bool on_any_input(const void *data_ptr, const std::size_t size, const int input_index, const  int output_index, const int clock_i, OUT *io) override {
             // TODO
             return true;
         }
 
-        float on_output(float *null_ptr, const int output_index, const int clock_i) override {
+        float on_output(float *null_ptr, const int output_index, const int clock_i, Input<float> *io) override {
             // TODO
             return 3;
         }
 
-        int on_output(int *null_ptr, const int output_index, const int clock_i) override {
+        int on_output(int *null_ptr, const int output_index, const int clock_i, Input<int> *io) override {
             // TODO
             return 4;
         }
 
-        short on_output(short *null_ptr, const int output_index, const int clock_i) override {
+        short on_output(short *null_ptr, const int output_index, const int clock_i, Input<short> *io) override {
             // TODO
             return 5;
         }
@@ -111,17 +111,17 @@ namespace ex::test {
             return nullptr;
         }
 
-        bool on_any_input(const void *data_ptr, const std::size_t size, const int input_index, const  int output_index, const int clock_i) override {
+        bool on_any_input(const void *data_ptr, const std::size_t size, const int input_index, const  int output_index, const int clock_i, OUT *io) override {
             // TODO
             return true;
         }
 
-        bool on_output(bool *null_ptr, const int output_index, const int clock_i) override {
+        bool on_output(bool *null_ptr, const int output_index, const int clock_i, Input<bool> *io) override {
             // TODO
             return true;
         }
 
-        char on_output(char *null_ptr, const int output_index, const int clock_i) override {
+        char on_output(char *null_ptr, const int output_index, const int clock_i, Input<char> *io) override {
             // TODO
             return 'a';
         }

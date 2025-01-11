@@ -55,11 +55,11 @@ namespace ex::gui::test {
             return true;
         }
 
-        short on_output(short *null_ptr, const int output_index, int clock_i) override {
+        short on_output(short *null_ptr, const int output_index, int clock_i, Input<short> *io) override {
             return stored_float + output_index + 2;
         }
 
-        float on_output(float *null_ptr, const int output_index, int clock_i) override {
+        float on_output(float *null_ptr, const int output_index, int clock_i, Input<float> *io) override {
             const float o = (1 * stored_float) + output_index + 2;
 //            std::cout << "out_1[" << get_id() << "]: " << o << '\n';
             return o;
@@ -110,11 +110,11 @@ namespace ex::gui::test {
             return true;
         }
 
-        short on_output(short *null_ptr, const int output_index, int clock_i) override {
+        short on_output(short *null_ptr, const int output_index, int clock_i, Input<short> *io) override {
             return stored_float + output_index + 3;
         }
 
-        float on_output(float *null_ptr, const int output_index, int clock_i) override {
+        float on_output(float *null_ptr, const int output_index, int clock_i, Input<float> *io) override {
             const float o = (3 * stored_float) + output_index + 3;
 //            std::cout << "out_2[" << get_id() << "]: " << o << '\n';
             return o;
@@ -165,11 +165,11 @@ namespace ex::gui::test {
             return true;
         }
 
-        short on_output(short *null_ptr, const int output_index, int clock_i) override {
+        short on_output(short *null_ptr, const int output_index, int clock_i, Input<short> *io) override {
             return stored_float + output_index + 4;
         }
 
-        float on_output(float *null_ptr, const int output_index, int clock_i) override {
+        float on_output(float *null_ptr, const int output_index, int clock_i, Input<float> *io) override {
             const float o = (2 * stored_float) + output_index + 4;
 //            std::cout << "out_3[" << get_id() << "]: " << o << '\n';
             return o;

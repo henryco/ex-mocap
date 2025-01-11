@@ -31,7 +31,7 @@ namespace ex::cmp {
         }
     }
 
-    proto::image CameraNode::on_output(proto::image *_, const int __, const int clock_i) {
+    proto::image CameraNode::on_output(proto::image *_, const int __, const int clock_i, Input<proto::image> *io) {
         if (!enabled_)
             return {};
         capture_frame(clock_i);
