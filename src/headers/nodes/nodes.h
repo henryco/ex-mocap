@@ -641,6 +641,13 @@ namespace ex::nodes {
         virtual bool on_any_input(const void *data_ptr, std::size_t size, int input_index, int output_index, int clock_i) = 0;
     };
 
+    class AnyOutputCallback {
+    public:
+        virtual ~AnyOutputCallback() = default;
+
+        virtual void *on_any_output(int output_index, int clock_i, std::size_t* size) = 0;
+    };
+
     class ReactiveState {
     public:
         virtual ~ReactiveState() = default;
@@ -758,13 +765,6 @@ namespace ex::nodes {
             return static_cast<CallbackOutput<T> *>(this)->on_output(
                 null_ptr, output_index, clock_i);
         }
-    };
-
-    class AnyOutputCallback {
-    public:
-        virtual ~AnyOutputCallback() = default;
-
-        virtual void *on_any_output(int output_index, int clock_i, std::size_t* size) = 0;
     };
 
     template<typename ... Types>
