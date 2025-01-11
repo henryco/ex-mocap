@@ -75,6 +75,13 @@ namespace ex::nodes {
         virtual const std::size_t get_id() const = 0;
     };
 
+    class NodeDescriptor {
+    public:
+        virtual ~NodeDescriptor() = default;
+
+        virtual const char *get_node_name() const = 0;
+    };
+
     struct io_node {
         IO *const io_ptr;    // 8
         io_node  *next;      // 8
@@ -418,6 +425,22 @@ namespace ex::nodes {
             return store;
         }
 
+        void print_debug(const int n) {
+            auto head = store;
+            while (head != nullptr && head->io_ptr != nullptr) {
+                for (int i = 0; i < n; i++)
+                    std::cout << "-";
+                std::cout << "[" << head->io_ptr->get_id() << " : " << head->io_ptr->get_type_id() << "] ";
+                if (const auto dsc = dynamic_cast<NodeDescriptor *>(head->io_ptr); dsc != nullptr)
+                    std::cout << "[" << dsc->get_node_name() << "] ";
+                std::cout << head->index_in << " <- " << head->index_out << '\n';
+                auto ptr = dynamic_cast<InputStore *>(head->io_ptr);
+                if (ptr != nullptr)
+                    ptr->print_debug(n + 1);
+                head = head->next;
+            }
+        }
+
         bool attach(Output<T> *output_ptr, const int output_index, const int input_index) override {
             std::lock_guard guard(mutex_);
 
@@ -634,17 +657,14 @@ namespace ex::nodes {
             const io_node *inputs = static_cast<InputStore<null_mutex, T> *>(this)->list_inputs();
             const io_node *head = inputs;
 
-
-            // TODO FIXME INFINITE LOOP !!!
-            // TODO FIXME INFINITE LOOP !!!
-            // TODO FIXME INFINITE LOOP !!!
-
             int i = 0;
             while (head != nullptr) {
                 const char &byte = flags[type_index][i / bytes];
                 const int   n_th = i % bytes;
 
                 if (clock_i == last_clock_i && (byte & (1 << n_th)) != 0) {
+                    head = head->next;
+                    i++;
                     continue;
                 }
 
@@ -652,27 +672,11 @@ namespace ex::nodes {
 
                 auto connection = dynamic_cast<Output<T> *>(head->io_ptr);
                 if (connection != nullptr) {
-
-                    const auto ioio = static_cast<IO *>(this);
-
-                    // TODO REMOVE
-                    std::cout << "this: "
-                    << ioio->get_type_id() << ": " << ioio->get_id()
-                    << ", ["
-                    << clock_i << ", " << type_index
-                    << "] " << "connection: "
-                    << connection->get_type_id() << ": " << connection->get_id()
-                    << ", " << "index: "
-                    << head->index_out << " -> " << head->index_in
-                    << '\n';
-                    // TODO REMOVE
+                    // CASE: OUTPUT EXISTS AND MATCHING INPUT < - > OUTPUT TYPES
 
                     const T    data = connection->out(static_cast<T *>(nullptr), head->index_out, clock_i);
-                    std::cout << "data: " << data << '\n';
                     const bool once = static_cast<CallbackInput<T> *>(this)->on_input(data, head->index_in,
                                                                                       head->index_out, clock_i);
-
-                    std::cout << "once: " << once << '\n';
                     if (once) {
                         // set a bit for given input
                         flags[type_index][i / bytes] |= (1 << n_th);
@@ -682,6 +686,9 @@ namespace ex::nodes {
                     i++;
                     continue;
                 }
+
+                // CASE: OUTPUT EXISTS BUT, MISMATCHING INPUT < - > OUTPUT TYPES
+                // thus we pull output as type ANY
 
                 const auto out_ = dynamic_cast<OUT *>(head->io_ptr);
                 if (out_ == nullptr) {
@@ -716,8 +723,6 @@ namespace ex::nodes {
 
     public:
         ~ReactiveIn() override = default;
-
-//        virtual bool on_any_input(const void *data_ptr, std::size_t size, int input_index, int output_index, int clock_i) = 0;
 
         void update_state(const int clock_i, const bool once) override {
             if (last_clock_i == clock_i && once)
@@ -758,8 +763,6 @@ namespace ex::nodes {
     class ReactiveOut : public virtual AnyOutputCallback, public ReactiveOutput<Types>...{
     public:
         ~ReactiveOut() override = default;
-
-//        virtual void *on_any_output(int output_index, int clock_i, std::size_t* size) = 0;
 
         void *out_any(const int output_index, const int clock_i, std::size_t* size) override {
             static_cast<ReactiveState *>(this)->update_state(clock_i, false);
@@ -827,13 +830,6 @@ namespace ex::nodes {
     {
     public:
         ~IODescriptor() override = default;
-    };
-
-    class NodeDescriptor {
-    public:
-        virtual ~NodeDescriptor() = default;
-
-        virtual const char *get_node_name() const = 0;
     };
 
     template<typename T>
@@ -1139,23 +1135,24 @@ namespace ex::nodes {
     {
     private:
         std::chrono::time_point<std::chrono::steady_clock> start_time;
+        long                                               last_frame_duration = 0;
 
         void time_start() {
-            if (target_fps <= 0)
-                return;
             start_time = std::chrono::steady_clock::now();
         }
 
-        void time_stop() const {
-            if (target_fps <= 0)
-                return;
-
+        void time_stop() {
             const auto                  stop_time  = std::chrono::steady_clock::now();
             const std::chrono::duration frame_time = stop_time - start_time;
-            const double                target     = 1.0 / static_cast<double>(target_fps);
 
-            if (const double sleep_time = target - frame_time.count(); sleep_time > 0)
-                std::this_thread::sleep_for(std::chrono::duration<double>(sleep_time));
+            if (target_fps > 0) {
+                const auto target_ns = std::chrono::nanoseconds{ static_cast<int64_t>(
+                        1'000'000'000.0 / static_cast<double>(target_fps)) };
+                if (frame_time < target_ns)
+                    std::this_thread::sleep_for(target_ns - frame_time);
+            }
+
+            last_frame_duration = frame_time.count();
         }
 
         io_node   *store      = nullptr;
@@ -1168,6 +1165,10 @@ namespace ex::nodes {
 
         ~clock() override {
             detach_all_any(0);
+        }
+
+        long delta_ns() const {
+            return last_frame_duration;
         }
 
         const std::size_t get_id() const override {
@@ -1186,14 +1187,12 @@ namespace ex::nodes {
             time_start();
             const io_node *head = store;
             std::size_t    size = 0;
-            while (head != nullptr) { // TODO FIXME
+            while (head != nullptr) {
                 if (const auto out = dynamic_cast<OUT *>(head->io_ptr); out != nullptr)
                     out->out_any(head->index_out, clock_i, &size);
                 head = head->next;
             }
-            std::cout << "finish" << '\n';
             time_stop();
-            std::cout << "stop" << '\n';
             return nullptr;
         }
 

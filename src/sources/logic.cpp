@@ -46,11 +46,11 @@ namespace ex::main {
         state.work_tree->children_n = 0;
 
         std::size_t local_id_ct = 1;
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 1; i++) {
             const auto node  = new TreeNode();
             node->created    = true;
             node->children_n = 0;
-            node->name       = "Node";
+            node->name       = (new std::string("Node " + std::to_string(local_id_ct)))->c_str();
             node->is_group   = i > 2;
             node->id_local   = local_id_ct++;
             node->id_node    = 0;
@@ -108,7 +108,7 @@ namespace ex::main {
                 const auto inputs  = new TreeNode();
                 inputs->created    = true;
                 inputs->children_n = 0;
-                inputs->name       = "Inputs.";
+                inputs->name       = (new std::string("Inputs. " + std::to_string(local_id_ct)))->c_str();
                 inputs->is_group   = true;
                 inputs->id_local   = local_id_ct++;
 
@@ -116,7 +116,7 @@ namespace ex::main {
                     const auto sub  = new TreeNode();
                     sub->created    = true;
                     sub->children_n = 0;
-                    sub->name       = "Sub in";
+                    sub->name       = (new std::string("Sub in " + std::to_string(local_id_ct)))->c_str();
                     sub->is_group   = k == 1 || k == 2;
                     sub->id_local   = local_id_ct++;
                     sub->id_node    = 4;
@@ -126,7 +126,7 @@ namespace ex::main {
                             const auto in  = new TreeNode();
                             in->created    = true;
                             in->children_n = 0;
-                            in->name       = "in in";
+                            in->name       = (new std::string("in in " + std::to_string(local_id_ct)))->c_str();
                             in->is_group   = false;
                             in->id_local   = local_id_ct++;
                             in->id_node    = 5;
@@ -137,7 +137,7 @@ namespace ex::main {
                         const auto another_in = new TreeNode();
                         another_in->created    = true;
                         another_in->children_n = 0;
-                        another_in->name       = "another_in";
+                        another_in->name       = (new std::string("another_in " + std::to_string(local_id_ct)))->c_str();
                         another_in->is_group   = true;
                         another_in->id_local   = local_id_ct++;
 
@@ -145,7 +145,7 @@ namespace ex::main {
                             const auto sub_3  = new TreeNode();
                             sub_3->created    = true;
                             sub_3->children_n = 0;
-                            sub_3->name       = "another in";
+                            sub_3->name       = (new std::string("another in " + std::to_string(local_id_ct)))->c_str();
                             sub_3->is_group   = false;
                             sub_3->id_local   = local_id_ct++;
                             sub_3->id_node    = 6;

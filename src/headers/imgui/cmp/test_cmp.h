@@ -51,6 +51,7 @@ namespace ex::gui::test {
         }
 
         bool on_input(const float data, int input_index, int output_index, int clock_i) override {
+//            std::cout << "in_1[" << get_id() << "]: " << data << '\n';
             stored_float = data;
             return true;
         }
@@ -60,7 +61,9 @@ namespace ex::gui::test {
         }
 
         float on_output(float *null_ptr, const int output_index, int clock_i) override {
-            return (1 * stored_float) + output_index + 2;
+            const float o = (1 * stored_float) + output_index + 2;
+//            std::cout << "out_1[" << get_id() << "]: " << o << '\n';
+            return o;
         }
     };
 
@@ -104,6 +107,7 @@ namespace ex::gui::test {
         }
 
         bool on_input(const float data, int input_index, int output_index, int clock_i) override {
+//            std::cout << "in_2[" << get_id() << "]: " << data << '\n';
             stored_float = data;
             return true;
         }
@@ -113,7 +117,9 @@ namespace ex::gui::test {
         }
 
         float on_output(float *null_ptr, const int output_index, int clock_i) override {
-            return (3 * stored_float) + output_index + 3;
+            const float o = (3 * stored_float) + output_index + 3;
+//            std::cout << "out_2[" << get_id() << "]: " << o << '\n';
+            return o;
         }
     };
 
@@ -157,6 +163,7 @@ namespace ex::gui::test {
         }
 
         bool on_input(const float data, int input_index, int output_index, int clock_i) override {
+//            std::cout << "in_3[" << get_id() << "]: " << data << '\n';
             stored_float = data;
             return true;
         }
@@ -166,7 +173,9 @@ namespace ex::gui::test {
         }
 
         float on_output(float *null_ptr, const int output_index, int clock_i) override {
-            return (2 * stored_float) + output_index + 4;
+            const float o = (2 * stored_float) + output_index + 4;
+//            std::cout << "out_3[" << get_id() << "]: " << o << '\n';
+            return o;
         }
     };
 
