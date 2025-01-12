@@ -21,19 +21,7 @@ namespace ex::cmp {
         return &camera_;
     }
 
-    bool CameraNode::on_input(const bool data, const int input_index, const int _, const int clock_i, Output<bool> *io) {
-        switch (input_index) {
-            case CAM_IN_ENABLE:
-                enabled_ = data;
-                return true;
-            default:
-                return true;
-        }
-    }
-
-    proto::image CameraNode::on_output(proto::image *_, const int __, const int clock_i, Input<proto::image> *io) {
-        if (!enabled_)
-            return {};
+    proto::image CameraNode::on_output(proto::image *_, const int __, const int clock_i, nodes::Input<proto::image> *io) {
         capture_frame(clock_i);
         return last_frame_;
     }

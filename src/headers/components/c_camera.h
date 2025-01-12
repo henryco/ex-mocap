@@ -14,7 +14,6 @@ namespace ex::cmp {
 
 #define CAM_          0
 #define CAM_OUT_FRAME 1
-#define CAM_IN_ENABLE 2
 
     class CameraNode : public nodes::Node<CameraNode>,
                        public nodes::State<camera::Camera>,
@@ -22,10 +21,9 @@ namespace ex::cmp {
                        public nodes::id::name<"camera_node">,
 
                        public nodes::io::out<proto::image, CAM_OUT_FRAME, "Captured frame">,
-                       public nodes::io::aux::in<bool,     CAM_IN_ENABLE, "ON/OFF camera">,
 
                        public nodes::ReactiveOut<proto::image>,
-                       public nodes::ReactiveIn<bool>
+                       public nodes::NoInputs
     {
     private:
         static inline const auto log = logs::get_logger("camera_node");
@@ -33,7 +31,6 @@ namespace ex::cmp {
         camera::Camera camera_;
         proto::image   last_frame_;
 
-        bool enabled_    = true;
         int  last_clock_ = -1;
 
     public:
@@ -45,9 +42,7 @@ namespace ex::cmp {
 
         camera::Camera *get() override;
 
-        bool on_input(bool data, int input_index, int _, int clock_i, Output<bool> *io) override;
-
-        proto::image on_output(proto::image *_, int __, int clock_i, Input<proto::image> *io) override;
+        proto::image on_output(proto::image *_, int __, int clock_i, nodes::Input<proto::image> *io) override;
 
     protected:
         void capture_frame(int clock_i);

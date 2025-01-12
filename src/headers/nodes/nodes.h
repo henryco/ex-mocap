@@ -875,6 +875,15 @@ namespace ex::nodes {
         }
     };
 
+    class NoInputs : public ReactiveIn<void *> {
+    public:
+        ~NoInputs() override = default;
+
+        bool on_input(void *data, int input_index, int output_index, int clock_i, Output<void *> *io) override {
+            return true;
+        }
+    };
+
     class DefaultAny : public virtual AnyOutputCallback, public virtual AnyInputCallback {
     public:
         ~DefaultAny() override = default;
