@@ -83,16 +83,24 @@ namespace ex::nodes {
     };
 
     struct io_node {
-        IO *const io_ptr;    // 8
-        io_node  *next;      // 8
-        const int index_in;  // 4
-        const int index_out; // 4
+        IO *const io_ptr;                                          // 8
+        io_node  *next;                                            // 8
+        bool (*pull)(io_node *node, void *data, bool *compatible); // 8
+
+        void *this_in;                                             // 8
+        void *this_out;                                            // 8
+
+        const int index_in;                                        // 4
+        const int index_out;                                       // 4
 
         io_node(IO* io_ptr, const int index_in, const int index_out) :
-        io_ptr(io_ptr),
-        next(nullptr),
-        index_in(index_in),
-        index_out(index_out) {}
+            io_ptr(io_ptr),
+            next(nullptr),
+            pull(nullptr),
+            this_in(nullptr),
+            this_out(nullptr),
+            index_in(index_in),
+            index_out(index_out) {}
     };
 
     class OUT : virtual public IO {
@@ -619,32 +627,32 @@ namespace ex::nodes {
     };
 
     template<typename T>
-    class CallbackInput  {
+    class CallbackInput : public virtual Input<T> {
     public:
-        virtual ~CallbackInput() = default;
+        ~CallbackInput() override = default;
 
         virtual bool on_input(T data, int input_index, int output_index, int clock_i, Output<T> *io) = 0;
     };
 
     template<typename T>
-    class CallbackOutput {
+    class CallbackOutput : public virtual Output<T> {
     public:
-        virtual ~CallbackOutput() = default;
+        ~CallbackOutput() override = default;
 
         virtual T on_output(T *null_ptr, int output_index, int clock_i, Input<T> *io) = 0;
     };
 
-    class AnyInputCallback {
+    class AnyInputCallback : public virtual IN {
     public:
-        virtual ~AnyInputCallback() = default;
+        ~AnyInputCallback() override = default;
 
         virtual bool on_any_input(const void *data_ptr, std::size_t size, int input_index, int output_index,
                                   int clock_i, OUT *io) = 0;
     };
 
-    class AnyOutputCallback {
+    class AnyOutputCallback : public virtual OUT {
     public:
-        virtual ~AnyOutputCallback() = default;
+        ~AnyOutputCallback() override = default;
 
         virtual void *on_any_output(int output_index, int clock_i, std::size_t* size, IN *io) = 0;
     };
@@ -677,9 +685,9 @@ namespace ex::nodes {
         }
     };
 
-    class ReactiveOutAnyCallback {
+    class ReactiveOutAnyCallback : public virtual OUT {
     public:
-        virtual ~ReactiveOutAnyCallback() = default;
+        ~ReactiveOutAnyCallback() override = default;
 
         virtual void *out_any(int output_index, int clock_i, std::size_t *size, IN *io) = 0;
     };
@@ -715,18 +723,101 @@ namespace ex::nodes {
 
         int last_clock_i = -1;
 
-        void *get_any_result_ptr(IO *io_ptr, std::size_t *size, const int index_out, const int clock_i) {
-            if (const auto out_any = dynamic_cast<ReactiveOutAnyCallback *>(io_ptr); out_any != nullptr)
-                return out_any->out_any(index_out, clock_i, size, this);
-            if (const auto out_ = dynamic_cast<OUT *>(io_ptr); out_ != nullptr)
-                out_->out_any(index_out, clock_i, size);
-            return nullptr;
+        static bool pull_incompatible(io_node *_, void *__, bool *compatible) {
+            *compatible = false;
+            return false;
+        }
+
+        template<typename T>
+        static bool pull_reactive(io_node *head, void *data_, bool *compatible) {
+            *compatible = true;
+            auto    clock_i  = static_cast<int *>(data_);
+            auto    reactive = static_cast<ReactiveOutput<T> *>(head->this_out);
+            auto    input    = static_cast<CallbackInput<T> *>(head->this_in);
+            const T data     = reactive->out(static_cast<T *>(nullptr), head->index_out, *clock_i, input);
+            return input->on_input(data, head->index_in, head->index_out, *clock_i, reactive);
+        }
+
+        template<typename T>
+        static bool pull_output(io_node *head, void *data_, bool *compatible) {
+            *compatible = true;
+            auto    clock_i    = static_cast<int *>(data_);
+            auto    connection = static_cast<Output<T> *>(head->this_out);
+            auto    input      = static_cast<CallbackInput<T> *>(head->this_in);
+            const T data       = connection->out(static_cast<T *>(nullptr), head->index_out, *clock_i);
+            return input->on_input(data, head->index_in, head->index_out, *clock_i, connection);
+        }
+
+        static bool pull_any_reactive(io_node *head, void *data_, bool *compatible) {
+            auto clock_i = static_cast<int *>(data_);
+            auto out_any = static_cast<ReactiveOutAnyCallback *>(head->this_out);
+            auto input   = static_cast<AnyInputCallback *>(head->this_in);
+
+            std::size_t size_      = 0;
+            void       *result_ptr = out_any->out_any(head->index_out, *clock_i, &size_, input);
+            if (result_ptr == nullptr || size_ <= 0) {
+                *compatible = false;
+                return false;
+            }
+
+            *compatible = true;
+            return input->on_any_input(result_ptr, size_, head->index_in,
+                head->index_out, *clock_i, out_any);
+        }
+
+        static bool pull_any(io_node *head, void *data_, bool *compatible) {
+            auto clock_i = static_cast<int *>(data_);
+            auto out_any = static_cast<OUT *>(head->this_out);
+            auto input   = static_cast<AnyInputCallback *>(head->this_in);
+
+            std::size_t size_      = 0;
+            void       *result_ptr = out_any->out_any(head->index_out, *clock_i, &size_);
+            if (result_ptr == nullptr || size_ <= 0) {
+                *compatible = false;
+                return false;
+            }
+
+            *compatible = true;
+            return input->on_any_input(result_ptr, size_, head->index_in,
+                head->index_out, *clock_i, out_any);
+        }
+
+        template<typename T>
+        void init_pull_fn(io_node *head) {
+            if (auto out = dynamic_cast<ReactiveOutput<T> *>(head->io_ptr); out != nullptr) {
+                head->this_out = out;
+                head->this_in = static_cast<CallbackInput<T> *>(this);
+                head->pull     = &pull_reactive<T>;
+                return;
+            }
+
+            if (auto out = dynamic_cast<Output<T> *>(head->io_ptr); out != nullptr) {
+                head->this_out = out;
+                head->this_in = static_cast<CallbackInput<T> *>(this);
+                head->pull     = &pull_output<T>;
+                return;
+            }
+
+            if (auto out = dynamic_cast<ReactiveOutAnyCallback *>(head->io_ptr); out != nullptr) {
+                head->this_out = out;
+                head->this_in  = static_cast<AnyInputCallback *>(this);
+                head->pull     = &pull_any_reactive;
+                return;
+            }
+
+            if (auto out = dynamic_cast<OUT *>(head->io_ptr); out != nullptr) {
+                head->this_out = out;
+                head->this_in  = static_cast<AnyInputCallback *>(this);
+                head->pull     = &pull_any;
+            }
+
+            head->pull = &pull_incompatible;
         }
 
         template<typename T>
         void _pull_inputs(const int clock_i, const int type_index) {
-            const io_node *inputs = static_cast<InputStore<null_mutex, T> *>(this)->list_inputs();
-            const io_node *head = inputs;
+            io_node *inputs = static_cast<InputStore<null_mutex, T> *>(this)->list_inputs();
+            io_node *head = inputs;
 
             int i = 0;
             while (head != nullptr) {
@@ -741,66 +832,21 @@ namespace ex::nodes {
 
                 flags[type_index][i / bytes] &= ~(1 << n_th);
 
-                auto reactive = dynamic_cast<ReactiveOutput<T> *>(head->io_ptr);
-                if (reactive != nullptr) {
-                    // CASE: OUTPUT EXISTS AND ITS REACTIVE OUTPUT OF MATCHING TYPE
-                    const T    data = reactive->out(static_cast<T *>(nullptr), head->index_out, clock_i, this);
-                    const bool once = static_cast<CallbackInput<T> *>(this)->on_input(data, head->index_in,
-                                                                                      head->index_out, clock_i,
-                                                                                      reactive);
-                    if (once) {
-                        // set a bit for given input
-                        flags[type_index][i / bytes] |= (1 << n_th);
-                    }
+                if (head->pull == nullptr) {
+                    init_pull_fn<T>(head);
+                }
 
+                int c_i = clock_i;
+                bool compatible = false;
+                const bool once = head->pull(head, &c_i, &compatible);
+
+                if (!compatible) {
                     head = head->next;
                     i++;
                     continue;
                 }
 
-                auto connection = dynamic_cast<Output<T> *>(head->io_ptr);
-                if (connection != nullptr) {
-                    // CASE: OUTPUT EXISTS AND MATCHING INPUT < - > OUTPUT TYPES
-
-                    const T    data = connection->out(static_cast<T *>(nullptr), head->index_out, clock_i);
-                    const bool once = static_cast<CallbackInput<T> *>(this)->on_input(data, head->index_in,
-                                                                                      head->index_out, clock_i,
-                                                                                      connection);
-                    if (once) {
-                        // set a bit for given input
-                        flags[type_index][i / bytes] |= (1 << n_th);
-                    }
-
-                    head = head->next;
-                    i++;
-                    continue;
-                }
-
-                // CASE: OUTPUT EXISTS BUT, MISMATCHING INPUT < - > OUTPUT TYPES
-                // thus we pull output as type ANY
-
-                const auto out_ = dynamic_cast<OUT *>(head->io_ptr);
-                if (out_ == nullptr) {
-                    head = head->next;
-                    i++;
-                    continue;
-                }
-
-                std::size_t size_      = 0;
-                const void *result_ptr = get_any_result_ptr(head->io_ptr, &size_, head->index_out, clock_i);
-                if (result_ptr == nullptr || size_ <= 0) {
-                    head = head->next;
-                    i++;
-                    continue;
-                }
-
-                if (const auto in_ = dynamic_cast<IN *>(this); in_ == nullptr) {
-                    head = head->next;
-                    i++;
-                    continue;
-                }
-
-                if (this->on_any_input(result_ptr, size_, head->index_in, head->index_out, clock_i, out_)) {
+                if (once) {
                     // set a bit for given input
                     flags[type_index][i / bytes] |= (1 << n_th);
                 }
