@@ -1257,7 +1257,7 @@ namespace ex::nodes {
             last_frame_duration = frame_time.count();
         }
 
-        static bool pull_out(io_node *head, void *data_, bool *compatible) {
+        static bool pull_out(io_node *head, void *data_, bool *_) {
             static std::size_t size = 0;
             auto               clock_i = static_cast<int *>(data_);
             auto               out     = static_cast<OUT *>(head->this_out);
@@ -1265,7 +1265,7 @@ namespace ex::nodes {
             return false;
         }
 
-        static bool pull_incompatible(io_node *head, void *data_, bool *compatible) {
+        static bool pull_incompatible(io_node *_, void *__, bool *___) {
             return false;
         }
 
@@ -1300,6 +1300,7 @@ namespace ex::nodes {
         void *out_any(const int _, const int clock_i, std::size_t *__) override {
             time_start();
 
+            int c_i = clock_i;
             io_node *head = store;
             while (head != nullptr) {
                 if (head->pull == nullptr) {
@@ -1310,6 +1311,7 @@ namespace ex::nodes {
                         head->this_out = out;
                     }
                 }
+                head->pull(head, &c_i, nullptr);
                 head = head->next;
             }
 
