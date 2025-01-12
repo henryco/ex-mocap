@@ -1257,6 +1257,18 @@ namespace ex::nodes {
             last_frame_duration = frame_time.count();
         }
 
+        static bool pull_out(io_node *head, void *data_, bool *compatible) {
+            static std::size_t size = 0;
+            auto               clock_i = static_cast<int *>(data_);
+            auto               out     = static_cast<OUT *>(head->this_out);
+            out->out_any(head->index_out, *clock_i, &size);
+            return false;
+        }
+
+        static bool pull_incompatible(io_node *head, void *data_, bool *compatible) {
+            return false;
+        }
+
         io_node   *store      = nullptr;
         int        clock_i    = 0;
         int        target_fps = 0;
@@ -1287,13 +1299,20 @@ namespace ex::nodes {
 
         void *out_any(const int _, const int clock_i, std::size_t *__) override {
             time_start();
-            const io_node *head = store;
-            std::size_t    size = 0;
+
+            io_node *head = store;
             while (head != nullptr) {
-                if (const auto out = dynamic_cast<OUT *>(head->io_ptr); out != nullptr)
-                    out->out_any(head->index_out, clock_i, &size);
+                if (head->pull == nullptr) {
+                    if (const auto out = dynamic_cast<OUT *>(head->io_ptr); out == nullptr) {
+                        head->pull = &pull_incompatible;
+                    } else {
+                        head->pull     = &pull_out;
+                        head->this_out = out;
+                    }
+                }
                 head = head->next;
             }
+
             time_stop();
             return nullptr;
         }
