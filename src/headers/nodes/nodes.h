@@ -816,6 +816,9 @@ namespace ex::nodes {
 
         template<typename T>
         void _pull_inputs(const int clock_i, const int type_index) {
+            // TODO FIXME: REPLACE LINKED LIST WITH ARRAY (PERFORMANCE ISSUE)
+            // TODO FIXME: REPLACE LINKED LIST WITH ARRAY (PERFORMANCE ISSUE)
+            // TODO FIXME: REPLACE LINKED LIST WITH ARRAY (PERFORMANCE ISSUE)
             io_node *inputs = static_cast<InputStore<null_mutex, T> *>(this)->list_inputs();
             io_node *head = inputs;
 

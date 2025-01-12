@@ -46,7 +46,7 @@ namespace ex::main {
         state.work_tree->children_n = 0;
 
         std::size_t local_id_ct = 1;
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 5; i++) {
             const auto node  = new TreeNode();
             node->created    = true;
             node->children_n = 0;
@@ -213,7 +213,7 @@ namespace ex::main {
 
     void Logic::process_(State &_) {
         clock_.next();
-        std::cout << "t: " << clock_.delta_ns() << "ns " << '\n'; // TODO REMOVE
+//        std::cout << "t: " << clock_.delta_ns() << "ns " << '\n'; // TODO REMOVE
     }
 
     void Logic::synchronize_(State &state) {
