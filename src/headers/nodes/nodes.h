@@ -787,8 +787,7 @@ namespace ex::nodes {
                 }
 
                 std::size_t size_      = 0;
-                const void *result_ptr = get_any_result_ptr(head->io_ptr, &size_,
-                    head->index_out, clock_i);
+                const void *result_ptr = get_any_result_ptr(head->io_ptr, &size_, head->index_out, clock_i);
                 if (result_ptr == nullptr || size_ <= 0) {
                     head = head->next;
                     i++;
@@ -1240,7 +1239,7 @@ namespace ex::nodes {
             return store;
         }
 
-        void *out_any(const int _, const int clock_i, std::size_t *__) override {
+        void *out_any(const int _, const int clock_i, std::size_t *__) override { // TODO FIXME: DYNAMIC CAST
             time_start();
             const io_node *head = store;
             std::size_t    size = 0;

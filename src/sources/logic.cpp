@@ -213,6 +213,7 @@ namespace ex::main {
 
     void Logic::process_(State &_) {
         clock_.next();
+        std::cout << "t: " << clock_.delta_ns() << "ns " << '\n'; // TODO REMOVE
     }
 
     void Logic::synchronize_(State &state) {
