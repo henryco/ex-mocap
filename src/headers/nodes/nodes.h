@@ -786,14 +786,14 @@ namespace ex::nodes {
         void init_pull_fn(io_node *head) {
             if (auto out = dynamic_cast<ReactiveOutput<T> *>(head->io_ptr); out != nullptr) {
                 head->this_out = out;
-                head->this_in = static_cast<CallbackInput<T> *>(this);
+                head->this_in  = static_cast<CallbackInput<T> *>(this);
                 head->pull     = &pull_reactive<T>;
                 return;
             }
 
             if (auto out = dynamic_cast<Output<T> *>(head->io_ptr); out != nullptr) {
                 head->this_out = out;
-                head->this_in = static_cast<CallbackInput<T> *>(this);
+                head->this_in  = static_cast<CallbackInput<T> *>(this);
                 head->pull     = &pull_output<T>;
                 return;
             }
