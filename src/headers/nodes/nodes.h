@@ -1239,7 +1239,7 @@ namespace ex::nodes {
             return store;
         }
 
-        void *out_any(const int _, const int clock_i, std::size_t *__) override { // TODO FIXME: DYNAMIC CAST
+        void *out_any(const int _, const int clock_i, std::size_t *__) override {
             time_start();
             const io_node *head = store;
             std::size_t    size = 0;
