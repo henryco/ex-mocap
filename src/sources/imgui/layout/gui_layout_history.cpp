@@ -17,22 +17,7 @@ namespace ex::gui {
             ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen;
     }
 
-    bool test_init_history() { // TODO REMOVE
-        undo_history().push("Blank", nullptr, nullptr);
-//        undo_history().push("test 2", nullptr, nullptr);
-//        undo_history().push("test 3", nullptr, nullptr);
-//        undo_history().push("test 4", nullptr, nullptr);
-//        undo_history().push("test 5", nullptr, nullptr);
-        return true;
-    }
-
     void history_tree(ex::State &state, GuiState &gui) {
-        // TODO REMOVE
-        static bool init_test = test_init_history();
-        if (init_test)
-            init_test = false;
-        // TODO REMOVE
-
         ImGui::BeginChild(
                 "HistorySpaceTree",
                 ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - 10),

@@ -29,8 +29,8 @@ namespace ex::gui {
             if (ImGui::MenuItem(enabled ? "Disable" : "Enable")) {
 
                 node->disabled = !node->disabled;
-
                 const bool n_state = node->disabled;
+
                 undo_history().push((enabled ? "Disabled node" : "Enabled node"),
                     new std::function([id_l = node->id_local, n_state] (ex::State *state) {
                         auto f_node = state->work_tree->find_node(id_l);

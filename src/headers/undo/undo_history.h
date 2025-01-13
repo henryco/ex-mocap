@@ -36,11 +36,18 @@ namespace ex::undo {
         record<T> *current = nullptr;
         record<T> *target_ = nullptr;
 
+        history() = default;
+
+        // ReSharper disable once CppNonExplicitConvertingConstructor
+        history(const char *initial) {
+            push(initial, nullptr, nullptr);
+        }
+
         ~history() {
             record<T> *head = records;
             while (head != nullptr) {
                 record<T> *prev = head->prev;
-                head->next = nullptr;
+                head->next      = nullptr;
                 delete head;
                 head = prev;
             }
@@ -66,9 +73,9 @@ namespace ex::undo {
 
             if (records->id == current->id && current == records) {
                 records->next = new record<T>(counter++, name, undo, redo, records, nullptr);
-                records = records->next;
-                current = records;
-                target_ = records;
+                records       = records->next;
+                current       = records;
+                target_       = records;
                 return;
             }
 
@@ -80,13 +87,13 @@ namespace ex::undo {
             while (head != nullptr) {
                 if (head->id == current->id && current == head) {
                     current->next = new record<T>(counter++, name, undo, redo, current, nullptr);
-                    current = current->next;
-                    records = current;
-                    target_ = current;
+                    current       = current->next;
+                    records       = current;
+                    target_       = current;
                     return;
                 }
                 record<T> *prev = head->prev;
-                head->next = nullptr;
+                head->next      = nullptr;
                 delete head;
                 head = prev;
             }
@@ -125,17 +132,18 @@ namespace ex::undo {
             if (target_->id == current->id && current == target_)
                 return;
 
-            const bool direction = target_->id > current->id;
+            const bool direction = target_->id >= current->id;
             while (current != nullptr) {
                 if (current->id == target_->id && current == target_)
                     return;
 
-                if (direction && current->redo != nullptr)
-                    current->redo->operator()(state);
                 if (!direction && current->undo != nullptr)
                     current->undo->operator()(state);
 
                 current = direction ? current->next : current->prev;
+
+                if (direction && current != nullptr && current->redo != nullptr)
+                    current->redo->operator()(state);
             }
             target_ = current;
         }

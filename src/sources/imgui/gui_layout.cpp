@@ -54,7 +54,7 @@ namespace ex::gui {
     }
 
     ex::undo::history<ex::State> &undo_history() {
-        static ex::undo::history<ex::State> undo_history;
+        static ex::undo::history<ex::State> undo_history("Blank");
         return undo_history;
     }
 
