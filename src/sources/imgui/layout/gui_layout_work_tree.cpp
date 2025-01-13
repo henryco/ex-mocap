@@ -12,6 +12,30 @@ namespace ex::gui {
     constexpr float ctrl_width   = 40.f;
     constexpr float min_width    = 100.f;
 
+    void show_context_menu_element(State &state, GuiState &gui, TreeNode *node) {
+        if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+            ImGui::OpenPopup("show_context_menu_element");
+        if (ImGui::BeginPopup("show_context_menu_element")) {
+            if (ImGui::MenuItem(node->name)) {
+                // Do something
+            }
+            if (ImGui::MenuItem("Some huge element")) {
+                // Do something
+            }
+            // TODO
+            ImGui::EndPopup();
+        }
+    }
+
+    void show_context_menu_group(State &state, GuiState &gui, TreeNode *node) {
+        if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+            ImGui::OpenPopup("show_context_menu_group");
+        if (ImGui::BeginPopupContextItem("show_context_menu_group", ImGuiMouseButton_Right)) {
+            // TODO
+            ImGui::EndPopup();
+        }
+    }
+
     void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected, TreeNode **active,
                         const int total, const int n)
     {
@@ -33,6 +57,8 @@ namespace ex::gui {
 
             if (disabled)
                 ImGui::PopStyleVar();
+
+            show_context_menu_element(state, gui, node);
 
             if (open && node->children_n > 0)
                 ImGui::Indent();
@@ -94,6 +120,8 @@ namespace ex::gui {
             if (disabled)
                 ImGui::PopStyleVar();
 
+            show_context_menu_group(state, gui, node);
+
             if (ImGui::IsItemClicked()) {
                 *selected = node->id_local;
                 *active   = node;
@@ -132,6 +160,8 @@ namespace ex::gui {
 
                 if (disabled)
                     ImGui::PopStyleVar();
+
+                show_context_menu_element(state, gui, node);
 
                 if (ImGui::IsItemClicked()) {
                     *selected = first->id_local;
