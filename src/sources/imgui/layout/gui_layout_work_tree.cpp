@@ -286,9 +286,9 @@ namespace ex::gui {
             ImGui::TableSetupColumn("Controls", ImGuiTableColumnFlags_WidthFixed, ctrl_width);
 
             static std::size_t selected_node = -1;
-            static std::size_t last_menu = -1;
+            static std::size_t last_menu     = -1;
 
-            std::size_t prev_menu = last_menu;
+            const std::size_t prev_menu = last_menu;
 
             TreeNode *active_node = nullptr;
 
