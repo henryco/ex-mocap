@@ -12,9 +12,12 @@ namespace ex::gui {
     constexpr float ctrl_width   = 40.f;
     constexpr float min_width    = 100.f;
 
-    void show_context_menu_element(State &state, GuiState &gui, TreeNode *node, const bool nested, const bool selected) {
-        if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+    bool show_context_menu_element(State &state, GuiState &gui, TreeNode *node, const bool nested, const bool selected) {
+        bool clicked = false;
+        if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
             ImGui::OpenPopup("show_context_menu_element");
+            clicked = true;
+        }
         if (ImGui::BeginPopup("show_context_menu_element")) {
 
             if (ImGui::MenuItem("Some action")) {
@@ -25,15 +28,20 @@ namespace ex::gui {
 
             ImGui::EndPopup();
         }
+        return clicked;
     }
 
-    void show_context_menu_group(State &state, GuiState &gui, TreeNode *node, bool nested, bool selected) {
-        if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+    bool show_context_menu_group(State &state, GuiState &gui, TreeNode *node, bool nested, bool selected) {
+        bool clicked = false;
+        if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
             ImGui::OpenPopup("show_context_menu_group");
+            clicked = true;
+        }
         if (ImGui::BeginPopupContextItem("show_context_menu_group", ImGuiMouseButton_Right)) {
             // TODO
             ImGui::EndPopup();
         }
+        return clicked;
     }
 
     void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected, TreeNode **active,
@@ -58,12 +66,12 @@ namespace ex::gui {
             if (disabled)
                 ImGui::PopStyleVar();
 
-            show_context_menu_element(state, gui, node, node->children_n > 0, *selected == node->id_local);
+            const bool menu = show_context_menu_element(state, gui, node, node->children_n > 0, *selected == node->id_local);
 
             if (open && node->children_n > 0)
                 ImGui::Indent();
 
-            if (ImGui::IsItemClicked()) {
+            if (ImGui::IsItemClicked() || menu) {
                 *selected = node->id_local;
                 *active   = node;
             }
@@ -120,9 +128,9 @@ namespace ex::gui {
             if (disabled)
                 ImGui::PopStyleVar();
 
-            show_context_menu_group(state, gui, node, false, *selected == node->id_local);
+            const bool menu = show_context_menu_group(state, gui, node, false, *selected == node->id_local);
 
-            if (ImGui::IsItemClicked()) {
+            if (ImGui::IsItemClicked() || menu) {
                 *selected = node->id_local;
                 *active   = node;
             }
@@ -161,9 +169,9 @@ namespace ex::gui {
                 if (disabled)
                     ImGui::PopStyleVar();
 
-                show_context_menu_element(state, gui, node, false, *selected == first->id_local);
+                const bool menu = show_context_menu_element(state, gui, node, false, *selected == first->id_local);
 
-                if (ImGui::IsItemClicked()) {
+                if (ImGui::IsItemClicked() || menu) {
                     *selected = first->id_local;
                     *active   = first;
                 }
