@@ -111,14 +111,17 @@ namespace ex::gui {
 
             const auto pos = ImGui::GetCursorScreenPos();
 
-            if (ImGui::IsItemHovered()) {
+            if (disabled) {
+                ImGui::TableNextColumn();
+                ImGui::TextDisabled(ICON_LC_LINK_2_OFF);
+            }
+            else if (ImGui::IsItemHovered()) {
                 ImGui::TableNextColumn();
                 ImGui::TextDisabled(connected ? "" : ICON_LC_UNPLUG);
             }
             else {
                 ImGui::TableNextColumn();
-                ImGui::TextDisabled(connected ? (node->children_n > 0 ? ICON_LC_ARROW_DOWN_RIGHT : "")
-                                              : ICON_LC_UNPLUG);
+                ImGui::TextDisabled(connected ? (node->children_n > 0 ? ICON_LC_ARROW_DOWN_RIGHT : "") : ICON_LC_UNPLUG);
             }
 
             if (open && node->children_n > 0) {
@@ -173,7 +176,11 @@ namespace ex::gui {
                 *active   = node;
             }
 
-            if (ImGui::IsItemHovered()) {
+            if (disabled) {
+                ImGui::TableNextColumn();
+                ImGui::TextDisabled(ICON_LC_LINK_2_OFF);
+            }
+            else if (ImGui::IsItemHovered()) {
                 ImGui::TableNextColumn();
                 ImGui::TextDisabled(connected ? "" : ICON_LC_UNPLUG);
             }
@@ -219,7 +226,11 @@ namespace ex::gui {
                     *active   = first;
                 }
 
-                if (ImGui::IsItemHovered()) {
+                if (disabled) {
+                    ImGui::TableNextColumn();
+                    ImGui::TextDisabled(ICON_LC_LINK_2_OFF);
+                }
+                else if (ImGui::IsItemHovered()) {
                     ImGui::TableNextColumn();
                     ImGui::TextDisabled(connected ? "" : ICON_LC_UNPLUG);
                 }
