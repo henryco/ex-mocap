@@ -8,10 +8,12 @@
 namespace ex::gui {
 
     namespace history {
-        constexpr auto flags = ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_RowBg;
         constexpr float tree_spacing = 20.f;
         constexpr float ctrl_width   = 40.f;
         constexpr float min_width    = 100.f;
+
+        constexpr auto flags = ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV |
+            ImGuiTableFlags_RowBg | ImGuiTableFlags_NoSavedSettings;
 
         constexpr auto tree_flags = ImGuiTreeNodeFlags_SpanAllColumns | ImGuiTreeNodeFlags_Leaf |
             ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen;
