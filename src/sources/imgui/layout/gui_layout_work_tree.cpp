@@ -9,10 +9,12 @@ namespace ex::gui {
     constexpr auto flags = ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV;
 
     constexpr float tree_spacing = 20.f;
-    constexpr float ctrl_width   = 40.f;
+    constexpr float ctrl_width   = 50.f;
     constexpr float min_width    = 100.f;
 
-    void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected, TreeNode **active) {
+    void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected, TreeNode **active,
+                        const int total, const int n)
+    {
         if (!node->is_group) {
             // Not a group just regular element
 
@@ -21,16 +23,14 @@ namespace ex::gui {
 
             ImGui::PushID(node->id_local);
             const bool open = node_mappers_.at(node->id_node).draw_tree_node(
-                gui, state, node,
-                node->children_n > 0,
-                *selected == node->id_local);
+                gui, state, node, node->children_n > 0, *selected == node->id_local);
 
             if (open && node->children_n > 0)
                 ImGui::Indent();
 
             if (ImGui::IsItemClicked()) {
                 *selected = node->id_local;
-                *active = node;
+                *active   = node;
             }
 
             const auto pos = ImGui::GetCursorScreenPos();
@@ -38,16 +38,18 @@ namespace ex::gui {
             if (ImGui::IsItemHovered()) {
                 ImGui::TableNextColumn();
                 ImGui::TextDisabled("");
-            } else {
+            }
+            else {
                 ImGui::TableNextColumn();
-                ImGui::TextDisabled(node->children_n > 0 ? ICON_LC_ARROW_DOWN_RIGHT : "");
+                ImGui::TextDisabled((node->connected || n == 0) ? (node->children_n > 0 ? ICON_LC_ARROW_DOWN_RIGHT : "")
+                                                                : ICON_LC_UNPLUG);
             }
 
             if (open && node->children_n > 0) {
                 // Regular element but it has children
                 const auto next = node->children[0];
                 for (int i = 0; i < next->children_n; i++)
-                    show_tree_node(state, gui, next->children[i], selected, active);
+                    show_tree_node(state, gui, next->children[i], selected, active, next->children_n, i);
                 ImGui::TreePop();
 
                 ImGui::Unindent();
@@ -67,21 +69,20 @@ namespace ex::gui {
 
             ImGui::PushID(node->id_local);
             node_mappers_.at(node->id_node).draw_tree_node(
-                gui, state, node,
-                false,
-                *selected == node->id_local);
+                gui, state, node, false, *selected == node->id_local);
 
             if (ImGui::IsItemClicked()) {
                 *selected = node->id_local;
-                *active = node;
+                *active   = node;
             }
 
             if (ImGui::IsItemHovered()) {
                 ImGui::TableNextColumn();
                 ImGui::TextDisabled("");
-            } else {
+            }
+            else {
                 ImGui::TableNextColumn();
-                ImGui::TextDisabled("--");
+                ImGui::TextDisabled((node->connected || n == 0) ? ICON_LC_ARROW_DOWN : ICON_LC_UNPLUG);
             }
 
             ImGui::PopID();
@@ -98,26 +99,25 @@ namespace ex::gui {
             {
                 ImGui::PushID(first->id_local);
                 node_mappers_.at(first->id_node).draw_tree_node(
-                    gui, state, first,
-                    false,
-                    *selected == first->id_local);
+                    gui, state, first, false, *selected == first->id_local);
 
                 if (ImGui::IsItemClicked()) {
                     *selected = first->id_local;
-                    *active = first;
+                    *active   = first;
                 }
 
                 if (ImGui::IsItemHovered()) {
                     ImGui::TableNextColumn();
                     ImGui::TextDisabled("");
-                } else {
+                }
+                else {
                     ImGui::TableNextColumn();
-                    ImGui::TextDisabled(ICON_LC_ARROW_DOWN);
+                    ImGui::TextDisabled((first->connected || n == 0) ? ICON_LC_ARROW_DOWN : ICON_LC_UNPLUG);
                 }
 
                 if (node->children_n > 1) {
                     for (int i = 1; i < node->children_n; i++) {
-                        show_tree_node(state, gui, node->children[i], selected, active);
+                        show_tree_node(state, gui, node->children[i], selected, active, node->children_n, i);
                     }
                 }
 
@@ -131,7 +131,7 @@ namespace ex::gui {
         // Group with children, where the first element _HAS_ its own children
         const ImVec2 outer_start = brackets_start();
         for (int i = 0; i < node->children_n; i++) {
-            show_tree_node(state, gui, node->children[i], selected, active);
+            show_tree_node(state, gui, node->children[i], selected, active, node->children_n, i);
         }
         brackets_end(outer_start);
     }
@@ -161,7 +161,8 @@ namespace ex::gui {
 
             ImGui::Indent(10.f);
             for (int i = 0; i < state.work_tree->children_n; i++) {
-                show_tree_node(state, gui, state.work_tree->children[i], &selected_node, &active_node);
+                show_tree_node(state, gui, state.work_tree->children[i], &selected_node, &active_node,
+                               state.work_tree->children_n, i);
             }
             ImGui::Unindent(10.f);
 
