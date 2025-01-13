@@ -9,7 +9,7 @@ namespace ex::gui {
     constexpr auto flags = ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV;
 
     constexpr float tree_spacing = 20.f;
-    constexpr float ctrl_width   = 50.f;
+    constexpr float ctrl_width   = 40.f;
     constexpr float min_width    = 100.f;
 
     void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected, TreeNode **active,
@@ -34,15 +34,16 @@ namespace ex::gui {
             }
 
             const auto pos = ImGui::GetCursorScreenPos();
+            const bool connected = node->connected || n == 0;
 
             if (ImGui::IsItemHovered()) {
                 ImGui::TableNextColumn();
-                ImGui::TextDisabled("");
+                ImGui::TextDisabled(connected ? "" : ICON_LC_UNPLUG);
             }
             else {
                 ImGui::TableNextColumn();
-                ImGui::TextDisabled((node->connected || n == 0) ? (node->children_n > 0 ? ICON_LC_ARROW_DOWN_RIGHT : "")
-                                                                : ICON_LC_UNPLUG);
+                ImGui::TextDisabled(connected ? (node->children_n > 0 ? ICON_LC_ARROW_DOWN_RIGHT : "")
+                                              : ICON_LC_UNPLUG);
             }
 
             if (open && node->children_n > 0) {
@@ -71,6 +72,8 @@ namespace ex::gui {
             node_mappers_.at(node->id_node).draw_tree_node(
                 gui, state, node, false, *selected == node->id_local);
 
+            const bool connected = node->connected || n == 0;
+
             if (ImGui::IsItemClicked()) {
                 *selected = node->id_local;
                 *active   = node;
@@ -78,11 +81,11 @@ namespace ex::gui {
 
             if (ImGui::IsItemHovered()) {
                 ImGui::TableNextColumn();
-                ImGui::TextDisabled("");
+                ImGui::TextDisabled(connected ? "" : ICON_LC_UNPLUG);
             }
             else {
                 ImGui::TableNextColumn();
-                ImGui::TextDisabled((node->connected || n == 0) ? ICON_LC_ARROW_DOWN : ICON_LC_UNPLUG);
+                ImGui::TextDisabled(connected ? ICON_LC_ARROW_DOWN : ICON_LC_UNPLUG);
             }
 
             ImGui::PopID();
@@ -101,6 +104,8 @@ namespace ex::gui {
                 node_mappers_.at(first->id_node).draw_tree_node(
                     gui, state, first, false, *selected == first->id_local);
 
+                const bool connected = first->connected || n == 0;
+
                 if (ImGui::IsItemClicked()) {
                     *selected = first->id_local;
                     *active   = first;
@@ -108,11 +113,11 @@ namespace ex::gui {
 
                 if (ImGui::IsItemHovered()) {
                     ImGui::TableNextColumn();
-                    ImGui::TextDisabled("");
+                    ImGui::TextDisabled(connected ? "" : ICON_LC_UNPLUG);
                 }
                 else {
                     ImGui::TableNextColumn();
-                    ImGui::TextDisabled((first->connected || n == 0) ? ICON_LC_ARROW_DOWN : ICON_LC_UNPLUG);
+                    ImGui::TextDisabled(connected ? ICON_LC_ARROW_DOWN : ICON_LC_UNPLUG);
                 }
 
                 if (node->children_n > 1) {
