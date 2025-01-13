@@ -36,18 +36,47 @@ namespace ex::gui {
                 undo_history().push((enabled ? "Disabled node" : "Enabled node"),
                     new std::function([id_l = node->id_local, n_state] (ex::State *s) {
                         const auto f_node = s->work_tree->find_node(id_l);
-                        if (f_node != nullptr)
-                            f_node->disabled = !n_state;
+                        if (f_node == nullptr)
+                            return;
+                        f_node->disabled = !n_state;
+                        f_node->updated = true;
                     }),
                     new std::function([id_l = node->id_local, n_state] (ex::State *s) {
                         const auto f_node = s->work_tree->find_node(id_l);
-                        if (f_node != nullptr)
-                            f_node->disabled = n_state;
+                        if (f_node == nullptr)
+                            return;
+                        f_node->disabled = n_state;
+                        f_node->updated = true;
                     }));
-
             }
 
             node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);
+
+            if (ImGui::MenuItem("Duplicate")) {
+                // TODO DELETE
+            }
+
+            if (ImGui::MenuItem("Cut")) {
+                // TODO DELETE
+            }
+
+            if (ImGui::MenuItem("Copy")) {
+                // TODO DELETE
+            }
+
+            if (ImGui::MenuItem("Paste Object")) {
+                // TODO DELETE
+            }
+
+            if (ImGui::MenuItem("Paste Reference")) {
+                // TODO DELETE
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Delete")) {
+                // TODO DELETE
+            }
 
             ImGui::EndPopup();
         }

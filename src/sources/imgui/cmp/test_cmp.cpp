@@ -43,9 +43,11 @@ namespace ex::gui::test::one {
     }
 
     void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, const bool nested, const bool selected) {
+        ImGui::Separator();
         if (ImGui::MenuItem(node->name)) {
             // Do something TODO
         }
+        ImGui::Separator();
     }
 
     bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *node) {
@@ -107,9 +109,11 @@ namespace ex::gui::test::two {
     }
 
     void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, const bool nested, const bool selected) {
+        ImGui::Separator();
         if (ImGui::MenuItem(node->name)) {
             // Do something TODO
         }
+        ImGui::Separator();
     }
 
     bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *node) {
@@ -165,9 +169,11 @@ namespace ex::gui::test::tri {
     }
 
     void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, const bool nested, const bool selected) {
+        ImGui::Separator();
         if (ImGui::MenuItem(node->name)) {
             // Do something TODO
         }
+        ImGui::Separator();
     }
 
     bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *node) {
