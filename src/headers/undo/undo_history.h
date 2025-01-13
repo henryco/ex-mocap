@@ -35,6 +35,10 @@ namespace ex::undo {
         record<T> *records = nullptr;
         record<T> *current = nullptr;
         record<T> *target_ = nullptr;
+        record<T> *root___ = nullptr;
+
+        int capacity = 64;
+        int size     = 0;
 
         history() = default;
 
@@ -68,6 +72,8 @@ namespace ex::undo {
                 records = new record<T>(counter++, name, undo, redo, nullptr, nullptr);
                 current = records;
                 target_ = records;
+                root___ = records;
+                size    = 1;
                 return;
             }
 
@@ -76,6 +82,20 @@ namespace ex::undo {
                 records       = records->next;
                 current       = records;
                 target_       = records;
+                size++;
+
+                while ((size - capacity) > 0) {
+                    auto next___ = root___->next;
+
+                    next___->prev = nullptr;
+                    root___->prev = nullptr;
+                    root___->next = nullptr;
+                    delete root___;
+
+                    root___ = next___;
+                    size--;
+                }
+
                 return;
             }
 
@@ -90,12 +110,14 @@ namespace ex::undo {
                     current       = current->next;
                     records       = current;
                     target_       = current;
+                    size++;
                     return;
                 }
                 record<T> *prev = head->prev;
                 head->next      = nullptr;
                 delete head;
                 head = prev;
+                size--;
             }
         }
 
