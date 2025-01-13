@@ -30,6 +30,8 @@ namespace ex {
         ~TreeNode();
 
         void add_node(TreeNode *node);
+
+        TreeNode *find_node(std::size_t id);
     };
 
     struct State {

@@ -67,8 +67,10 @@ namespace ex::gui {
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
 
+                ImGui::PushID(head->id);
                 const auto c_flag = history::tree_flags | (selected == head->id ? ImGuiTreeNodeFlags_Selected : 0);
                 ImGui::TreeNodeEx(head->name, c_flag);
+                ImGui::PopID();
 
                 if (ImGui::IsItemClicked()) {
                     selected = head->id;

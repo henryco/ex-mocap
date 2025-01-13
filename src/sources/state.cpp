@@ -31,4 +31,13 @@ namespace ex {
         this->children_n = new_size;
         this->children   = children;
     }
+
+    TreeNode *TreeNode::find_node(const std::size_t id) {
+        if (this->id_local == id) return this;
+        for (int i = 0; i < this->children_n; i++) {
+            if (const auto result = this->children[i]->find_node(id); result != nullptr)
+                return result;
+        }
+        return nullptr;
+    }
 } // namespace ex

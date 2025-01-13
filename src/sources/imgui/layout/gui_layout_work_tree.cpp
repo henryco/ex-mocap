@@ -27,9 +27,22 @@ namespace ex::gui {
         if (ImGui::BeginPopup(menu_id)) {
             const bool enabled = !node->disabled;
             if (ImGui::MenuItem(enabled ? "Disable" : "Enable")) {
-                // TODO: UNDO TREE
 
                 node->disabled = !node->disabled;
+
+                const bool n_state = node->disabled;
+                undo_history().push((enabled ? "Disabled node" : "Enabled node"),
+                    new std::function([id_l = node->id_local, n_state] (ex::State *state) {
+                        auto f_node = state->work_tree->find_node(id_l);
+                        if (f_node != nullptr)
+                            f_node->disabled = !n_state;
+                    }),
+                    new std::function([id_l = node->id_local, n_state] (ex::State *state) {
+                        auto f_node = state->work_tree->find_node(id_l);
+                        if (f_node != nullptr)
+                            f_node->disabled = n_state;
+                    }));
+
             }
 
             node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);
