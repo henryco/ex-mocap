@@ -13,19 +13,23 @@ namespace ex::gui {
     constexpr float min_width    = 100.f;
 
     bool show_context_menu_element(State &state, GuiState &gui, TreeNode *node, const bool last, const bool nested, const bool selected) {
+        static auto menu_id = "show_context_menu_element";
         bool clicked = false;
+
         if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-            ImGui::OpenPopup("show_context_menu_element");
+            ImGui::OpenPopup(menu_id);
             clicked = true;
         }
         else if (last) {
-            ImGui::OpenPopup("show_context_menu_element");
+            ImGui::OpenPopup(menu_id);
         }
 
-        if (ImGui::BeginPopup("show_context_menu_element")) {
+        if (ImGui::BeginPopup(menu_id)) {
+            const bool enabled = !node->disabled;
+            if (ImGui::MenuItem(enabled ? "Disable" : "Enable")) {
+                // TODO: UNDO TREE
 
-            if (ImGui::MenuItem("Some action")) {
-                // Do something TODO
+                node->disabled = !node->disabled;
             }
 
             node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);
@@ -36,16 +40,18 @@ namespace ex::gui {
     }
 
     bool show_context_menu_group(State &state, GuiState &gui, TreeNode *node, const bool last, bool nested, bool selected) {
+        static auto menu_id = "show_context_menu_group";
         bool clicked = false;
+
         if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-            ImGui::OpenPopup("show_context_menu_group");
+            ImGui::OpenPopup(menu_id);
             clicked = true;
         }
         else if (last) {
-            ImGui::OpenPopup("show_context_menu_element");
+            ImGui::OpenPopup(menu_id);
         }
 
-        if (ImGui::BeginPopupContextItem("show_context_menu_group", ImGuiMouseButton_Right)) {
+        if (ImGui::BeginPopupContextItem(menu_id, ImGuiMouseButton_Right)) {
             // TODO
             ImGui::EndPopup();
         }
@@ -66,7 +72,7 @@ namespace ex::gui {
             const bool disabled  = node->disabled || !connected;
 
             if (disabled)
-                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
+                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
             ImGui::PushID(node->id_local);
             const bool open = node_mappers_.at(node->id_node).draw_tree_node(
@@ -104,7 +110,7 @@ namespace ex::gui {
 
             if (open && node->children_n > 0) {
                 if (disabled)
-                    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
+                    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
                 // Regular element but it has children
                 const auto next = node->children[0];
@@ -133,7 +139,7 @@ namespace ex::gui {
             const bool disabled  = node->disabled || !connected;
 
             if (disabled)
-                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
+                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
             ImGui::PushID(node->id_local);
             node_mappers_.at(node->id_node).draw_tree_node(
@@ -179,7 +185,7 @@ namespace ex::gui {
                 const bool disabled  = first->disabled || !connected;
 
                 if (disabled)
-                    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
+                    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
                 ImGui::PushID(first->id_local);
                 node_mappers_.at(first->id_node).draw_tree_node(
