@@ -255,14 +255,14 @@ namespace ex::gui {
                 if (node->children_n > 1) {
                     for (int i = 1; i < node->children_n; i++) {
                         show_tree_node(state, gui, node->children[i], selected, active, menu_node,
-                            disabled || disabled_, node->children_n, i);
+                            disabled_, node->children_n, i);
                     }
                 }
 
                 ImGui::PopID();
             }
 
-            brackets_end(outer_start, 0, disabled || disabled_ ? 0.5f : 1.f);
+            brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
             return;
         }
 
@@ -270,9 +270,9 @@ namespace ex::gui {
         const ImVec2 outer_start = brackets_start();
         for (int i = 0; i < node->children_n; i++) {
             show_tree_node(state, gui, node->children[i], selected, active, menu_node,
-                disabled || disabled_, node->children_n, i);
+                 disabled_, node->children_n, i);
         }
-        brackets_end(outer_start, 0, disabled || disabled_ ? 0.5f : 1.f);
+        brackets_end(outer_start, 0,  disabled_ ? 0.5f : 1.f);
     }
 
     void work_tree_content(State &state, GuiState &gui) {
