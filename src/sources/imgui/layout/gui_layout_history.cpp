@@ -18,11 +18,11 @@ namespace ex::gui {
     }
 
     bool test_init_history() { // TODO REMOVE
-        undo_history().push("test 1", nullptr, nullptr);
-        undo_history().push("test 2", nullptr, nullptr);
-        undo_history().push("test 3", nullptr, nullptr);
-        undo_history().push("test 4", nullptr, nullptr);
-        undo_history().push("test 5", nullptr, nullptr);
+        undo_history().push("Blank", nullptr, nullptr);
+//        undo_history().push("test 2", nullptr, nullptr);
+//        undo_history().push("test 3", nullptr, nullptr);
+//        undo_history().push("test 4", nullptr, nullptr);
+//        undo_history().push("test 5", nullptr, nullptr);
         return true;
     }
 
