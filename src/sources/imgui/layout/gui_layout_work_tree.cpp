@@ -12,12 +12,16 @@ namespace ex::gui {
     constexpr float ctrl_width   = 40.f;
     constexpr float min_width    = 100.f;
 
-    bool show_context_menu_element(State &state, GuiState &gui, TreeNode *node, const bool nested, const bool selected) {
+    bool show_context_menu_element(State &state, GuiState &gui, TreeNode *node, const bool last, const bool nested, const bool selected) {
         bool clicked = false;
         if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
             ImGui::OpenPopup("show_context_menu_element");
             clicked = true;
         }
+        else if (last) {
+            ImGui::OpenPopup("show_context_menu_element");
+        }
+
         if (ImGui::BeginPopup("show_context_menu_element")) {
 
             if (ImGui::MenuItem("Some action")) {
@@ -31,12 +35,16 @@ namespace ex::gui {
         return clicked;
     }
 
-    bool show_context_menu_group(State &state, GuiState &gui, TreeNode *node, bool nested, bool selected) {
+    bool show_context_menu_group(State &state, GuiState &gui, TreeNode *node, const bool last, bool nested, bool selected) {
         bool clicked = false;
         if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
             ImGui::OpenPopup("show_context_menu_group");
             clicked = true;
         }
+        else if (last) {
+            ImGui::OpenPopup("show_context_menu_element");
+        }
+
         if (ImGui::BeginPopupContextItem("show_context_menu_group", ImGuiMouseButton_Right)) {
             // TODO
             ImGui::EndPopup();
@@ -44,7 +52,8 @@ namespace ex::gui {
         return clicked;
     }
 
-    void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected, TreeNode **active,
+    void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected,
+                        TreeNode **active, std::size_t *menu_node,
                         const int total, const int n)
     {
         if (!node->is_group) {
@@ -66,7 +75,12 @@ namespace ex::gui {
             if (disabled)
                 ImGui::PopStyleVar();
 
-            const bool menu = show_context_menu_element(state, gui, node, node->children_n > 0, *selected == node->id_local);
+            const bool menu = show_context_menu_element(state, gui, node, *menu_node == node->id_local,
+                node->children_n > 0, *selected == node->id_local);
+
+            if (menu) {
+                *menu_node = node->id_local;
+            }
 
             if (open && node->children_n > 0)
                 ImGui::Indent();
@@ -95,7 +109,7 @@ namespace ex::gui {
                 // Regular element but it has children
                 const auto next = node->children[0];
                 for (int i = 0; i < next->children_n; i++)
-                    show_tree_node(state, gui, next->children[i], selected, active, next->children_n, i);
+                    show_tree_node(state, gui, next->children[i], selected, active, menu_node, next->children_n, i);
                 ImGui::TreePop();
 
                 if (disabled)
@@ -128,7 +142,12 @@ namespace ex::gui {
             if (disabled)
                 ImGui::PopStyleVar();
 
-            const bool menu = show_context_menu_group(state, gui, node, false, *selected == node->id_local);
+            const bool menu = show_context_menu_group(state, gui, node, *menu_node == node->id_local,
+                false, *selected == node->id_local);
+
+            if (menu) {
+                *menu_node = node->id_local;
+            }
 
             if (ImGui::IsItemClicked() || menu) {
                 *selected = node->id_local;
@@ -169,7 +188,12 @@ namespace ex::gui {
                 if (disabled)
                     ImGui::PopStyleVar();
 
-                const bool menu = show_context_menu_element(state, gui, node, false, *selected == first->id_local);
+                const bool menu = show_context_menu_element(state, gui, node, *menu_node == first->id_local,
+                    false, *selected == first->id_local);
+
+                if (menu) {
+                    *menu_node = node->id_local;
+                }
 
                 if (ImGui::IsItemClicked() || menu) {
                     *selected = first->id_local;
@@ -187,7 +211,7 @@ namespace ex::gui {
 
                 if (node->children_n > 1) {
                     for (int i = 1; i < node->children_n; i++) {
-                        show_tree_node(state, gui, node->children[i], selected, active, node->children_n, i);
+                        show_tree_node(state, gui, node->children[i], selected, active, menu_node, node->children_n, i);
                     }
                 }
 
@@ -201,7 +225,7 @@ namespace ex::gui {
         // Group with children, where the first element _HAS_ its own children
         const ImVec2 outer_start = brackets_start();
         for (int i = 0; i < node->children_n; i++) {
-            show_tree_node(state, gui, node->children[i], selected, active, node->children_n, i);
+            show_tree_node(state, gui, node->children[i], selected, active, menu_node, node->children_n, i);
         }
         brackets_end(outer_start);
     }
@@ -226,12 +250,15 @@ namespace ex::gui {
             ImGui::TableSetupColumn("Controls", ImGuiTableColumnFlags_WidthFixed, ctrl_width);
 
             static std::size_t selected_node = -1;
+            static std::size_t last_menu = -1;
+
+            std::size_t prev_menu = last_menu;
 
             TreeNode *active_node = nullptr;
 
             ImGui::Indent(10.f);
             for (int i = 0; i < state.work_tree->children_n; i++) {
-                show_tree_node(state, gui, state.work_tree->children[i], &selected_node, &active_node,
+                show_tree_node(state, gui, state.work_tree->children[i], &selected_node, &active_node, &last_menu,
                                state.work_tree->children_n, i);
             }
             ImGui::Unindent(10.f);
@@ -244,6 +271,10 @@ namespace ex::gui {
                 if (state.active_node == nullptr) {
                     state.active_node = active_node;
                 }
+            }
+
+            if (prev_menu == last_menu) {
+                last_menu = -1;
             }
 
             ImGui::GetStyle().IndentSpacing = old_indent_spacing;
