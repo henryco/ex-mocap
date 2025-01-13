@@ -12,22 +12,22 @@ namespace ex::gui {
     constexpr float ctrl_width   = 40.f;
     constexpr float min_width    = 100.f;
 
-    void show_context_menu_element(State &state, GuiState &gui, TreeNode *node) {
+    void show_context_menu_element(State &state, GuiState &gui, TreeNode *node, const bool nested, const bool selected) {
         if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
             ImGui::OpenPopup("show_context_menu_element");
         if (ImGui::BeginPopup("show_context_menu_element")) {
-            if (ImGui::MenuItem(node->name)) {
-                // Do something
+
+            if (ImGui::MenuItem("Some action")) {
+                // Do something TODO
             }
-            if (ImGui::MenuItem("Some huge element")) {
-                // Do something
-            }
-            // TODO
+
+            node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);
+
             ImGui::EndPopup();
         }
     }
 
-    void show_context_menu_group(State &state, GuiState &gui, TreeNode *node) {
+    void show_context_menu_group(State &state, GuiState &gui, TreeNode *node, bool nested, bool selected) {
         if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
             ImGui::OpenPopup("show_context_menu_group");
         if (ImGui::BeginPopupContextItem("show_context_menu_group", ImGuiMouseButton_Right)) {
@@ -58,7 +58,7 @@ namespace ex::gui {
             if (disabled)
                 ImGui::PopStyleVar();
 
-            show_context_menu_element(state, gui, node);
+            show_context_menu_element(state, gui, node, node->children_n > 0, *selected == node->id_local);
 
             if (open && node->children_n > 0)
                 ImGui::Indent();
@@ -120,7 +120,7 @@ namespace ex::gui {
             if (disabled)
                 ImGui::PopStyleVar();
 
-            show_context_menu_group(state, gui, node);
+            show_context_menu_group(state, gui, node, false, *selected == node->id_local);
 
             if (ImGui::IsItemClicked()) {
                 *selected = node->id_local;
@@ -161,7 +161,7 @@ namespace ex::gui {
                 if (disabled)
                     ImGui::PopStyleVar();
 
-                show_context_menu_element(state, gui, node);
+                show_context_menu_element(state, gui, node, false, *selected == first->id_local);
 
                 if (ImGui::IsItemClicked()) {
                     *selected = first->id_local;

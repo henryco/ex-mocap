@@ -42,6 +42,12 @@ namespace ex::gui::test::one {
         return open;
     }
 
+    void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, const bool nested, const bool selected) {
+        if (ImGui::MenuItem(node->name)) {
+            // Do something TODO
+        }
+    }
+
     bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *node) {
         if (node->visible != nullptr && !(*node->visible))
             return false;
@@ -100,6 +106,12 @@ namespace ex::gui::test::two {
         return open;
     }
 
+    void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, const bool nested, const bool selected) {
+        if (ImGui::MenuItem(node->name)) {
+            // Do something TODO
+        }
+    }
+
     bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *node) {
         if (node->visible != nullptr && !(*node->visible))
             return false;
@@ -150,6 +162,12 @@ namespace ex::gui::test::tri {
         const auto c_flag = tree_node_flags | (selected ? ImGuiTreeNodeFlags_Selected : 0);
         const auto c_bullet = nested ? 0 : tree_bull_flags;
         return ImGui::TreeNodeEx(node->name, c_flag | c_bullet);
+    }
+
+    void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, const bool nested, const bool selected) {
+        if (ImGui::MenuItem(node->name)) {
+            // Do something TODO
+        }
     }
 
     bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *node) {

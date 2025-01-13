@@ -178,8 +178,9 @@ namespace ex::gui::test {
 
     namespace one {
         bool draw_tree_node(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
+        void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
         bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *window);
-        static constexpr GuiMapper mapper = { draw_tree_node, draw_node_window };
+        static constexpr GuiMapper mapper = { draw_tree_node, draw_tree_menu, draw_node_window };
 
         void from_base(State &state, nodes::BaseNode *from, TreeNode *to);
         void from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
@@ -191,8 +192,9 @@ namespace ex::gui::test {
 
     namespace two {
         bool draw_tree_node(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
+        void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
         bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *window);
-        static constexpr GuiMapper mapper = { draw_tree_node, draw_node_window };
+        static constexpr GuiMapper mapper = { draw_tree_node, draw_tree_menu, draw_node_window };
 
         void from_base(State &state, nodes::BaseNode *from, TreeNode *to);
         void from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
@@ -204,8 +206,9 @@ namespace ex::gui::test {
 
     namespace tri {
         bool draw_tree_node(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
+        void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
         bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *window);
-        static constexpr GuiMapper mapper = { draw_tree_node, draw_node_window };
+        static constexpr GuiMapper mapper = { draw_tree_node, draw_tree_menu, draw_node_window };
 
         void from_base(State &state, nodes::BaseNode *from, TreeNode *to);
         void from_tree(State &state, TreeNode *from, nodes::BaseNode *to);

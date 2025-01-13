@@ -36,6 +36,7 @@ namespace ex::gui {
 
     struct GuiMapper {
         bool (*draw_tree_node)(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected) = nullptr;
+        void (*draw_tree_menu)(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected) = nullptr;
         bool (*draw_node_window)(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *win)                = nullptr;
     };
 }
