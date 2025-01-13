@@ -34,13 +34,13 @@ namespace ex::gui {
                 const bool n_state = node->disabled;
 
                 undo_history().push((enabled ? "Disabled node" : "Enabled node"),
-                    new std::function([id_l = node->id_local, n_state] (ex::State *state) {
-                        auto f_node = state->work_tree->find_node(id_l);
+                    new std::function([id_l = node->id_local, n_state] (ex::State *s) {
+                        const auto f_node = s->work_tree->find_node(id_l);
                         if (f_node != nullptr)
                             f_node->disabled = !n_state;
                     }),
-                    new std::function([id_l = node->id_local, n_state] (ex::State *state) {
-                        auto f_node = state->work_tree->find_node(id_l);
+                    new std::function([id_l = node->id_local, n_state] (ex::State *s) {
+                        const auto f_node = s->work_tree->find_node(id_l);
                         if (f_node != nullptr)
                             f_node->disabled = n_state;
                     }));
@@ -49,27 +49,6 @@ namespace ex::gui {
 
             node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);
 
-            ImGui::EndPopup();
-        }
-        return clicked;
-    }
-
-    bool show_context_menu_group(State &state, GuiState &gui, TreeNode *node,
-        const bool last, bool nested, bool selected)
-    {
-        static auto menu_id = "show_context_menu_group";
-        bool clicked = false;
-
-        if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-            ImGui::OpenPopup(menu_id);
-            clicked = true;
-        }
-        else if (last) {
-            ImGui::OpenPopup(menu_id);
-        }
-
-        if (ImGui::BeginPopupContextItem(menu_id, ImGuiMouseButton_Right)) {
-            // TODO
             ImGui::EndPopup();
         }
         return clicked;
@@ -156,45 +135,46 @@ namespace ex::gui {
 
         if (node->children_n <= 0) {
             // Group but it has no children (an empty one)
-            const bool connected = node->connected || n == 0;
-            const bool disabled  = node->disabled || !connected;
-
-            if (disabled || disabled_)
-                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
-
-            ImGui::PushID(node->id_local);
-            node_mappers_.at(node->id_node).draw_tree_node(
-                gui, state, node, false, *selected == node->id_local);
-
-            if (disabled || disabled_)
-                ImGui::PopStyleVar();
-
-            const bool menu = show_context_menu_group(state, gui, node, *menu_node == node->id_local,
-                false, *selected == node->id_local);
-
-            if (menu) {
-                *menu_node = node->id_local;
-            }
-
-            if (ImGui::IsItemClicked() || menu) {
-                *selected = node->id_local;
-                *active   = node;
-            }
-
-            if (disabled) {
-                ImGui::TableNextColumn();
-                ImGui::TextDisabled(ICON_LC_LINK_2_OFF);
-            }
-            else if (ImGui::IsItemHovered()) {
-                ImGui::TableNextColumn();
-                ImGui::TextDisabled(connected ? "" : ICON_LC_UNPLUG);
-            }
-            else {
-                ImGui::TableNextColumn();
-                ImGui::TextDisabled(connected ? ICON_LC_ARROW_DOWN : ICON_LC_UNPLUG);
-            }
-
-            ImGui::PopID();
+//
+//            const bool connected = node->connected || n == 0;
+//            const bool disabled  = node->disabled || !connected;
+//
+//            if (disabled || disabled_)
+//                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
+//
+//            ImGui::PushID(node->id_local);
+//            node_mappers_.at(node->id_node).draw_tree_node(
+//                gui, state, node, false, *selected == node->id_local);
+//
+//            if (disabled || disabled_)
+//                ImGui::PopStyleVar();
+//
+//            const bool menu = show_context_menu_group(state, gui, node, *menu_node == node->id_local,
+//                false, *selected == node->id_local);
+//
+//            if (menu) {
+//                *menu_node = node->id_local;
+//            }
+//
+//            if (ImGui::IsItemClicked() || menu) {
+//                *selected = node->id_local;
+//                *active   = node;
+//            }
+//
+//            if (disabled) {
+//                ImGui::TableNextColumn();
+//                ImGui::TextDisabled(ICON_LC_LINK_2_OFF);
+//            }
+//            else if (ImGui::IsItemHovered()) {
+//                ImGui::TableNextColumn();
+//                ImGui::TextDisabled(connected ? "" : ICON_LC_UNPLUG);
+//            }
+//            else {
+//                ImGui::TableNextColumn();
+//                ImGui::TextDisabled(connected ? ICON_LC_ARROW_DOWN : ICON_LC_UNPLUG);
+//            }
+//
+//            ImGui::PopID();
             return;
         }
 
