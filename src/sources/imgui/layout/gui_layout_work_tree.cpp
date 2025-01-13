@@ -21,7 +21,7 @@ namespace ex::gui {
 
             ImGui::PushID(node->id_local);
             const bool open = node_mappers_.at(node->id_node).draw_tree_node(
-                gui, node->name,
+                gui, state, node,
                 node->children_n > 0,
                 *selected == node->id_local);
 
@@ -67,7 +67,7 @@ namespace ex::gui {
 
             ImGui::PushID(node->id_local);
             node_mappers_.at(node->id_node).draw_tree_node(
-                gui, node->name,
+                gui, state, node,
                 false,
                 *selected == node->id_local);
 
@@ -98,7 +98,7 @@ namespace ex::gui {
             {
                 ImGui::PushID(first->id_local);
                 node_mappers_.at(first->id_node).draw_tree_node(
-                    gui, first->name,
+                    gui, state, first,
                     false,
                     *selected == first->id_local);
 
