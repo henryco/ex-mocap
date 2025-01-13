@@ -207,7 +207,7 @@ namespace ex::gui {
                 if (disabled)
                     ImGui::PopStyleVar();
 
-                const bool menu = show_context_menu_element(state, gui, node, *menu_node == first->id_local,
+                const bool menu = show_context_menu_element(state, gui, first, *menu_node == first->id_local,
                     false, *selected == first->id_local);
 
                 if (menu) {
