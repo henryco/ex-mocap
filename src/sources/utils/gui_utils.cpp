@@ -118,9 +118,9 @@ namespace ex::gui {
         return pos;
     }
 
-    void brackets_end(const ImVec2 &start, const float indent) {
-        constexpr auto color = IM_COL32(0, 0, 0, 120);
-        constexpr auto color_2 = IM_COL32(0, 0, 0, 150);
+    void brackets_end(const ImVec2 &start, const float indent, const float alpha) {
+        const auto color = IM_COL32(0, 0, 0, 120 * alpha);
+        const auto color_2 = IM_COL32(0, 0, 0, 150 * alpha);
 
         constexpr auto thickness = 1.25f;
 
@@ -153,10 +153,10 @@ namespace ex::gui {
         ImGui::Unindent(indent <= 0 ? 7.f : indent);
     }
 
-    void brackets_end_half(const ImVec2 &start, const float indent) {
+    void brackets_end_half(const ImVec2 &start, const float indent, const float alpha) {
         const float off = indent <= 0 ? 13.f : indent;
 
-        constexpr auto color_1   = IM_COL32(0, 0, 0, 120);
+        const auto color_1   = IM_COL32(0, 0, 0, 120 * alpha);
         constexpr auto thickness = 1.25f;
 
         const ImVec2 inner_end = ImGui::GetCursorScreenPos();
@@ -170,11 +170,11 @@ namespace ex::gui {
         draw_list->AddLine(p2, p4, color_1, thickness);
 
         const auto p7 = ImVec2(p1.x + 0.5f, p1.y);
-        draw_backward_arrow(p7);
+        draw_backward_arrow(p7, alpha);
     }
 
-    void draw_backward_arrow(const ImVec2 &p1) {
-        constexpr auto color_2 = IM_COL32(0, 0, 0, 150);
+    void draw_backward_arrow(const ImVec2 &p1, const float alpha) {
+        const auto color_2 = IM_COL32(0, 0, 0, 150 * alpha);
 
         const auto p7 = ImVec2(p1.x + 0.5f, p1.y);
         const auto p5 = ImVec2(p7.x - 4.f, p7.y + 7.f);

@@ -12,7 +12,9 @@ namespace ex::gui {
     constexpr float ctrl_width   = 40.f;
     constexpr float min_width    = 100.f;
 
-    bool show_context_menu_element(State &state, GuiState &gui, TreeNode *node, const bool last, const bool nested, const bool selected) {
+    bool show_context_menu_element(State &state, GuiState &gui, TreeNode *node,
+        const bool last, const bool nested, const bool selected)
+    {
         static auto menu_id = "show_context_menu_element";
         bool clicked = false;
 
@@ -52,7 +54,9 @@ namespace ex::gui {
         return clicked;
     }
 
-    bool show_context_menu_group(State &state, GuiState &gui, TreeNode *node, const bool last, bool nested, bool selected) {
+    bool show_context_menu_group(State &state, GuiState &gui, TreeNode *node,
+        const bool last, bool nested, bool selected)
+    {
         static auto menu_id = "show_context_menu_group";
         bool clicked = false;
 
@@ -72,7 +76,7 @@ namespace ex::gui {
     }
 
     void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected,
-                        TreeNode **active, std::size_t *menu_node,
+                        TreeNode **active, std::size_t *menu_node, const bool disabled_,
                         const int total, const int n)
     {
         if (!node->is_group) {
@@ -84,14 +88,14 @@ namespace ex::gui {
             const bool connected = node->connected || n == 0;
             const bool disabled  = node->disabled || !connected;
 
-            if (disabled)
+            if (disabled || disabled_)
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
             ImGui::PushID(node->id_local);
             const bool open = node_mappers_.at(node->id_node).draw_tree_node(
                 gui, state, node, node->children_n > 0, *selected == node->id_local);
 
-            if (disabled)
+            if (disabled || disabled_)
                 ImGui::PopStyleVar();
 
             const bool menu = show_context_menu_element(state, gui, node, *menu_node == node->id_local,
@@ -125,20 +129,21 @@ namespace ex::gui {
             }
 
             if (open && node->children_n > 0) {
-                if (disabled)
+                if (disabled || disabled_)
                     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
                 // Regular element but it has children
                 const auto next = node->children[0];
                 for (int i = 0; i < next->children_n; i++)
-                    show_tree_node(state, gui, next->children[i], selected, active, menu_node, next->children_n, i);
+                    show_tree_node(state, gui, next->children[i], selected, active, menu_node,
+                        disabled || disabled_, next->children_n, i);
                 ImGui::TreePop();
 
-                if (disabled)
+                if (disabled || disabled_)
                     ImGui::PopStyleVar();
 
                 ImGui::Unindent();
-                brackets_end_half(pos);
+                brackets_end_half(pos, 0, disabled || disabled_ ? 0.5f : 1.f);
             }
 
             ImGui::PopID();
@@ -154,14 +159,14 @@ namespace ex::gui {
             const bool connected = node->connected || n == 0;
             const bool disabled  = node->disabled || !connected;
 
-            if (disabled)
+            if (disabled || disabled_)
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
             ImGui::PushID(node->id_local);
             node_mappers_.at(node->id_node).draw_tree_node(
                 gui, state, node, false, *selected == node->id_local);
 
-            if (disabled)
+            if (disabled || disabled_)
                 ImGui::PopStyleVar();
 
             const bool menu = show_context_menu_group(state, gui, node, *menu_node == node->id_local,
@@ -196,22 +201,21 @@ namespace ex::gui {
         // It's a group, and it has children (not an empty)
         const auto first = node->children[0];
 
+        const bool connected = first->connected || n == 0;
+        const bool disabled  = first->disabled || !connected;
+
         if (first->children_n <= 0) {
             // Group with children, where the first element _HAS NO_ its own children
-
             const ImVec2 outer_start = brackets_start();
             {
-                const bool connected = first->connected || n == 0;
-                const bool disabled  = first->disabled || !connected;
-
-                if (disabled)
+                if (disabled || disabled_)
                     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
                 ImGui::PushID(first->id_local);
                 node_mappers_.at(first->id_node).draw_tree_node(
                     gui, state, first, false, *selected == first->id_local);
 
-                if (disabled)
+                if (disabled || disabled_)
                     ImGui::PopStyleVar();
 
                 const bool menu = show_context_menu_element(state, gui, first, *menu_node == first->id_local,
@@ -241,23 +245,25 @@ namespace ex::gui {
 
                 if (node->children_n > 1) {
                     for (int i = 1; i < node->children_n; i++) {
-                        show_tree_node(state, gui, node->children[i], selected, active, menu_node, node->children_n, i);
+                        show_tree_node(state, gui, node->children[i], selected, active, menu_node,
+                            disabled || disabled_, node->children_n, i);
                     }
                 }
 
                 ImGui::PopID();
             }
 
-            brackets_end(outer_start);
+            brackets_end(outer_start, 0, disabled || disabled_ ? 0.5f : 1.f);
             return;
         }
 
         // Group with children, where the first element _HAS_ its own children
         const ImVec2 outer_start = brackets_start();
         for (int i = 0; i < node->children_n; i++) {
-            show_tree_node(state, gui, node->children[i], selected, active, menu_node, node->children_n, i);
+            show_tree_node(state, gui, node->children[i], selected, active, menu_node,
+                disabled || disabled_, node->children_n, i);
         }
-        brackets_end(outer_start);
+        brackets_end(outer_start, 0, disabled || disabled_ ? 0.5f : 1.f);
     }
 
     void work_tree_content(State &state, GuiState &gui) {
@@ -289,7 +295,7 @@ namespace ex::gui {
             ImGui::Indent(10.f);
             for (int i = 0; i < state.work_tree->children_n; i++) {
                 show_tree_node(state, gui, state.work_tree->children[i], &selected_node, &active_node, &last_menu,
-                               state.work_tree->children_n, i);
+                               false, state.work_tree->children_n, i);
             }
             ImGui::Unindent(10.f);
 
