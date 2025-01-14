@@ -169,15 +169,15 @@ namespace ex::gui {
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Duplicate")) {
+            if (ImGui::MenuItem("Duplicate", "Ctrl+D")) {
                 // TODO
             }
 
-            if (ImGui::MenuItem("Cut")) {
+            if (ImGui::MenuItem("Cut", "Ctrl+Z")) {
                 // TODO
             }
 
-            if (ImGui::MenuItem("Copy")) {
+            if (ImGui::MenuItem("Copy", "Ctrl+C")) {
                 // TODO
             }
 
@@ -233,23 +233,23 @@ namespace ex::gui {
 
             node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);
 
-            if (ImGui::MenuItem("Duplicate")) {
+            if (ImGui::MenuItem("Duplicate", "Ctrl+D")) {
                 // TODO
             }
 
-            if (ImGui::MenuItem("Cut")) {
+            if (ImGui::MenuItem("Cut", "Ctrl+Z")) {
                 // TODO
             }
 
-            if (ImGui::MenuItem("Copy")) {
+            if (ImGui::MenuItem("Copy", "Ctrl+C")) {
                 // TODO
             }
 
-            if (ImGui::MenuItem("Paste Object")) {
+            if (ImGui::MenuItem("Paste", "Ctrl+V", false, false)) {
                 // TODO
             }
 
-            if (ImGui::MenuItem("Paste Reference")) {
+            if (ImGui::MenuItem("Reference", "Ctrl+R", false, false)) {
                 // TODO
             }
 
