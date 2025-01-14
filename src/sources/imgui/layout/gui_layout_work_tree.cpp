@@ -6,6 +6,105 @@
 #include <IconsLucide.h>
 
 namespace ex::gui {
+
+    struct selection_node {
+        selection_node* root;
+        selection_node* next;
+        selection_node* prev;
+        TreeNode       *selected;
+    };
+
+    void select_node(selection_node **selection, TreeNode *node) {
+
+        if (ImGui::GetIO().KeyCtrl && *selection != nullptr) {
+
+            if ((*selection)->next == nullptr && (*selection)->selected == node) {
+                node->selected = true;
+                return;
+            }
+
+            node->selected = !node->selected;
+
+            if (node->selected) {
+                auto *new_node     = new selection_node;
+                new_node->root     = (*selection)->root;
+                new_node->prev     = *selection;
+                new_node->next     = nullptr;
+                new_node->selected = node;
+                (*selection)->next = new_node;
+                return;
+            }
+
+            auto head = (*selection)->root;
+            while (head != nullptr) {
+                if (head->selected == node) {
+
+                    if (head->prev == nullptr && head->next == nullptr) {
+                        *selection = nullptr;
+                        delete head;
+                        return;
+                    }
+
+                    if (head->prev == nullptr) {
+                        const auto root = head->next;
+                        root->prev = nullptr;
+
+                        auto next = root;
+                        while (next != nullptr) {
+                            next->root = root;
+                            next = next->next;
+                        }
+
+                        delete head;
+                        return;
+                    }
+
+                    if (head->next == nullptr) {
+                        head->prev->next = nullptr;
+                        delete head;
+                        return;
+                    }
+
+                    head->prev->next = head->next;
+                    head->next->prev = head->prev;
+                    delete head;
+                    return;
+                }
+                head = head->next;
+            }
+
+            return;
+        }
+
+        if (ImGui::GetIO().KeyShift) {
+            // TODO
+            return;
+        }
+
+        if (*selection != nullptr) {
+            auto head = (*selection)->root;
+            while (head != nullptr) {
+                const auto next = head->next;
+                if (head->selected != nullptr)
+                    head->selected->selected = false;
+                delete head;
+                head = next;
+            }
+
+            *selection = new selection_node;
+        }
+
+        if (*selection == nullptr) {
+            *selection = new selection_node;
+        }
+
+        (*selection)->selected = node;
+        (*selection)->root     = *selection;
+        (*selection)->next     = nullptr;
+        (*selection)->prev     = nullptr;
+        node->selected         = true;
+    }
+
     constexpr auto flags = ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV;
 
     constexpr float tree_spacing = 20.f;
@@ -294,6 +393,7 @@ namespace ex::gui {
             ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthFixed, items_width);
             ImGui::TableSetupColumn("Controls", ImGuiTableColumnFlags_WidthFixed, ctrl_width);
 
+            static selection_node *selection = nullptr;
             static std::size_t selected_node = -1;
             static std::size_t last_menu     = -1;
 

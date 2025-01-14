@@ -25,6 +25,7 @@ namespace ex {
         bool        updated    = false;
         bool        deleted    = false;
         bool        created    = false;
+        bool        selected   = false;
         bool        connected  = false;
 
         ~TreeNode();
