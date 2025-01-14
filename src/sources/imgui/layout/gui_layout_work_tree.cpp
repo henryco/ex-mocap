@@ -14,6 +14,10 @@ namespace ex::gui {
         TreeNode       *selected;
     };
 
+    bool is_single_selection(selection_node *node) {
+        return node == nullptr || node->root->next == nullptr;
+    }
+
     bool select_node(selection_node **selection, TreeNode *node) {
 
         if (ImGui::GetIO().KeyCtrl && *selection != nullptr) {
@@ -214,8 +218,12 @@ namespace ex::gui {
             if (disabled || disabled_)
                 ImGui::PopStyleVar();
 
-            const bool menu_element = show_context_menu_element(state, gui, node,
-                *menu_node == node->id_local, node->children_n > 0, node->selected);
+
+            bool menu_element = false;
+            if (is_single_selection(*selected)) {
+                menu_element = show_context_menu_element(state, gui, node,
+                    *menu_node == node->id_local, node->children_n > 0, node->selected);
+            }
 
             if (menu_element) {
                 *menu_node = node->id_local;
@@ -224,7 +232,7 @@ namespace ex::gui {
             if (open && node->children_n > 0)
                 ImGui::Indent();
 
-            if (ImGui::IsItemClicked() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+            if ((ImGui::IsItemClicked() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) || menu_element) {
                 if (select_node(selected, node)) {
                     *active = node;
                 }
@@ -336,14 +344,17 @@ namespace ex::gui {
                 if (disabled || disabled_)
                     ImGui::PopStyleVar();
 
-                const bool menu_element = show_context_menu_element(state, gui, first,
-                    *menu_node == first->id_local, false, first->selected);
+                bool menu_element = false;
+                if (is_single_selection(*selected)) {
+                    menu_element = show_context_menu_element(state, gui, first,
+                        *menu_node == first->id_local, false, first->selected);
+                }
 
                 if (menu_element) {
                     *menu_node = first->id_local;
                 }
 
-                if (ImGui::IsItemClicked() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                if ((ImGui::IsItemClicked() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) || menu_element) {
                     if (select_node(selected, first)) {
                         *active = first;
                     }
