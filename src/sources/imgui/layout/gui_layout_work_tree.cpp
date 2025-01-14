@@ -340,7 +340,7 @@ namespace ex::gui {
                     false, first->selected);
 
                 if (menu) {
-                    *menu_node = node->id_local;
+                    *menu_node = first->id_local;
                 }
 
                 if (ImGui::IsItemClicked() || menu) {
