@@ -130,6 +130,9 @@ namespace ex::gui {
     }
 
     bool show_context_menu_group(State &state, GuiState &gui, selection_node *selection) {
+        if (selection == nullptr)
+            return false;
+
         static auto menu_id = "show_context_menu_group";
         bool clicked = false;
 
@@ -138,44 +141,50 @@ namespace ex::gui {
             clicked = true;
         }
 
-
+        auto head = selection->root;
+        bool enabled = false, disabled = false;
+        while (head != nullptr) {
+            enabled |= !head->selected->disabled;
+            disabled |= head->selected->disabled;
+            head = head->next;
+        }
 
         if (ImGui::BeginPopup(menu_id)) {
 
-            if (ImGui::MenuItem("Disable")) {
-                // TODO DELETE
+            if (enabled && ImGui::MenuItem("Disable")) {
+                // TODO
             }
 
-            if (ImGui::MenuItem("Enable")) {
-                // TODO DELETE
+            if (disabled && ImGui::MenuItem("Enable")) {
+                // TODO
             }
 
             if (ImGui::MenuItem("Group")) {
-                // TODO DELETE
+                // TODO
             }
 
             if (ImGui::MenuItem("Ungroup")) {
-                // TODO DELETE
+                // TODO
             }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem("Duplicate")) {
-                // TODO DELETE
+                // TODO
             }
 
             if (ImGui::MenuItem("Cut")) {
-                // TODO DELETE
+                // TODO
             }
 
             if (ImGui::MenuItem("Copy")) {
-                // TODO DELETE
+                // TODO
             }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem("Delete")) {
-                // TODO DELETE
+                // TODO
             }
 
             ImGui::EndPopup();
@@ -225,29 +234,29 @@ namespace ex::gui {
             node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);
 
             if (ImGui::MenuItem("Duplicate")) {
-                // TODO DELETE
+                // TODO
             }
 
             if (ImGui::MenuItem("Cut")) {
-                // TODO DELETE
+                // TODO
             }
 
             if (ImGui::MenuItem("Copy")) {
-                // TODO DELETE
+                // TODO
             }
 
             if (ImGui::MenuItem("Paste Object")) {
-                // TODO DELETE
+                // TODO
             }
 
             if (ImGui::MenuItem("Paste Reference")) {
-                // TODO DELETE
+                // TODO
             }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem("Delete")) {
-                // TODO DELETE
+                // TODO
             }
 
             ImGui::EndPopup();
