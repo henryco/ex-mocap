@@ -28,8 +28,7 @@ namespace ex::gui {
 
         if (ImGui::GetIO().KeyCtrl && *selection != nullptr) {
 
-            if ((*selection)->next == nullptr && (*selection)->selected == node) {
-                node->selected = true;
+            if ((*selection)->root->next == nullptr && (*selection)->selected == node) {
                 return true;
             }
 
@@ -47,6 +46,8 @@ namespace ex::gui {
                 new_node->next     = nullptr;
                 new_node->selected = node;
                 head->next         = new_node;
+
+                *selection = new_node;
                 return true;
             }
 
@@ -78,12 +79,16 @@ namespace ex::gui {
 
                     if (head->next == nullptr) {
                         head->prev->next = nullptr;
+                        *selection       = head->prev;
+
                         delete head;
                         return false;
                     }
 
                     head->prev->next = head->next;
                     head->next->prev = head->prev;
+                    *selection       = head->next;
+
                     delete head;
                     return false;
                 }
@@ -132,6 +137,8 @@ namespace ex::gui {
             ImGui::OpenPopup(menu_id);
             clicked = true;
         }
+
+
 
         if (ImGui::BeginPopup(menu_id)) {
 
