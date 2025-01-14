@@ -7,6 +7,12 @@
 
 namespace ex::gui {
 
+    constexpr auto flags = ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV;
+
+    constexpr float tree_spacing = 20.f;
+    constexpr float ctrl_width   = 40.f;
+    constexpr float min_width    = 100.f;
+
     struct selection_node {
         selection_node* root;
         selection_node* next;
@@ -118,11 +124,58 @@ namespace ex::gui {
         return true;
     }
 
-    constexpr auto flags = ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV;
+    bool show_context_menu_group(State &state, GuiState &gui, selection_node *selection) {
+        static auto menu_id = "show_context_menu_group";
+        bool clicked = false;
 
-    constexpr float tree_spacing = 20.f;
-    constexpr float ctrl_width   = 40.f;
-    constexpr float min_width    = 100.f;
+        if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+            ImGui::OpenPopup(menu_id);
+            clicked = true;
+        }
+
+        if (ImGui::BeginPopup(menu_id)) {
+
+            if (ImGui::MenuItem("Disable")) {
+                // TODO DELETE
+            }
+
+            if (ImGui::MenuItem("Enable")) {
+                // TODO DELETE
+            }
+
+            if (ImGui::MenuItem("Group")) {
+                // TODO DELETE
+            }
+
+            if (ImGui::MenuItem("Ungroup")) {
+                // TODO DELETE
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Duplicate")) {
+                // TODO DELETE
+            }
+
+            if (ImGui::MenuItem("Cut")) {
+                // TODO DELETE
+            }
+
+            if (ImGui::MenuItem("Copy")) {
+                // TODO DELETE
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Delete")) {
+                // TODO DELETE
+            }
+
+            ImGui::EndPopup();
+        }
+
+        return clicked;
+    }
 
     bool show_context_menu_element(State &state, GuiState &gui, TreeNode *node,
         const bool last, const bool nested, const bool selected)
@@ -223,6 +276,8 @@ namespace ex::gui {
             if (is_single_selection(*selected)) {
                 menu_element = show_context_menu_element(state, gui, node,
                     *menu_node == node->id_local, node->children_n > 0, node->selected);
+            } else {
+                show_context_menu_group(state, gui, *selected);
             }
 
             if (menu_element) {
@@ -348,6 +403,8 @@ namespace ex::gui {
                 if (is_single_selection(*selected)) {
                     menu_element = show_context_menu_element(state, gui, first,
                         *menu_node == first->id_local, false, first->selected);
+                } else {
+                    show_context_menu_group(state, gui, *selected);
                 }
 
                 if (menu_element) {
