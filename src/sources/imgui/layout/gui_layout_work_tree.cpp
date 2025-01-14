@@ -29,6 +29,16 @@ namespace ex::gui {
         if (ImGui::GetIO().KeyCtrl && *selection != nullptr) {
 
             if ((*selection)->root->next == nullptr && (*selection)->selected == node) {
+
+                if (node->selected) {
+                    // OPTIONAL
+                    node->selected = false;
+                    delete *selection;
+                    *selection = nullptr;
+                    return false;
+                    // OPTIONAL
+                }
+
                 return true;
             }
 
@@ -98,8 +108,10 @@ namespace ex::gui {
             return false;
         }
 
-        if (ImGui::GetIO().KeyShift) {
+        if (ImGui::GetIO().KeyShift && *selection != nullptr) {
+
             // TODO
+
             return false;
         }
 
