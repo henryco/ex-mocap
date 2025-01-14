@@ -26,12 +26,17 @@ namespace ex::gui {
             node->selected = !node->selected;
 
             if (node->selected) {
+                auto head = (*selection)->root;
+                while (head->next != nullptr) {
+                    head = head->next;
+                }
+
                 auto *new_node     = new selection_node;
                 new_node->root     = (*selection)->root;
-                new_node->prev     = *selection;
+                new_node->prev     = head;
                 new_node->next     = nullptr;
                 new_node->selected = node;
-                (*selection)->next = new_node;
+                head->next         = new_node;
                 return true;
             }
 
@@ -48,6 +53,8 @@ namespace ex::gui {
                     if (head->prev == nullptr) {
                         const auto root = head->next;
                         root->prev = nullptr;
+
+                        *selection = root;
 
                         auto next = root;
                         while (next != nullptr) {
