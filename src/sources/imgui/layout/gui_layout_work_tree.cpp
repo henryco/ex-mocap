@@ -214,17 +214,17 @@ namespace ex::gui {
             if (disabled || disabled_)
                 ImGui::PopStyleVar();
 
-            const bool menu = show_context_menu_element(state, gui, node, *menu_node == node->id_local,
-                node->children_n > 0, node->selected);
+            const bool menu_element = show_context_menu_element(state, gui, node,
+                *menu_node == node->id_local, node->children_n > 0, node->selected);
 
-            if (menu) {
+            if (menu_element) {
                 *menu_node = node->id_local;
             }
 
             if (open && node->children_n > 0)
                 ImGui::Indent();
 
-            if (ImGui::IsItemClicked() || menu) {
+            if (ImGui::IsItemClicked() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
                 if (select_node(selected, node)) {
                     *active = node;
                 }
@@ -336,14 +336,14 @@ namespace ex::gui {
                 if (disabled || disabled_)
                     ImGui::PopStyleVar();
 
-                const bool menu = show_context_menu_element(state, gui, first, *menu_node == first->id_local,
-                    false, first->selected);
+                const bool menu_element = show_context_menu_element(state, gui, first,
+                    *menu_node == first->id_local, false, first->selected);
 
-                if (menu) {
+                if (menu_element) {
                     *menu_node = first->id_local;
                 }
 
-                if (ImGui::IsItemClicked() || menu) {
+                if (ImGui::IsItemClicked() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
                     if (select_node(selected, first)) {
                         *active = first;
                     }
