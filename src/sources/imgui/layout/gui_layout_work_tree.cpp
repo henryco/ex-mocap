@@ -14,13 +14,13 @@ namespace ex::gui {
         TreeNode       *selected;
     };
 
-    void select_node(selection_node **selection, TreeNode *node) {
+    bool select_node(selection_node **selection, TreeNode *node) {
 
         if (ImGui::GetIO().KeyCtrl && *selection != nullptr) {
 
             if ((*selection)->next == nullptr && (*selection)->selected == node) {
                 node->selected = true;
-                return;
+                return true;
             }
 
             node->selected = !node->selected;
@@ -32,7 +32,7 @@ namespace ex::gui {
                 new_node->next     = nullptr;
                 new_node->selected = node;
                 (*selection)->next = new_node;
-                return;
+                return true;
             }
 
             auto head = (*selection)->root;
@@ -42,7 +42,7 @@ namespace ex::gui {
                     if (head->prev == nullptr && head->next == nullptr) {
                         *selection = nullptr;
                         delete head;
-                        return;
+                        return false;
                     }
 
                     if (head->prev == nullptr) {
@@ -56,29 +56,29 @@ namespace ex::gui {
                         }
 
                         delete head;
-                        return;
+                        return false;
                     }
 
                     if (head->next == nullptr) {
                         head->prev->next = nullptr;
                         delete head;
-                        return;
+                        return false;
                     }
 
                     head->prev->next = head->next;
                     head->next->prev = head->prev;
                     delete head;
-                    return;
+                    return false;
                 }
                 head = head->next;
             }
 
-            return;
+            return false;
         }
 
         if (ImGui::GetIO().KeyShift) {
             // TODO
-            return;
+            return false;
         }
 
         if (*selection != nullptr) {
@@ -103,6 +103,8 @@ namespace ex::gui {
         (*selection)->next     = nullptr;
         (*selection)->prev     = nullptr;
         node->selected         = true;
+
+        return true;
     }
 
     constexpr auto flags = ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_BordersInnerV;
@@ -182,7 +184,7 @@ namespace ex::gui {
         return clicked;
     }
 
-    void show_tree_node(State &state, GuiState &gui, TreeNode *node, std::size_t *selected,
+    void show_tree_node(State &state, GuiState &gui, TreeNode *node, selection_node **selected,
                         TreeNode **active, std::size_t *menu_node, const bool disabled_,
                         const int total, const int n)
     {
@@ -200,13 +202,13 @@ namespace ex::gui {
 
             ImGui::PushID(node->id_local);
             const bool open = node_mappers_.at(node->id_node).draw_tree_node(
-                gui, state, node, node->children_n > 0, *selected == node->id_local);
+                gui, state, node, node->children_n > 0, node->selected);
 
             if (disabled || disabled_)
                 ImGui::PopStyleVar();
 
             const bool menu = show_context_menu_element(state, gui, node, *menu_node == node->id_local,
-                node->children_n > 0, *selected == node->id_local);
+                node->children_n > 0, node->selected);
 
             if (menu) {
                 *menu_node = node->id_local;
@@ -216,8 +218,9 @@ namespace ex::gui {
                 ImGui::Indent();
 
             if (ImGui::IsItemClicked() || menu) {
-                *selected = node->id_local;
-                *active   = node;
+                if (select_node(selected, node)) {
+                    *active = node;
+                }
             }
 
             const auto pos = ImGui::GetCursorScreenPos();
@@ -321,21 +324,22 @@ namespace ex::gui {
 
                 ImGui::PushID(first->id_local);
                 node_mappers_.at(first->id_node).draw_tree_node(
-                    gui, state, first, false, *selected == first->id_local);
+                    gui, state, first, false, first->selected);
 
                 if (disabled || disabled_)
                     ImGui::PopStyleVar();
 
                 const bool menu = show_context_menu_element(state, gui, first, *menu_node == first->id_local,
-                    false, *selected == first->id_local);
+                    false, first->selected);
 
                 if (menu) {
                     *menu_node = node->id_local;
                 }
 
                 if (ImGui::IsItemClicked() || menu) {
-                    *selected = first->id_local;
-                    *active   = first;
+                    if (select_node(selected, first)) {
+                        *active = first;
+                    }
                 }
 
                 if (disabled) {
@@ -403,7 +407,7 @@ namespace ex::gui {
 
             ImGui::Indent(10.f);
             for (int i = 0; i < state.work_tree->children_n; i++) {
-                show_tree_node(state, gui, state.work_tree->children[i], &selected_node, &active_node, &last_menu,
+                show_tree_node(state, gui, state.work_tree->children[i], &selection, &active_node, &last_menu,
                                false, state.work_tree->children_n, i);
             }
             ImGui::Unindent(10.f);
