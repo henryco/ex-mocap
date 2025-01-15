@@ -35,15 +35,23 @@ namespace ex {
         TreeNode *find_node(std::size_t id);
     };
 
+    struct selection_node {
+        selection_node* root;
+        selection_node* next;
+        selection_node* prev;
+        TreeNode       *selected;
+    };
+
     struct State {
-        const char  *project_path = nullptr;
-        GLFWwindow  *window       = nullptr;
-        TreeNode    *work_tree    = nullptr;
-        TreeNode    *active_node  = nullptr;
-        cl_context   ocl_context  = nullptr;
-        cl_device_id ocl_device   = nullptr;
-        short        clock_freq   = -1;
-        bool         gl_sharing   = false;
+        const char     *project_path   = nullptr;
+        GLFWwindow     *window         = nullptr;
+        TreeNode       *work_tree      = nullptr;
+        TreeNode       *active_node    = nullptr;
+        selection_node *selected_nodes = nullptr;
+        cl_context      ocl_context    = nullptr;
+        cl_device_id    ocl_device     = nullptr;
+        short           clock_freq     = -1;
+        bool            gl_sharing     = false;
     };
 
     namespace state {

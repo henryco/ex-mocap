@@ -13,13 +13,6 @@ namespace ex::gui {
     constexpr float ctrl_width   = 40.f;
     constexpr float min_width    = 100.f;
 
-    struct selection_node {
-        selection_node* root;
-        selection_node* next;
-        selection_node* prev;
-        TreeNode       *selected;
-    };
-
     bool is_single_selection(selection_node *node) {
         return node == nullptr || node->root->next == nullptr;
     }
@@ -565,17 +558,13 @@ namespace ex::gui {
             ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthFixed, items_width);
             ImGui::TableSetupColumn("Controls", ImGuiTableColumnFlags_WidthFixed, ctrl_width);
 
-            static selection_node *selection = nullptr;
-            static std::size_t selected_node = -1;
-            static std::size_t last_menu     = -1;
-
-            const std::size_t prev_menu = last_menu;
-
-            TreeNode *active_node = nullptr;
+            static std::size_t last_menu   = -1;
+            const std::size_t  prev_menu   = last_menu;
+            TreeNode          *active_node = nullptr;
 
             ImGui::Indent(10.f);
             for (int i = 0; i < state.work_tree->children_n; i++) {
-                show_tree_node(state, gui, state.work_tree->children[i], &selection, &active_node, &last_menu,
+                show_tree_node(state, gui, state.work_tree->children[i], &state.selected_nodes, &active_node, &last_menu,
                                false, state.work_tree->children_n, i);
             }
             ImGui::Unindent(10.f);

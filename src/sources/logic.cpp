@@ -40,7 +40,7 @@ namespace ex::main {
         if (state.work_tree != nullptr)
             delete state.work_tree;
 
-        state.work_tree = new TreeNode();
+        state.work_tree             = new TreeNode();
         state.work_tree->name       = "root";
         state.work_tree->is_group   = true;
         state.work_tree->children_n = 0;
