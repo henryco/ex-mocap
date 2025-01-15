@@ -34,7 +34,6 @@ namespace ex::gui {
             next->prev      = *output;
             next->next      = nullptr;
             next->selected  = node;
-            node->selected  = true;
             (*output)->next = next;
             *output         = next;
         }
@@ -51,7 +50,6 @@ namespace ex::gui {
                     (*output)->next     = nullptr;
                     (*output)->root     = *output;
                     (*output)->selected = node;
-                    node->selected      = true;
                 }
             }
             sample = sample->next;
@@ -170,12 +168,12 @@ namespace ex::gui {
                 return false;
             }
 
-            auto edon  = new_selected->root;
-            *selection = edon;
+            auto base  = new_selected->root;
+            *selection = base;
 
-            while (edon != nullptr) {
-                edon->selected->selected = true;
-                edon = edon->next;
+            while (base != nullptr) {
+                base->selected->selected = true;
+                base = base->next;
             }
 
             return true;
