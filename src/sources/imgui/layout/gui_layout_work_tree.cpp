@@ -17,45 +17,156 @@ namespace ex::gui {
         return node == nullptr || node->root->next == nullptr;
     }
 
-    bool multi_select(selection_node **output, selection_node *selection, TreeNode *node, TreeNode *stop) {
-        if (node == nullptr || selection == nullptr)
-            return true;
+    void remove_from_(selection_node *node, selection_node **next) {
+        if (node == nullptr)
+            return;
 
-        if (node == stop && *output != nullptr) {
-            // TODO FIXME
-            return true;
-        }
-
-        if (*output != nullptr) {
-            const auto next = new selection_node;
-            next->root      = (*output)->root;
-            next->prev      = *output;
-            next->next      = nullptr;
-            next->selected  = node;
-            (*output)->next = next;
-            *output         = next;
-        }
-
-        selection_node *root   = selection;
-        selection_node *sample = selection;
-        while (sample != nullptr) {
-            if (sample->selected == node) {
-                root = sample;
-
-                if (*output == nullptr) {
-                    *output             = new selection_node;
-                    (*output)->prev     = nullptr;
-                    (*output)->next     = nullptr;
-                    (*output)->root     = *output;
-                    (*output)->selected = node;
-                }
+        if (node->prev == nullptr) {
+            if (node->next == nullptr) {
+                *next = nullptr;
+                delete node;
+                return;
             }
-            sample = sample->next;
+
+            const auto root = node->next;
+
+            root->prev = nullptr;
+            *next      = root;
+
+            auto head = node->next;
+            while (head != nullptr) {
+                head->root = root;
+                head = head->next;
+            }
+
+            delete node;
+            return;
         }
 
-        for (int i = 0; i < node->children_n; i++) {
-            if (multi_select(output, root, node->children[i], stop))
+        if (node->next == nullptr) {
+            node->prev->next = nullptr;
+            *next            = node->prev;
+            delete node;
+            return;
+        }
+
+        node->prev->next = node->next;
+        *next            = node->next;
+        delete node;
+    }
+
+    bool multi(selection_node **selection, selection_node **samples, TreeNode *node, TreeNode *start, TreeNode *stop) {
+        if (node == nullptr || *samples == nullptr)
+            return true;
+
+        if (start == nullptr && stop == nullptr)
+            return true; // ignore such case
+
+        if (node == stop && start == nullptr) {
+            if (*selection != nullptr)
+                delete *selection;
+            *selection             = new selection_node;
+            (*selection)->root     = *selection;
+            (*selection)->prev     = nullptr;
+            (*selection)->next     = nullptr;
+            (*selection)->selected = node;
+            return multi(selection, samples, node, stop, nullptr);
+        }
+
+        if (start != nullptr && stop != nullptr) {
+
+            if (*selection != nullptr) {
+                const auto next    = new selection_node;
+                next->root         = (*selection)->root;
+                next->prev         = *selection;
+                next->next         = nullptr;
+                next->selected     = node;
+                (*selection)->next = next;
+                *selection         = next;
+            } else {
+                *selection             = new selection_node;
+                (*selection)->root     = *selection;
+                (*selection)->prev     = nullptr;
+                (*selection)->next     = nullptr;
+                (*selection)->selected = node;
+            }
+
+            if (node == stop) {
                 return true;
+            }
+
+            for (int i = 0; i < node->children_n; i++) {
+                if (multi(selection, samples, node->children[i], start, stop))
+                    return true;
+            }
+
+            return false;
+        }
+
+        if (start == nullptr) {
+            auto head = (*samples)->root;
+            bool found = false;
+            while (head != nullptr) {
+                *samples = head;
+                auto next = head->next;
+                if (head->selected == node) {
+                    remove_from_(head, &next);
+                    *samples = next;
+                    found = true;
+                }
+                head = next;
+            }
+
+            if (found) {
+                if (*selection != nullptr)
+                    delete *selection;
+                *selection             = new selection_node;
+                (*selection)->root     = *selection;
+                (*selection)->prev     = nullptr;
+                (*selection)->next     = nullptr;
+                (*selection)->selected = node;
+                return multi(selection, samples, node, node, stop);
+            }
+        }
+
+        if (start != nullptr) {
+
+            if (*selection != nullptr) {
+                const auto next    = new selection_node;
+                next->root         = (*selection)->root;
+                next->prev         = *selection;
+                next->next         = nullptr;
+                next->selected     = node;
+                (*selection)->next = next;
+                *selection         = next;
+            } else {
+                *selection             = new selection_node;
+                (*selection)->root     = *selection;
+                (*selection)->prev     = nullptr;
+                (*selection)->next     = nullptr;
+                (*selection)->selected = node;
+            }
+
+            auto head = (*samples)->root;
+            while (head != nullptr) {
+                *samples = head;
+                auto next = head->next;
+                if (head->selected == node) {
+                    remove_from_(head, &next);
+                    *samples = next;
+                }
+                head = next;
+            }
+
+            if (*samples == nullptr)
+                return true;
+
+            for (int i = 0; i < node->children_n; i++) {
+                if (multi(selection, samples, node->children[i], start, stop))
+                    return true;
+            }
+
+            return false;
         }
 
         return false;
@@ -152,8 +263,36 @@ namespace ex::gui {
                 root = root->parent;
             }
 
+            auto *copy_selected = new selection_node;
+            copy_selected->root = copy_selected;
+            copy_selected->prev = nullptr;
+            copy_selected->next = nullptr;
+
+            auto head_src = *selection;
+            while (head_src != nullptr) {
+                copy_selected->selected = head_src->selected;
+
+                const auto next_copy  = new selection_node;
+                next_copy->root       = copy_selected->root;
+                next_copy->prev       = copy_selected;
+                next_copy->next       = nullptr;
+                copy_selected->next   = next_copy;
+                copy_selected         = next_copy;
+
+                head_src = head_src->next;
+            }
+
             selection_node *new_selected = nullptr;
-            multi_select(&new_selected, *selection, root, node);
+            multi(&new_selected, &copy_selected, root, nullptr, node);
+
+            if (copy_selected != nullptr) {
+                auto r_head = copy_selected->root;
+                while (r_head != nullptr) {
+                    const auto r_next = r_head->next;
+                    delete r_head;
+                    r_head = r_next;
+                }
+            }
 
             auto head = (*selection)->root;
             while (head != nullptr) {
