@@ -55,65 +55,28 @@ namespace ex::gui {
         delete node;
     }
 
-    void debug_print(selection_node **selection, selection_node **samples, TreeNode *node, TreeNode *start, TreeNode *stop) {
-        std::cout << ": " << node->id_local << " : " << node->name << '\n';
-
-        if (start != nullptr) {
-            std::cout << "begin: " << start->id_local << " : " << start->name << '\n';
-        }
-        if (stop != nullptr) {
-            std::cout << "end:   " << stop->id_local << " : " << stop->name << '\n';
-        }
-
-        int a = 0;
-        if (*samples != nullptr) {
-            auto head = (*samples)->root;
-            while (head != nullptr) {
-                a++;
-                std::cout << "sample: " << head->selected->id_local << " : " << head->selected->name << '\n';
-                head = head->next;
-            }
-        }
-
-        int b = 0;
-        if (*selection != nullptr) {
-            auto head = (*selection)->root;
-            while (head != nullptr) {
-                b++;
-                std::cout << "selection: " << head->selected->id_local << " : " << head->selected->name << '\n';
-                head = head->next;
-            }
-        }
-
-        std::cout << "++selected++: " << b << ", ++samples++: " << a << '\n';
-        std::cout << "" << '\n';
-    }
-
-    bool multi(selection_node **selection, selection_node **samples, TreeNode *node, TreeNode *start, TreeNode *stop) {
+    bool select_multi(selection_node **selection, selection_node **samples, TreeNode *node, TreeNode **start, TreeNode **stop) {
         if (node == nullptr)
             return true;
 
-        if ((start == nullptr || stop == nullptr) && *samples == nullptr)
+        if ((*start == nullptr || *stop == nullptr) && *samples == nullptr)
             return true;
 
-        if (start == nullptr && stop == nullptr)
+        if (*start == nullptr && *stop == nullptr)
             return true; // ignore such case
 
-        debug_print(selection, samples, node, start, stop);
-
-        if (node == stop && start == nullptr) {
+        if (node == *stop && *start == nullptr) {
             *selection             = new selection_node;
             (*selection)->root     = *selection;
             (*selection)->prev     = nullptr;
             (*selection)->next     = nullptr;
             (*selection)->selected = node;
-            return multi(selection, samples, node, stop, nullptr);
+
+            std::swap(*start, *stop);
+            return select_multi(selection, samples, node, start, stop);
         }
 
-        if (start != nullptr && stop != nullptr) {
-
-            // TODO FIXME
-
+        if (*start != nullptr && *stop != nullptr) {
             if (*selection != nullptr) {
                 const auto next    = new selection_node;
                 next->root         = (*selection)->root;
@@ -130,19 +93,19 @@ namespace ex::gui {
                 (*selection)->selected = node;
             }
 
-            if (node == stop) {
+            if (node == *stop) {
                 return true;
             }
 
             for (int i = 0; i < node->children_n; i++) {
-                if (multi(selection, samples, node->children[i], start, stop))
+                if (select_multi(selection, samples, node->children[i], start, stop))
                     return true;
             }
 
             return false;
         }
 
-        if (start == nullptr) {
+        if (*start == nullptr) {
             auto head = (*samples)->root;
             bool found = false;
             while (head != nullptr) {
@@ -162,19 +125,19 @@ namespace ex::gui {
                 (*selection)->prev     = nullptr;
                 (*selection)->next     = nullptr;
                 (*selection)->selected = node;
-                std::cout << "###" << '\n';
-                return multi(selection, samples, node, node, stop);
+                *start = node;
+                return select_multi(selection, samples, node, start, stop);
             }
 
             for (int i = 0; i < node->children_n; i++) {
-                if (multi(selection, samples, node->children[i], start, stop))
+                if (select_multi(selection, samples, node->children[i], start, stop))
                     return true;
             }
 
             return false;
         }
 
-        if (start != nullptr) {
+        if (*start != nullptr) {
 
             if (*selection != nullptr) {
                 const auto next    = new selection_node;
@@ -207,7 +170,7 @@ namespace ex::gui {
                 return true;
 
             for (int i = 0; i < node->children_n; i++) {
-                if (multi(selection, samples, node->children[i], start, stop))
+                if (select_multi(selection, samples, node->children[i], start, stop))
                     return true;
             }
 
@@ -329,7 +292,8 @@ namespace ex::gui {
             }
 
             selection_node *new_selected = nullptr;
-            multi(&new_selected, &copy_selected, root, nullptr, node);
+            TreeNode       *start_node   = nullptr;
+            select_multi(&new_selected, &copy_selected, root, &start_node, &node);
 
             if (copy_selected != nullptr) {
                 auto r_head = copy_selected->root;
