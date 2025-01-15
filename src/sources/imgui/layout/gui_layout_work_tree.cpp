@@ -59,10 +59,10 @@ namespace ex::gui {
         std::cout << ": " << node->id_local << " : " << node->name << '\n';
 
         if (start != nullptr) {
-            std::cout << "b " << start->id_local << " : " << start->name << '\n';
+            std::cout << "begin: " << start->id_local << " : " << start->name << '\n';
         }
         if (stop != nullptr) {
-            std::cout << "e " << stop->id_local << " : " << stop->name << '\n';
+            std::cout << "end:   " << stop->id_local << " : " << stop->name << '\n';
         }
 
         int a = 0;
@@ -162,6 +162,7 @@ namespace ex::gui {
                 (*selection)->prev     = nullptr;
                 (*selection)->next     = nullptr;
                 (*selection)->selected = node;
+                std::cout << "###" << '\n';
                 return multi(selection, samples, node, node, stop);
             }
 
