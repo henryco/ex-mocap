@@ -25,6 +25,7 @@ namespace ex::gui {
     }
 
     void multi_select(selection_node **output, selection_node *selection, TreeNode *node) {
+        // TODO FIXME
         if (node == nullptr || selection == nullptr)
             return;
 
@@ -41,7 +42,7 @@ namespace ex::gui {
         selection_node *root   = selection;
         selection_node *sample = selection;
         while (sample != nullptr) {
-            if (sample->selected == node && sample->selected->id_local == node->id_local) {
+            if (sample->selected == node) {
                 root = sample;
 
                 if (*output == nullptr) {
