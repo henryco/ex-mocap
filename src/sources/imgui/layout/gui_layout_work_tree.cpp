@@ -17,10 +17,14 @@ namespace ex::gui {
         return node == nullptr || node->root->next == nullptr;
     }
 
-    void multi_select(selection_node **output, selection_node *selection, TreeNode *node) {
-        // TODO FIXME
+    bool multi_select(selection_node **output, selection_node *selection, TreeNode *node, TreeNode *stop) {
         if (node == nullptr || selection == nullptr)
-            return;
+            return true;
+
+        if (node == stop && *output != nullptr) {
+            // TODO FIXME
+            return true;
+        }
 
         if (*output != nullptr) {
             const auto next = new selection_node;
@@ -50,8 +54,11 @@ namespace ex::gui {
         }
 
         for (int i = 0; i < node->children_n; i++) {
-            multi_select(output, root, node->children[i]);
+            if (multi_select(output, root, node->children[i], stop))
+                return true;
         }
+
+        return false;
     }
 
     bool select_node(selection_node **selection, TreeNode *node) {
@@ -146,7 +153,7 @@ namespace ex::gui {
             }
 
             selection_node *new_selected = nullptr;
-            multi_select(&new_selected, *selection, root);
+            multi_select(&new_selected, *selection, root, node);
 
             auto head = (*selection)->root;
             while (head != nullptr) {
