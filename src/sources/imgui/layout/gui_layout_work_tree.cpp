@@ -263,23 +263,24 @@ namespace ex::gui {
                 root = root->parent;
             }
 
-            auto *copy_selected = new selection_node;
-            copy_selected->root = copy_selected;
-            copy_selected->prev = nullptr;
-            copy_selected->next = nullptr;
+            auto *copy_selected     = new selection_node;
+            copy_selected->selected = nullptr;
+            copy_selected->root     = copy_selected;
+            copy_selected->prev     = nullptr;
+            copy_selected->next     = nullptr;
 
             auto head_src = *selection;
             while (head_src != nullptr) {
                 copy_selected->selected = head_src->selected;
-
-                const auto next_copy  = new selection_node;
-                next_copy->root       = copy_selected->root;
-                next_copy->prev       = copy_selected;
-                next_copy->next       = nullptr;
-                copy_selected->next   = next_copy;
-                copy_selected         = next_copy;
-
-                head_src = head_src->next;
+                head_src                = head_src->next;
+                if (head_src != nullptr) {
+                    const auto next_copy  = new selection_node;
+                    next_copy->root       = copy_selected->root;
+                    next_copy->prev       = copy_selected;
+                    next_copy->next       = nullptr;
+                    copy_selected->next   = next_copy;
+                    copy_selected         = next_copy;
+                }
             }
 
             selection_node *new_selected = nullptr;
