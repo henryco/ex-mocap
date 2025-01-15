@@ -24,6 +24,44 @@ namespace ex::gui {
         return node == nullptr || node->root->next == nullptr;
     }
 
+    void multi_select(selection_node **output, selection_node *selection, TreeNode *node) {
+        if (node == nullptr || selection == nullptr)
+            return;
+
+        if (*output != nullptr) {
+            const auto next = new selection_node;
+            next->root      = (*output)->root;
+            next->prev      = *output;
+            next->next      = nullptr;
+            next->selected  = node;
+            node->selected  = true;
+            (*output)->next = next;
+            *output         = next;
+        }
+
+        selection_node *root   = selection;
+        selection_node *sample = selection;
+        while (sample != nullptr) {
+            if (sample->selected == node && sample->selected->id_local == node->id_local) {
+                root = sample;
+
+                if (*output == nullptr) {
+                    *output             = new selection_node;
+                    (*output)->prev     = nullptr;
+                    (*output)->next     = nullptr;
+                    (*output)->root     = *output;
+                    (*output)->selected = node;
+                    node->selected      = true;
+                }
+            }
+            sample = sample->next;
+        }
+
+        for (int i = 0; i < node->children_n; i++) {
+            multi_select(output, root, node->children[i]);
+        }
+    }
+
     bool select_node(selection_node **selection, TreeNode *node) {
 
         if (ImGui::GetIO().KeyCtrl && *selection != nullptr) {
@@ -110,9 +148,37 @@ namespace ex::gui {
 
         if (ImGui::GetIO().KeyShift && *selection != nullptr) {
 
-            // TODO
+            auto root = node->parent;
+            while (root->parent != nullptr) {
+                root = root->parent;
+            }
 
-            return false;
+            selection_node *new_selected = nullptr;
+            multi_select(&new_selected, *selection, root);
+
+            auto head = (*selection)->root;
+            while (head != nullptr) {
+                const selection_node *prev = head;
+                head->selected->selected   = false;
+
+                head = head->next;
+                delete prev;
+            }
+
+            if (new_selected == nullptr) {
+                *selection = nullptr;
+                return false;
+            }
+
+            auto edon  = new_selected->root;
+            *selection = edon;
+
+            while (edon != nullptr) {
+                edon->selected->selected = true;
+                edon = edon->next;
+            }
+
+            return true;
         }
 
         if (*selection != nullptr) {
