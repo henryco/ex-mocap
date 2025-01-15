@@ -55,16 +55,53 @@ namespace ex::gui {
         delete node;
     }
 
+    void debug_print(selection_node **selection, selection_node **samples, TreeNode *node, TreeNode *start, TreeNode *stop) {
+        std::cout << ": " << node->id_local << " : " << node->name << '\n';
+
+        if (start != nullptr) {
+            std::cout << "b " << start->id_local << " : " << start->name << '\n';
+        }
+        if (stop != nullptr) {
+            std::cout << "e " << stop->id_local << " : " << stop->name << '\n';
+        }
+
+        int a = 0;
+        if (*samples != nullptr) {
+            auto head = (*samples)->root;
+            while (head != nullptr) {
+                a++;
+                std::cout << "sample: " << head->selected->id_local << " : " << head->selected->name << '\n';
+                head = head->next;
+            }
+        }
+
+        int b = 0;
+        if (*selection != nullptr) {
+            auto head = (*selection)->root;
+            while (head != nullptr) {
+                b++;
+                std::cout << "selection: " << head->selected->id_local << " : " << head->selected->name << '\n';
+                head = head->next;
+            }
+        }
+
+        std::cout << "++selected++: " << b << ", ++samples++: " << a << '\n';
+        std::cout << "" << '\n';
+    }
+
     bool multi(selection_node **selection, selection_node **samples, TreeNode *node, TreeNode *start, TreeNode *stop) {
-        if (node == nullptr || *samples == nullptr)
+        if (node == nullptr)
+            return true;
+
+        if ((start == nullptr || stop == nullptr) && *samples == nullptr)
             return true;
 
         if (start == nullptr && stop == nullptr)
             return true; // ignore such case
 
+        debug_print(selection, samples, node, start, stop);
+
         if (node == stop && start == nullptr) {
-            if (*selection != nullptr)
-                delete *selection;
             *selection             = new selection_node;
             (*selection)->root     = *selection;
             (*selection)->prev     = nullptr;
@@ -74,6 +111,8 @@ namespace ex::gui {
         }
 
         if (start != nullptr && stop != nullptr) {
+
+            // TODO FIXME
 
             if (*selection != nullptr) {
                 const auto next    = new selection_node;
@@ -118,8 +157,6 @@ namespace ex::gui {
             }
 
             if (found) {
-                if (*selection != nullptr)
-                    delete *selection;
                 *selection             = new selection_node;
                 (*selection)->root     = *selection;
                 (*selection)->prev     = nullptr;
@@ -127,6 +164,13 @@ namespace ex::gui {
                 (*selection)->selected = node;
                 return multi(selection, samples, node, node, stop);
             }
+
+            for (int i = 0; i < node->children_n; i++) {
+                if (multi(selection, samples, node->children[i], start, stop))
+                    return true;
+            }
+
+            return false;
         }
 
         if (start != nullptr) {
