@@ -221,9 +221,7 @@ namespace ex::main {
         timestamp = now;
 
         bool rewire = false;
-        for (std::size_t i = 0; i < state.work_tree->children_n; i++) {
-            traverse_(state, state.work_tree->children[i], &rewire);
-        }
+        traverse_(state, state.work_tree, &rewire);
 
         if (rewire) {
             rewire_(state);
@@ -279,6 +277,7 @@ namespace ex::main {
         }
 
         if (node->created) {
+            // TODO COUNTER FIX
             if (!node->is_group) {
 
                 if (node->id_local < 0) {
