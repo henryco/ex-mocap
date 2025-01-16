@@ -250,7 +250,28 @@ namespace ex::main {
         }
 
         for (std::size_t i = 0; i < node->children_n; i++) {
-            traverse_(state, node->children[i], rewire);
+            const auto child = node->children[i];
+
+            if (child->deleted) {
+                mark_deleted_(child);
+                *rewire = true;
+            }
+
+            else {
+                traverse_(state, child, rewire);
+            }
+        }
+
+        int o = 0;
+        while (true) {
+            if (o >= node->children_n)
+                break;
+            if (!node->children[o]->deleted) {
+                o += 1;
+                continue;
+            }
+            node->remove_node(node->children[o]);
+            o = 0;
         }
 
         if (node->created) {
@@ -316,10 +337,10 @@ namespace ex::main {
             node->detach_all_any();
         }
 
-        gc_(state); // TODO FIXME
-
         simple_list current = { state.work_tree };
         build_tree_(state, state.work_tree, nullptr, &current);
+
+        gc_(state);
 
         const simple_list *head = get_head_(&current);
         if (head == nullptr) {
@@ -383,15 +404,6 @@ namespace ex::main {
 
                 delete nodes_.at(id_local);
                 nodes_.erase(id_local);
-
-                const auto leaf = TreeNode::find_node(state.work_tree, id_local);
-                if (leaf != nullptr) {
-                    const auto leaf_parent = leaf->parent;
-                    if (leaf_parent != nullptr) {
-                        leaf_parent->remove_node(leaf);
-                    }
-                    delete leaf;
-                }
 
                 it = ptr_counter_.erase(it);
 
