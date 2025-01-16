@@ -7,7 +7,34 @@
 namespace ex {
 
     TreeNode::~TreeNode() {
-        // TODO
+        if (children != nullptr) {
+            for (int i = 0; i < children_n - 1; i++)
+                delete children[i];
+            delete children;
+        }
+    }
+
+    void TreeNode::remove_node(TreeNode *node) {
+        if (node == nullptr)
+            return;
+
+        if (this->children == nullptr || this->children_n <= 0)
+            return;
+
+        const int curr_n   = static_cast<int>(this->children_n);
+        const int new_size = (curr_n <= 0 ? 0 : (curr_n - 1));
+
+        auto **children = new TreeNode *[new_size];
+        for (int i = 0, k = 0; i < curr_n - 1; i++) {
+            const auto child = this->children[i];
+            if (child != node)
+                children[k++] = child;
+        }
+
+        delete this->children;
+
+        this->children_n = new_size;
+        this->children   = children;
     }
 
     void TreeNode::add_node(TreeNode *node) {
@@ -40,6 +67,22 @@ namespace ex {
                 return result;
         }
         return nullptr;
+    }
+
+    TreeNode *TreeNode::find_node(TreeNode *node) {
+        if (this == node)
+            return this;
+        for (int i = 0; i < this->children_n; i++) {
+            if (const auto result = this->children[i]->find_node(node); result != nullptr)
+                return result;
+        }
+        return nullptr;
+    }
+
+    TreeNode *TreeNode::find_node(TreeNode *const tree, const std::size_t id) {
+        if  (tree == nullptr)
+            return nullptr;
+        return tree->find_node(id);
     }
 
     selection_node *selection_node::copy() {

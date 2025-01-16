@@ -32,6 +32,10 @@ namespace ex {
 
         void      add_node(TreeNode *node);
         TreeNode *find_node(std::size_t id);
+        TreeNode *find_node(TreeNode *node);
+        void      remove_node(TreeNode *node);
+
+        static TreeNode *find_node(TreeNode *tree, std::size_t id);
     };
 
     struct selection_node {

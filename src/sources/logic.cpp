@@ -310,6 +310,7 @@ namespace ex::main {
 
     void Logic::rewire_(State &state) {
         log->debug("rewire");
+        std::cout << "rewire" << '\n';
 
         clock_.detach_all();
         for (auto &[_, node]: nodes_) {
@@ -319,6 +320,7 @@ namespace ex::main {
         simple_list current = { state.work_tree };
         build_tree_(state, state.work_tree, nullptr, &current);
 
+        std::cout << "gc" << '\n';
         gc_(state);
 
         const simple_list *head = get_head_(&current);
@@ -372,8 +374,9 @@ namespace ex::main {
         log->error("Cannot connect node to clock");
     }
 
-    void Logic::gc_(State &_) {
+    void Logic::gc_(State &state) {
         log->debug("start node gc");
+        std::cout << "gc before size: " << nodes_.size() << '\n';
         for (auto it = ptr_counter_.begin(); it != ptr_counter_.end(); /*nop*/) {
             const auto id_local = it->first;
             if (it->second <= 0) {
@@ -383,18 +386,29 @@ namespace ex::main {
                 delete nodes_.at(id_local);
                 nodes_.erase(id_local);
 
+                const auto leaf = TreeNode::find_node(state.work_tree, id_local);
+                if (leaf != nullptr) {
+                    const auto leaf_parent = leaf->parent;
+                    if (leaf_parent != nullptr) {
+                        leaf_parent->remove_node(leaf);
+                    }
+                    delete leaf;
+                }
+
                 it = ptr_counter_.erase(it);
+                std::cout << "gc remove: [" << id_local << "]" << '\n';
 
                 log->debug("node gc remove: {}", id_local);
 
             } else
                 ++it;
         }
+        std::cout << "gc after size: " << nodes_.size() << '\n';
         log->debug("complete node gc");
     }
 
     void Logic::build_tree_(State &state, TreeNode *node, TreeNode *previous, simple_list *group_list) {
-        if (node == nullptr || group_list == nullptr)
+        if (node == nullptr || group_list == nullptr || node->deleted)
             return;
 
 //        log->debug("build tree: {}, {}",
