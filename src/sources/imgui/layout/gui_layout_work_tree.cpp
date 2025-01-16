@@ -446,20 +446,30 @@ namespace ex::gui {
                 // TODO change opacity maybe?
             }
 
-            if (ImGui::MenuItem("Copy", "Ctrl+C")) {
-                node_buffer::create(&state.clipboard_node, node, false, false);
+            if (ImGui::BeginMenu("Copy")) {
+
+                if (ImGui::MenuItem("Copy", "Ctrl+C")) {
+                    node_buffer::create(&state.clipboard_node, node, false, false);
+                }
+
+                if (ImGui::MenuItem("Copy Ref", "Ctrl+R")) {
+                    node_buffer::create(&state.clipboard_node, node, false, true);
+                }
+
+                ImGui::EndMenu();
             }
 
-            if (ImGui::MenuItem("Copy Ref", "Ctrl+R")) {
-                node_buffer::create(&state.clipboard_node, node, false, true);
-            }
+            if (ImGui::BeginMenu("Paste", state.clipboard_node != nullptr)) {
 
-            if (ImGui::MenuItem("Paste", "Ctrl+V", false, state.clipboard_node != nullptr)) {
-                // TODO
-            }
+                if (ImGui::MenuItem("Paste", "Ctrl+V")) {
+                    // TODO
+                }
 
-            if (ImGui::MenuItem("Paste Into", nullptr, false, state.clipboard_node != nullptr)) {
-                // TODO
+                if (ImGui::MenuItem("Paste into")) {
+                    // TODO
+                }
+
+                ImGui::EndMenu();
             }
 
             ImGui::Separator();
