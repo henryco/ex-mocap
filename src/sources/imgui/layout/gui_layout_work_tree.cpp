@@ -377,11 +377,12 @@ namespace ex::gui {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Cut", "Ctrl+Z")) {
-                // TODO
+                node_buffer::create(&state.clipboard_node, selection, true, false);
+                // TODO change opacity maybe?
             }
 
             if (ImGui::MenuItem("Copy", "Ctrl+C")) {
-                // TODO
+                node_buffer::create(&state.clipboard_node, selection, false, false);
             }
 
             ImGui::Separator();
@@ -441,18 +442,19 @@ namespace ex::gui {
             }
 
             if (ImGui::MenuItem("Cut", "Ctrl+Z")) {
-                // TODO
+                node_buffer::create(&state.clipboard_node, node, true, false);
+                // TODO change opacity maybe?
             }
 
             if (ImGui::MenuItem("Copy", "Ctrl+C")) {
-                // TODO
+                node_buffer::create(&state.clipboard_node, node, false, false);
+            }
+
+            if (ImGui::MenuItem("Copy Ref", "Ctrl+R")) {
+                node_buffer::create(&state.clipboard_node, node, false, true);
             }
 
             if (ImGui::MenuItem("Paste", "Ctrl+V", false, false)) {
-                // TODO
-            }
-
-            if (ImGui::MenuItem("Reference", "Ctrl+R", false, false)) {
                 // TODO
             }
 

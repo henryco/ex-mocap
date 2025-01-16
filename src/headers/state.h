@@ -49,10 +49,12 @@ namespace ex {
         TreeNode       *target    = nullptr;
         bool            child     = false;
         bool            move      = false;
+        bool            ref       = false;
 
         ~node_buffer();
 
-        static void create(node_buffer **buffer, selection_node *selection, bool move);
+        static void create(node_buffer **buffer, selection_node *selection, bool move = false, bool ref = false);
+        static void create(node_buffer **buffer, TreeNode *node, bool move = false, bool ref = false);
     };
 
     struct State {

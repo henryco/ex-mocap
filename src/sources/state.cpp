@@ -78,18 +78,36 @@ namespace ex {
             auto head = this->selection->root;
             while (head != nullptr) {
                 const auto next = head->next;
-                delete head;
+                if (head != this->selection)
+                    delete head;
                 head = next;
             }
             delete this->selection;
         }
     }
 
-    void node_buffer::create(node_buffer **buffer, selection_node *selection, const bool move) {
+    void node_buffer::create(node_buffer **buffer, selection_node *selection, const bool move, const bool ref) {
+        if (*buffer != nullptr)
+            delete *buffer;
+        *buffer              = new node_buffer;
+        (*buffer)->selection = selection_node::copy(selection);
+        (*buffer)->move      = move;
+        (*buffer)->ref       = ref;
+    }
+
+    void node_buffer::create(node_buffer **buffer, TreeNode *node, const bool move, const bool ref) {
         if (*buffer != nullptr)
             delete *buffer;
         *buffer = new node_buffer;
-        (*buffer)->selection = selection_node::copy(selection);
-        (*buffer)->move = move;
+
+        const auto selection = new selection_node;
+        selection->selected  = node;
+        selection->root      = selection;
+        selection->prev      = nullptr;
+        selection->next      = nullptr;
+
+        (*buffer)->selection = selection;
+        (*buffer)->move      = move;
+        (*buffer)->ref       = ref;
     }
 } // namespace ex
