@@ -310,18 +310,16 @@ namespace ex::main {
 
     void Logic::rewire_(State &state) {
         log->debug("rewire");
-        std::cout << "rewire" << '\n';
 
         clock_.detach_all();
         for (auto &[_, node]: nodes_) {
             node->detach_all_any();
         }
 
+        gc_(state); // TODO FIXME
+
         simple_list current = { state.work_tree };
         build_tree_(state, state.work_tree, nullptr, &current);
-
-        std::cout << "gc" << '\n';
-        gc_(state);
 
         const simple_list *head = get_head_(&current);
         if (head == nullptr) {
@@ -376,7 +374,7 @@ namespace ex::main {
 
     void Logic::gc_(State &state) {
         log->debug("start node gc");
-        std::cout << "gc before size: " << nodes_.size() << '\n';
+
         for (auto it = ptr_counter_.begin(); it != ptr_counter_.end(); /*nop*/) {
             const auto id_local = it->first;
             if (it->second <= 0) {
@@ -396,23 +394,19 @@ namespace ex::main {
                 }
 
                 it = ptr_counter_.erase(it);
-                std::cout << "gc remove: [" << id_local << "]" << '\n';
 
                 log->debug("node gc remove: {}", id_local);
 
             } else
                 ++it;
         }
-        std::cout << "gc after size: " << nodes_.size() << '\n';
+
         log->debug("complete node gc");
     }
 
     void Logic::build_tree_(State &state, TreeNode *node, TreeNode *previous, simple_list *group_list) {
         if (node == nullptr || group_list == nullptr || node->deleted)
             return;
-
-//        log->debug("build tree: {}, {}",
-//            node->id_local, (previous != nullptr ? static_cast<int>(previous->id_local) : -1));
 
         if (node->is_group) {
             TreeNode *prev_node = previous;
