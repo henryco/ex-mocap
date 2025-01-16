@@ -454,7 +454,11 @@ namespace ex::gui {
                 node_buffer::create(&state.clipboard_node, node, false, true);
             }
 
-            if (ImGui::MenuItem("Paste", "Ctrl+V", false, false)) {
+            if (ImGui::MenuItem("Paste", "Ctrl+V", false, state.clipboard_node != nullptr)) {
+                // TODO
+            }
+
+            if (ImGui::MenuItem("Paste Into", nullptr, false, state.clipboard_node != nullptr)) {
                 // TODO
             }
 

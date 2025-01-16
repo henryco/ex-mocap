@@ -46,8 +46,6 @@ namespace ex {
 
     struct node_buffer {
         selection_node *selection = nullptr;
-        TreeNode       *target    = nullptr;
-        bool            child     = false;
         bool            move      = false;
         bool            ref       = false;
 
