@@ -16,9 +16,9 @@ namespace ex {
         TreeNode   *parent     = nullptr;
         TreeNode  **children   = nullptr;
 
-        std::size_t children_n = -1;
-        std::size_t id_local   = -1;
-        std::size_t id_node    = -1;
+        std::size_t children_n = 0;
+        std::size_t id_local   = 0;
+        std::size_t id_node    = 0;
 
         bool        is_group   = false;
         bool        disabled   = false;
