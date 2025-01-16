@@ -259,6 +259,10 @@ namespace ex::main {
 
             else {
                 traverse_(state, child, rewire);
+                if (child->is_group && (child->children_n <= 0 || child->children == nullptr)) {
+                    mark_deleted_(child);
+                    *rewire = true;
+                }
             }
         }
 
