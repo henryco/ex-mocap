@@ -8,7 +8,7 @@ namespace ex {
 
     TreeNode::~TreeNode() {
         if (children != nullptr) {
-            for (int i = 0; i < children_n - 1; i++)
+            for (int i = 0; i < children_n; i++)
                 delete children[i];
             delete children;
         }
@@ -25,7 +25,7 @@ namespace ex {
         const int new_size = (curr_n <= 0 ? 0 : (curr_n - 1));
 
         auto **children = new TreeNode *[new_size];
-        for (int i = 0, k = 0; i < curr_n - 1; i++) {
+        for (int i = 0, k = 0; i < curr_n; i++) {
             const auto child = this->children[i];
             if (child != node)
                 children[k++] = child;
