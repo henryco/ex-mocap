@@ -271,28 +271,9 @@ namespace ex::gui {
                 root = root->parent;
             }
 
-            auto *copy_selected     = new selection_node;
-            copy_selected->selected = nullptr;
-            copy_selected->root     = copy_selected;
-            copy_selected->prev     = nullptr;
-            copy_selected->next     = nullptr;
-
-            auto head_src = *selection;
-            while (head_src != nullptr) {
-                copy_selected->selected = head_src->selected;
-                head_src                = head_src->next;
-                if (head_src != nullptr) {
-                    const auto next_copy  = new selection_node;
-                    next_copy->root       = copy_selected->root;
-                    next_copy->prev       = copy_selected;
-                    next_copy->next       = nullptr;
-                    copy_selected->next   = next_copy;
-                    copy_selected         = next_copy;
-                }
-            }
-
-            selection_node *new_selected = nullptr;
-            TreeNode       *start_node   = nullptr;
+            TreeNode       *start_node    = nullptr;
+            selection_node *new_selected  = nullptr;
+            selection_node *copy_selected = selection_node::copy(*selection);
             select_multi(&new_selected, &copy_selected, root, &start_node, &node);
 
             if (copy_selected != nullptr) {
@@ -394,10 +375,6 @@ namespace ex::gui {
             }
 
             ImGui::Separator();
-
-            if (ImGui::MenuItem("Duplicate", "Ctrl+D")) {
-                // TODO
-            }
 
             if (ImGui::MenuItem("Cut", "Ctrl+Z")) {
                 // TODO

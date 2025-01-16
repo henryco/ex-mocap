@@ -30,16 +30,29 @@ namespace ex {
 
         ~TreeNode();
 
-        void add_node(TreeNode *node);
-
+        void      add_node(TreeNode *node);
         TreeNode *find_node(std::size_t id);
     };
 
     struct selection_node {
-        selection_node* root;
-        selection_node* next;
-        selection_node* prev;
-        TreeNode       *selected;
+        selection_node *root     = nullptr;
+        selection_node *next     = nullptr;
+        selection_node *prev     = nullptr;
+        TreeNode       *selected = nullptr;
+
+        selection_node        *copy();
+        static selection_node *copy(selection_node *src);
+    };
+
+    struct node_buffer {
+        selection_node *selection = nullptr;
+        TreeNode       *target    = nullptr;
+        bool            child     = false;
+        bool            move      = false;
+
+        ~node_buffer();
+
+        static void create(node_buffer **buffer, selection_node *selection, bool move);
     };
 
     struct State {
@@ -48,6 +61,7 @@ namespace ex {
         TreeNode       *work_tree      = nullptr;
         TreeNode       *active_node    = nullptr;
         selection_node *selected_nodes = nullptr;
+        node_buffer    *clipboard_node = nullptr;
         cl_context      ocl_context    = nullptr;
         cl_device_id    ocl_device     = nullptr;
         short           clock_freq     = -1;
