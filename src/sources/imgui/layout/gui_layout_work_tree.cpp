@@ -475,6 +475,7 @@ namespace ex::gui {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Delete")) {
+                node->deleted = true;
                 // TODO
             }
 

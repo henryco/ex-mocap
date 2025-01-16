@@ -207,13 +207,10 @@ namespace ex::main {
         ptr_counter_.clear();
         view_data_.clear();
         nodes_.clear();
-
-        // TODO build from IO nodes (clock)
     }
 
     void Logic::process_(State &_) {
         clock_.next();
-//        std::cout << "t: " << clock_.delta_ns() << "ns " << '\n'; // TODO REMOVE
     }
 
     void Logic::synchronize_(State &state) {
@@ -447,8 +444,6 @@ namespace ex::main {
     void Logic::connect_nodes_(TreeNode *from, TreeNode *to) {
         if (from == nullptr || to == nullptr)
             return;
-
-//        log->debug("connect nodes: {} -> {}", from->id_local, to->id_local);
 
         nodes::BaseNode *node_dst = nodes_.at(to->id_local);
         nodes::BaseNode *node_src = nodes_.at(from->id_local);
