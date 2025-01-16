@@ -116,6 +116,48 @@ namespace ex {
         return src->copy();
     }
 
+    bool selection_node::single(selection_node *node) {
+        return node == nullptr || node->root->next == nullptr;
+    }
+
+    void selection_node::remove(selection_node *node, selection_node **next) {
+        if (node == nullptr)
+            return;
+
+        if (node->prev == nullptr) {
+            if (node->next == nullptr) {
+                *next = nullptr;
+                delete node;
+                return;
+            }
+
+            const auto root = node->next;
+
+            root->prev = nullptr;
+            *next      = root;
+
+            auto head = node->next;
+            while (head != nullptr) {
+                head->root = root;
+                head = head->next;
+            }
+
+            delete node;
+            return;
+        }
+
+        if (node->next == nullptr) {
+            node->prev->next = nullptr;
+            *next            = node->prev;
+            delete node;
+            return;
+        }
+
+        node->prev->next = node->next;
+        *next            = node->next;
+        delete node;
+    }
+
     node_buffer::~node_buffer() {
         if (this->selection != nullptr) {
             auto head = this->selection->root;

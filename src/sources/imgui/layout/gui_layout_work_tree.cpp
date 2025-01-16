@@ -13,48 +13,6 @@ namespace ex::gui {
     constexpr float ctrl_width   = 40.f;
     constexpr float min_width    = 100.f;
 
-    bool is_single_selection(selection_node *node) {
-        return node == nullptr || node->root->next == nullptr;
-    }
-
-    void remove_from_(selection_node *node, selection_node **next) {
-        if (node == nullptr)
-            return;
-
-        if (node->prev == nullptr) {
-            if (node->next == nullptr) {
-                *next = nullptr;
-                delete node;
-                return;
-            }
-
-            const auto root = node->next;
-
-            root->prev = nullptr;
-            *next      = root;
-
-            auto head = node->next;
-            while (head != nullptr) {
-                head->root = root;
-                head = head->next;
-            }
-
-            delete node;
-            return;
-        }
-
-        if (node->next == nullptr) {
-            node->prev->next = nullptr;
-            *next            = node->prev;
-            delete node;
-            return;
-        }
-
-        node->prev->next = node->next;
-        *next            = node->next;
-        delete node;
-    }
-
     bool select_multi(selection_node **selection, selection_node **samples, TreeNode *node, TreeNode **start, TreeNode **stop) {
         if (node == nullptr)
             return true;
@@ -112,7 +70,7 @@ namespace ex::gui {
                 *samples = head;
                 auto next = head->next;
                 if (head->selected == node) {
-                    remove_from_(head, &next);
+                    selection_node::remove(head, &next);
                     *samples = next;
                     found = true;
                 }
@@ -160,7 +118,7 @@ namespace ex::gui {
                 *samples = head;
                 auto next = head->next;
                 if (head->selected == node) {
-                    remove_from_(head, &next);
+                    selection_node::remove(head, &next);
                     *samples = next;
                 }
                 head = next;
@@ -509,7 +467,7 @@ namespace ex::gui {
 
 
             bool menu_element = false;
-            if (is_single_selection(*selected)) {
+            if (selection_node::single(*selected)) {
                 menu_element = show_context_menu_element(state, gui, node,
                     *menu_node == node->id_local, node->children_n > 0, node->selected);
             } else {
@@ -596,7 +554,7 @@ namespace ex::gui {
                     ImGui::PopStyleVar();
 
                 bool menu_element = false;
-                if (is_single_selection(*selected)) {
+                if (selection_node::single(*selected)) {
                     menu_element = show_context_menu_element(state, gui, first,
                         *menu_node == first->id_local, false, first->selected);
                 } else {

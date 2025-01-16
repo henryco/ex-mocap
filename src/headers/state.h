@@ -46,6 +46,8 @@ namespace ex {
 
         selection_node        *copy();
         static selection_node *copy(selection_node *src);
+        static bool            single(selection_node *node);
+        static void            remove(selection_node *node, selection_node **next);
     };
 
     struct node_buffer {
