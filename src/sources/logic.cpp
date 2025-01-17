@@ -228,21 +228,11 @@ namespace ex::main {
         }
     }
 
-    void Logic::mark_deleted_(TreeNode *node) {
-        node->deleted = true;
-        if (ptr_counter_.contains(node->id_local))
-            ptr_counter_.at(node->id_local)--;
-        for (std::size_t i = 0; i < node->children_n; i++) {
-            mark_deleted_(node->children[i]);
-        }
-    }
-
     void Logic::traverse_(State &state, TreeNode *node, bool *rewire) {
         if (node == nullptr)
             return;
 
         if (node->deleted) {
-            mark_deleted_(node);
             *rewire = true;
             return;
         }
@@ -251,14 +241,13 @@ namespace ex::main {
             const auto child = node->children[i];
 
             if (child->deleted) {
-                mark_deleted_(child);
                 *rewire = true;
             }
 
             else {
                 traverse_(state, child, rewire);
                 if (child->is_group && (child->children_n <= 0 || child->children == nullptr)) {
-                    mark_deleted_(child);
+                    child->deleted = true;
                     *rewire = true;
                 }
             }
@@ -277,7 +266,6 @@ namespace ex::main {
         }
 
         if (node->created) {
-            // TODO COUNTER FIX
             if (!node->is_group) {
 
                 if (node->id_local < 0) {
@@ -307,13 +295,6 @@ namespace ex::main {
                     }
                 } else
                     view_data_.emplace(node->id_local, node->data);
-
-
-                // update node ptr counter
-                if (ptr_counter_.contains(node->id_local))
-                    ptr_counter_.at(node->id_local)++;
-                else
-                    ptr_counter_.emplace(node->id_local, 1);
             }
             node->created = false;
             *rewire = true;
@@ -330,6 +311,11 @@ namespace ex::main {
         }
 
         mappers_.at(node->id_node).from_base(state, node_ptr, node);
+
+        if (ptr_counter_.contains(node->id_local))
+            ptr_counter_.at(node->id_local)++;
+        else
+            ptr_counter_.emplace(node->id_local, 1);
     }
 
     void Logic::rewire_(State &state) {
@@ -411,9 +397,10 @@ namespace ex::main {
                 it = ptr_counter_.erase(it);
 
                 log->debug("node gc remove: {}", id_local);
-
-            } else
+            } else {
+                it->second = 0;
                 ++it;
+            }
         }
 
         log->debug("complete node gc");
