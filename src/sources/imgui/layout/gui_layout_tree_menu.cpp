@@ -157,6 +157,7 @@ namespace ex::gui {
                 head = head->next;
                 // TODO UNDO TREE
             }
+            node_buffer::remove(&state.clipboard_node);
         }
 
         void delete_node(State &state, GuiState &gui, TreeNode *node) {
@@ -164,6 +165,7 @@ namespace ex::gui {
                 return;
             node->deleted = true;
             // TODO UNDO TREE
+            node_buffer::remove(&state.clipboard_node);
         }
 
         void group_selected(State &state, GuiState &gui, selection_node *selection) {

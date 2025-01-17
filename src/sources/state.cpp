@@ -197,7 +197,7 @@ namespace ex {
     }
 
     void node_buffer::remove(node_buffer **buffer) {
-        if (*buffer != nullptr)
+        if (*buffer == nullptr)
             return;
         delete (*buffer);
         (*buffer) = nullptr;
