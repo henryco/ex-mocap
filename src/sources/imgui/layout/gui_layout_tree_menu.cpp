@@ -205,13 +205,14 @@ namespace ex::gui {
 
             node_buffer::remove(&state.clipboard_node);
             const auto deep_copy = deep_copy_node(state, gui, node);
+            const auto parent_id = node->parent->id_local;
             node->deleted = true;
 
             undo_history().push("Node deleted",
-            new std::function([cpy = deep_copy] (ex::State *s) {
+            new std::function([cpy = deep_copy, p_id = parent_id] (ex::State *s) {
                 // TODO
             }),
-            new std::function([cpy = deep_copy] (ex::State *s) {
+            new std::function([cpy = deep_copy, p_id = parent_id] (ex::State *s) {
                 // TODO
             }));
         }
