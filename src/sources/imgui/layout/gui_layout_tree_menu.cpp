@@ -43,7 +43,7 @@ namespace ex::gui {
             // TODO
         }
 
-        void enable_node(State &state, GuiState &gui, TreeNode *node) {
+        void enable_node(State &_, GuiState &__, TreeNode *node) {
             const bool og_state = node->disabled;
             node->disabled = false;
             undo_history().push("Node enabled",
@@ -63,7 +63,7 @@ namespace ex::gui {
             }));
         }
 
-        void disable_node(State &state, GuiState &gui, TreeNode *node) {
+        void disable_node(State &_, GuiState &__, TreeNode *node) {
             const bool og_state = node->disabled;
             node->disabled = true;
             undo_history().push("Node disabled",
@@ -83,14 +83,7 @@ namespace ex::gui {
             }));
         }
 
-        void delete_node(State &state, GuiState &gui, TreeNode *node) {
-            if (node == nullptr)
-                return;
-            node->deleted = true;
-            // TODO UNDO TREE
-        }
-
-        void enable_selected(State &state, GuiState &gui, selection_node *selection) {
+        void enable_selected(State &_, GuiState &__, selection_node *selection) {
             if (selection == nullptr)
                 return;
 
@@ -113,7 +106,7 @@ namespace ex::gui {
                 }
             }),
             new std::function([og_state = og_map](ex::State *s) {
-                for (const auto &[k, _] : og_state) {
+                for (const auto &[k, ___] : og_state) {
                     const auto f_node = s->work_tree->find_node(k);
                     if (f_node == nullptr)
                         return;
@@ -123,7 +116,7 @@ namespace ex::gui {
             }));
         }
 
-        void disable_selected(State &state, GuiState &gui, selection_node *selection) {
+        void disable_selected(State &_, GuiState &__, selection_node *selection) {
             if (selection == nullptr)
                 return;
             std::map<std::size_t, bool> og_map;
@@ -145,7 +138,7 @@ namespace ex::gui {
                 }
             }),
             new std::function([og_state = og_map](ex::State *s) {
-                for (const auto &[k, _] : og_state) {
+                for (const auto &[k, ___] : og_state) {
                     const auto f_node = s->work_tree->find_node(k);
                     if (f_node == nullptr)
                         return;
@@ -164,6 +157,21 @@ namespace ex::gui {
                 head = head->next;
                 // TODO UNDO TREE
             }
+        }
+
+        void delete_node(State &state, GuiState &gui, TreeNode *node) {
+            if (node == nullptr)
+                return;
+            node->deleted = true;
+            // TODO UNDO TREE
+        }
+
+        void group_selected(State &state, GuiState &gui, selection_node *selection) {
+            // TODO
+        }
+
+        void ungroup_selected(State &state, GuiState &gui, selection_node *selection) {
+            // TODO
         }
     }
 
@@ -198,11 +206,11 @@ namespace ex::gui {
             }
 
             if (ImGui::MenuItem("Group")) {
-                // TODO
+                tree::group_selected(state, gui, selection);
             }
 
             if (ImGui::MenuItem("Ungroup")) {
-                // TODO
+                tree::ungroup_selected(state, gui, selection);
             }
 
             ImGui::Separator();
