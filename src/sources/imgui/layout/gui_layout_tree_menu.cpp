@@ -9,6 +9,45 @@ namespace ex::gui {
 
     namespace tree {
 
+        TreeNode *deep_copy_node(State &state, GuiState &gui, TreeNode *node) {
+            if (node == nullptr)
+                return nullptr;
+
+            void *old_data = node->data;
+            void *new_data = nullptr;
+
+            if (old_data != nullptr && node_mappers_.contains(node->id_node)) {
+                new_data = node_mappers_.at(node->id_node).copy_node_data(gui, state, node, old_data);
+            }
+
+            const auto new_node  = new TreeNode;
+            new_node->connected  = false;
+            new_node->deleted    = false;
+            new_node->created    = true;
+            new_node->updated    = true;
+            new_node->parent     = nullptr;
+            new_node->data       = new_data;
+            new_node->name       = node->name;
+            new_node->is_group   = node->is_group;
+            new_node->disabled   = node->disabled;
+            new_node->id_local   = node->id_local;
+            new_node->id_node    = node->id_node;
+            new_node->children_n = node->children_n;
+
+            if (node->children_n > 0) {
+                new_node->children = new TreeNode *[node->children_n];
+                for (auto i = 0; i < node->children_n; i++) {
+                    const auto copy_child = deep_copy_node(state, gui, node->children[i]);
+                    if (copy_child == nullptr)
+                        continue;
+                    copy_child->parent    = new_node;
+                    new_node->children[i] = copy_child;
+                }
+            }
+
+            return new_node;
+        }
+
         void copy_selected(State &state, GuiState &_, selection_node *selection) {
             node_buffer::create(&state.clipboard_node, selection, false, false);
         }
@@ -163,9 +202,18 @@ namespace ex::gui {
         void delete_node(State &state, GuiState &gui, TreeNode *node) {
             if (node == nullptr)
                 return;
-            node->deleted = true;
-            // TODO UNDO TREE
+
             node_buffer::remove(&state.clipboard_node);
+            const auto deep_copy = deep_copy_node(state, gui, node);
+            node->deleted = true;
+
+            undo_history().push("Node deleted",
+            new std::function([cpy = deep_copy] (ex::State *s) {
+                // TODO
+            }),
+            new std::function([cpy = deep_copy] (ex::State *s) {
+                // TODO
+            }));
         }
 
         void group_selected(State &state, GuiState &gui, selection_node *selection) {
