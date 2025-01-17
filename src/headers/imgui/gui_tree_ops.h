@@ -10,6 +10,8 @@ namespace ex::gui::tree {
     void copy_selected(State &state, GuiState &gui, selection_node *selection);
     void cut_selected(State &state, GuiState &gui, selection_node *selection);
     void delete_selected(State &state, GuiState &gui, selection_node *selection);
+    void enable_selected(State &state, GuiState &gui, selection_node *selection);
+    void disable_selected(State &state, GuiState &gui, selection_node *selection);
 
     void copy_node(State &state, GuiState &gui, TreeNode *node);
     void cut_node(State &state, GuiState &gui, TreeNode *node);

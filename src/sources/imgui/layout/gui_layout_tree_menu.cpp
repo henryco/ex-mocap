@@ -46,41 +46,113 @@ namespace ex::gui {
         void enable_node(State &state, GuiState &gui, TreeNode *node) {
             const bool og_state = node->disabled;
             node->disabled = false;
-            undo_history().push("Enabled node",
-                new std::function([id_l = node->id_local, og_state] (ex::State *s) {
-                        const auto f_node = s->work_tree->find_node(id_l);
-                        if (f_node == nullptr)
-                            return;
-                        f_node->disabled = og_state;
-                        f_node->updated = true;
-                    }),
-                    new std::function([id_l = node->id_local] (ex::State *s) {
-                        const auto f_node = s->work_tree->find_node(id_l);
-                        if (f_node == nullptr)
-                            return;
-                        f_node->disabled = false;
-                        f_node->updated = true;
-                    }));
+            undo_history().push("Node enabled",
+            new std::function([id_l = node->id_local, og_state] (ex::State *s) {
+                const auto f_node = s->work_tree->find_node(id_l);
+                if (f_node == nullptr)
+                    return;
+                f_node->disabled = og_state;
+                f_node->updated = true;
+            }),
+            new std::function([id_l = node->id_local] (ex::State *s) {
+                const auto f_node = s->work_tree->find_node(id_l);
+                if (f_node == nullptr)
+                    return;
+                f_node->disabled = false;
+                f_node->updated = true;
+            }));
         }
 
         void disable_node(State &state, GuiState &gui, TreeNode *node) {
             const bool og_state = node->disabled;
             node->disabled = true;
-            undo_history().push("Enabled node",
-                new std::function([id_l = node->id_local, og_state] (ex::State *s) {
-                        const auto f_node = s->work_tree->find_node(id_l);
-                        if (f_node == nullptr)
-                            return;
-                        f_node->disabled = og_state;
-                        f_node->updated = true;
-                    }),
-                    new std::function([id_l = node->id_local] (ex::State *s) {
-                        const auto f_node = s->work_tree->find_node(id_l);
-                        if (f_node == nullptr)
-                            return;
-                        f_node->disabled = true;
-                        f_node->updated = true;
-                    }));
+            undo_history().push("Node disabled",
+            new std::function([id_l = node->id_local, og_state] (ex::State *s) {
+                const auto f_node = s->work_tree->find_node(id_l);
+                if (f_node == nullptr)
+                    return;
+                f_node->disabled = og_state;
+                f_node->updated = true;
+            }),
+            new std::function([id_l = node->id_local] (ex::State *s) {
+                const auto f_node = s->work_tree->find_node(id_l);
+                if (f_node == nullptr)
+                    return;
+                f_node->disabled = true;
+                f_node->updated = true;
+            }));
+        }
+
+        void delete_node(State &state, GuiState &gui, TreeNode *node) {
+            if (node == nullptr)
+                return;
+            node->deleted = true;
+            // TODO UNDO TREE
+        }
+
+        void enable_selected(State &state, GuiState &gui, selection_node *selection) {
+            if (selection == nullptr)
+                return;
+
+            std::map<std::size_t, bool> og_map;
+            auto head = selection;
+            while (head != nullptr) {
+                og_map.emplace(head->selected->id_local, head->selected->disabled);
+                head->selected->disabled = false;
+                head = head->next;
+            }
+
+            undo_history().push("Selection enabled",
+            new std::function([og_state = og_map](ex::State *s) {
+                for (const auto &[k, v] : og_state) {
+                    const auto f_node = s->work_tree->find_node(k);
+                    if (f_node == nullptr)
+                        return;
+                    f_node->disabled = v;
+                    f_node->updated = true;
+                }
+            }),
+            new std::function([og_state = og_map](ex::State *s) {
+                for (const auto &[k, _] : og_state) {
+                    const auto f_node = s->work_tree->find_node(k);
+                    if (f_node == nullptr)
+                        return;
+                    f_node->disabled = false;
+                    f_node->updated = true;
+                }
+            }));
+        }
+
+        void disable_selected(State &state, GuiState &gui, selection_node *selection) {
+            if (selection == nullptr)
+                return;
+            std::map<std::size_t, bool> og_map;
+            auto head = selection;
+            while (head != nullptr) {
+                og_map.emplace(head->selected->id_local, head->selected->disabled);
+                head->selected->disabled = true;
+                head = head->next;
+            }
+
+            undo_history().push("Selection disabled",
+            new std::function([og_state = og_map](ex::State *s) {
+                for (const auto &[k, v] : og_state) {
+                    const auto f_node = s->work_tree->find_node(k);
+                    if (f_node == nullptr)
+                        return;
+                    f_node->disabled = v;
+                    f_node->updated = true;
+                }
+            }),
+            new std::function([og_state = og_map](ex::State *s) {
+                for (const auto &[k, _] : og_state) {
+                    const auto f_node = s->work_tree->find_node(k);
+                    if (f_node == nullptr)
+                        return;
+                    f_node->disabled = true;
+                    f_node->updated = true;
+                }
+            }));
         }
 
         void delete_selected(State &state, GuiState &gui, selection_node *selection) {
@@ -92,13 +164,6 @@ namespace ex::gui {
                 head = head->next;
                 // TODO UNDO TREE
             }
-        }
-
-        void delete_node(State &state, GuiState &gui, TreeNode *node) {
-            if (node == nullptr)
-                return;
-            node->deleted = true;
-            // TODO UNDO TREE
         }
     }
 
@@ -125,11 +190,11 @@ namespace ex::gui {
         if (ImGui::BeginPopup(menu_id)) {
 
             if (enabled && ImGui::MenuItem("Disable")) {
-                // TODO
+                tree::disable_selected(state, gui, selection);
             }
 
             if (disabled && ImGui::MenuItem("Enable")) {
-                // TODO
+                tree::enable_selected(state, gui, selection);
             }
 
             if (ImGui::MenuItem("Group")) {
