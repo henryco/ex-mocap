@@ -195,4 +195,11 @@ namespace ex {
         (*buffer)->move      = move;
         (*buffer)->ref       = ref;
     }
-} // namespace ex
+
+    void node_buffer::remove(node_buffer **buffer) {
+        if (*buffer != nullptr)
+            return;
+        delete (*buffer);
+        (*buffer) = nullptr;
+    }
+}

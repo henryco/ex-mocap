@@ -59,6 +59,7 @@ namespace ex {
 
         static void create(node_buffer **buffer, selection_node *selection, bool move = false, bool ref = false);
         static void create(node_buffer **buffer, TreeNode *node, bool move = false, bool ref = false);
+        static void remove(node_buffer **buffer);
     };
 
     struct State {
