@@ -123,5 +123,9 @@ namespace ex::gui {
 
     void show_work_window(ex::State &state, GuiState &gui);
 
+    bool show_context_menu_group(State &state, GuiState &gui, selection_node *selection);
+
+    bool show_context_menu_element(State &state, GuiState &gui, TreeNode *node, bool last, bool nested, bool selected);
+
 }
 #endif // EX_MOTION_GUI_LAYOUT_H
