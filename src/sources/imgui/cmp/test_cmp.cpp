@@ -69,6 +69,10 @@ namespace ex::gui::test::one {
         return show;
     }
 
+    void *copy_node_data(GuiState &gui, ex::State &state, TreeNode *node, void *data) {
+        return nullptr;
+    }
+
     void from_base(State &state, nodes::BaseNode *from, TreeNode *to) {
 
     }
@@ -135,6 +139,10 @@ namespace ex::gui::test::two {
         return show;
     }
 
+    void *copy_node_data(GuiState &gui, ex::State &state, TreeNode *node, void *data) {
+        return nullptr;
+    }
+
     void from_base(State &state, nodes::BaseNode *from, TreeNode *to) {
 
     }
@@ -193,6 +201,10 @@ namespace ex::gui::test::tri {
         ImGui::End();
 
         return show;
+    }
+
+    void *copy_node_data(GuiState &gui, ex::State &state, TreeNode *node, void *data) {
+        return nullptr;
     }
 
     void from_base(State &state, nodes::BaseNode *from, TreeNode *to) {
