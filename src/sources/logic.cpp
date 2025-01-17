@@ -268,7 +268,7 @@ namespace ex::main {
         if (node->created) {
             if (!node->is_group) {
 
-                if (node->id_local < 0) {
+                if (node->id_local <= 0) {
                     static std::size_t c_ = 1;
                     node->id_local        = c_++;
                 }

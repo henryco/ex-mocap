@@ -24,6 +24,7 @@ namespace ex {
         bool        disabled   = false;
         bool        updated    = false;
         bool        deleted    = false;
+        bool        shared     = false;
         bool        created    = false;
         bool        selected   = false;
         bool        connected  = false;
