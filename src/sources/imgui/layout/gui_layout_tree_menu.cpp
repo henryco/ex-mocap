@@ -31,6 +31,32 @@ namespace ex::gui {
             node_buffer::create(&state.clipboard_node, node, true, false);
             // TODO change opacity maybe?
         }
+
+        void enable_node(State &state, GuiState &gui, TreeNode *node) {
+
+        }
+
+        void disable_node(State &state, GuiState &gui, TreeNode *node) {
+
+        }
+
+        void delete_selected(State &state, GuiState &gui, selection_node *selection) {
+            auto head = selection;
+            while (head != nullptr) {
+                const auto selected = head->selected;
+                if (!selected->is_group)
+                    selected->deleted = true;
+                head = head->next;
+                // TODO UNDO TREE
+            }
+        }
+
+        void delete_node(State &state, GuiState &gui, TreeNode *node) {
+            if (node == nullptr)
+                return;
+            node->deleted = true;
+            // TODO UNDO TREE
+        }
     }
 
     bool show_context_menu_group(State &state, GuiState &gui, selection_node *selection) {
@@ -84,7 +110,7 @@ namespace ex::gui {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Delete")) {
-                // TODO
+                tree::delete_selected(state, gui, selection);
             }
 
             ImGui::EndPopup();
@@ -170,8 +196,7 @@ namespace ex::gui {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Delete")) {
-                node->deleted = true;
-                // TODO
+                tree::delete_node(state, gui, node);
             }
 
             ImGui::EndPopup();
