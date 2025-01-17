@@ -31,6 +31,18 @@ namespace ex::gui {
             // TODO change opacity maybe?
         }
 
+        void paste_after_node(State &state, GuiState &gui, TreeNode *node) {
+            // TODO
+        }
+
+        void paste_into_node(State &state, GuiState &gui, TreeNode *node) {
+            // TODO
+        }
+
+        void duplicate_node(State &state, GuiState &gui, TreeNode *node) {
+            // TODO
+        }
+
         void enable_node(State &state, GuiState &gui, TreeNode *node) {
             const bool og_state = node->disabled;
             node->disabled = false;
@@ -174,7 +186,7 @@ namespace ex::gui {
             node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);
 
             if (ImGui::MenuItem("Duplicate", "Ctrl+D")) {
-                // TODO
+                tree::duplicate_node(state, gui, node);
             }
 
             if (ImGui::MenuItem("Cut", "Ctrl+Z")) {
@@ -197,11 +209,11 @@ namespace ex::gui {
             if (ImGui::BeginMenu("Paste", state.clipboard_node != nullptr)) {
 
                 if (ImGui::MenuItem("Paste", "Ctrl+V")) {
-                    // TODO
+                    tree::paste_after_node(state, gui, node);
                 }
 
                 if (ImGui::MenuItem("Paste into")) {
-                    // TODO
+                    tree::paste_into_node(state, gui, node);
                 }
 
                 ImGui::EndMenu();

@@ -15,6 +15,11 @@ namespace ex::gui::tree {
     void cut_node(State &state, GuiState &gui, TreeNode *node);
     void ref_node(State &state, GuiState &gui, TreeNode *node);
 
+    void paste_after_node(State &state, GuiState &gui, TreeNode *node);
+    void paste_into_node(State &state, GuiState &gui, TreeNode *node);
+
+    void duplicate_node(State &state, GuiState &gui, TreeNode *node);
+
     void enable_node(State &state, GuiState &gui, TreeNode *node);
     void disable_node(State &state, GuiState &gui, TreeNode *node);
 
