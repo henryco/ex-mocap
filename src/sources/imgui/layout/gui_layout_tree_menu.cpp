@@ -3,9 +3,35 @@
 //
 
 #include "../../../headers/imgui/gui_layout.h"
+#include "../../../headers/imgui/gui_tree_ops.h"
 #include <IconsLucide.h>
 
 namespace ex::gui {
+
+    namespace tree {
+
+        void copy_selected(State &state, GuiState &_, selection_node *selection) {
+            node_buffer::create(&state.clipboard_node, selection, false, false);
+        }
+
+        void copy_node(State &state, GuiState &_, TreeNode *node) {
+            node_buffer::create(&state.clipboard_node, node, false, false);
+        }
+
+        void ref_node(State &state, GuiState &_, TreeNode *node) {
+            node_buffer::create(&state.clipboard_node, node, false, true);
+        }
+
+        void cut_selected(State &state, GuiState &_, selection_node *selection) {
+            node_buffer::create(&state.clipboard_node, selection, true, false);
+            // TODO change opacity maybe?
+        }
+
+        void cut_node(State &state, GuiState &_, TreeNode *node) {
+            node_buffer::create(&state.clipboard_node, node, true, false);
+            // TODO change opacity maybe?
+        }
+    }
 
     bool show_context_menu_group(State &state, GuiState &gui, selection_node *selection) {
         if (selection == nullptr)
@@ -48,12 +74,11 @@ namespace ex::gui {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Cut", "Ctrl+Z")) {
-                node_buffer::create(&state.clipboard_node, selection, true, false);
-                // TODO change opacity maybe?
+                tree::cut_selected(state, gui, selection);
             }
 
             if (ImGui::MenuItem("Copy", "Ctrl+C")) {
-                node_buffer::create(&state.clipboard_node, selection, false, false);
+                tree::copy_selected(state, gui, selection);
             }
 
             ImGui::Separator();
@@ -113,18 +138,17 @@ namespace ex::gui {
             }
 
             if (ImGui::MenuItem("Cut", "Ctrl+Z")) {
-                node_buffer::create(&state.clipboard_node, node, true, false);
-                // TODO change opacity maybe?
+                tree::cut_node(state, gui, node);
             }
 
             if (ImGui::BeginMenu("Copy")) {
 
                 if (ImGui::MenuItem("Copy", "Ctrl+C")) {
-                    node_buffer::create(&state.clipboard_node, node, false, false);
+                    tree::copy_node(state, gui, node);
                 }
 
                 if (ImGui::MenuItem("Copy Ref", "Ctrl+R")) {
-                    node_buffer::create(&state.clipboard_node, node, false, true);
+                    tree::ref_node(state, gui, node);
                 }
 
                 ImGui::EndMenu();
