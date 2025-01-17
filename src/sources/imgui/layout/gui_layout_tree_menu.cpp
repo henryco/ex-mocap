@@ -13,15 +13,14 @@ namespace ex::gui {
             if (node == nullptr)
                 return nullptr;
 
-            void *old_data = node->data;
             void *new_data = nullptr;
-
-            if (old_data != nullptr && node_mappers_.contains(node->id_node)) {
-                new_data = node_mappers_.at(node->id_node).copy_node_data(gui, state, node, old_data);
+            if (node_mappers_.contains(node->id_node)) {
+                new_data = node_mappers_.at(node->id_node).copy_node_data(gui, state, node, node->data);
             }
 
             const auto new_node  = new TreeNode;
             new_node->connected  = false;
+            new_node->selected   = false;
             new_node->deleted    = false;
             new_node->created    = true;
             new_node->updated    = true;
@@ -29,6 +28,7 @@ namespace ex::gui {
             new_node->data       = new_data;
             new_node->name       = node->name;
             new_node->is_group   = node->is_group;
+            new_node->shared     = node->shared;
             new_node->disabled   = node->disabled;
             new_node->id_local   = node->id_local;
             new_node->id_node    = node->id_node;
