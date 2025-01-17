@@ -4,7 +4,6 @@
 
 #include "../../../headers/imgui/gui_layout.h"
 #include "../../../headers/imgui/gui_tree_ops.h"
-#include <IconsLucide.h>
 
 namespace ex::gui {
 
@@ -33,11 +32,43 @@ namespace ex::gui {
         }
 
         void enable_node(State &state, GuiState &gui, TreeNode *node) {
-
+            const bool og_state = node->disabled;
+            node->disabled = false;
+            undo_history().push("Enabled node",
+                new std::function([id_l = node->id_local, og_state] (ex::State *s) {
+                        const auto f_node = s->work_tree->find_node(id_l);
+                        if (f_node == nullptr)
+                            return;
+                        f_node->disabled = og_state;
+                        f_node->updated = true;
+                    }),
+                    new std::function([id_l = node->id_local] (ex::State *s) {
+                        const auto f_node = s->work_tree->find_node(id_l);
+                        if (f_node == nullptr)
+                            return;
+                        f_node->disabled = false;
+                        f_node->updated = true;
+                    }));
         }
 
         void disable_node(State &state, GuiState &gui, TreeNode *node) {
-
+            const bool og_state = node->disabled;
+            node->disabled = true;
+            undo_history().push("Enabled node",
+                new std::function([id_l = node->id_local, og_state] (ex::State *s) {
+                        const auto f_node = s->work_tree->find_node(id_l);
+                        if (f_node == nullptr)
+                            return;
+                        f_node->disabled = og_state;
+                        f_node->updated = true;
+                    }),
+                    new std::function([id_l = node->id_local] (ex::State *s) {
+                        const auto f_node = s->work_tree->find_node(id_l);
+                        if (f_node == nullptr)
+                            return;
+                        f_node->disabled = true;
+                        f_node->updated = true;
+                    }));
         }
 
         void delete_selected(State &state, GuiState &gui, selection_node *selection) {
@@ -136,25 +167,8 @@ namespace ex::gui {
         if (ImGui::BeginPopup(menu_id)) {
             const bool enabled = !node->disabled;
             if (ImGui::MenuItem(enabled ? "Disable" : "Enable")) {
-
-                node->disabled = !node->disabled;
-                const bool n_state = node->disabled;
-
-                undo_history().push((enabled ? "Disabled node" : "Enabled node"),
-                    new std::function([id_l = node->id_local, n_state] (ex::State *s) {
-                        const auto f_node = s->work_tree->find_node(id_l);
-                        if (f_node == nullptr)
-                            return;
-                        f_node->disabled = !n_state;
-                        f_node->updated = true;
-                    }),
-                    new std::function([id_l = node->id_local, n_state] (ex::State *s) {
-                        const auto f_node = s->work_tree->find_node(id_l);
-                        if (f_node == nullptr)
-                            return;
-                        f_node->disabled = n_state;
-                        f_node->updated = true;
-                    }));
+                if (enabled) tree::disable_node(state, gui, node);
+                else tree::enable_node(state, gui, node);
             }
 
             node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);
