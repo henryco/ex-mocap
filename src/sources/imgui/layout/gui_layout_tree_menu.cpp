@@ -129,7 +129,7 @@ namespace ex::gui {
                 return;
 
             std::map<std::size_t, bool> og_map;
-            auto head = selection;
+            auto head = selection->root;
             while (head != nullptr) {
                 og_map.emplace(head->selected->id_local, head->selected->disabled);
                 head->selected->disabled = false;
@@ -161,7 +161,7 @@ namespace ex::gui {
             if (selection == nullptr)
                 return;
             std::map<std::size_t, bool> og_map;
-            auto head = selection;
+            auto head = selection->root;
             while (head != nullptr) {
                 og_map.emplace(head->selected->id_local, head->selected->disabled);
                 head->selected->disabled = true;
@@ -195,7 +195,7 @@ namespace ex::gui {
 
             node_buffer::remove(&state.clipboard_node);
 
-            auto head = selection;
+            auto head = selection->root;
             while (head != nullptr) {
                 const auto selected = head->selected;
                 if (!selected->is_group)
