@@ -215,11 +215,11 @@ namespace ex::gui {
             // TODO FIXME
 
             undo_history().push("Node deleted",
-            new std::function([cpy = deep_copy, parent_id, node_index, &gui] (ex::State *s) {
+            new std::function([deep_copy, parent_id, node_index, &gui] (ex::State *s) {
                 const auto p_node = s->work_tree->find_node(parent_id);
                 if (p_node == nullptr)
                     return;
-                p_node->set_node(node_index, deep_copy_node(*s, gui, cpy));
+                p_node->set_node(node_index, deep_copy_node(*s, gui, deep_copy));
                 p_node->updated = true;
             }),
             new std::function([node_id = node->id_local] (ex::State *s) {
