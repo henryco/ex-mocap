@@ -32,9 +32,11 @@ namespace ex {
         ~TreeNode();
 
         void      add_node(TreeNode *node);
+        void      set_node(int idx, TreeNode *node);
         TreeNode *find_node(std::size_t id);
         TreeNode *find_node(TreeNode *node);
         void      remove_node(TreeNode *node);
+        int       get_node_index(TreeNode *node);
 
         static TreeNode *find_node(TreeNode *tree, std::size_t id);
     };

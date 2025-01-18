@@ -12,11 +12,13 @@ namespace ex::undo {
     template<typename T>
     struct record {
         using rollback_fn = std::function<void(T *)>;
+        using cleanup__fn = std::function<void()>;
 
         const std::size_t  id;
         const char        *name = nullptr;
         const rollback_fn *undo = nullptr;
         const rollback_fn *redo = nullptr;
+        const cleanup__fn *dstr = nullptr;
         record            *prev = nullptr;
         record            *next = nullptr;
 
@@ -27,6 +29,10 @@ namespace ex::undo {
                 delete redo;
             if (next != nullptr)
                 delete next;
+            if (dstr != nullptr) {
+                dstr->operator()();
+                delete dstr;
+            }
         }
     };
 
@@ -65,11 +71,15 @@ namespace ex::undo {
             return target_ != nullptr && target_->next != nullptr;
         }
 
-        void push(const char *name, std::function<void(T *)> *undo, std::function<void(T *)> *redo) {
+        void push(const char *name,
+            std::function<void(T *)> *undo,
+            std::function<void(T *)> *redo,
+            std::function<void()> *dstr = nullptr)
+        {
             static std::size_t counter = 0;
 
             if (records == nullptr || current == nullptr) {
-                records = new record<T>(counter++, name, undo, redo, nullptr, nullptr);
+                records = new record<T>(counter++, name, undo, redo, dstr, nullptr, nullptr);
                 current = records;
                 target_ = records;
                 root___ = records;
@@ -78,7 +88,7 @@ namespace ex::undo {
             }
 
             if (records->id == current->id && current == records) {
-                records->next = new record<T>(counter++, name, undo, redo, records, nullptr);
+                records->next = new record<T>(counter++, name, undo, redo, dstr, records, nullptr);
                 records       = records->next;
                 current       = records;
                 target_       = records;
@@ -106,7 +116,7 @@ namespace ex::undo {
             record<T> *head = records;
             while (head != nullptr) {
                 if (head->id == current->id && current == head) {
-                    current->next = new record<T>(counter++, name, undo, redo, current, nullptr);
+                    current->next = new record<T>(counter++, name, undo, redo, dstr, current, nullptr);
                     current       = current->next;
                     records       = current;
                     target_       = current;

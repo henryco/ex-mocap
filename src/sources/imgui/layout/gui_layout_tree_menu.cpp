@@ -204,16 +204,34 @@ namespace ex::gui {
                 return;
 
             node_buffer::remove(&state.clipboard_node);
-            const auto deep_copy = deep_copy_node(state, gui, node);
-            const auto parent_id = node->parent->id_local;
+
+            const auto parent     = node->parent;
+            const auto deep_copy  = deep_copy_node(state, gui, node);
+            const auto parent_id  = parent->id_local;
+            const int  node_index = parent->get_node_index(node);
+
             node->deleted = true;
 
+            // TODO FIXME
+
             undo_history().push("Node deleted",
-            new std::function([cpy = deep_copy, p_id = parent_id] (ex::State *s) {
-                // TODO
+            new std::function([cpy = deep_copy, parent_id, node_index, &gui] (ex::State *s) {
+                const auto p_node = s->work_tree->find_node(parent_id);
+                if (p_node == nullptr)
+                    return;
+                p_node->set_node(node_index, deep_copy_node(*s, gui, cpy));
+                p_node->updated = true;
             }),
-            new std::function([cpy = deep_copy, p_id = parent_id] (ex::State *s) {
-                // TODO
+            new std::function([node_id = node->id_local] (ex::State *s) {
+                const auto f_node = s->work_tree->find_node(node_id);
+                if (f_node == nullptr)
+                    return;
+                f_node->deleted = true;
+            }),
+            new std::function([deep_copy] {
+                if (deep_copy == nullptr)
+                    return;
+                delete deep_copy;
             }));
         }
 

@@ -37,6 +37,14 @@ namespace ex {
         this->children   = children;
     }
 
+    int TreeNode::get_node_index(TreeNode *node) {
+        for (int i = 0; i < this->children_n; i++) {
+            if (this->children[i] == node)
+                return i;
+        }
+        return -1;
+    }
+
     void TreeNode::add_node(TreeNode *node) {
         if (node == nullptr)
             return;
@@ -54,6 +62,43 @@ namespace ex {
 
         if (this->children != nullptr)
             delete this->children;
+
+        this->children_n = new_size;
+        this->children   = children;
+    }
+
+    void TreeNode::set_node(const int idx, TreeNode *node) {
+        if (node == nullptr)
+            return;
+
+        node->parent = this;
+
+        const int curr_n   = static_cast<int>(this->children_n);
+        const int new_size = (curr_n < 0 ? 0 : curr_n) + (idx >= curr_n ? 1 : 0);
+
+        if (new_size <= 0)
+            return;
+
+        if (curr_n <= 0 || new_size == 1 || this->children == nullptr) {
+            if (this->children != nullptr)
+                delete this->children;
+            this->children    = new TreeNode *[1];
+            this->children_n  = 1;
+            this->children[0] = node;
+            return;
+        }
+
+        auto **children = new TreeNode *[new_size];
+
+        for (int i = 0, k = 0; i < new_size; i++) {
+            if (i == idx || i == new_size - 1) {
+                children[i] = node;
+                continue;
+            }
+            children[i] = this->children[k++];
+        }
+
+        delete this->children;
 
         this->children_n = new_size;
         this->children   = children;
