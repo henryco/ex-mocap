@@ -180,11 +180,11 @@ namespace ex::main {
         process_(state);
     }
 
-    void Logic::serialize(State &state) {
+    void Logic::serialize(State &_) {
         // TODO write to json from clock
     }
 
-    void Logic::deserialize_(State &state) {
+    void Logic::deserialize_(State &_) {
         // TODO read from json to clock
     }
 
@@ -228,6 +228,22 @@ namespace ex::main {
         }
     }
 
+    void Logic::mark_node_deleted_(TreeNode *node) {
+        if (node == nullptr)
+            return;
+
+        if (ptr_counter_.contains(node->id_local))
+            ptr_counter_.at(node->id_local)--;
+
+        if (node->children_n <= 0 || node->children == nullptr) {
+            return;
+        }
+
+        for (int i = 0; i < node->children_n; i++) {
+            mark_node_deleted_(node->children[i]);
+        }
+    }
+
     void Logic::traverse_(State &state, TreeNode *node, bool *rewire) {
         if (node == nullptr)
             return;
@@ -261,7 +277,10 @@ namespace ex::main {
                 o += 1;
                 continue;
             }
-            node->remove_node(node->children[o]);
+            const auto child = node->children[o];
+            mark_node_deleted_(child);
+            node->remove_node(child);
+            delete child;
             o = 0;
         }
 
@@ -298,6 +317,11 @@ namespace ex::main {
             }
             node->created = false;
             *rewire = true;
+
+            if (ptr_counter_.contains(node->id_local))
+                ptr_counter_.at(node->id_local)++;
+            else
+                ptr_counter_.emplace(node->id_local, 1);
         }
 
         if (node->is_group || !nodes_.contains(node->id_local))
@@ -311,11 +335,6 @@ namespace ex::main {
         }
 
         mappers_.at(node->id_node).from_base(state, node_ptr, node);
-
-        if (ptr_counter_.contains(node->id_local))
-            ptr_counter_.at(node->id_local)++;
-        else
-            ptr_counter_.emplace(node->id_local, 1);
     }
 
     void Logic::rewire_(State &state) {
@@ -382,23 +401,28 @@ namespace ex::main {
         log->error("Cannot connect node to clock");
     }
 
-    void Logic::gc_(State &state) {
+    void Logic::gc_(State &_) {
         log->debug("start node gc");
 
         for (auto it = ptr_counter_.begin(); it != ptr_counter_.end(); /*nop*/) {
             const auto id_local = it->first;
             if (it->second <= 0) {
-                mappers_.at(nodes_.at(id_local)->get_type_id()).cleanup(view_data_.at(id_local));
-                view_data_.erase(id_local);
 
-                delete nodes_.at(id_local);
-                nodes_.erase(id_local);
+                if (nodes_.contains(id_local)) {
+                    const auto type_id = nodes_.at(id_local)->get_type_id();
 
+                    if (mappers_.contains(type_id) && view_data_.contains(id_local)) {
+                        mappers_.at(type_id).cleanup(view_data_.at(id_local));
+                        view_data_.erase(id_local);
+                    }
+
+                    delete nodes_.at(id_local);
+                    nodes_.erase(id_local);
+                }
                 it = ptr_counter_.erase(it);
 
                 log->debug("node gc remove: {}", id_local);
             } else {
-                it->second = 0;
                 ++it;
             }
         }

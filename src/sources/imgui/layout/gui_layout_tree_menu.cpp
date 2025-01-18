@@ -223,7 +223,6 @@ namespace ex::gui {
                 if (p_node == nullptr)
                     return;
                 p_node->set_node(node_index, deep_copy_node(*s, gui, deep_copy));
-                p_node->updated = true;
             }),
             new std::function([node_id] (ex::State *s) {
                 const auto f_node = s->work_tree->find_node(node_id);
