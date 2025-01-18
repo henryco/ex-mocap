@@ -74,7 +74,7 @@ namespace ex {
         node->parent = this;
 
         const int curr_n   = static_cast<int>(this->children_n);
-        const int new_size = (curr_n < 0 ? 0 : curr_n) + (idx >= curr_n ? 1 : 0);
+        const int new_size = (curr_n < 0 ? 0 : curr_n) + 1;
 
         if (new_size <= 0)
             return;
