@@ -232,6 +232,8 @@ namespace ex::main {
         if (node == nullptr)
             return;
 
+        node->deleted = true;
+
         if (ptr_counter_.contains(node->id_local))
             ptr_counter_.at(node->id_local)--;
 

@@ -74,12 +74,12 @@ namespace ex::undo {
         void push(const char *name,
             std::function<void(T *)> *undo,
             std::function<void(T *)> *redo,
-            std::function<void()> *dstr = nullptr)
+            std::function<void()> *cleanup = nullptr)
         {
             static std::size_t counter = 0;
 
             if (records == nullptr || current == nullptr) {
-                records = new record<T>(counter++, name, undo, redo, dstr, nullptr, nullptr);
+                records = new record<T>(counter++, name, undo, redo, cleanup, nullptr, nullptr);
                 current = records;
                 target_ = records;
                 root___ = records;
@@ -88,7 +88,7 @@ namespace ex::undo {
             }
 
             if (records->id == current->id && current == records) {
-                records->next = new record<T>(counter++, name, undo, redo, dstr, records, nullptr);
+                records->next = new record<T>(counter++, name, undo, redo, cleanup, records, nullptr);
                 records       = records->next;
                 current       = records;
                 target_       = records;
@@ -116,7 +116,7 @@ namespace ex::undo {
             record<T> *head = records;
             while (head != nullptr) {
                 if (head->id == current->id && current == head) {
-                    current->next = new record<T>(counter++, name, undo, redo, dstr, current, nullptr);
+                    current->next = new record<T>(counter++, name, undo, redo, cleanup, current, nullptr);
                     current       = current->next;
                     records       = current;
                     target_       = current;

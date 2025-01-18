@@ -203,6 +203,16 @@ namespace ex::gui {
                 head = head->next;
             }
 
+            undo_history().push("Selection deleted",
+            new std::function([ ] (ex::State *s) {
+                // TODO
+            }),
+            new std::function([ ] (ex::State *s) {
+                // TODO
+            }),
+            new std::function([ ] {
+                // TODO
+            }));
         }
 
         void delete_node(State &state, GuiState &gui, TreeNode *node) {
