@@ -38,8 +38,10 @@ namespace ex::gui {
                 new_node->children = new TreeNode *[node->children_n];
                 for (auto i = 0; i < node->children_n; i++) {
                     const auto copy_child = deep_copy_node(state, gui, node->children[i]);
-                    if (copy_child == nullptr)
+                    if (copy_child == nullptr) {
+                        new_node->children[i] = nullptr;
                         continue;
+                    }
                     copy_child->parent    = new_node;
                     new_node->children[i] = copy_child;
                 }
