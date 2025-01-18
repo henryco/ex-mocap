@@ -206,6 +206,7 @@ namespace ex::gui {
             node_buffer::remove(&state.clipboard_node);
 
             const auto parent     = node->parent;
+            const auto node_id    = node->id_local;
             const auto deep_copy  = deep_copy_node(state, gui, node);
             const auto parent_id  = parent->id_local;
             const int  node_index = parent->get_node_index(node);
@@ -222,7 +223,7 @@ namespace ex::gui {
                 p_node->set_node(node_index, deep_copy_node(*s, gui, deep_copy));
                 p_node->updated = true;
             }),
-            new std::function([node_id = node->id_local] (ex::State *s) {
+            new std::function([node_id] (ex::State *s) {
                 const auto f_node = s->work_tree->find_node(node_id);
                 if (f_node == nullptr)
                     return;
