@@ -204,7 +204,7 @@ namespace ex::gui {
             }
 
             undo_history().push("Selection deleted",
-            new std::function([ ] (ex::State *s) {
+            new std::function([ &gui ] (ex::State *s) {
                 // TODO
             }),
             new std::function([ ] (ex::State *s) {
