@@ -23,7 +23,7 @@ namespace ex::gui {
             new_node->selected   = false;
             new_node->deleted    = false;
             new_node->created    = true;
-            new_node->updated    = true;
+            new_node->updated    = false;
             new_node->parent     = nullptr;
             new_node->data       = new_data;
             new_node->name       = node->name;
@@ -214,8 +214,6 @@ namespace ex::gui {
             const int  node_index = parent->get_node_index(node);
 
             node->deleted = true;
-
-            // TODO FIXME
 
             undo_history().push("Node deleted",
             new std::function([deep_copy, parent_id, node_index, &gui] (ex::State *s) {

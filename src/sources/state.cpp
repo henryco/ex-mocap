@@ -91,7 +91,7 @@ namespace ex {
         auto **children = new TreeNode *[new_size];
 
         for (int i = 0, k = 0; i < new_size; i++) {
-            if (i == idx || i == new_size - 1) {
+            if (i == idx || k == new_size - 1) {
                 children[i] = node;
                 continue;
             }
