@@ -9,7 +9,7 @@ namespace ex::gui {
 
     namespace tree {
 
-        TreeNode *deep_copy_node(State &state, GuiState &gui, TreeNode *node) {
+        TreeNode *deep_copy_node(State &state, GuiState &gui, TreeNode *node, const bool generate_id) {
             if (node == nullptr)
                 return nullptr;
 
@@ -30,14 +30,14 @@ namespace ex::gui {
             new_node->is_group   = node->is_group;
             new_node->shared     = node->shared;
             new_node->disabled   = node->disabled;
-            new_node->id_local   = node->id_local;
+            new_node->id_local   = generate_id ? 0 : node->id_local;
             new_node->id_node    = node->id_node;
             new_node->children_n = node->children_n;
 
             if (node->children_n > 0) {
                 new_node->children = new TreeNode *[node->children_n];
                 for (auto i = 0; i < node->children_n; i++) {
-                    const auto copy_child = deep_copy_node(state, gui, node->children[i]);
+                    const auto copy_child = deep_copy_node(state, gui, node->children[i], generate_id);
                     if (copy_child == nullptr) {
                         new_node->children[i] = nullptr;
                         continue;
@@ -209,7 +209,7 @@ namespace ex::gui {
 
             const auto parent     = node->parent;
             const auto node_id    = node->id_local;
-            const auto deep_copy  = deep_copy_node(state, gui, node);
+            const auto deep_copy  = deep_copy_node(state, gui, node, false);
             const auto parent_id  = parent->id_local;
             const int  node_index = parent->get_node_index(node);
 
@@ -220,7 +220,7 @@ namespace ex::gui {
                 const auto p_node = s->work_tree->find_node(parent_id);
                 if (p_node == nullptr)
                     return;
-                p_node->set_node(node_index, deep_copy_node(*s, gui, deep_copy));
+                p_node->set_node(node_index, deep_copy_node(*s, gui, deep_copy, false));
             }),
             new std::function([node_id] (ex::State *s) {
                 const auto f_node = s->work_tree->find_node(node_id);
