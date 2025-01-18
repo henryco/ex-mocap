@@ -190,15 +190,19 @@ namespace ex::gui {
         }
 
         void delete_selected(State &state, GuiState &gui, selection_node *selection) {
+            if (selection == nullptr)
+                return;
+
+            node_buffer::remove(&state.clipboard_node);
+
             auto head = selection;
             while (head != nullptr) {
                 const auto selected = head->selected;
                 if (!selected->is_group)
                     selected->deleted = true;
                 head = head->next;
-                // TODO UNDO TREE
             }
-            node_buffer::remove(&state.clipboard_node);
+
         }
 
         void delete_node(State &state, GuiState &gui, TreeNode *node) {
