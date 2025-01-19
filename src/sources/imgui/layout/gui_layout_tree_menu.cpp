@@ -9,6 +9,40 @@ namespace ex::gui {
 
     namespace tree {
 
+        struct Path {
+            TreeNode *node;
+            Path     *next;
+
+            ~Path() {
+                if (node != nullptr)
+                    delete node;
+                if (next != nullptr)
+                    delete next;
+            }
+        };
+
+        TreeNode *shallow_copy_node(TreeNode *node) {
+            if (node == nullptr)
+                return nullptr;
+            const auto new_node  = new TreeNode;
+            new_node->connected  = false;
+            new_node->selected   = false;
+            new_node->deleted    = false;
+            new_node->created    = true;
+            new_node->updated    = false;
+            new_node->children   = nullptr;
+            new_node->parent     = nullptr;
+            new_node->data       = nullptr;
+            new_node->name       = node->name;
+            new_node->is_group   = node->is_group;
+            new_node->shared     = node->shared;
+            new_node->disabled   = node->disabled;
+            new_node->id_local   = node->id_local;
+            new_node->id_node    = node->id_node;
+            new_node->children_n = 0;
+            return new_node;
+        }
+
         TreeNode *deep_copy_node(State &state, GuiState &gui, TreeNode *node, const bool generate_id) {
             if (node == nullptr)
                 return nullptr;
@@ -18,21 +52,10 @@ namespace ex::gui {
                 new_data = node_mappers_.at(node->id_node).copy_node_data(gui, state, node, node->data);
             }
 
-            const auto new_node  = new TreeNode;
-            new_node->connected  = false;
-            new_node->selected   = false;
-            new_node->deleted    = false;
-            new_node->created    = true;
-            new_node->updated    = false;
-            new_node->parent     = nullptr;
-            new_node->data       = new_data;
-            new_node->name       = node->name;
-            new_node->is_group   = node->is_group;
-            new_node->shared     = node->shared;
-            new_node->disabled   = node->disabled;
-            new_node->id_local   = generate_id ? 0 : node->id_local;
-            new_node->id_node    = node->id_node;
+            const auto new_node  = shallow_copy_node(node);
             new_node->children_n = node->children_n;
+            new_node->id_local   = generate_id ? 0 : node->id_local;
+            new_node->data       = new_data;
 
             if (node->children_n > 0) {
                 new_node->children = new TreeNode *[node->children_n];
@@ -48,6 +71,64 @@ namespace ex::gui {
             }
 
             return new_node;
+        }
+
+        bool prepare_root_path(TreeNode *node, Path *path) {
+            if (node == nullptr || path == nullptr || path->node == nullptr)
+                return false;
+
+            if (node->id_local != path->node->id_local ||
+                node->id_node  != path->node->id_node) {
+                return false; // Failure, nodes does not match
+            }
+
+            const auto next = path->next;
+            if (next == nullptr)
+                return true;
+
+            if (node->children_n <= 0 || node->children == nullptr) {
+                node->add_node(shallow_copy_node(next->node));
+            }
+
+            TreeNode *next_node = nullptr;
+            for (int i = 0; i < node->children_n; i++) {
+                if (node->children[i] == nullptr)
+                    return false;
+                if (node->children[i]->id_local == next->node->id_local &&
+                    node->children[i]->id_node  == next->node->id_node) {
+                    next_node = node->children[i];
+                    break;
+                }
+            }
+
+            if (next_node == nullptr)
+                return false;
+
+            return prepare_root_path(next_node, next);
+        }
+
+        Path *get_root_path(TreeNode *node) {
+            if (node == nullptr || node->parent == nullptr) {
+                return nullptr;
+            }
+
+            auto path  = new Path;
+            path->node = nullptr;
+            path->next = nullptr;
+
+            auto head = node->parent;
+            while (head != nullptr) {
+                path->node = shallow_copy_node(head);
+                head       = head->parent;
+                if (head != nullptr) {
+                    const auto prev = new Path;
+                    prev->node      = nullptr;
+                    prev->next      = path;
+                    path            = prev;
+                }
+            }
+
+            return path;
         }
 
         void copy_selected(State &state, GuiState &_, selection_node *selection) {
@@ -225,15 +306,25 @@ namespace ex::gui {
             const auto node_id    = node->id_local;
             const auto deep_copy  = deep_copy_node(state, gui, node, false);
             const auto parent_id  = parent->id_local;
+            const auto node_path  = get_root_path(node);
             const int  node_index = parent->get_node_index(node);
 
             node->deleted = true;
 
             undo_history().push("Node deleted",
-            new std::function([deep_copy, parent_id, node_index, &gui] (ex::State *s) {
-                const auto p_node = s->work_tree->find_node(parent_id);
-                if (p_node == nullptr)
+            new std::function([deep_copy, node_path, parent_id, node_index, &gui] (ex::State *s) {
+
+                if (!prepare_root_path(s->work_tree, node_path)) {
+                    // TODO THROW EXCEPTION?
                     return;
+                }
+
+                const auto p_node = s->work_tree->find_node(parent_id);
+                if (p_node == nullptr) {
+                    // TODO THROW EXCEPTION?
+                    return;
+                }
+
                 p_node->set_node(node_index, deep_copy_node(*s, gui, deep_copy, false));
             }),
             new std::function([node_id] (ex::State *s) {
@@ -242,10 +333,11 @@ namespace ex::gui {
                     return;
                 f_node->deleted = true;
             }),
-            new std::function([deep_copy] {
-                if (deep_copy == nullptr)
-                    return;
-                delete deep_copy;
+            new std::function([deep_copy, node_path] {
+                if (deep_copy != nullptr)
+                    delete deep_copy;
+                if (node_path != nullptr)
+                    delete node_path;
             }));
         }
 
