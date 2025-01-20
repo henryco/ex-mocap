@@ -21,6 +21,22 @@ namespace ex::gui {
             }
         };
 
+        struct DeletedNode {
+            Path        *path;
+            TreeNode    *deep_copy;
+            DeletedNode *next;
+            std::size_t  parent_id;
+
+            ~DeletedNode() {
+                if (path != nullptr)
+                    delete path;
+                if (deep_copy != nullptr)
+                    delete deep_copy;
+                if (next != nullptr)
+                    delete next;
+            }
+        };
+
         TreeNode *deep_copy_node(State &state, GuiState &gui, TreeNode *node, const bool generate_id) {
             if (node == nullptr)
                 return nullptr;
@@ -256,23 +272,67 @@ namespace ex::gui {
 
             node_buffer::remove(&state.clipboard_node);
 
+            DeletedNode *deletion = nullptr;
+            DeletedNode *root     = nullptr;
+
             auto head = selection->root;
             while (head != nullptr) {
                 const auto selected = head->selected;
-                if (!selected->is_group)
+                if (!selected->is_group) {
                     selected->deleted = true;
+
+                    if (deletion == nullptr) {
+                        deletion = new DeletedNode;
+                        root     = deletion;
+                    }
+
+                    deletion->parent_id = selected->parent->id_local;
+                    deletion->deep_copy = deep_copy_node(state, gui, selected, false);
+                    deletion->path      = get_root_path(selected);
+
+                    if (head->next != nullptr) {
+                        const auto new_one = new DeletedNode;
+                        deletion->next = new_one;
+                        deletion       = new_one;
+                    }
+                }
                 head = head->next;
             }
 
             undo_history().push("Selection deleted",
-            new std::function([ ] (ex::State *s) {
-                // TODO
+            new std::function([ root, &gui ] (ex::State *s) {
+                const auto w_tree = s->work_tree;
+
+                auto deletion_head = root;
+                while (deletion_head != nullptr) {
+                    if (!prepare_root_path(w_tree, deletion_head->path))
+                        return; // TODO THROW EXCEPTION?
+
+                    const auto p_node = w_tree->find_node(deletion_head->parent_id);
+                    if (p_node == nullptr)
+                        return; // TODO THROW EXCEPTION?
+
+                    p_node->set_node(deletion_head->deep_copy->index,
+                        deep_copy_node(*s, gui, deletion_head->deep_copy, false));
+
+                    deletion_head = deletion_head->next;
+                }
+
             }),
-            new std::function([ ] (ex::State *s) {
-                // TODO
+            new std::function([ root ] (ex::State *s) {
+                const auto w_tree = s->work_tree;
+                auto deletion_head = root;
+                while (deletion_head != nullptr) {
+                    const auto f_node = w_tree->find_node(deletion_head->deep_copy->id_local);
+                    if (f_node == nullptr)
+                        return; // TODO THROW EXCEPTION?
+                    f_node->deleted = true;
+                    deletion_head   = deletion_head->next;
+                }
             }),
-            new std::function([ ] {
-                // TODO
+            new std::function([ root ] {
+                if (root != nullptr)
+                    delete root;
             }));
         }
 

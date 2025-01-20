@@ -8,8 +8,10 @@ namespace ex {
 
     TreeNode::~TreeNode() {
         if (children != nullptr) {
-            for (int i = 0; i < children_n; i++)
-                delete children[i];
+            for (int i = 0; i < children_n; i++) {
+                if (children[i] != nullptr)
+                    delete children[i];
+            }
             delete children;
         }
     }
@@ -49,8 +51,11 @@ namespace ex {
         for (int i = 0, k = 0; i < curr_n; i++) {
             const auto child = this->children[i];
             if (child != node) {
-                children[k]        = child;
-                children[k]->index = k;
+                children[k] = child;
+
+                if (children[k] != nullptr)
+                    children[k]->index = k;
+
                 k++;
             }
         }
@@ -73,8 +78,10 @@ namespace ex {
 
         auto **children = new TreeNode *[new_size];
         for (int i = 0; i < new_size - 1; i++) {
-            children[i]        = this->children[i];
-            children[i]->index = i;
+            children[i] = this->children[i];
+
+            if (children[i] != nullptr)
+                children[i]->index = i;
         }
 
         children[new_size - 1] = node;
@@ -95,6 +102,8 @@ namespace ex {
 
         const int curr_n   = static_cast<int>(this->children_n);
         const int new_size = (curr_n < 0 ? 0 : curr_n) + 1;
+
+        // TODO FIXME
 
         if (new_size <= 0)
             return;
@@ -131,7 +140,10 @@ namespace ex {
         if (this->id_local == id)
             return this;
         for (int i = 0; i < this->children_n; i++) {
-            if (const auto result = this->children[i]->find_node(id); result != nullptr)
+            const auto child = this->children[i];
+            if (child == nullptr)
+                continue;
+            if (const auto result = child->find_node(id); result != nullptr)
                 return result;
         }
         return nullptr;
@@ -141,7 +153,10 @@ namespace ex {
         if (this == node)
             return this;
         for (int i = 0; i < this->children_n; i++) {
-            if (const auto result = this->children[i]->find_node(node); result != nullptr)
+            const auto child = this->children[i];
+            if (child == nullptr)
+                continue;
+            if (const auto result = child->find_node(node); result != nullptr)
                 return result;
         }
         return nullptr;
