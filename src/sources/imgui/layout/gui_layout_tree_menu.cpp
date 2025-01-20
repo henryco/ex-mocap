@@ -175,6 +175,8 @@ namespace ex::gui {
             if (node == nullptr)
                 return;
 
+            node->created = true; // TODO FIXME
+
             node_buffer::remove(&state.clipboard_node);
             selection_node::free(state.selected_nodes);
             state.selected_nodes = nullptr;
