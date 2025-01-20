@@ -62,14 +62,6 @@ namespace ex {
         node->index      = 0;
     }
 
-    int TreeNode::get_child_index(TreeNode *node) {
-        for (int i = 0; i < this->children_n; i++) {
-            if (this->children[i] == node)
-                return i;
-        }
-        return -1;
-    }
-
     void TreeNode::add_node(TreeNode *node) {
         if (node == nullptr)
             return;

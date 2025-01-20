@@ -287,12 +287,11 @@ namespace ex::gui {
             const auto deep_copy  = deep_copy_node(state, gui, node, false);
             const auto parent_id  = parent->id_local;
             const auto node_path  = get_root_path(node);
-            const int  node_index = parent->get_child_index(node);
 
             node->deleted = true;
 
             undo_history().push("Node deleted",
-            new std::function([deep_copy, node_path, parent_id, node_index, &gui] (ex::State *s) {
+            new std::function([deep_copy, node_path, parent_id, &gui] (ex::State *s) {
 
                 if (!prepare_root_path(s->work_tree, node_path)) {
                     // TODO THROW EXCEPTION?
@@ -305,7 +304,7 @@ namespace ex::gui {
                     return;
                 }
 
-                p_node->set_node(node_index, deep_copy_node(*s, gui, deep_copy, false));
+                p_node->set_node(deep_copy->index, deep_copy_node(*s, gui, deep_copy, false));
             }),
             new std::function([node_id] (ex::State *s) {
                 const auto f_node = s->work_tree->find_node(node_id);
