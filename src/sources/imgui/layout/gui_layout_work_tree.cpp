@@ -298,6 +298,11 @@ namespace ex::gui {
                         TreeNode **active, std::size_t *menu_node, const bool disabled_,
                         const int total, const int n)
     {
+        if (node == nullptr) {
+            // TODO THROW EXCEPTION ?
+            return;
+        }
+
         if (!node->is_group) {
             // Not a group just regular element
 
