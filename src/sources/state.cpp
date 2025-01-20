@@ -94,7 +94,7 @@ namespace ex {
         this->children   = children;
     }
 
-    void TreeNode::set_node(const int idx, TreeNode *node) {
+    void TreeNode::insert_node(const int idx, TreeNode *node) {
         if (node == nullptr)
             return;
 

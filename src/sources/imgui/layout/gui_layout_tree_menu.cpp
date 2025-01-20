@@ -93,7 +93,7 @@ namespace ex::gui {
             if (next_node->id_local != next->node->id_local ||
                 next_node->id_node  != next->node->id_node) {
                 const auto copy = TreeNode::shallow_copy(next->node);
-                node->set_node(next->node->index, copy);
+                node->insert_node(next->node->index, copy);
                 next_node = copy;
             }
 
@@ -312,7 +312,7 @@ namespace ex::gui {
                     if (p_node == nullptr)
                         return; // TODO THROW EXCEPTION?
 
-                    p_node->set_node(deletion_head->deep_copy->index,
+                    p_node->insert_node(deletion_head->deep_copy->index, // TODO FIXME
                         deep_copy_node(*s, gui, deletion_head->deep_copy, false));
 
                     deletion_head = deletion_head->next;
@@ -364,7 +364,7 @@ namespace ex::gui {
                     return;
                 }
 
-                p_node->set_node(deep_copy->index, deep_copy_node(*s, gui, deep_copy, false));
+                p_node->insert_node(deep_copy->index, deep_copy_node(*s, gui, deep_copy, false));
             }),
             new std::function([node_id] (ex::State *s) {
                 const auto f_node = s->work_tree->find_node(node_id);
