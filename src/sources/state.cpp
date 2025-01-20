@@ -14,6 +14,27 @@ namespace ex {
         }
     }
 
+    TreeNode *TreeNode::shallow_copy() {
+        const auto new_node  = new TreeNode;
+        new_node->connected  = false;
+        new_node->selected   = false;
+        new_node->deleted    = false;
+        new_node->created    = true;
+        new_node->updated    = false;
+        new_node->children   = nullptr;
+        new_node->parent     = nullptr;
+        new_node->data       = nullptr;
+        new_node->name       = this->name;
+        new_node->index      = this->index;
+        new_node->is_group   = this->is_group;
+        new_node->shared     = this->shared;
+        new_node->disabled   = this->disabled;
+        new_node->id_local   = this->id_local;
+        new_node->id_node    = this->id_node;
+        new_node->children_n = 0;
+        return new_node;
+    }
+
     void TreeNode::remove_node(TreeNode *node) {
         if (node == nullptr)
             return;
@@ -27,17 +48,21 @@ namespace ex {
         auto **children = new TreeNode *[new_size];
         for (int i = 0, k = 0; i < curr_n; i++) {
             const auto child = this->children[i];
-            if (child != node)
-                children[k++] = child;
+            if (child != node) {
+                children[k]        = child;
+                children[k]->index = k;
+                k++;
+            }
         }
 
         delete this->children;
 
         this->children_n = new_size;
         this->children   = children;
+        node->index      = 0;
     }
 
-    int TreeNode::get_node_index(TreeNode *node) {
+    int TreeNode::get_child_index(TreeNode *node) {
         for (int i = 0; i < this->children_n; i++) {
             if (this->children[i] == node)
                 return i;
@@ -55,10 +80,13 @@ namespace ex {
         const int new_size = (curr_n < 0 ? 0 : curr_n) + 1;
 
         auto **children = new TreeNode *[new_size];
-        for (int i = 0; i < new_size - 1; i++)
-            children[i] = this->children[i];
+        for (int i = 0; i < new_size - 1; i++) {
+            children[i]        = this->children[i];
+            children[i]->index = i;
+        }
 
         children[new_size - 1] = node;
+        node->index            = new_size - 1;
 
         if (this->children != nullptr)
             delete this->children;
@@ -82,9 +110,10 @@ namespace ex {
         if (curr_n <= 0 || new_size == 1 || this->children == nullptr) {
             if (this->children != nullptr)
                 delete this->children;
-            this->children    = new TreeNode *[1];
-            this->children_n  = 1;
-            this->children[0] = node;
+            this->children           = new TreeNode *[1];
+            this->children_n         = 1;
+            this->children[0]        = node;
+            this->children[0]->index = 0;
             return;
         }
 
@@ -92,10 +121,12 @@ namespace ex {
 
         for (int i = 0, k = 0; i < new_size; i++) {
             if (i == idx || k == new_size - 1) {
-                children[i] = node;
+                children[i]        = node;
+                children[i]->index = i;
                 continue;
             }
-            children[i] = this->children[k++];
+            children[i]        = this->children[k++];
+            children[i]->index = i;
         }
 
         delete this->children;
@@ -125,9 +156,15 @@ namespace ex {
     }
 
     TreeNode *TreeNode::find_node(TreeNode *const tree, const std::size_t id) {
-        if  (tree == nullptr)
+        if (tree == nullptr)
             return nullptr;
         return tree->find_node(id);
+    }
+
+    TreeNode *TreeNode::shallow_copy(TreeNode *node) {
+        if (node == nullptr)
+            return nullptr;
+        return node->shallow_copy();
     }
 
     selection_node *selection_node::copy() {

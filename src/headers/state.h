@@ -19,6 +19,7 @@ namespace ex {
         std::size_t children_n = 0;
         std::size_t id_local   = 0;
         std::size_t id_node    = 0;
+        std::size_t index      = 0;
 
         bool        is_group   = false;
         bool        disabled   = false;
@@ -35,10 +36,12 @@ namespace ex {
         void      set_node(int idx, TreeNode *node);
         TreeNode *find_node(std::size_t id);
         TreeNode *find_node(TreeNode *node);
+        TreeNode *shallow_copy();
         void      remove_node(TreeNode *node);
-        int       get_node_index(TreeNode *node);
+        int       get_child_index(TreeNode *node);
 
         static TreeNode *find_node(TreeNode *tree, std::size_t id);
+        static TreeNode *shallow_copy(TreeNode *node);
     };
 
     struct selection_node {
