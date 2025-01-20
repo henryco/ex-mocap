@@ -47,9 +47,4 @@ namespace ex::map::camera {
         return node;
     }
 
-    void cleanup(void *data) {
-        if (data != nullptr)
-            delete static_cast<state::camera *>(data);
-    }
-
 }

@@ -69,10 +69,6 @@ namespace ex::gui::test::one {
         return show;
     }
 
-    void *copy_node_data(GuiState &gui, ex::State &state, TreeNode *node, void *data) {
-        return nullptr;
-    }
-
     void from_base(State &state, nodes::BaseNode *from, TreeNode *to) {
 
     }
@@ -91,9 +87,6 @@ namespace ex::gui::test::one {
         return node;
     }
 
-    void cleanup(void *data) {
-
-    }
 }
 
 namespace ex::gui::test::two {
@@ -139,10 +132,6 @@ namespace ex::gui::test::two {
         return show;
     }
 
-    void *copy_node_data(GuiState &gui, ex::State &state, TreeNode *node, void *data) {
-        return nullptr;
-    }
-
     void from_base(State &state, nodes::BaseNode *from, TreeNode *to) {
 
     }
@@ -161,9 +150,6 @@ namespace ex::gui::test::two {
         return node;
     }
 
-    void cleanup(void *data) {
-
-    }
 }
 
 namespace ex::gui::test::tri {
@@ -203,10 +189,6 @@ namespace ex::gui::test::tri {
         return show;
     }
 
-    void *copy_node_data(GuiState &gui, ex::State &state, TreeNode *node, void *data) {
-        return nullptr;
-    }
-
     void from_base(State &state, nodes::BaseNode *from, TreeNode *to) {
 
     }
@@ -225,7 +207,4 @@ namespace ex::gui::test::tri {
         return node;
     }
 
-    void cleanup(void *data) {
-
-    }
 }

@@ -16,7 +16,7 @@ namespace ex {
          * Data should be allocated using MALLOC,
          * and should be trivially copyable !!!
          */
-        void       *data = nullptr;
+        void       *data       = nullptr;
 
         const char *name       = nullptr;
         TreeNode   *parent     = nullptr;
@@ -62,6 +62,7 @@ namespace ex {
         static selection_node *copy(selection_node *src);
         static bool            single(selection_node *node);
         static void            remove(selection_node *node, selection_node **next);
+        static void            free(selection_node *node);
     };
 
     struct node_buffer {

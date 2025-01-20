@@ -16,7 +16,6 @@ namespace ex {
         void (*from_tree)(State &state, TreeNode *from, node_ *to)      = nullptr;
         node_ *(*re_instance)(State &state, TreeNode *from, node_ *src) = nullptr;
         node_ *(*instance)(const State &state, TreeNode *from)          = nullptr;
-        void (*cleanup)(void *data)                                     = nullptr;
     };
 }
 
@@ -25,9 +24,8 @@ namespace ex::map::camera {
     void   from_tree(State &state, TreeNode *from, node_ *to);
     node_ *re_instance(State &state, TreeNode *from, node_ *src);
     node_ *instance(const State &state, TreeNode *from);
-    void   cleanup(void *data);
 
-    static constexpr DataMappers mappers = { from_base, from_tree, re_instance, instance, cleanup };
+    static constexpr DataMappers mappers = { from_base, from_tree, re_instance, instance };
 }
 
 #endif //MAPPERS_H

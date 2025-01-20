@@ -196,16 +196,11 @@ namespace ex::main {
         state.work_tree->children_n = 0;
         state.work_tree->is_group   = true;
 
-        for (auto &[local_id, data]: view_data_) {
-            mappers_.at(nodes_.at(local_id)->get_type_id()).cleanup(data);
-        }
-
-        for (auto &[_, data]: nodes_) {
-            delete data;
+        for (auto &[_, node]: nodes_) {
+            delete node;
         }
 
         ptr_counter_.clear();
-        view_data_.clear();
         nodes_.clear();
     }
 
@@ -305,17 +300,6 @@ namespace ex::main {
                     }
                 } else
                     nodes_.emplace(node->id_local, mappers.instance(state, node));
-
-
-                // update data storage
-                if (view_data_.contains(node->id_local)) {
-                    if (void *data = view_data_.at(node->id_local); data != node->data) {
-                        view_data_.erase(node->id_local);
-                        view_data_.emplace(node->id_local, node->data);
-                        mappers.cleanup(data);
-                    }
-                } else
-                    view_data_.emplace(node->id_local, node->data);
             }
             node->created = false;
             *rewire = true;
@@ -411,13 +395,6 @@ namespace ex::main {
             if (it->second <= 0) {
 
                 if (nodes_.contains(id_local)) {
-                    const auto type_id = nodes_.at(id_local)->get_type_id();
-
-                    if (mappers_.contains(type_id) && view_data_.contains(id_local)) {
-                        mappers_.at(type_id).cleanup(view_data_.at(id_local));
-                        view_data_.erase(id_local);
-                    }
-
                     delete nodes_.at(id_local);
                     nodes_.erase(id_local);
                 }

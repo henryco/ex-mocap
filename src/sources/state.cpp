@@ -15,6 +15,9 @@ namespace ex {
             }
             delete children;
         }
+
+        if (data != nullptr && data_size > 0)
+            free(data);
     }
 
     TreeNode *TreeNode::shallow_copy() {
@@ -154,8 +157,6 @@ namespace ex {
         const int curr_n   = static_cast<int>(this->children_n);
         const int new_size = (curr_n < 0 ? 0 : curr_n) + 1;
 
-        // TODO FIXME
-
         if (new_size <= 0)
             return;
 
@@ -279,7 +280,7 @@ namespace ex {
             auto head = node->next;
             while (head != nullptr) {
                 head->root = root;
-                head = head->next;
+                head       = head->next;
             }
 
             delete node;
@@ -298,17 +299,21 @@ namespace ex {
         delete node;
     }
 
-    node_buffer::~node_buffer() {
-        if (this->selection != nullptr) {
-            auto head = this->selection->root;
-            while (head != nullptr) {
-                const auto next = head->next;
-                if (head != this->selection)
-                    delete head;
-                head = next;
-            }
-            delete this->selection;
+    void selection_node::free(selection_node *node) {
+        if (node == nullptr)
+            return;
+        auto head = node->root;
+        while (head != nullptr) {
+            const auto next = head->next;
+            if (head != node)
+                delete head;
+            head = next;
         }
+        delete node;
+    }
+
+    node_buffer::~node_buffer() {
+        selection_node::free(this->selection);
     }
 
     void node_buffer::create(node_buffer **buffer, selection_node *selection, const bool move, const bool ref) {
