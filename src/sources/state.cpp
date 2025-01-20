@@ -3,6 +3,7 @@
 //
 
 #include "../headers/state.h"
+#include <cstring>
 
 namespace ex {
 
@@ -33,7 +34,57 @@ namespace ex {
         new_node->disabled   = this->disabled;
         new_node->id_local   = this->id_local;
         new_node->id_node    = this->id_node;
+        new_node->data_size  = 0;
         new_node->children_n = 0;
+        return new_node;
+    }
+
+    TreeNode *TreeNode::deep_copy() {
+        const auto new_node  = new TreeNode;
+        new_node->connected  = connected;
+        new_node->selected   = selected;
+        new_node->deleted    = deleted;
+        new_node->created    = created;
+        new_node->updated    = updated;
+        new_node->parent     = parent;
+        new_node->name       = name;
+        new_node->index      = index;
+        new_node->is_group   = is_group;
+        new_node->shared     = shared;
+        new_node->disabled   = disabled;
+        new_node->id_local   = id_local;
+        new_node->id_node    = id_node;
+        new_node->data_size  = data_size;
+        new_node->children_n = children_n;
+
+        if (data != nullptr && data_size > 0) {
+            void *new_data = malloc(data_size);
+            std::memcpy(new_data, data, data_size);
+            new_node->data = new_data;
+        }
+        else {
+            new_node->data = nullptr;
+        }
+
+        if (children_n <= 0 || children == nullptr) {
+            new_node->children = nullptr;
+            return new_node;
+        }
+
+        new_node->children = new TreeNode *[children_n];
+        for (int i = 0; i < children_n; i++) {
+            const auto child = children[i];
+
+            if (child == nullptr) {
+                new_node->children[i] = nullptr;
+                continue;
+            }
+
+            const auto new_child  = child->deep_copy();
+            new_child->parent     = new_node;
+            new_node->children[i] = new_child;
+        }
+
         return new_node;
     }
 

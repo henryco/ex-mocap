@@ -11,7 +11,13 @@
 namespace ex {
 
     struct TreeNode {
-        void       *data       = nullptr;
+
+        /**
+         * Data should be allocated using MALLOC,
+         * and should be trivially copyable !!!
+         */
+        void       *data = nullptr;
+
         const char *name       = nullptr;
         TreeNode   *parent     = nullptr;
         TreeNode  **children   = nullptr;
@@ -20,6 +26,7 @@ namespace ex {
         std::size_t id_local   = 0;
         std::size_t id_node    = 0;
         std::size_t index      = 0;
+        std::size_t data_size  = 0;
 
         bool        is_group   = false;
         bool        disabled   = false;
@@ -39,6 +46,7 @@ namespace ex {
         TreeNode *find_node(std::size_t id);
         TreeNode *find_node(TreeNode *node);
         TreeNode *shallow_copy();
+        TreeNode *deep_copy();
 
         static TreeNode *find_node(TreeNode *tree, std::size_t id);
         static TreeNode *shallow_copy(TreeNode *node);
