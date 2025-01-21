@@ -328,7 +328,7 @@ namespace ex {
 
     void node_buffer::create(node_buffer **buffer, selection_node *selection, const bool move, const bool ref) {
         if (*buffer != nullptr)
-            delete *buffer;
+            node_buffer::remove(buffer);
         *buffer              = new node_buffer;
         (*buffer)->selection = selection_node::copy(selection);
         (*buffer)->move      = move;
@@ -337,7 +337,7 @@ namespace ex {
 
     void node_buffer::create(node_buffer **buffer, TreeNode *node, const bool move, const bool ref) {
         if (*buffer != nullptr)
-            delete *buffer;
+            node_buffer::remove(buffer);
         *buffer = new node_buffer;
 
         const auto selection = new selection_node;
@@ -354,6 +354,18 @@ namespace ex {
     void node_buffer::remove(node_buffer **buffer) {
         if (*buffer == nullptr)
             return;
+
+        if (const auto selection = (*buffer)->selection; selection != nullptr) {
+            auto head = selection->root;
+            while (head != nullptr) {
+                if (head->selected != nullptr) {
+                    head->selected->selected = false;
+                    head->selected->dimmed   = false;
+                }
+                head = head->next;
+            }
+        }
+
         delete (*buffer);
         (*buffer) = nullptr;
     }
