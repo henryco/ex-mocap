@@ -30,8 +30,6 @@ namespace ex::gui {
             goto find_more;
         }
 
-        // TODO FIX SELECTION INDEX
-
         if (*selection != nullptr) {
             const auto next = new selection_node;
             next->root      = (*selection)->root;
@@ -149,15 +147,33 @@ namespace ex::gui {
         if (ImGui::GetIO().KeyShift && *selection != nullptr) {
 
             const auto *min_node = (*selection)->root;
+            const auto *max_node = (*selection)->root;
             const auto *cur_node = (*selection)->root;
+
             while (cur_node != nullptr) {
-                if (cur_node->index <= min_node->index)
+                if (cur_node->index <= min_node->index && cur_node->index >= 0)
                     min_node = cur_node;
+                if (min_node->index < 0 && cur_node->index >= 0)
+                    min_node = cur_node;
+                if (cur_node->index > max_node->index)
+                    max_node = cur_node;
                 cur_node = cur_node->next;
             }
 
-            auto *start = (min_node->index <= counter) ? min_node->selected : node;
-            auto *stop  = (min_node->index >= counter) ? min_node->selected : node;
+            const int index_min = std::min(counter, min_node->index);
+            const int index_max = std::max(counter, min_node->index);
+
+            TreeNode *start = nullptr;
+            TreeNode *stop  = nullptr;
+
+            start = (min_node->index <= counter) ? min_node->selected : node;
+
+            if (counter < index_max) {
+                stop = max_node->selected;
+            }
+            else {
+                stop = (min_node->index >= counter) ? min_node->selected : node;
+            }
 
             if (start == stop) {
                 selection_node::free(*selection, true);
@@ -184,9 +200,12 @@ namespace ex::gui {
 
             while (base != nullptr) {
                 base->selected->selected = true;
+                if (base->next == nullptr)
+                    base->index = index_max;
                 base = base->next;
             }
 
+            (*selection)->root->index = index_min;
             return true;
         }
 

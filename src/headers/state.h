@@ -23,10 +23,10 @@ namespace ex {
         TreeNode  **children   = nullptr;
 
         std::size_t children_n = 0;
+        std::size_t data_size  = 0;
         std::size_t id_local   = 0;
         std::size_t id_node    = 0;
         std::size_t index      = 0;
-        std::size_t data_size  = 0;
 
         bool        is_group   = false;
         bool        disabled   = false;
