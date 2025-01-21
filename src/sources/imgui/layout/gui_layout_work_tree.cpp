@@ -30,6 +30,8 @@ namespace ex::gui {
             goto find_more;
         }
 
+        // TODO FIX SELECTION INDEX
+
         if (*selection != nullptr) {
             const auto next = new selection_node;
             next->root      = (*selection)->root;
@@ -246,7 +248,7 @@ namespace ex::gui {
                         const int counter, const int n)
     {
         if (node == nullptr)
-            return counter; // TODO THROW EXCEPTION ?
+            return counter;
 
         int counter_i = counter;
 
