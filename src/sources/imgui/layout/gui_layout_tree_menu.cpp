@@ -152,22 +152,51 @@ namespace ex::gui {
             if (selection == nullptr)
                 return;
 
+            const auto copy_selection = selection_node::copy(selection);
+
             node_buffer::remove(&state.clipboard_node);
+            selection_node::free(state.selected_nodes);
+            state.selected_nodes = nullptr;
+
+            auto head = copy_selection->root;
+            while (head != nullptr) {
+                head->selected->selected = false;
+                head = head->next;
+            }
 
             const auto snapshot = state.work_tree->deep_copy();
 
+            head = copy_selection->root;
+            while (head != nullptr) {
+                head->selected->deleted = true;
+                head = head->next;
+            }
+
             undo_history().push("Selection deleted",
-            new std::function([ ] (ex::State *s) {
-                const auto w_tree = s->work_tree;
-
+            new std::function([snapshot] (ex::State *s) {
+                if (s->work_tree != nullptr && s->work_tree != snapshot)
+                    delete s->work_tree;
+                s->work_tree            = snapshot->deep_copy();
+                s->work_tree->connected = false;
+                s->work_tree->created   = true;
             }),
-            new std::function([ ] (ex::State *s) {
-                const auto w_tree = s->work_tree;
+            new std::function([copy_selection] (ex::State *s) {
+                node_buffer::remove(&(s->clipboard_node));
+                selection_node::free(s->selected_nodes);
+                s->selected_nodes = nullptr;
 
+                auto s_head = copy_selection->root;
+                while (s_head != nullptr) { // TODO FIXME
+                    const auto f_node = s->work_tree->find_node(s_head->selected->id_local);
+                    if (f_node != nullptr)
+                        f_node->deleted = true;
+                    s_head = s_head->next;
+                }
             }),
-            new std::function([ snapshot ] {
+            new std::function([snapshot, copy_selection] {
                 if (snapshot != nullptr)
                     delete snapshot;
+                selection_node::free(copy_selection);
             }));
         }
 
