@@ -138,7 +138,9 @@ namespace ex::gui {
         return false;
     }
 
-    bool select_node(selection_node **selection, TreeNode *node) {
+    bool select_node(selection_node **selection, TreeNode *node, const int counter) {
+
+        std::cout << "select: " << counter << '\n';
 
         if (ImGui::GetIO().KeyCtrl && *selection != nullptr) {
 
@@ -294,14 +296,14 @@ namespace ex::gui {
         return true;
     }
 
-    void show_tree_node(State &state, GuiState &gui, TreeNode *node, selection_node **selected,
+    int show_tree_node(State &state, GuiState &gui, TreeNode *node, selection_node **selected,
                         TreeNode **active, std::size_t *menu_node, const bool disabled_,
-                        const int total, const int n)
+                        const int counter, const int n)
     {
-        if (node == nullptr) {
-            // TODO THROW EXCEPTION ?
-            return;
-        }
+        if (node == nullptr)
+            return counter; // TODO THROW EXCEPTION ?
+
+        int counter_i = counter;
 
         if (!node->is_group) {
             // Not a group just regular element
@@ -339,7 +341,7 @@ namespace ex::gui {
                 ImGui::Indent();
 
             if ((ImGui::IsItemClicked() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) || menu_element) {
-                if (select_node(selected, node)) {
+                if (select_node(selected, node, counter_i)) {
                     *active = node;
                 }
             }
@@ -365,9 +367,10 @@ namespace ex::gui {
 
                 // Regular element but it has children
                 const auto next = node->children[0];
-                for (int i = 0; i < next->children_n; i++)
-                    show_tree_node(state, gui, next->children[i], selected, active, menu_node,
-                        disabled || disabled_, next->children_n, i);
+                for (int i = 0; i < next->children_n; i++) {
+                    counter_i = show_tree_node(state, gui, next->children[i], selected, active, menu_node,
+                        disabled || disabled_, counter_i + 1, i);
+                }
                 ImGui::TreePop();
 
                 if (disabled || disabled_)
@@ -378,7 +381,7 @@ namespace ex::gui {
             }
 
             ImGui::PopID();
-            return;
+            return counter_i;
         }
 
         // It's a group
@@ -387,7 +390,7 @@ namespace ex::gui {
 
         if (node->children_n <= 0) {
             // ignore such case
-            return;
+            return counter_i;
         }
 
         // It's a group, and it has children (not an empty)
@@ -423,7 +426,7 @@ namespace ex::gui {
                 }
 
                 if ((ImGui::IsItemClicked() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) || menu_element) {
-                    if (select_node(selected, first)) {
+                    if (select_node(selected, first, counter_i)) {
                         *active = first;
                     }
                 }
@@ -443,8 +446,8 @@ namespace ex::gui {
 
                 if (node->children_n > 1) {
                     for (int i = 1; i < node->children_n; i++) {
-                        show_tree_node(state, gui, node->children[i], selected, active, menu_node,
-                            disabled_, node->children_n, i);
+                        counter_i = show_tree_node(state, gui, node->children[i], selected, active, menu_node,
+                            disabled_, counter_i + 1, i);
                     }
                 }
 
@@ -452,16 +455,18 @@ namespace ex::gui {
             }
 
             brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
-            return;
+            return counter_i;
         }
 
         // Group with children, where the first element _HAS_ its own children
         const ImVec2 outer_start = brackets_start();
         for (int i = 0; i < node->children_n; i++) {
-            show_tree_node(state, gui, node->children[i], selected, active, menu_node,
-                 disabled_, node->children_n, i);
+            counter_i = show_tree_node(state, gui, node->children[i], selected, active, menu_node,
+                 disabled_, counter_i + 1, i);
         }
         brackets_end(outer_start, 0,  disabled_ ? 0.5f : 1.f);
+
+        return counter_i;
     }
 
     void work_tree_content(State &state, GuiState &gui) {
@@ -488,9 +493,9 @@ namespace ex::gui {
             TreeNode          *active_node = nullptr;
 
             ImGui::Indent(10.f);
-            for (int i = 0; i < state.work_tree->children_n; i++) {
-                show_tree_node(state, gui, state.work_tree->children[i], &state.selected_nodes, &active_node, &last_menu,
-                               false, state.work_tree->children_n, i);
+            for (int i = 0, p = 0; i < state.work_tree->children_n; i++) {
+                p = show_tree_node(state, gui, state.work_tree->children[i], &state.selected_nodes,
+                    &active_node, &last_menu, false, p + 1, i);
             }
             ImGui::Unindent(10.f);
 
