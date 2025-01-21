@@ -368,19 +368,20 @@ namespace ex::gui {
 
         const bool connected = first->connected || n == 0;
         const bool disabled  = first->disabled || !connected;
+        const bool dimmed    = first->dimmed;
 
         if (first->children_n <= 0) {
             // Group with children, where the first element _HAS NO_ its own children
             const ImVec2 outer_start = brackets_start();
             {
-                if (disabled || disabled_)
+                if (disabled || disabled_ || dimmed)
                     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
                 ImGui::PushID(first->id_local);
                 node_mappers_.at(first->id_node).draw_tree_node(
                     gui, state, first, false, first->selected);
 
-                if (disabled || disabled_)
+                if (disabled || disabled_ || dimmed)
                     ImGui::PopStyleVar();
 
                 bool menu_element = false;
