@@ -9,41 +9,41 @@ namespace ex::gui {
 
     namespace tree {
 
-        void copy_selected(State &state, GuiState &_, selection_node *selection) {
+        void copy_selected(State &state, GuiState &, selection_node *selection) {
             node_buffer::create(&state.clipboard_node, selection, false, false);
         }
 
-        void copy_node(State &state, GuiState &_, TreeNode *node) {
+        void copy_node(State &state, GuiState &, TreeNode *node) {
             node_buffer::create(&state.clipboard_node, node, false, false);
         }
 
-        void ref_node(State &state, GuiState &_, TreeNode *node) {
+        void ref_node(State &state, GuiState &, TreeNode *node) {
             node_buffer::create(&state.clipboard_node, node, false, true);
         }
 
-        void cut_selected(State &state, GuiState &_, selection_node *selection) {
+        void cut_selected(State &state, GuiState &, selection_node *selection) {
             node_buffer::create(&state.clipboard_node, selection, true, false);
             // TODO change opacity maybe?
         }
 
-        void cut_node(State &state, GuiState &_, TreeNode *node) {
+        void cut_node(State &state, GuiState &, TreeNode *node) {
             node_buffer::create(&state.clipboard_node, node, true, false);
             // TODO change opacity maybe?
         }
 
-        void paste_after_node(State &state, GuiState &gui, TreeNode *node) {
+        void paste_after_node(State &, GuiState &, TreeNode *) {
             // TODO
         }
 
-        void paste_into_node(State &state, GuiState &gui, TreeNode *node) {
+        void paste_into_node(State &, GuiState &, TreeNode *) {
             // TODO
         }
 
-        void duplicate_node(State &state, GuiState &gui, TreeNode *node) {
+        void duplicate_node(State &, GuiState &, TreeNode *) {
             // TODO
         }
 
-        void enable_node(State &_, GuiState &__, TreeNode *node) {
+        void enable_node(State &, GuiState &, TreeNode *node) {
             const bool og_state = node->disabled;
             node->disabled = false;
             undo_history().push("Node enabled",
@@ -63,7 +63,7 @@ namespace ex::gui {
             }));
         }
 
-        void disable_node(State &_, GuiState &__, TreeNode *node) {
+        void disable_node(State &, GuiState &, TreeNode *node) {
             const bool og_state = node->disabled;
             node->disabled = true;
             undo_history().push("Node disabled",
@@ -83,7 +83,7 @@ namespace ex::gui {
             }));
         }
 
-        void enable_selected(State &_, GuiState &__, selection_node *selection) {
+        void enable_selected(State &, GuiState &, selection_node *selection) {
             if (selection == nullptr)
                 return;
 
@@ -106,7 +106,7 @@ namespace ex::gui {
                 }
             }),
             new std::function([og_state = og_map](ex::State *s) {
-                for (const auto &[k, ___] : og_state) {
+                for (const auto &[k, _] : og_state) {
                     const auto f_node = s->work_tree->find_node(k);
                     if (f_node == nullptr)
                         return;
@@ -116,7 +116,7 @@ namespace ex::gui {
             }));
         }
 
-        void disable_selected(State &_, GuiState &__, selection_node *selection) {
+        void disable_selected(State &, GuiState &, selection_node *selection) {
             if (selection == nullptr)
                 return;
             std::map<std::size_t, bool> og_map;
@@ -138,7 +138,7 @@ namespace ex::gui {
                 }
             }),
             new std::function([og_state = og_map](ex::State *s) {
-                for (const auto &[k, ___] : og_state) {
+                for (const auto &[k, _] : og_state) {
                     const auto f_node = s->work_tree->find_node(k);
                     if (f_node == nullptr)
                         return;
@@ -148,7 +148,7 @@ namespace ex::gui {
             }));
         }
 
-        void delete_selected(State &state, GuiState &gui, selection_node *selection) {
+        void delete_selected(State &state, GuiState &, selection_node *selection) {
             if (selection == nullptr)
                 return;
 
@@ -171,7 +171,7 @@ namespace ex::gui {
             }));
         }
 
-        void delete_node(State &state, GuiState &gui, TreeNode *node) {
+        void delete_node(State &state, GuiState &, TreeNode *node) {
             if (node == nullptr)
                 return;
 
@@ -207,11 +207,11 @@ namespace ex::gui {
             }));
         }
 
-        void group_selected(State &state, GuiState &gui, selection_node *selection) {
+        void group_selected(State &, GuiState &, selection_node *) {
             // TODO
         }
 
-        void ungroup_selected(State &state, GuiState &gui, selection_node *selection) {
+        void ungroup_selected(State &, GuiState &, selection_node *) {
             // TODO
         }
     }
