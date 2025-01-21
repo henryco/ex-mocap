@@ -278,6 +278,39 @@ namespace ex::gui {
         return true;
     }
 
+    int count_children(TreeNode *node, const int counter) {
+        if (node == nullptr)
+            return counter;
+
+        int counter_i = counter;
+
+        if (!node->is_group) {
+            if (node->children_n > 0 && node->children != nullptr) {
+                const auto next = node->children[0];
+                for (int i = 0; i < next->children_n; i++)
+                    counter_i = count_children(next->children[i], counter_i + 1);
+            }
+            return counter_i;
+        }
+
+        if (node->children_n <= 0 || node->children == nullptr)
+            return counter_i;
+
+        const auto first = node->children[0];
+        if (first->children_n <= 0) {
+            if (node->children_n > 1) {
+                for (int i = 1; i < node->children_n; i++)
+                    counter_i = count_children(node->children[i], counter_i + 1);
+            }
+            return counter_i;
+        }
+
+        for (int i = 0; i < node->children_n; i++)
+            counter_i = count_children(node->children[i], counter_i + 1);
+
+        return counter_i;
+    }
+
     int show_tree_node(State &state, GuiState &gui, TreeNode *node, selection_node **selected,
                         TreeNode **active, std::size_t *menu_node, const bool disabled_,
                         const int counter, const int n)
@@ -362,6 +395,9 @@ namespace ex::gui {
                 brackets_end_half(pos, 0, disabled || disabled_ ? 0.5f : 1.f);
             }
 
+            else if (node->children_n > 0)
+                counter_i = count_children(node, counter_i);
+
             ImGui::PopID();
             return counter_i;
         }
@@ -370,7 +406,7 @@ namespace ex::gui {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
 
-        if (node->children_n <= 0) {
+        if (node->children_n <= 0 || node->children == nullptr) {
             // ignore such case
             return counter_i;
         }
