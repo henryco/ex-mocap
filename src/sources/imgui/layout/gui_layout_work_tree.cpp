@@ -13,132 +13,6 @@ namespace ex::gui {
     constexpr float ctrl_width   = 40.f;
     constexpr float min_width    = 100.f;
 
-    bool select_multi(selection_node **selection, selection_node **samples, TreeNode *node, TreeNode **start, TreeNode **stop) {
-        // TODO FIXME
-        if (node == nullptr)
-            return true;
-
-        if ((*start == nullptr || *stop == nullptr) && *samples == nullptr)
-            return true;
-
-        if (*start == nullptr && *stop == nullptr)
-            return true; // ignore such case
-
-        if (node == *stop && *start == nullptr) {
-            *selection             = new selection_node;
-            (*selection)->root     = *selection;
-            (*selection)->prev     = nullptr;
-            (*selection)->next     = nullptr;
-            (*selection)->selected = node;
-
-            std::swap(*start, *stop);
-            return select_multi(selection, samples, node, start, stop);
-        }
-
-        if (*start != nullptr && *stop != nullptr) {
-            if (*selection != nullptr) {
-                const auto next    = new selection_node;
-                next->root         = (*selection)->root;
-                next->prev         = *selection;
-                next->next         = nullptr;
-                next->selected     = node;
-                (*selection)->next = next;
-                *selection         = next;
-            } else {
-                *selection             = new selection_node;
-                (*selection)->root     = *selection;
-                (*selection)->prev     = nullptr;
-                (*selection)->next     = nullptr;
-                (*selection)->selected = node;
-            }
-
-            if (node == *stop) {
-                return true;
-            }
-
-            for (int i = 0; i < node->children_n; i++) {
-                if (select_multi(selection, samples, node->children[i], start, stop))
-                    return true;
-            }
-
-            return false;
-        }
-
-        if (*start == nullptr) {
-            auto head = (*samples)->root;
-            bool found = false;
-            while (head != nullptr) {
-                *samples = head;
-                auto next = head->next;
-                if (head->selected == node) {
-                    selection_node::remove(head, &next);
-                    *samples = next;
-                    found = true;
-                }
-                head = next;
-            }
-
-            if (found) {
-                *selection             = new selection_node;
-                (*selection)->root     = *selection;
-                (*selection)->prev     = nullptr;
-                (*selection)->next     = nullptr;
-                (*selection)->selected = node;
-                *start = node;
-                return select_multi(selection, samples, node, start, stop);
-            }
-
-            for (int i = 0; i < node->children_n; i++) {
-                if (select_multi(selection, samples, node->children[i], start, stop))
-                    return true;
-            }
-
-            return false;
-        }
-
-        if (*start != nullptr) {
-
-            if (*selection != nullptr) {
-                const auto next    = new selection_node;
-                next->root         = (*selection)->root;
-                next->prev         = *selection;
-                next->next         = nullptr;
-                next->selected     = node;
-                (*selection)->next = next;
-                *selection         = next;
-            } else {
-                *selection             = new selection_node;
-                (*selection)->root     = *selection;
-                (*selection)->prev     = nullptr;
-                (*selection)->next     = nullptr;
-                (*selection)->selected = node;
-            }
-
-            auto head = (*samples)->root;
-            while (head != nullptr) {
-                *samples = head;
-                auto next = head->next;
-                if (head->selected == node) {
-                    selection_node::remove(head, &next);
-                    *samples = next;
-                }
-                head = next;
-            }
-
-            if (*samples == nullptr)
-                return true;
-
-            for (int i = 0; i < node->children_n; i++) {
-                if (select_multi(selection, samples, node->children[i], start, stop))
-                    return true;
-            }
-
-            return false;
-        }
-
-        return false;
-    }
-
     bool select_many(selection_node **selection, TreeNode *node, TreeNode *start, TreeNode *stop) {
         if (start == nullptr || stop == nullptr || node == nullptr || selection == nullptr)
             return false;
@@ -152,6 +26,8 @@ namespace ex::gui {
             (*selection)->prev     = nullptr;
             (*selection)->next     = nullptr;
             (*selection)->selected = node;
+
+            goto find_more;
         }
 
         if (*selection != nullptr) {
@@ -167,6 +43,8 @@ namespace ex::gui {
             if (node == stop || node->id_local == stop->id_local)
                 return true;
         }
+
+    find_more:
 
         if (node->children_n <= 0 || node->children == nullptr) {
             return false;
@@ -290,10 +168,9 @@ namespace ex::gui {
                 root = root->parent;
             }
 
-            selection_node *new_selected  = nullptr;
-
-            select_many(&new_selected, root, start, stop);
+            selection_node *new_selected = nullptr;
             selection_node::free(*selection, true);
+            select_many(&new_selected, root, start, stop);
 
             if (new_selected == nullptr) {
                 *selection = nullptr;
