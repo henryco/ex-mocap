@@ -29,6 +29,7 @@ namespace ex::gui {
 
         void cut_node(State &state, GuiState &, TreeNode *node) {
             node_buffer::create(&state.clipboard_node, node, true, false);
+            node->dimmed = true;
             // TODO change opacity maybe?
         }
 

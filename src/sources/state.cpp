@@ -32,6 +32,7 @@ namespace ex {
         new_node->data       = nullptr;
         new_node->name       = this->name;
         new_node->index      = this->index;
+        new_node->dimmed     = this->dimmed;
         new_node->is_group   = this->is_group;
         new_node->shared     = this->shared;
         new_node->disabled   = this->disabled;
@@ -49,6 +50,7 @@ namespace ex {
         new_node->deleted    = deleted;
         new_node->created    = created;
         new_node->updated    = updated;
+        new_node->dimmed     = dimmed;
         new_node->parent     = parent;
         new_node->name       = name;
         new_node->index      = index;
