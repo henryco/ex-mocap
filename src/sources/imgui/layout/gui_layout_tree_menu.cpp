@@ -4,6 +4,7 @@
 
 #include "../../../headers/imgui/gui_layout.h"
 #include "../../../headers/imgui/gui_tree_ops.h"
+#include <ranges>
 
 namespace ex::gui {
 
@@ -40,6 +41,14 @@ namespace ex::gui {
         }
 
         void duplicate_node(State &, GuiState &, TreeNode *) {
+            // TODO
+        }
+
+        void group_selected(State &, GuiState &, selection_node *) {
+            // TODO
+        }
+
+        void ungroup_selected(State &, GuiState &, selection_node *) {
             // TODO
         }
 
@@ -106,7 +115,7 @@ namespace ex::gui {
                 }
             }),
             new std::function([og_state = og_map](ex::State *s) {
-                for (const auto &[k, _] : og_state) {
+                for (const auto &k : std::views::keys(og_state)) {
                     const auto f_node = s->work_tree->find_node(k);
                     if (f_node == nullptr)
                         return;
@@ -138,7 +147,7 @@ namespace ex::gui {
                 }
             }),
             new std::function([og_state = og_map](ex::State *s) {
-                for (const auto &[k, _] : og_state) {
+                for (const auto &k : std::views::keys(og_state)) {
                     const auto f_node = s->work_tree->find_node(k);
                     if (f_node == nullptr)
                         return;
@@ -235,14 +244,6 @@ namespace ex::gui {
                 if (snapshot != nullptr)
                     delete snapshot;
             }));
-        }
-
-        void group_selected(State &, GuiState &, selection_node *) {
-            // TODO
-        }
-
-        void ungroup_selected(State &, GuiState &, selection_node *) {
-            // TODO
         }
     }
 
