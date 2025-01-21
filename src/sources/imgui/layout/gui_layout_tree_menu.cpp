@@ -11,14 +11,6 @@ namespace ex::gui {
     namespace tree {
 
         void copy_selected(State &state, GuiState &, selection_node *selection) {
-            std::cout << " " << '\n';
-
-            auto head = selection->root;
-            while (head != nullptr) {
-                std::cout << "selected: " << head->index << ", " << head->selected->id_local << '\n';
-                head = head->next;
-            }
-
             node_buffer::create(&state.clipboard_node, selection, false, false);
         }
 
