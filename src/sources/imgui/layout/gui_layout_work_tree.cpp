@@ -142,14 +142,15 @@ namespace ex::gui {
 
         std::cout << "select: " << counter << '\n';
 
+        // SELECTION ADD SINGLE (Ctrl)
         if (ImGui::GetIO().KeyCtrl && *selection != nullptr) {
 
             if ((*selection)->root->next == nullptr && (*selection)->selected == node) {
 
                 if (node->selected) {
                     // OPTIONAL
+                    selection_node::free(*selection);
                     node->selected = false;
-                    delete *selection;
                     *selection = nullptr;
                     return false;
                     // OPTIONAL
@@ -224,6 +225,7 @@ namespace ex::gui {
             return false;
         }
 
+        // SELECTION ADD MANY (RANGE)
         if (ImGui::GetIO().KeyShift && *selection != nullptr) {
 
             auto root = node->parent;
@@ -270,6 +272,7 @@ namespace ex::gui {
             return true;
         }
 
+        // REGULAR SELECTION (SINGLE)
         if (*selection != nullptr) {
             auto head = (*selection)->root;
             while (head != nullptr) {
