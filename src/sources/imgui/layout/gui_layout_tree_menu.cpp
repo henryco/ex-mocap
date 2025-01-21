@@ -12,48 +12,73 @@ namespace ex::gui {
 
         void copy_selected(State &state, GuiState &, selection_node *selection) {
             node_buffer::create(&state.clipboard_node, selection, false, false);
+            selection_node::free(state.selected_nodes, true);
+            state.selected_nodes = nullptr;
         }
 
         void copy_node(State &state, GuiState &, TreeNode *node) {
             node_buffer::create(&state.clipboard_node, node, false, false);
+            selection_node::free(state.selected_nodes, true);
+            state.selected_nodes = nullptr;
         }
 
         void ref_node(State &state, GuiState &, TreeNode *node) {
             node_buffer::create(&state.clipboard_node, node, false, true);
+            selection_node::free(state.selected_nodes, true);
+            state.selected_nodes = nullptr;
         }
 
         void cut_selected(State &state, GuiState &, selection_node *selection) {
             node_buffer::create(&state.clipboard_node, selection, true, false);
-            // TODO change opacity maybe?
+            auto head = selection->root;
+            while (head != nullptr) {
+                std::cout << "s: " << head->selected->id_local << ", " << head->selected->name << '\n';
+                head->selected->dimmed = true;
+                head = head->next;
+            }
+            selection_node::free(state.selected_nodes, true);
+            state.selected_nodes = nullptr;
         }
 
         void cut_node(State &state, GuiState &, TreeNode *node) {
             node_buffer::create(&state.clipboard_node, node, true, false);
             node->dimmed = true;
-            // TODO change opacity maybe?
+
+            selection_node::free(state.selected_nodes, true);
+            state.selected_nodes = nullptr;
         }
 
-        void paste_after_node(State &, GuiState &, TreeNode *) {
+        void paste_after_node(State &state, GuiState &, TreeNode *) {
             // TODO
+            selection_node::free(state.selected_nodes, true);
+            state.selected_nodes = nullptr;
         }
 
-        void paste_into_node(State &, GuiState &, TreeNode *) {
+        void paste_into_node(State &state, GuiState &, TreeNode *) {
             // TODO
+            selection_node::free(state.selected_nodes, true);
+            state.selected_nodes = nullptr;
         }
 
-        void duplicate_node(State &, GuiState &, TreeNode *) {
+        void duplicate_node(State &state, GuiState &, TreeNode *) {
             // TODO
+            selection_node::free(state.selected_nodes, true);
+            state.selected_nodes = nullptr;
         }
 
-        void group_selected(State &, GuiState &, selection_node *) {
+        void group_selected(State &state, GuiState &, selection_node *selection) {
             // TODO
+            selection_node::free(state.selected_nodes, true);
+            state.selected_nodes = nullptr;
         }
 
-        void ungroup_selected(State &, GuiState &, selection_node *) {
+        void ungroup_selected(State &state, GuiState &, selection_node *selection) {
             // TODO
+            selection_node::free(state.selected_nodes, true);
+            state.selected_nodes = nullptr;
         }
 
-        void enable_node(State &, GuiState &, TreeNode *node) {
+        void enable_node(State &state, GuiState &, TreeNode *node) {
             const bool og_state = node->disabled;
             node->disabled = false;
             undo_history().push("Node enabled",
@@ -71,9 +96,12 @@ namespace ex::gui {
                 f_node->disabled = false;
                 f_node->updated = true;
             }));
+
+            selection_node::free(state.selected_nodes, true);
+            state.selected_nodes = nullptr;
         }
 
-        void disable_node(State &, GuiState &, TreeNode *node) {
+        void disable_node(State &state, GuiState &, TreeNode *node) {
             const bool og_state = node->disabled;
             node->disabled = true;
             undo_history().push("Node disabled",
@@ -91,9 +119,12 @@ namespace ex::gui {
                 f_node->disabled = true;
                 f_node->updated = true;
             }));
+
+            selection_node::free(state.selected_nodes, true);
+            state.selected_nodes = nullptr;
         }
 
-        void enable_selected(State &, GuiState &, selection_node *selection) {
+        void enable_selected(State &state, GuiState &, selection_node *selection) {
             if (selection == nullptr)
                 return;
 
@@ -124,9 +155,11 @@ namespace ex::gui {
                     f_node->updated = true;
                 }
             }));
+            selection_node::free(state.selected_nodes, true);
+            state.selected_nodes = nullptr;
         }
 
-        void disable_selected(State &, GuiState &, selection_node *selection) {
+        void disable_selected(State &state, GuiState &, selection_node *selection) {
             if (selection == nullptr)
                 return;
             std::map<std::size_t, bool> og_map;
@@ -156,6 +189,8 @@ namespace ex::gui {
                     f_node->updated = true;
                 }
             }));
+            selection_node::free(state.selected_nodes, true);
+            state.selected_nodes = nullptr;
         }
 
         void delete_selected(State &state, GuiState &, selection_node *selection) {
@@ -209,6 +244,8 @@ namespace ex::gui {
                     delete snapshot;
                 selection_node::free(copy_selection);
             }));
+            selection_node::free(state.selected_nodes, true);
+            state.selected_nodes = nullptr;
         }
 
         void delete_node(State &state, GuiState &, TreeNode *node) {
@@ -216,7 +253,7 @@ namespace ex::gui {
                 return;
 
             node_buffer::remove(&state.clipboard_node);
-            selection_node::free(state.selected_nodes);
+            selection_node::free(state.selected_nodes, true);
             state.selected_nodes = nullptr;
 
             node->selected = false;
@@ -255,6 +292,7 @@ namespace ex::gui {
         static auto menu_id = "show_context_menu_group";
         bool clicked = false;
 
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.f);
         if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
             ImGui::OpenPopup(menu_id);
             clicked = true;
@@ -304,6 +342,7 @@ namespace ex::gui {
 
             ImGui::EndPopup();
         }
+        ImGui::PopStyleVar();
 
         return clicked;
     }
@@ -314,6 +353,7 @@ namespace ex::gui {
         static auto menu_id = "show_context_menu_element";
         bool clicked = false;
 
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.f);
         if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
             ImGui::OpenPopup(menu_id);
             clicked = true;
@@ -373,6 +413,7 @@ namespace ex::gui {
 
             ImGui::EndPopup();
         }
+        ImGui::PopStyleVar();
         return clicked;
     }
 
