@@ -234,16 +234,19 @@ namespace ex {
         copy_selected->root     = copy_selected;
         copy_selected->prev     = nullptr;
         copy_selected->next     = nullptr;
+        copy_selected->index    = -1;
 
         auto head_src = this;
         while (head_src != nullptr) {
             copy_selected->selected = head_src->selected;
+            copy_selected->index    = head_src->index;
             head_src                = head_src->next;
             if (head_src != nullptr) {
                 const auto next_copy = new selection_node;
                 next_copy->root      = copy_selected->root;
                 next_copy->prev      = copy_selected;
                 next_copy->next      = nullptr;
+                next_copy->index     = -1;
                 copy_selected->next  = next_copy;
                 copy_selected        = next_copy;
             }
@@ -299,16 +302,21 @@ namespace ex {
         delete node;
     }
 
-    void selection_node::free(selection_node *node) {
+    void selection_node::free(selection_node *node, const bool unselect) {
         if (node == nullptr)
             return;
         auto head = node->root;
         while (head != nullptr) {
             const auto next = head->next;
-            if (head != node)
+            if (head != node) {
+                if (unselect && head->selected != nullptr)
+                    head->selected->selected = false;
                 delete head;
+            }
             head = next;
         }
+        if (unselect && node->selected != nullptr)
+            node->selected->selected = false;
         delete node;
     }
 

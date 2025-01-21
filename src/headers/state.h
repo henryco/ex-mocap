@@ -58,11 +58,13 @@ namespace ex {
         selection_node *prev     = nullptr;
         TreeNode       *selected = nullptr;
 
+        int index = -1;
+
         selection_node        *copy();
         static selection_node *copy(selection_node *src);
         static bool            single(selection_node *node);
         static void            remove(selection_node *node, selection_node **next);
-        static void            free(selection_node *node);
+        static void            free(selection_node *node, bool unselect = false);
     };
 
     struct node_buffer {

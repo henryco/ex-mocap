@@ -149,7 +149,7 @@ namespace ex::gui {
 
                 if (node->selected) {
                     // OPTIONAL
-                    selection_node::free(*selection);
+                    selection_node::free(*selection, true);
                     node->selected = false;
                     *selection = nullptr;
                     return false;
@@ -171,6 +171,7 @@ namespace ex::gui {
                 new_node->root     = (*selection)->root;
                 new_node->prev     = head;
                 new_node->next     = nullptr;
+                new_node->index    = counter;
                 new_node->selected = node;
                 head->next         = new_node;
 
@@ -238,23 +239,8 @@ namespace ex::gui {
             selection_node *copy_selected = selection_node::copy(*selection);
             select_multi(&new_selected, &copy_selected, root, &start_node, &node);
 
-            if (copy_selected != nullptr) {
-                auto r_head = copy_selected->root;
-                while (r_head != nullptr) {
-                    const auto r_next = r_head->next;
-                    delete r_head;
-                    r_head = r_next;
-                }
-            }
-
-            auto head = (*selection)->root;
-            while (head != nullptr) {
-                const selection_node *prev = head;
-                head->selected->selected   = false;
-
-                head = head->next;
-                delete prev;
-            }
+            selection_node::free(copy_selected);
+            selection_node::free(*selection, true);
 
             if (new_selected == nullptr) {
                 *selection = nullptr;
@@ -274,15 +260,7 @@ namespace ex::gui {
 
         // REGULAR SELECTION (SINGLE)
         if (*selection != nullptr) {
-            auto head = (*selection)->root;
-            while (head != nullptr) {
-                const auto next = head->next;
-                if (head->selected != nullptr)
-                    head->selected->selected = false;
-                delete head;
-                head = next;
-            }
-
+            selection_node::free(*selection, true);
             *selection = new selection_node;
         }
 
@@ -291,6 +269,7 @@ namespace ex::gui {
         }
 
         (*selection)->selected = node;
+        (*selection)->index    = counter;
         (*selection)->root     = *selection;
         (*selection)->next     = nullptr;
         (*selection)->prev     = nullptr;
