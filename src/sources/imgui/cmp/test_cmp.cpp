@@ -77,10 +77,6 @@ namespace ex::gui::test::one {
 
     }
 
-    nodes::BaseNode *re_instance(State &state, TreeNode *from, nodes::BaseNode *src) {
-        return src;
-    }
-
     nodes::BaseNode *instance(const State &state, TreeNode *from) {
         const auto node = new NodeOne();
         node->set_id(from->id_local);
@@ -140,10 +136,6 @@ namespace ex::gui::test::two {
 
     }
 
-    nodes::BaseNode *re_instance(State &state, TreeNode *from, nodes::BaseNode *src) {
-        return src;
-    }
-
     nodes::BaseNode *instance(const State &state, TreeNode *from) {
         const auto node = new NodeTwo();
         node->set_id(from->id_local);
@@ -195,10 +187,6 @@ namespace ex::gui::test::tri {
 
     void from_tree(State &state, TreeNode *from, nodes::BaseNode *to) {
 
-    }
-
-    nodes::BaseNode *re_instance(State &state, TreeNode *from, nodes::BaseNode *src) {
-        return src;
     }
 
     nodes::BaseNode *instance(const State &state, TreeNode *from) {

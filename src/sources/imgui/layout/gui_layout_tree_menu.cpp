@@ -175,33 +175,29 @@ namespace ex::gui {
             if (node == nullptr)
                 return;
 
-            node->created = true; // TODO FIXME
-
             node_buffer::remove(&state.clipboard_node);
             selection_node::free(state.selected_nodes);
             state.selected_nodes = nullptr;
 
             node->selected = false;
-
             const auto node_id  = node->id_local;
             const auto snapshot = state.work_tree->deep_copy();
-
             node->deleted = true;
 
             undo_history().push("Node deleted",
             new std::function([snapshot] (ex::State *s) {
                 if (s->work_tree != nullptr && s->work_tree != snapshot)
                     delete s->work_tree;
-                s->work_tree = snapshot->deep_copy();
+                s->work_tree            = snapshot->deep_copy();
                 s->work_tree->connected = false;
                 s->work_tree->created   = true;
             }),
             new std::function([node_id] (ex::State *s) {
-                const auto f_node = s->work_tree->find_node(node_id);
-                if (f_node == nullptr)
-                    return;
                 node_buffer::remove(&(s->clipboard_node));
                 selection_node::free(s->selected_nodes);
+                const auto f_node = s->work_tree->find_node(node_id);
+                if (f_node == nullptr)
+                   return;
                 s->selected_nodes = nullptr;
                 f_node->deleted   = true;
             }),

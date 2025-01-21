@@ -51,7 +51,6 @@ namespace ex::main {
         };
 
         std::map<local_id_, nodes::BaseNode *> nodes_       = {};
-//        std::map<local_id_, void *>            view_data_   = {};
         std::map<local_id_, int>               ptr_counter_ = {};
 
         long timestamp = 0;
@@ -72,7 +71,7 @@ namespace ex::main {
         void serialize(State &state);
 
     protected:
-        void traverse_(State &state, TreeNode *node, bool *rewire);
+        void traverse_(State &state, TreeNode *node, bool *rewire, bool reset);
 
         void synchronize_(State &state);
 

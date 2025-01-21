@@ -33,10 +33,6 @@ namespace ex::map::camera {
         // TODO
     }
 
-    nodes::BaseNode *re_instance(State &state, TreeNode *from, nodes::BaseNode *src) {
-        return src;
-    }
-
     nodes::BaseNode *instance(const State &state, TreeNode *from) {
         if (from->data != nullptr)
             delete static_cast<state::camera *>(from->data);

@@ -32,6 +32,11 @@ namespace ex::gui::test {
         bool stored_bool = false;
         char stored_char = '\0';
     public:
+
+        ~NodeOne() override {
+            std::cout << "DSTR 1: " << local_id << '\n';
+        }
+
         std::string serialize() const override {
             return "";
         }
@@ -87,6 +92,10 @@ namespace ex::gui::test {
         bool stored_bool = false;
         char stored_char = '\0';
     public:
+        ~NodeTwo() override {
+            std::cout << "DSTR 2: " << local_id << '\n';
+        }
+
         std::string serialize() const override {
             return "";
         }
@@ -142,6 +151,10 @@ namespace ex::gui::test {
         bool stored_bool = false;
         char stored_char = '\0';
     public:
+        ~NodeTri() override {
+            std::cout << "DSTR 3: " << local_id << '\n';
+        }
+
         std::string serialize() const override {
             return "";
         }
@@ -184,9 +197,8 @@ namespace ex::gui::test {
 
         void from_base(State &state, nodes::BaseNode *from, TreeNode *to);
         void from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
-        nodes::BaseNode *re_instance(State &state, TreeNode *from, nodes::BaseNode *src);
         nodes::BaseNode *instance(const State &state, TreeNode *from);
-        static constexpr DataMappers data_mappers = { from_base, from_tree, re_instance, instance };
+        static constexpr DataMappers data_mappers = { from_base, from_tree, instance };
     }
 
     namespace two {
@@ -197,9 +209,8 @@ namespace ex::gui::test {
 
         void from_base(State &state, nodes::BaseNode *from, TreeNode *to);
         void from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
-        nodes::BaseNode *re_instance(State &state, TreeNode *from, nodes::BaseNode *src);
         nodes::BaseNode *instance(const State &state, TreeNode *from);
-        static constexpr DataMappers data_mappers = { from_base, from_tree, re_instance, instance };
+        static constexpr DataMappers data_mappers = { from_base, from_tree, instance };
     }
 
     namespace tri {
@@ -210,9 +221,8 @@ namespace ex::gui::test {
 
         void from_base(State &state, nodes::BaseNode *from, TreeNode *to);
         void from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
-        nodes::BaseNode *re_instance(State &state, TreeNode *from, nodes::BaseNode *src);
         nodes::BaseNode *instance(const State &state, TreeNode *from);
-        static constexpr DataMappers data_mappers = { from_base, from_tree, re_instance, instance };
+        static constexpr DataMappers data_mappers = { from_base, from_tree, instance };
     }
 
 }

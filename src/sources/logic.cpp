@@ -197,7 +197,10 @@ namespace ex::main {
         state.work_tree->is_group   = true;
 
         for (auto &[_, node]: nodes_) {
-            delete node;
+            if (node != nullptr) {
+                node->detach_all_any();
+                delete node;
+            }
         }
 
         ptr_counter_.clear();
@@ -216,10 +219,18 @@ namespace ex::main {
         timestamp = now;
 
         bool rewire = false;
-        traverse_(state, state.work_tree, &rewire);
+        traverse_(state, state.work_tree, &rewire, false);
+
+        static bool gc_run = false;
+
+        if (gc_run && !rewire) {
+            gc_(state);
+            gc_run = false;
+        }
 
         if (rewire) {
             rewire_(state);
+            gc_run = true;
         }
     }
 
@@ -229,8 +240,16 @@ namespace ex::main {
 
         node->deleted = true;
 
-        if (ptr_counter_.contains(node->id_local))
-            ptr_counter_.at(node->id_local)--;
+        if (!node->shared && nodes_.contains(node->id_local)) {
+            const auto base = nodes_.at(node->id_local);
+            nodes_.erase(node->id_local);
+            base->detach_all_any();
+
+            if (ptr_counter_.contains(node->id_local))
+                ptr_counter_.erase(node->id_local);
+
+            delete base;
+        }
 
         if (node->children_n <= 0 || node->children == nullptr) {
             return;
@@ -241,7 +260,7 @@ namespace ex::main {
         }
     }
 
-    void Logic::traverse_(State &state, TreeNode *node, bool *rewire) {
+    void Logic::traverse_(State &state, TreeNode *node, bool *rewire, const bool reset) {
         if (node == nullptr)
             return;
 
@@ -258,7 +277,7 @@ namespace ex::main {
             }
 
             else {
-                traverse_(state, child, rewire);
+                traverse_(state, child, rewire, reset || node->created);
                 if (child->is_group && (child->children_n <= 0 || child->children == nullptr)) {
                     child->deleted = true;
                     *rewire = true;
@@ -281,7 +300,7 @@ namespace ex::main {
             o = 0;
         }
 
-        if (node->created) {
+        if (node->created || reset) {
             if (!node->is_group) {
 
                 if (node->id_local <= 0) {
@@ -289,29 +308,21 @@ namespace ex::main {
                     node->id_local        = c_++;
                 }
 
-                // create or duplicate node
                 const DataMappers &mappers = mappers_.at(node->id_node);
-                if (nodes_.contains(node->id_local)) {
-                    // basically we create reference
-                    nodes::BaseNode *old_one = nodes_.at(node->id_local);
-                    if (nodes::BaseNode *new_one = mappers.re_instance(state, node, old_one); old_one != new_one) {
-                        nodes_.erase(node->id_local);
-                        nodes_.emplace(node->id_local, new_one);
-                    }
-                } else
+                if (!nodes_.contains(node->id_local))
                     nodes_.emplace(node->id_local, mappers.instance(state, node));
             }
             node->created = false;
             *rewire = true;
-
-            if (ptr_counter_.contains(node->id_local))
-                ptr_counter_.at(node->id_local)++;
-            else
-                ptr_counter_.emplace(node->id_local, 1);
         }
 
         if (node->is_group || !nodes_.contains(node->id_local))
             return;
+
+        if (ptr_counter_.contains(node->id_local))
+            ptr_counter_.at(node->id_local) += 1;
+        else
+            ptr_counter_.emplace(node->id_local, 1);
 
         nodes::BaseNode *node_ptr = nodes_.at(node->id_local);
 
@@ -320,7 +331,8 @@ namespace ex::main {
             node->updated = false;
         }
 
-        mappers_.at(node->id_node).from_base(state, node_ptr, node);
+        if (node_ptr->updated())
+            mappers_.at(node->id_node).from_base(state, node_ptr, node);
     }
 
     void Logic::rewire_(State &state) {
@@ -398,10 +410,12 @@ namespace ex::main {
                     delete nodes_.at(id_local);
                     nodes_.erase(id_local);
                 }
+
                 it = ptr_counter_.erase(it);
 
                 log->debug("node gc remove: {}", id_local);
             } else {
+                it->second = 0;
                 ++it;
             }
         }
@@ -412,6 +426,10 @@ namespace ex::main {
     void Logic::build_tree_(State &state, TreeNode *node, TreeNode *previous, simple_list *group_list) {
         if (node == nullptr || group_list == nullptr || node->deleted)
             return;
+
+        if (!node->shared && !node->is_group) {
+            node->connected = false;
+        }
 
         if (node->is_group) {
             TreeNode *prev_node = previous;
@@ -457,6 +475,15 @@ namespace ex::main {
     void Logic::connect_nodes_(TreeNode *from, TreeNode *to) {
         if (from == nullptr || to == nullptr)
             return;
+
+        if (from->shared && !nodes_.contains(from->id_local)) {
+            log->warn("Cannot connect shared node, reference deleted: {}", from->id_local);
+            return;
+        }
+
+        if (to->shared) {
+            return;
+        }
 
         nodes::BaseNode *node_dst = nodes_.at(to->id_local);
         nodes::BaseNode *node_src = nodes_.at(from->id_local);
@@ -515,4 +542,4 @@ namespace ex::main {
         log->debug("CONNECTION STATUS: {} -> {} [{}]", from->id_local, to->id_local, to->connected);
     }
 
-} // namespace ex::main
+}
