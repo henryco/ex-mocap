@@ -154,8 +154,8 @@ namespace ex::gui {
                 cur_node = cur_node->next;
             }
 
-            auto *start = min_node->index >= counter ? min_node->selected : node;
-            auto *stop  = min_node->index <= counter ? node : min_node->selected;
+            auto *start = (min_node->index <= counter) ? min_node->selected : node;
+            auto *stop  = (min_node->index >= counter) ? min_node->selected : node;
 
             if (start == stop) {
                 selection_node::free(*selection, true);
