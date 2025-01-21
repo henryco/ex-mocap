@@ -32,7 +32,6 @@ namespace ex::gui {
             node_buffer::create(&state.clipboard_node, selection, true, false);
             auto head = selection->root;
             while (head != nullptr) {
-                std::cout << "s: " << head->selected->id_local << ", " << head->selected->name << '\n';
                 head->selected->dimmed = true;
                 head = head->next;
             }
@@ -42,10 +41,9 @@ namespace ex::gui {
 
         void cut_node(State &state, GuiState &, TreeNode *node) {
             node_buffer::create(&state.clipboard_node, node, true, false);
-            node->dimmed = true;
-
             selection_node::free(state.selected_nodes, true);
             state.selected_nodes = nullptr;
+            node->dimmed = true;
         }
 
         void paste_after_node(State &state, GuiState &, TreeNode *) {
