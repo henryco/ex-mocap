@@ -170,6 +170,7 @@ namespace ex::gui {
             while (head != nullptr) {
                 if (!head->selected->is_group)
                     head->selected->deleted = true;
+                head->selected = TreeNode::shallow_copy(head->selected);
                 head = head->next;
             }
 
@@ -181,24 +182,18 @@ namespace ex::gui {
                 s->work_tree->connected = false;
                 s->work_tree->created   = true;
             }),
-
             new std::function([copy_selection] (ex::State *s) {
                 auto s_head = copy_selection->root;
-
-                while (s_head != nullptr) { // TODO FIXME
+                while (s_head != nullptr) {
                     const auto f_node = s->work_tree->find_node(s_head->selected->id_local);
-
                     if (f_node != nullptr && !f_node->is_group)
                         f_node->deleted = true;
-
                     s_head = s_head->next;
                 }
-
                 node_buffer::remove(&(s->clipboard_node));
                 selection_node::free(s->selected_nodes);
                 s->selected_nodes = nullptr;
             }),
-
             new std::function([snapshot, copy_selection] {
                 if (snapshot != nullptr)
                     delete snapshot;
