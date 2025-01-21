@@ -14,6 +14,7 @@ namespace ex::gui {
     constexpr float min_width    = 100.f;
 
     bool select_multi(selection_node **selection, selection_node **samples, TreeNode *node, TreeNode **start, TreeNode **stop) {
+        // TODO FIXME
         if (node == nullptr)
             return true;
 
@@ -138,10 +139,48 @@ namespace ex::gui {
         return false;
     }
 
+    bool select_many(selection_node **selection, TreeNode *node, TreeNode *start, TreeNode *stop) {
+        if (start == nullptr || stop == nullptr || node == nullptr || selection == nullptr)
+            return false;
+
+        if (node == start || node->id_local == start->id_local) {
+            if (*selection != nullptr)
+                selection_node::free(*selection);
+
+            *selection             = new selection_node;
+            (*selection)->root     = *selection;
+            (*selection)->prev     = nullptr;
+            (*selection)->next     = nullptr;
+            (*selection)->selected = node;
+        }
+
+        if (*selection != nullptr) {
+            const auto next = new selection_node;
+            next->root      = (*selection)->root;
+            next->prev      = *selection;
+            next->next      = nullptr;
+            next->selected  = node;
+
+            (*selection)->next = next;
+            *selection         = next;
+
+            if (node == stop || node->id_local == stop->id_local)
+                return true;
+        }
+
+        if (node->children_n <= 0 || node->children == nullptr) {
+            return false;
+        }
+
+        for (int i = 0; i < node->children_n; i++) {
+            if (select_many(selection, node->children[i], start, stop))
+                return true;
+        }
+
+        return false;
+    }
+
     bool select_node(selection_node **selection, TreeNode *node, const int counter) {
-
-        std::cout << "select: " << counter << '\n';
-
         // SELECTION ADD SINGLE (Ctrl)
         if (ImGui::GetIO().KeyCtrl && *selection != nullptr) {
 
@@ -229,17 +268,31 @@ namespace ex::gui {
         // SELECTION ADD MANY (RANGE)
         if (ImGui::GetIO().KeyShift && *selection != nullptr) {
 
-            auto root = node->parent;
+            const auto *min_node = (*selection)->root;
+            const auto *cur_node = (*selection)->root;
+            while (cur_node != nullptr) {
+                if (cur_node->index <= min_node->index)
+                    min_node = cur_node;
+                cur_node = cur_node->next;
+            }
+
+            auto *start = min_node->index >= counter ? min_node->selected : node;
+            auto *stop  = min_node->index <= counter ? node : min_node->selected;
+
+            if (start == stop) {
+                selection_node::free(*selection, true);
+                *selection = nullptr;
+                return false;
+            }
+
+            auto *root = node->parent;
             while (root->parent != nullptr) {
                 root = root->parent;
             }
 
-            TreeNode       *start_node    = nullptr;
             selection_node *new_selected  = nullptr;
-            selection_node *copy_selected = selection_node::copy(*selection);
-            select_multi(&new_selected, &copy_selected, root, &start_node, &node);
 
-            selection_node::free(copy_selected);
+            select_many(&new_selected, root, start, stop);
             selection_node::free(*selection, true);
 
             if (new_selected == nullptr) {
