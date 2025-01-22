@@ -68,6 +68,7 @@ namespace ex::gui {
             node_buffer::remove(&state.clipboard_node);
             selection_node::free(state.selected_nodes, true);
             state.selected_nodes = nullptr;
+            state.force_sync     = true;
         }
 
         void group_selected(State &state, GuiState &, selection_node *selection) {

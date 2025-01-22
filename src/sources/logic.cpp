@@ -213,9 +213,13 @@ namespace ex::main {
 
     void Logic::synchronize_(State &state) {
         const auto now = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-        if (const auto elapsed = now - timestamp; elapsed < update_threshold)
-            return;
 
+        if (!state.force_sync) {
+            if (const auto elapsed = now - timestamp; elapsed < update_threshold)
+                return;
+        }
+
+        state.force_sync = false;
         timestamp = now;
 
         bool rewire = false;
