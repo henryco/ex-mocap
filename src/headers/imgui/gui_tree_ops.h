@@ -15,6 +15,7 @@ namespace ex::gui::tree {
     void group_selected(State &state, GuiState &gui, selection_node *selection);
     void ungroup_selected(State &state, GuiState &gui, selection_node *selection);
 
+    void rename_node(State &state, GuiState &gui, TreeNode *node, const char *name);
     void copy_node(State &state, GuiState &gui, TreeNode *node);
     void cut_node(State &state, GuiState &gui, TreeNode *node);
     void ref_node(State &state, GuiState &gui, TreeNode *node);

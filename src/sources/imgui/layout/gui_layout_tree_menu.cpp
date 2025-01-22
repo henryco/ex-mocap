@@ -46,6 +46,10 @@ namespace ex::gui {
             node->dimmed = true;
         }
 
+        void rename_node(State &state, GuiState &gui, TreeNode *node, const char *name) {
+            // TODO
+        }
+
         void paste_after_node(State &state, GuiState &, TreeNode *) {
             // TODO
             selection_node::free(state.selected_nodes, true);
@@ -422,7 +426,11 @@ namespace ex::gui {
         const bool last, const bool nested, const bool selected)
     {
         static auto menu_id = "show_context_menu_element";
-        bool clicked = false;
+        static char name_buffer[64] = "";
+        static ImVec2 name_pos;
+
+        bool rename_popup = false;
+        bool clicked      = false;
 
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.f);
         if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
@@ -434,6 +442,16 @@ namespace ex::gui {
         }
 
         if (ImGui::BeginPopup(menu_id)) {
+            name_pos = ImGui::GetCursorStartPos();
+
+            if (ImGui::MenuItem("Rename")) {
+                std::memset(name_buffer, 0, sizeof(name_buffer));
+                std::memcpy(name_buffer, node->name, strlen(node->name));
+                ImGui::SetNextWindowPos(name_pos);
+                ImGui::OpenPopup("rename-popup");
+                rename_popup = true;
+            }
+
             const bool enabled = !node->disabled;
             if (ImGui::MenuItem(enabled ? "Disable" : "Enable")) {
                 if (enabled) tree::disable_node(state, gui, node);
@@ -484,6 +502,18 @@ namespace ex::gui {
 
             ImGui::EndPopup();
         }
+
+        if (ImGui::BeginPopup("rename-popup")) {
+            ImGui::Text("Edit name: ");
+            ImGui::InputText("##edit", name_buffer, IM_ARRAYSIZE(name_buffer));
+            if (ImGui::Button("Apply"))
+                ImGui::CloseCurrentPopup();
+            ImGui::EndPopup();
+        } else if (rename_popup) {
+            ImGui::SetNextWindowPos(name_pos);
+            ImGui::OpenPopup("rename-popup");
+        }
+
         ImGui::PopStyleVar();
         return clicked;
     }
