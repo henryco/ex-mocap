@@ -59,6 +59,8 @@ namespace ex::gui {
         }
 
         void duplicate_node(State &state, GuiState &, TreeNode *node) {
+            const auto snapshot = state.work_tree->deep_copy();
+
             TreeNode *copy = TreeNode::deep_copy(node, true);
             copy->name     = (new std::string(node->name))->append(" (copy)").c_str();
             copy->parent   = nullptr;
@@ -66,10 +68,33 @@ namespace ex::gui {
 
             node->parent->insert_node(node->index + 1, copy);
 
+            undo_history().push("Node duplicated",
+            new std::function([snapshot] (ex::State *s) -> void {
+                node_buffer::remove(&(s->clipboard_node));
+                if (s->work_tree != nullptr && s->work_tree != snapshot)
+                    delete s->work_tree;
+                s->work_tree            = snapshot->deep_copy();
+                s->work_tree->connected = false;
+                s->work_tree->created   = true;
+
+                node_buffer::remove(&(s->clipboard_node));
+                selection_node::free(s->selected_nodes, true);
+                s->selected_nodes = nullptr;
+            }),
+            new std::function([] (ex::State *s) -> void {
+                // TODO
+                node_buffer::remove(&(s->clipboard_node));
+                selection_node::free(s->selected_nodes, true);
+                s->selected_nodes = nullptr;
+            }),
+            new std::function([snapshot] {
+                if (snapshot != nullptr)
+                    delete snapshot;
+            }));
+
             node_buffer::remove(&state.clipboard_node);
             selection_node::free(state.selected_nodes, true);
             state.selected_nodes = nullptr;
-            state.force_sync     = true;
         }
 
         void group_selected(State &state, GuiState &, selection_node *selection) {

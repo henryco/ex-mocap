@@ -85,7 +85,7 @@ namespace ex {
                 continue;
             }
 
-            const auto new_child  = child->deep_copy();
+            const auto new_child  = child->deep_copy(generated_id);
             new_child->parent     = new_node;
             new_node->children[i] = new_child;
         }
