@@ -66,30 +66,50 @@ namespace ex::gui {
             copy->parent   = nullptr;
             copy->index    = 0;
 
-            node->parent->insert_node(node->index + 1, copy);
+            const auto parent_id   = node->parent->id_local;
+            const auto child_index = node->index + 1;
+            const auto copy_ref    = new TreeNode *[] { copy };
+
+            node->parent->insert_node(child_index, copy);
 
             undo_history().push("Node duplicated",
-            new std::function([snapshot] (ex::State *s) -> void {
-                node_buffer::remove(&(s->clipboard_node));
+            new std::function([snapshot, copy_ref] (ex::State *s) -> void {
+                TreeNode *og_node = s->work_tree->find_node(*copy_ref);
+                if (og_node == nullptr)
+                    throw std::runtime_error("Could not find original node");
+
+                copy_ref[0] = og_node->deep_copy();
+
                 if (s->work_tree != nullptr && s->work_tree != snapshot)
                     delete s->work_tree;
                 s->work_tree            = snapshot->deep_copy();
-                s->work_tree->connected = false;
                 s->work_tree->created   = true;
+                s->work_tree->connected = false;
 
                 node_buffer::remove(&(s->clipboard_node));
                 selection_node::free(s->selected_nodes, true);
                 s->selected_nodes = nullptr;
             }),
-            new std::function([] (ex::State *s) -> void {
-                // TODO
+            new std::function([parent_id, child_index, copy_ref] (ex::State *s) -> void {
+                if (const auto p_node = s->work_tree->find_node(parent_id); p_node != nullptr) {
+                    TreeNode *new_copy = TreeNode::deep_copy(copy_ref[0]);
+                    p_node->insert_node(child_index, new_copy);
+
+                    delete copy_ref[0];
+                    copy_ref[0] = new_copy;
+                }
                 node_buffer::remove(&(s->clipboard_node));
                 selection_node::free(s->selected_nodes, true);
                 s->selected_nodes = nullptr;
             }),
-            new std::function([snapshot] {
+            new std::function([snapshot, copy_ref] {
                 if (snapshot != nullptr)
                     delete snapshot;
+                if (copy_ref != nullptr) {
+                    if (copy_ref[0] != nullptr)
+                        delete copy_ref[0];
+                    delete[] copy_ref;
+                }
             }));
 
             node_buffer::remove(&state.clipboard_node);

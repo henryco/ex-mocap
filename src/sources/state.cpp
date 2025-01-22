@@ -13,7 +13,7 @@ namespace ex {
                 if (children[i] != nullptr)
                     delete children[i];
             }
-            delete children;
+            delete[] children;
         }
 
         if (data != nullptr && data_size > 0)
@@ -116,7 +116,7 @@ namespace ex {
             }
         }
 
-        delete this->children;
+        delete[] this->children;
 
         this->children_n = new_size;
         this->children   = children;
@@ -184,7 +184,7 @@ namespace ex {
             children[i]->index = i;
         }
 
-        delete this->children;
+        delete[] this->children;
 
         this->children_n = new_size;
         this->children   = children;
