@@ -59,9 +59,13 @@ namespace ex::gui {
         }
 
         void duplicate_node(State &state, GuiState &, TreeNode *node) {
+            TreeNode *copy = TreeNode::deep_copy(node, true);
+            copy->parent   = nullptr;
+            copy->index    = 0;
 
+            node->parent->insert_node(node->index + 1, copy);
 
-
+            node_buffer::remove(&state.clipboard_node);
             selection_node::free(state.selected_nodes, true);
             state.selected_nodes = nullptr;
         }
