@@ -58,8 +58,10 @@ namespace ex::gui {
             state.selected_nodes = nullptr;
         }
 
-        void duplicate_node(State &state, GuiState &, TreeNode *) {
-            // TODO
+        void duplicate_node(State &state, GuiState &, TreeNode *node) {
+
+
+
             selection_node::free(state.selected_nodes, true);
             state.selected_nodes = nullptr;
         }

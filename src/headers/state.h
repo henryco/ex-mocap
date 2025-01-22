@@ -46,11 +46,12 @@ namespace ex {
 
         TreeNode *find_node(std::size_t id);
         TreeNode *find_node(TreeNode *node);
-        TreeNode *shallow_copy();
-        TreeNode *deep_copy();
+        TreeNode *shallow_copy() const;
+        TreeNode *deep_copy(bool generated_id = false) const;
 
         static TreeNode *find_node(TreeNode *tree, std::size_t id);
         static TreeNode *shallow_copy(TreeNode *node);
+        static TreeNode *deep_copy(TreeNode *node, bool generated_id = false);
     };
 
     struct selection_node {
@@ -61,7 +62,7 @@ namespace ex {
 
         int index = -1;
 
-        selection_node        *copy();
+        selection_node        *copy() const;
         static selection_node *copy(selection_node *src);
         static bool            single(selection_node *node);
         static void            remove(selection_node *node, selection_node **next);

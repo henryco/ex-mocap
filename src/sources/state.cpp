@@ -20,7 +20,7 @@ namespace ex {
             free(data);
     }
 
-    TreeNode *TreeNode::shallow_copy() {
+    TreeNode *TreeNode::shallow_copy() const {
         const auto new_node  = new TreeNode;
         new_node->connected  = false;
         new_node->selected   = false;
@@ -43,21 +43,21 @@ namespace ex {
         return new_node;
     }
 
-    TreeNode *TreeNode::deep_copy() {
+    TreeNode *TreeNode::deep_copy(const bool generated_id) const {
         const auto new_node  = new TreeNode;
-        new_node->connected  = connected;
-        new_node->selected   = selected;
-        new_node->deleted    = deleted;
-        new_node->created    = created;
-        new_node->updated    = updated;
-        new_node->dimmed     = dimmed;
+        new_node->id_local   = generated_id ? 0 : id_local;
+        new_node->created    = generated_id ? true : created;
+        new_node->connected  = generated_id ? false : connected;
+        new_node->selected   = generated_id ? false : selected;
+        new_node->deleted    = generated_id ? false : deleted;
+        new_node->dimmed     = generated_id ? false : dimmed;
+        new_node->shared     = generated_id ? false : shared;
+        new_node->disabled   = generated_id ? false : disabled;
+        new_node->updated    = generated_id ? false : updated;
         new_node->parent     = parent;
         new_node->name       = name;
         new_node->index      = index;
         new_node->is_group   = is_group;
-        new_node->shared     = shared;
-        new_node->disabled   = disabled;
-        new_node->id_local   = id_local;
         new_node->id_node    = id_node;
         new_node->data_size  = data_size;
         new_node->children_n = children_n;
@@ -228,7 +228,13 @@ namespace ex {
         return node->shallow_copy();
     }
 
-    selection_node *selection_node::copy() {
+    TreeNode *TreeNode::deep_copy(TreeNode *node, bool generated_id) {
+        if (node == nullptr)
+            return nullptr;
+        return node->deep_copy(generated_id);
+    }
+
+    selection_node *selection_node::copy() const {
         // need to test it somehow in the future
 
         auto copy_selected      = new selection_node;
