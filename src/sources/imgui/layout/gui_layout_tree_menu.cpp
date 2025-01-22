@@ -60,6 +60,7 @@ namespace ex::gui {
 
         void duplicate_node(State &state, GuiState &, TreeNode *node) {
             TreeNode *copy = TreeNode::deep_copy(node, true);
+            copy->name     = (new std::string(node->name))->append(" (copy)").c_str();
             copy->parent   = nullptr;
             copy->index    = 0;
 

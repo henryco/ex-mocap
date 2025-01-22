@@ -3,6 +3,8 @@
 //
 
 #include <map>
+#include <ranges>
+
 #include "../headers/logic.h"
 #include "../headers/components/c_camera.h"
 
@@ -40,19 +42,21 @@ namespace ex::main {
         if (state.work_tree != nullptr)
             delete state.work_tree;
 
+        id_counter = 1;
+
         state.work_tree             = new TreeNode();
         state.work_tree->name       = "root";
         state.work_tree->is_group   = true;
+        state.work_tree->id_local   = id_counter++;
         state.work_tree->children_n = 0;
 
-        std::size_t local_id_ct = 1;
         for (int i = 0; i < 5; i++) {
             const auto node  = new TreeNode();
             node->created    = true;
             node->children_n = 0;
-            node->name       = (new std::string("Node " + std::to_string(local_id_ct)))->c_str();
+            node->name       = (new std::string("Node " + std::to_string(id_counter)))->c_str();
             node->is_group   = i > 2;
-            node->id_local   = local_id_ct++;
+            node->id_local   = id_counter++;
             node->id_node    = 0;
 
             if (i > 2) { // inside a group
@@ -62,7 +66,7 @@ namespace ex::main {
                     sub->children_n = 0;
                     sub->name       = "Sub one";
                     sub->is_group   = k == 1;
-                    sub->id_local   = local_id_ct++;
+                    sub->id_local   = id_counter++;
                     sub->id_node    = 1;
 
                     if (k == 1) { // inside a group
@@ -72,7 +76,7 @@ namespace ex::main {
                             sub_2->children_n = 0;
                             sub_2->name       = "Sub zero";
                             sub_2->is_group   = false;
-                            sub_2->id_local   = local_id_ct++;
+                            sub_2->id_local   = id_counter++;
                             sub_2->id_node    = 2;
 
                             sub->add_node(sub_2);
@@ -83,7 +87,7 @@ namespace ex::main {
                         inputs->children_n = 0;
                         inputs->name       = "inputs";
                         inputs->is_group   = true;
-                        inputs->id_local   = local_id_ct++;
+                        inputs->id_local   = id_counter++;
 
                         for (int z = 0; z < 3; z++) {
                             const auto in  = new TreeNode();
@@ -91,7 +95,7 @@ namespace ex::main {
                             in->children_n = 0;
                             in->name       = "Input!";
                             in->is_group   = false;
-                            in->id_local   = local_id_ct++;
+                            in->id_local   = id_counter++;
                             in->id_node    = 3;
 
                             inputs->add_node(in);
@@ -108,17 +112,17 @@ namespace ex::main {
                 const auto inputs  = new TreeNode();
                 inputs->created    = true;
                 inputs->children_n = 0;
-                inputs->name       = (new std::string("Inputs. " + std::to_string(local_id_ct)))->c_str();
+                inputs->name       = (new std::string("Inputs. " + std::to_string(id_counter)))->c_str();
                 inputs->is_group   = true;
-                inputs->id_local   = local_id_ct++;
+                inputs->id_local   = id_counter++;
 
                 for (int k = 0; k < 4; k++) { // inside inputs group
                     const auto sub  = new TreeNode();
                     sub->created    = true;
                     sub->children_n = 0;
-                    sub->name       = (new std::string("Sub in " + std::to_string(local_id_ct)))->c_str();
+                    sub->name       = (new std::string("Sub in " + std::to_string(id_counter)))->c_str();
                     sub->is_group   = k == 1 || k == 2;
-                    sub->id_local   = local_id_ct++;
+                    sub->id_local   = id_counter++;
                     sub->id_node    = 4;
 
                     if (k == 1 || k == 2) { // inside a group
@@ -126,9 +130,9 @@ namespace ex::main {
                             const auto in  = new TreeNode();
                             in->created    = true;
                             in->children_n = 0;
-                            in->name       = (new std::string("in in " + std::to_string(local_id_ct)))->c_str();
+                            in->name       = (new std::string("in in " + std::to_string(id_counter)))->c_str();
                             in->is_group   = false;
-                            in->id_local   = local_id_ct++;
+                            in->id_local   = id_counter++;
                             in->id_node    = 5;
 
                             sub->add_node(in);
@@ -137,17 +141,17 @@ namespace ex::main {
                         const auto another_in = new TreeNode();
                         another_in->created    = true;
                         another_in->children_n = 0;
-                        another_in->name       = (new std::string("another_in " + std::to_string(local_id_ct)))->c_str();
+                        another_in->name       = (new std::string("another_in " + std::to_string(id_counter)))->c_str();
                         another_in->is_group   = true;
-                        another_in->id_local   = local_id_ct++;
+                        another_in->id_local   = id_counter++;
 
                         for (int p = 0; p < 2; p++) {
                             const auto sub_3  = new TreeNode();
                             sub_3->created    = true;
                             sub_3->children_n = 0;
-                            sub_3->name       = (new std::string("another in " + std::to_string(local_id_ct)))->c_str();
+                            sub_3->name       = (new std::string("another in " + std::to_string(id_counter)))->c_str();
                             sub_3->is_group   = false;
-                            sub_3->id_local   = local_id_ct++;
+                            sub_3->id_local   = id_counter++;
                             sub_3->id_node    = 6;
 
                             another_in->add_node(sub_3);
@@ -196,7 +200,7 @@ namespace ex::main {
         state.work_tree->children_n = 0;
         state.work_tree->is_group   = true;
 
-        for (auto &[_, node]: nodes_) {
+        for (const auto &node: nodes_ | std::views::values) {
             if (node != nullptr) {
                 node->detach_all_any();
                 delete node;
@@ -205,6 +209,7 @@ namespace ex::main {
 
         ptr_counter_.clear();
         nodes_.clear();
+        id_counter = 1;
     }
 
     void Logic::process_(State &_) {
@@ -305,13 +310,11 @@ namespace ex::main {
         }
 
         if (node->created || reset) {
+
+            if (node->id_local <= 0)
+                node->id_local = id_counter++;
+
             if (!node->is_group) {
-
-                if (node->id_local <= 0) {
-                    static std::size_t c_ = 1;
-                    node->id_local        = c_++;
-                }
-
                 const DataMappers &mappers = mappers_.at(node->id_node);
                 if (!nodes_.contains(node->id_local))
                     nodes_.emplace(node->id_local, mappers.instance(state, node));
@@ -343,7 +346,7 @@ namespace ex::main {
         log->debug("rewire");
 
         clock_.detach_all();
-        for (auto &[_, node]: nodes_) {
+        for (const auto &node: nodes_ | std::views::values) {
             node->detach_all_any();
         }
 
