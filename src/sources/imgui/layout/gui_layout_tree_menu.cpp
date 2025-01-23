@@ -78,6 +78,7 @@ namespace ex::gui {
         }
 
         void duplicate_node(State &state, GuiState &, TreeNode *node) {
+            // TODO FIXME
             reset_state_(state);
             const auto snapshot = state.work_tree->deep_copy();
 
@@ -88,7 +89,7 @@ namespace ex::gui {
 
             const auto parent_id   = node->parent->id_local;
             const auto child_index = node->index + 1;
-            const auto copy_ref    = new TreeNode *[] { copy };
+            const auto copy_ref    = new TreeNode *(copy);
 
             node->parent->insert_node(child_index, copy);
 
@@ -99,7 +100,7 @@ namespace ex::gui {
                 if (og_node == nullptr)
                     throw std::runtime_error("Could not find original node");
 
-                copy_ref[0] = og_node->deep_copy();
+                *copy_ref = og_node->deep_copy();
 
                 if (s->work_tree != nullptr && s->work_tree != snapshot)
                     delete s->work_tree;
@@ -110,11 +111,11 @@ namespace ex::gui {
             new std::function([parent_id, child_index, copy_ref] (ex::State *s) -> void {
                 reset_state_(*s);
                 if (const auto p_node = s->work_tree->find_node(parent_id); p_node != nullptr) {
-                    TreeNode *new_copy = TreeNode::deep_copy(copy_ref[0]);
+                    TreeNode *new_copy = TreeNode::deep_copy(*copy_ref);
                     p_node->insert_node(child_index, new_copy);
 
-                    delete copy_ref[0];
-                    copy_ref[0] = new_copy;
+                    delete *copy_ref;
+                    *copy_ref = new_copy;
                 } else
                     throw std::runtime_error("Cannot find original node");
             }),
@@ -122,9 +123,9 @@ namespace ex::gui {
                 if (snapshot != nullptr)
                     delete snapshot;
                 if (copy_ref != nullptr) {
-                    if (copy_ref[0] != nullptr)
-                        delete copy_ref[0];
-                    delete[] copy_ref;
+                    if (*copy_ref != nullptr)
+                        delete *copy_ref;
+                    delete copy_ref;
                 }
             }));
         }
