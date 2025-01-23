@@ -42,60 +42,54 @@ namespace ex::main {
         if (state.work_tree != nullptr)
             delete state.work_tree;
 
-        id_counter = 1;
+        state::uuid::reset_last_id();
 
-        state.work_tree             = new TreeNode();
+        state.work_tree             = TreeNode::create();
         state.work_tree->name       = "root";
         state.work_tree->is_group   = true;
-        state.work_tree->id_local   = id_counter++;
         state.work_tree->children_n = 0;
 
         for (int i = 0; i < 5; i++) {
-            const auto node  = new TreeNode();
+            const auto node  = TreeNode::create();
             node->created    = true;
             node->children_n = 0;
-            node->name       = (new std::string("Node " + std::to_string(id_counter)))->c_str();
+            node->name       = (new std::string("Node " + std::to_string(node->id_local)))->c_str();
             node->is_group   = i > 2;
-            node->id_local   = id_counter++;
             node->id_node    = 0;
 
             if (i > 2) { // inside a group
                 for (int k = 0; k < 3; k++) {
-                    const auto sub  = new TreeNode();
+                    const auto sub  = TreeNode::create();
                     sub->created    = true;
                     sub->children_n = 0;
                     sub->name       = "Sub one";
                     sub->is_group   = k == 1;
-                    sub->id_local   = id_counter++;
                     sub->id_node    = 1;
 
                     if (k == 1) { // inside a group
                         for (int z = 0; z < 5; z++) {
-                            const auto sub_2  = new TreeNode();
+                            const auto sub_2  = TreeNode::create();
                             sub_2->created    = true;
                             sub_2->children_n = 0;
                             sub_2->name       = "Sub zero";
                             sub_2->is_group   = false;
-                            sub_2->id_local   = id_counter++;
                             sub_2->id_node    = 2;
 
                             sub->add_node(sub_2);
                         }
                     } else {
-                        const auto inputs  = new TreeNode();
+                        const auto inputs  = TreeNode::create();
                         inputs->created    = true;
                         inputs->children_n = 0;
                         inputs->name       = "inputs";
                         inputs->is_group   = true;
-                        inputs->id_local   = id_counter++;
 
                         for (int z = 0; z < 3; z++) {
-                            const auto in  = new TreeNode();
+                            const auto in  = TreeNode::create();
                             in->created    = true;
                             in->children_n = 0;
                             in->name       = "Input!";
                             in->is_group   = false;
-                            in->id_local   = id_counter++;
                             in->id_node    = 3;
 
                             inputs->add_node(in);
@@ -109,49 +103,44 @@ namespace ex::main {
             }
 
             else { // inside a regular element
-                const auto inputs  = new TreeNode();
+                const auto inputs  = TreeNode::create();
                 inputs->created    = true;
                 inputs->children_n = 0;
-                inputs->name       = (new std::string("Inputs. " + std::to_string(id_counter)))->c_str();
+                inputs->name       = (new std::string("Inputs. " + std::to_string(inputs->id_local)))->c_str();
                 inputs->is_group   = true;
-                inputs->id_local   = id_counter++;
 
                 for (int k = 0; k < 4; k++) { // inside inputs group
-                    const auto sub  = new TreeNode();
+                    const auto sub  = TreeNode::create();
                     sub->created    = true;
                     sub->children_n = 0;
-                    sub->name       = (new std::string("Sub in " + std::to_string(id_counter)))->c_str();
+                    sub->name       = (new std::string("Sub in " + std::to_string(sub->id_local)))->c_str();
                     sub->is_group   = k == 1 || k == 2;
-                    sub->id_local   = id_counter++;
                     sub->id_node    = 4;
 
                     if (k == 1 || k == 2) { // inside a group
                         for (int z = 0; z < 6; z++) {
-                            const auto in  = new TreeNode();
+                            const auto in  = TreeNode::create();
                             in->created    = true;
                             in->children_n = 0;
-                            in->name       = (new std::string("in in " + std::to_string(id_counter)))->c_str();
+                            in->name       = (new std::string("in in " + std::to_string(in->id_local)))->c_str();
                             in->is_group   = false;
-                            in->id_local   = id_counter++;
                             in->id_node    = 5;
 
                             sub->add_node(in);
                         }
                     } else {
-                        const auto another_in = new TreeNode();
+                        const auto another_in = TreeNode::create();
                         another_in->created    = true;
                         another_in->children_n = 0;
-                        another_in->name       = (new std::string("another_in " + std::to_string(id_counter)))->c_str();
+                        another_in->name       = (new std::string("another_in " + std::to_string(another_in->id_local)))->c_str();
                         another_in->is_group   = true;
-                        another_in->id_local   = id_counter++;
 
                         for (int p = 0; p < 2; p++) {
-                            const auto sub_3  = new TreeNode();
+                            const auto sub_3  = TreeNode::create();
                             sub_3->created    = true;
                             sub_3->children_n = 0;
-                            sub_3->name       = (new std::string("another in " + std::to_string(id_counter)))->c_str();
+                            sub_3->name       = (new std::string("another in " + std::to_string(sub_3->id_local)))->c_str();
                             sub_3->is_group   = false;
-                            sub_3->id_local   = id_counter++;
                             sub_3->id_node    = 6;
 
                             another_in->add_node(sub_3);
@@ -196,7 +185,9 @@ namespace ex::main {
         if (state.work_tree != nullptr)
             delete state.work_tree;
 
-        state.work_tree = new TreeNode();
+        state::uuid::reset_last_id();
+
+        state.work_tree = TreeNode::create();
         state.work_tree->children_n = 0;
         state.work_tree->is_group   = true;
 
@@ -209,7 +200,6 @@ namespace ex::main {
 
         ptr_counter_.clear();
         nodes_.clear();
-        id_counter = 1;
     }
 
     void Logic::process_(State &_) {
@@ -311,8 +301,8 @@ namespace ex::main {
 
         if (node->created || fresh) {
 
-            if (node->id_local <= 0)
-                node->id_local = id_counter++;
+//            if (node->id_local <= 0)
+//                node->id_local = id_counter++;
 
             if (!node->is_group) {
                 const DataMappers &mappers = mappers_.at(node->id_node);

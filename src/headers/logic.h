@@ -53,8 +53,7 @@ namespace ex::main {
         std::map<local_id_, nodes::BaseNode *> nodes_       = {};
         std::map<local_id_, int>               ptr_counter_ = {};
 
-        local_id_ id_counter = 0;
-        long      timestamp  = 0;
+        long timestamp = 0;
 
         nodes::clock clock_;
 

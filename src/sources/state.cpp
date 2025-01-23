@@ -7,6 +7,27 @@
 
 namespace ex {
 
+    namespace state::uuid {
+        static std::size_t id_counter_ = 0;
+
+        std::size_t generate_id_inc() {
+            return ++id_counter_;
+        }
+
+        std::size_t get_last_id() {
+            return id_counter_;
+        }
+
+        void set_last_id(const std::size_t id) {
+            if (id > id_counter_)
+                id_counter_ = id;
+        }
+
+        void reset_last_id(const std::size_t id) {
+            id_counter_ = id;
+        }
+    }
+
     TreeNode::~TreeNode() {
         if (children != nullptr) {
             for (int i = 0; i < children_n; i++) {
@@ -45,7 +66,7 @@ namespace ex {
 
     TreeNode *TreeNode::deep_copy(const bool generated_id) const {
         const auto new_node  = new TreeNode;
-        new_node->id_local   = generated_id ? 0 : id_local;
+        new_node->id_local   = generated_id ? state::uuid::generate_id_inc() : id_local;
         new_node->created    = generated_id ? true : created;
         new_node->connected  = generated_id ? false : connected;
         new_node->selected   = generated_id ? false : selected;
@@ -232,6 +253,17 @@ namespace ex {
         if (node == nullptr)
             return nullptr;
         return node->deep_copy(generated_id);
+    }
+
+    TreeNode *TreeNode::create(const std::size_t id) {
+        const auto node = new TreeNode;
+        if (id > 0) {
+            state::uuid::set_last_id(id);
+            node->id_local = id;
+        } else {
+            node->id_local = state::uuid::generate_id_inc();
+        }
+        return node;
     }
 
     selection_node *selection_node::copy() const {

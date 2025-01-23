@@ -10,6 +10,13 @@
 
 namespace ex {
 
+    namespace state::uuid {
+        std::size_t generate_id_inc();
+        std::size_t get_last_id();
+        void        set_last_id(std::size_t id);
+        void        reset_last_id(std::size_t id = 0);
+    }
+
     struct TreeNode {
 
         /**
@@ -52,6 +59,11 @@ namespace ex {
         static TreeNode *find_node(TreeNode *tree, std::size_t id);
         static TreeNode *shallow_copy(TreeNode *node);
         static TreeNode *deep_copy(TreeNode *node, bool generated_id = false);
+
+        static TreeNode *create(std::size_t id = 0);
+
+    private:
+        TreeNode() = default;
     };
 
     struct selection_node {

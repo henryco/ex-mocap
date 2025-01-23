@@ -97,7 +97,7 @@ namespace ex::gui {
             undo_history().push("Node duplicated",
             new std::function([snapshot, copy, source_cpy] (ex::State *s) -> void {
                 reset_state_(*s);
-
+                // TODO FIXME
                 if (*source_cpy == nullptr) {
                     TreeNode *og_node = s->work_tree->find_node(copy);
                     if (og_node == nullptr)
