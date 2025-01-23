@@ -46,18 +46,32 @@ namespace ex::gui {
             node->dimmed = true;
         }
 
-        void rename_node(State &state, GuiState &gui, TreeNode *node, const char *name) {
-            // TODO
-        }
+        void rename_node(State &state, GuiState &, TreeNode *node, const char *name) {
+            const auto id_local = node->id_local;
+            const auto og_name = node->name;
+            node->name = name;
 
-        void paste_after_node(State &state, GuiState &, TreeNode *) {
-            // TODO
-            selection_node::free(state.selected_nodes, true);
-            state.selected_nodes = nullptr;
-        }
+            undo_history().push("Node renamed",
+            new std::function([id_local, og_name] (State *s) {
+                selection_node::free(s->selected_nodes, true);
+                node_buffer::remove(&(s->clipboard_node));
+                s->selected_nodes = nullptr;
+                const auto f_node = s->work_tree->find_node(id_local);
+                if (f_node == nullptr)
+                    return;
+                f_node->name = og_name;
+            }),
+            new std::function([id_local, name] (State *s) {
+                selection_node::free(s->selected_nodes, true);
+                node_buffer::remove(&(s->clipboard_node));
+                s->selected_nodes = nullptr;
+                const auto f_node = s->work_tree->find_node(id_local);
+                if (f_node == nullptr)
+                    return;
+                f_node->name = name;
+            }));
 
-        void paste_into_node(State &state, GuiState &, TreeNode *) {
-            // TODO
+            node_buffer::create(&state.clipboard_node, node, true, false);
             selection_node::free(state.selected_nodes, true);
             state.selected_nodes = nullptr;
         }
@@ -78,7 +92,7 @@ namespace ex::gui {
 
             undo_history().push("Node duplicated",
             new std::function([snapshot, copy_ref] (ex::State *s) -> void {
-                TreeNode *og_node = s->work_tree->find_node(*copy_ref);
+                const TreeNode *og_node = s->work_tree->find_node(*copy_ref);
                 if (og_node == nullptr)
                     throw std::runtime_error("Could not find original node");
 
@@ -121,14 +135,26 @@ namespace ex::gui {
             state.selected_nodes = nullptr;
         }
 
-        void group_selected(State &state, GuiState &, selection_node *selection) {
+        void paste_after_node(State &state, GuiState &, TreeNode *) {
+            // TODO
+            selection_node::free(state.selected_nodes, true);
+            state.selected_nodes = nullptr;
+        }
+
+        void paste_into_node(State &state, GuiState &, TreeNode *) {
+            // TODO
+            selection_node::free(state.selected_nodes, true);
+            state.selected_nodes = nullptr;
+        }
+
+        void group_selected(State &state, GuiState &, selection_node *) {
             // TODO
             node_buffer::remove(&state.clipboard_node);
             selection_node::free(state.selected_nodes, true);
             state.selected_nodes = nullptr;
         }
 
-        void ungroup_selected(State &state, GuiState &, selection_node *selection) {
+        void ungroup_selected(State &state, GuiState &, selection_node *) {
             // TODO
             node_buffer::remove(&state.clipboard_node);
             selection_node::free(state.selected_nodes, true);
@@ -503,11 +529,14 @@ namespace ex::gui {
             ImGui::EndPopup();
         }
 
+        // TODO FIXME
         if (ImGui::BeginPopup("rename-popup")) {
             ImGui::Text("Edit name: ");
             ImGui::InputText("##edit", name_buffer, IM_ARRAYSIZE(name_buffer));
-            if (ImGui::Button("Apply"))
+            if (ImGui::Button("Apply")) {
+                tree::rename_node(state, gui, node, name_buffer);
                 ImGui::CloseCurrentPopup();
+            }
             ImGui::EndPopup();
         } else if (rename_popup) {
             ImGui::SetNextWindowPos(name_pos);
