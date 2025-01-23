@@ -63,6 +63,7 @@ namespace ex::gui {
                 if (f_node == nullptr)
                     return;
                 f_node->name = og_name;
+                s->active_node = nullptr;
             }),
             new std::function([id_local, new_name] (State *s) {
                 selection_node::free(s->selected_nodes, true);
@@ -72,11 +73,13 @@ namespace ex::gui {
                 if (f_node == nullptr)
                     return;
                 f_node->name = new_name;
+                s->active_node = nullptr;
             }));
 
             node_buffer::create(&state.clipboard_node, node, true, false);
             selection_node::free(state.selected_nodes, true);
             state.selected_nodes = nullptr;
+            state.active_node    = nullptr;
         }
 
         void duplicate_node(State &state, GuiState &, TreeNode *node) {
@@ -403,10 +406,12 @@ namespace ex::gui {
         }
 
         auto head = selection->root;
-        bool enabled = false, disabled = false;
+        bool enabled = false, disabled = false, same_root = true;
         while (head != nullptr) {
             enabled |= !head->selected->disabled;
             disabled |= head->selected->disabled;
+            if (head->selected->parent != selection->root->selected->parent)
+                same_root = false;
             head = head->next;
         }
 
@@ -428,14 +433,16 @@ namespace ex::gui {
                 tree::ungroup_selected(state, gui, selection);
             }
 
-            ImGui::Separator();
+            if (same_root) {
+                ImGui::Separator();
 
-            if (ImGui::MenuItem("Cut", "Ctrl+Z")) {
-                tree::cut_selected(state, gui, selection);
-            }
+                if (ImGui::MenuItem("Cut", "Ctrl+Z")) {
+                    tree::cut_selected(state, gui, selection);
+                }
 
-            if (ImGui::MenuItem("Copy", "Ctrl+C")) {
-                tree::copy_selected(state, gui, selection);
+                if (ImGui::MenuItem("Copy", "Ctrl+C")) {
+                    tree::copy_selected(state, gui, selection);
+                }
             }
 
             ImGui::Separator();
