@@ -49,7 +49,10 @@ namespace ex::gui {
         void rename_node(State &state, GuiState &, TreeNode *node, const char *name) {
             const auto id_local = node->id_local;
             const auto og_name = node->name;
-            node->name = name;
+            const auto new_name = new char[64]{ "" };
+
+            std::memcpy(new_name, name, std::strlen(name));
+            node->name = new_name;
 
             undo_history().push("Node renamed",
             new std::function([id_local, og_name] (State *s) {
@@ -61,14 +64,14 @@ namespace ex::gui {
                     return;
                 f_node->name = og_name;
             }),
-            new std::function([id_local, name] (State *s) {
+            new std::function([id_local, new_name] (State *s) {
                 selection_node::free(s->selected_nodes, true);
                 node_buffer::remove(&(s->clipboard_node));
                 s->selected_nodes = nullptr;
                 const auto f_node = s->work_tree->find_node(id_local);
                 if (f_node == nullptr)
                     return;
-                f_node->name = name;
+                f_node->name = new_name;
             }));
 
             node_buffer::create(&state.clipboard_node, node, true, false);
@@ -470,7 +473,7 @@ namespace ex::gui {
 
             if (ImGui::MenuItem("Rename")) {
                 std::memset(name_buffer, 0, sizeof(name_buffer));
-                std::memcpy(name_buffer, node->name, strlen(node->name));
+                std::memcpy(name_buffer, node->name, std::strlen(node->name));
                 rename_popup = true;
             }
 
@@ -525,7 +528,6 @@ namespace ex::gui {
             ImGui::EndPopup();
         }
 
-        // TODO FIXME
         if (rename_popup) {
             ImGui::OpenPopup("rename-popup");
         }
