@@ -78,9 +78,8 @@ namespace ex::gui {
         }
 
         void duplicate_node(State &state, GuiState &, TreeNode *node) {
-            const auto snapshot = state.work_tree->deep_copy();
-
             reset_state(state);
+            const auto snapshot = state.work_tree->deep_copy();
 
             TreeNode *copy = TreeNode::deep_copy(node, true);
             copy->name     = (new std::string(node->name))->append(" (copy)").c_str();
