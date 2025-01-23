@@ -453,7 +453,6 @@ namespace ex::gui {
     {
         static auto menu_id = "show_context_menu_element";
         static char name_buffer[64] = "";
-        static ImVec2 name_pos;
 
         bool rename_popup = false;
         bool clicked      = false;
@@ -468,13 +467,10 @@ namespace ex::gui {
         }
 
         if (ImGui::BeginPopup(menu_id)) {
-            name_pos = ImGui::GetCursorStartPos();
 
             if (ImGui::MenuItem("Rename")) {
                 std::memset(name_buffer, 0, sizeof(name_buffer));
                 std::memcpy(name_buffer, node->name, strlen(node->name));
-                ImGui::SetNextWindowPos(name_pos);
-                ImGui::OpenPopup("rename-popup");
                 rename_popup = true;
             }
 
@@ -530,6 +526,10 @@ namespace ex::gui {
         }
 
         // TODO FIXME
+        if (rename_popup) {
+            ImGui::OpenPopup("rename-popup");
+        }
+
         if (ImGui::BeginPopup("rename-popup")) {
             ImGui::Text("Edit name: ");
             ImGui::InputText("##edit", name_buffer, IM_ARRAYSIZE(name_buffer));
@@ -539,7 +539,6 @@ namespace ex::gui {
             }
             ImGui::EndPopup();
         } else if (rename_popup) {
-            ImGui::SetNextWindowPos(name_pos);
             ImGui::OpenPopup("rename-popup");
         }
 
