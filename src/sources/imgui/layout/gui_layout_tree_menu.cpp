@@ -78,7 +78,6 @@ namespace ex::gui {
         }
 
         void duplicate_node(State &state, GuiState &, TreeNode *node) {
-            // TODO FIXME
             reset_state_(state);
             const auto snapshot = state.work_tree->deep_copy();
 
