@@ -94,6 +94,7 @@ namespace ex {
 
         if (children_n <= 0 || children == nullptr) {
             new_node->children = nullptr;
+            new_node->children_n = 0;
             return new_node;
         }
 
