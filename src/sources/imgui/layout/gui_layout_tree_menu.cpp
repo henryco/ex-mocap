@@ -89,8 +89,6 @@ namespace ex::gui {
             const auto parent_id   = node->parent->id_local;
             const auto child_index = node->index + 1;
 
-            node->parent->insert_node(child_index, copy);
-
             undo_history().push("Node duplicated",
             new std::function([snapshot] (ex::State *s) -> void {
                 reset_state_(*s);
@@ -101,22 +99,22 @@ namespace ex::gui {
                 s->work_tree->connected = false;
             }),
 
-            new std::function([parent_id, child_index, copy] (ex::State *s) -> void {
+            new std::function([parent_id, child_index, snap_copy = *copy] (ex::State *s) -> void {
                 reset_state_(*s);
                 if (const auto p_node = s->work_tree->find_node(parent_id); p_node != nullptr) {
-                    const auto new_copy = copy->deep_copy();
+                    const auto new_copy = snap_copy.deep_copy();
                     new_copy->created   = true;
                     p_node->insert_node(child_index, new_copy);
                 } else
                     throw std::runtime_error("Cannot find original node");
             }),
 
-            new std::function([snapshot, copy] {
+            new std::function([snapshot] {
                 if (snapshot != nullptr)
                     delete snapshot;
-                if (copy != nullptr)
-                    delete copy;
             }));
+
+            node->parent->insert_node(child_index, copy);
         }
 
         void paste_after_node(State &state, GuiState &, TreeNode *) {
