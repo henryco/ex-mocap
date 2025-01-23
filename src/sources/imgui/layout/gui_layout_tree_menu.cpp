@@ -60,29 +60,27 @@ namespace ex::gui {
 
             undo_history().push("Node renamed",
             new std::function([id_local, og_name] (State *s) {
-                s->selected_nodes = nullptr;
+                reset_state(*s);
                 const auto f_node = s->work_tree->find_node(id_local);
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
                 f_node->name = og_name;
                 s->active_node = nullptr;
-
-                reset_state(*s);
             }),
             new std::function([id_local, new_name] (State *s) {
-                s->selected_nodes = nullptr;
+                reset_state(*s);
                 const auto f_node = s->work_tree->find_node(id_local);
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
                 f_node->name = new_name;
                 s->active_node = nullptr;
-
-                reset_state(*s);
             }));
         }
 
         void duplicate_node(State &state, GuiState &, TreeNode *node) {
             const auto snapshot = state.work_tree->deep_copy();
+
+            reset_state(state);
 
             TreeNode *copy = TreeNode::deep_copy(node, true);
             copy->name     = (new std::string(node->name))->append(" (copy)").c_str();
@@ -95,10 +93,9 @@ namespace ex::gui {
 
             node->parent->insert_node(child_index, copy);
 
-            reset_state(state);
-
             undo_history().push("Node duplicated",
             new std::function([snapshot, copy_ref] (ex::State *s) -> void {
+                reset_state(*s);
                 const TreeNode *og_node = s->work_tree->find_node(*copy_ref);
                 if (og_node == nullptr)
                     throw std::runtime_error("Could not find original node");
@@ -110,10 +107,9 @@ namespace ex::gui {
                 s->work_tree            = snapshot->deep_copy();
                 s->work_tree->created   = true;
                 s->work_tree->connected = false;
-
-                reset_state(*s);
             }),
             new std::function([parent_id, child_index, copy_ref] (ex::State *s) -> void {
+                reset_state(*s);
                 if (const auto p_node = s->work_tree->find_node(parent_id); p_node != nullptr) {
                     TreeNode *new_copy = TreeNode::deep_copy(copy_ref[0]);
                     p_node->insert_node(child_index, new_copy);
@@ -122,8 +118,6 @@ namespace ex::gui {
                     copy_ref[0] = new_copy;
                 } else
                     throw std::runtime_error("Cannot find original node");
-
-                reset_state(*s);
             }),
             new std::function([snapshot, copy_ref] {
                 if (snapshot != nullptr)
@@ -164,22 +158,20 @@ namespace ex::gui {
 
             undo_history().push("Node enabled",
             new std::function([id_l = node->id_local, og_state] (ex::State *s) {
+                reset_state(*s);
                 const auto f_node = s->work_tree->find_node(id_l);
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
                 f_node->disabled = og_state;
                 f_node->updated = true;
-
-                reset_state(*s);
             }),
             new std::function([id_l = node->id_local] (ex::State *s) {
+                reset_state(*s);
                 const auto f_node = s->work_tree->find_node(id_l);
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
                 f_node->disabled = false;
                 f_node->updated = true;
-
-                reset_state(*s);
             }));
         }
 
@@ -191,22 +183,20 @@ namespace ex::gui {
 
             undo_history().push("Node disabled",
             new std::function([id_l = node->id_local, og_state] (ex::State *s) {
+                reset_state(*s);
                 const auto f_node = s->work_tree->find_node(id_l);
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
                 f_node->disabled = og_state;
                 f_node->updated = true;
-
-                reset_state(*s);
             }),
             new std::function([id_l = node->id_local] (ex::State *s) {
+                reset_state(*s);
                 const auto f_node = s->work_tree->find_node(id_l);
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
                 f_node->disabled = true;
                 f_node->updated = true;
-
-                reset_state(*s);
             }));
         }
 
@@ -226,6 +216,7 @@ namespace ex::gui {
 
             undo_history().push("Selection enabled",
             new std::function([og_state = og_map](ex::State *s) {
+                reset_state(*s);
                 for (const auto &[k, v] : og_state) {
                     const auto f_node = s->work_tree->find_node(k);
                     if (f_node == nullptr)
@@ -233,9 +224,9 @@ namespace ex::gui {
                     f_node->disabled = v;
                     f_node->updated = true;
                 }
-                reset_state(*s);
             }),
             new std::function([og_state = og_map](ex::State *s) {
+                reset_state(*s);
                 for (const auto &k : std::views::keys(og_state)) {
                     const auto f_node = s->work_tree->find_node(k);
                     if (f_node == nullptr)
@@ -243,7 +234,6 @@ namespace ex::gui {
                     f_node->disabled = false;
                     f_node->updated = true;
                 }
-                reset_state(*s);
             }));
         }
 
@@ -309,16 +299,15 @@ namespace ex::gui {
 
             undo_history().push("Selection deleted",
             new std::function([snapshot] (ex::State *s) {
-                node_buffer::remove(&(s->clipboard_node));
+                reset_state(*s);
                 if (s->work_tree != nullptr && s->work_tree != snapshot)
                     delete s->work_tree;
                 s->work_tree            = snapshot->deep_copy();
                 s->work_tree->connected = false;
                 s->work_tree->created   = true;
-
-                reset_state(*s);
             }),
             new std::function([copy_selection] (ex::State *s) {
+                reset_state(*s);
                 auto s_head = copy_selection->root;
                 while (s_head != nullptr) {
                     const auto f_node = s->work_tree->find_node(s_head->selected->id_local);
@@ -326,7 +315,6 @@ namespace ex::gui {
                         f_node->deleted = true;
                     s_head = s_head->next;
                 }
-                reset_state(*s);
             }),
             new std::function([snapshot, copy_selection] {
                 if (snapshot != nullptr)
@@ -339,32 +327,31 @@ namespace ex::gui {
             if (node == nullptr)
                 return;
 
+            reset_state(state);
+
             node->selected = false;
             const auto node_id  = node->id_local;
             const auto snapshot = state.work_tree->deep_copy();
             node->deleted = true;
 
-            reset_state(state);
-
             undo_history().push("Node deleted",
             new std::function([snapshot] (ex::State *s) {
-                node_buffer::remove(&(s->clipboard_node));
+                reset_state(*s);
+
                 if (s->work_tree != nullptr && s->work_tree != snapshot)
                     delete s->work_tree;
                 s->work_tree            = snapshot->deep_copy();
                 s->work_tree->connected = false;
                 s->work_tree->created   = true;
-
-                reset_state(*s);
             }),
             new std::function([node_id] (ex::State *s) {
+                reset_state(*s);
+
                 const auto f_node = s->work_tree->find_node(node_id);
                 if (f_node == nullptr)
                    throw std::runtime_error("Cannot find original node");
                 s->selected_nodes = nullptr;
                 f_node->deleted   = true;
-
-                reset_state(*s);
             }),
             new std::function([snapshot] {
                 if (snapshot != nullptr)
