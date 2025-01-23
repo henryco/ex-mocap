@@ -43,13 +43,13 @@ namespace ex {
 
     TreeNode *TreeNode::shallow_copy() const {
         const auto new_node  = new TreeNode;
-        new_node->connected  = false;
-        new_node->selected   = false;
-        new_node->deleted    = false;
-        new_node->created    = true;
-        new_node->updated    = false;
+        new_node->connected  = this->connected;
+        new_node->selected   = this->selected;
+        new_node->deleted    = this->deleted;
+        new_node->created    = this->created;
+        new_node->updated    = this->updated;
+        new_node->parent     = this->parent;
         new_node->children   = nullptr;
-        new_node->parent     = nullptr;
         new_node->data       = nullptr;
         new_node->name       = this->name;
         new_node->index      = this->index;
@@ -249,7 +249,7 @@ namespace ex {
         return node->shallow_copy();
     }
 
-    TreeNode *TreeNode::deep_copy(TreeNode *node, bool generated_id) {
+    TreeNode *TreeNode::deep_copy(TreeNode *node, const bool generated_id) {
         if (node == nullptr)
             return nullptr;
         return node->deep_copy(generated_id);
