@@ -380,15 +380,15 @@ namespace ex::gui {
                 tree::enable_selected(state, gui, selection);
             }
 
-            if (ImGui::MenuItem("Group")) {
-                tree::group_selected(state, gui, selection);
-            }
-
-            if (ImGui::MenuItem("Ungroup")) {
-                tree::ungroup_selected(state, gui, selection);
-            }
-
             if (same_root) {
+                if (ImGui::MenuItem("Group")) {
+                    tree::group_selected(state, gui, selection);
+                }
+
+                if (ImGui::MenuItem("Ungroup")) {
+                    tree::ungroup_selected(state, gui, selection);
+                }
+
                 ImGui::Separator();
 
                 if (ImGui::MenuItem("Cut", "Ctrl+Z")) {
