@@ -72,7 +72,7 @@ namespace ex::main {
         void serialize(State &state);
 
     protected:
-        void traverse_(State &state, TreeNode *node, bool *rewire, bool reset);
+        void traverse_(State &state, TreeNode *node, bool *rewire, bool fresh);
 
         void synchronize_(State &state);
 

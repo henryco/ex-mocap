@@ -269,7 +269,7 @@ namespace ex::main {
         }
     }
 
-    void Logic::traverse_(State &state, TreeNode *node, bool *rewire, const bool reset) {
+    void Logic::traverse_(State &state, TreeNode *node, bool *rewire, const bool fresh) {
         if (node == nullptr)
             return;
 
@@ -286,7 +286,7 @@ namespace ex::main {
             }
 
             else {
-                traverse_(state, child, rewire, reset || node->created);
+                traverse_(state, child, rewire, fresh || node->created);
                 if (child->is_group && (child->children_n <= 0 || child->children == nullptr)) {
                     child->deleted = true;
                     *rewire = true;
@@ -309,7 +309,7 @@ namespace ex::main {
             o = 0;
         }
 
-        if (node->created || reset) {
+        if (node->created || fresh) {
 
             if (node->id_local <= 0)
                 node->id_local = id_counter++;

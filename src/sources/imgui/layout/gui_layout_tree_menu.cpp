@@ -89,18 +89,23 @@ namespace ex::gui {
 
             const auto parent_id   = node->parent->id_local;
             const auto child_index = node->index + 1;
-            const auto copy_ref    = new TreeNode *(copy);
+
+            auto source_cpy = new TreeNode *;
+            *source_cpy     = nullptr;
 
             node->parent->insert_node(child_index, copy);
 
             undo_history().push("Node duplicated",
-            new std::function([snapshot, copy_ref] (ex::State *s) -> void {
+            new std::function([snapshot, copy, source_cpy] (ex::State *s) -> void {
                 reset_state_(*s);
-                const TreeNode *og_node = s->work_tree->find_node(*copy_ref);
-                if (og_node == nullptr)
-                    throw std::runtime_error("Could not find original node");
 
-                *copy_ref = og_node->deep_copy();
+                if (*source_cpy == nullptr) {
+                    TreeNode *og_node = s->work_tree->find_node(copy);
+                    if (og_node == nullptr)
+                        throw std::runtime_error("Could not find original node");
+                    *source_cpy = og_node->deep_copy();
+                    og_node->deleted = true;
+                }
 
                 if (s->work_tree != nullptr && s->work_tree != snapshot)
                     delete s->work_tree;
@@ -108,24 +113,26 @@ namespace ex::gui {
                 s->work_tree->created   = true;
                 s->work_tree->connected = false;
             }),
-            new std::function([parent_id, child_index, copy_ref] (ex::State *s) -> void {
+
+            new std::function([parent_id, child_index, source_cpy] (ex::State *s) -> void {
                 reset_state_(*s);
                 if (const auto p_node = s->work_tree->find_node(parent_id); p_node != nullptr) {
-                    TreeNode *new_copy = TreeNode::deep_copy(*copy_ref);
+                    if (*source_cpy == nullptr)
+                        throw std::runtime_error("Could not find original node");
+                    const auto new_copy = (*source_cpy)->deep_copy();
+                    new_copy->created   = true;
                     p_node->insert_node(child_index, new_copy);
-
-                    delete *copy_ref;
-                    *copy_ref = new_copy;
                 } else
                     throw std::runtime_error("Cannot find original node");
             }),
-            new std::function([snapshot, copy_ref] {
+
+            new std::function([snapshot, source_cpy] {
                 if (snapshot != nullptr)
                     delete snapshot;
-                if (copy_ref != nullptr) {
-                    if (*copy_ref != nullptr)
-                        delete *copy_ref;
-                    delete copy_ref;
+                if (source_cpy != nullptr) {
+                    if (*source_cpy != nullptr)
+                        delete *source_cpy;
+                    delete source_cpy;
                 }
             }));
         }
