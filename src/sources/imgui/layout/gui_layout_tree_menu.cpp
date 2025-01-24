@@ -198,16 +198,32 @@ namespace ex::gui {
         }
 
         void group_selected(State &state, GuiState &, selection_node *selection) {
-            // TODO
 
-            std::cout << " " << '\n';
+            TreeNode *new_group = TreeNode::create();
+            new_group->name     = "generic_group";
+            new_group->is_group = true;
+            new_group->created  = true;
+
+            int index = -1;
+
             auto head = bubble_sort_selection(selection->root);
             while (head != nullptr) {
-                std::cout << head->selected->name << ", " << head->selected->index << '\n';
+                new_group->add_node(head->selected->deep_copy(true));
+                head->selected->deleted = true;
+                if (index == -1)
+                    index = head->selected->index;
                 head = head->next;
             }
 
+            if (index >= 0)
+                selection->root->selected->parent->insert_node(index, new_group->deep_copy());
+
+            // TODO UNDO TREE
+
+
+            selection_node::free(head);
             reset_state_(state);
+            delete new_group;
         }
 
         void ungroup_selected(State &state, GuiState &, selection_node *) {
