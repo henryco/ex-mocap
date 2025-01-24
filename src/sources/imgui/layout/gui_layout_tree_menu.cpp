@@ -263,9 +263,15 @@ namespace ex::gui {
             }));
         }
 
-        void ungroup_selected(State &state, GuiState &, selection_node *) {
-            // TODO
+        void ungroup_selected(State &state, GuiState &, selection_node *selection) {
+            const auto sorted    = bubble_sort_selection(selection->root);
+            const auto parent    = selection->root->selected->parent;
+            const auto parent_id = parent->id_local;
+
             reset_state_(state);
+            const auto snapshot = state.work_tree->deep_copy();
+
+            // TODO
         }
 
         void enable_node(State &state, GuiState &, TreeNode *node) {
