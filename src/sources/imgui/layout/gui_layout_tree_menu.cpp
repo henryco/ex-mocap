@@ -10,6 +10,59 @@ namespace ex::gui {
 
     namespace tree {
 
+        selection_node *bubble_sort_selection(selection_node *selection) {
+            if (selection == nullptr)
+                return nullptr;
+
+            selection_node *root = nullptr;
+            selection_node *node = selection->root;
+            while (node != nullptr) {
+                auto curr = root;
+
+                if (curr == nullptr) {
+                    root           = new selection_node;
+                    root->selected = node->selected;
+                    root->prev     = nullptr;
+                    root->next     = nullptr;
+                    root->root     = root;
+
+                    node = node->next;
+                    continue;
+                }
+
+                while (node->selected->index > curr->selected->index && curr->next != nullptr) {
+                    curr = curr->next;
+                }
+
+                const auto new_node = new selection_node;
+                new_node->selected  = node->selected;
+
+                if (curr == root) {
+                    new_node->root = new_node;
+                    new_node->prev = nullptr;
+                    new_node->next = curr;
+                    curr->prev     = new_node;
+                    root           = new_node;
+
+                    node = node->next;
+                    continue;
+                }
+
+                const auto next = curr->next;
+                new_node->root  = root->root;
+                new_node->prev  = curr;
+                new_node->next  = next;
+                curr->next      = new_node;
+
+                if (next != nullptr)
+                    next->prev = new_node;
+
+                node = node->next;
+            }
+
+            return root;
+        }
+
         void reset_state_(State &state) {
             selection_node::free(state.selected_nodes, true);
             node_buffer::remove(&(state.clipboard_node));
@@ -130,8 +183,16 @@ namespace ex::gui {
             reset_state_(state);
         }
 
-        void group_selected(State &state, GuiState &, selection_node *) {
+        void group_selected(State &state, GuiState &, selection_node *selection) {
             // TODO
+
+            std::cout << " " << '\n';
+            auto head = bubble_sort_selection(selection->root);
+            while (head != nullptr) {
+                std::cout << head->selected->name << ", " << head->selected->index << '\n';
+                head = head->next;
+            }
+
             reset_state_(state);
         }
 
