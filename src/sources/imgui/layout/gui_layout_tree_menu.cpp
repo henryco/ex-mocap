@@ -507,6 +507,10 @@ namespace ex::gui {
             head = head->next;
         }
 
+        const bool is_grouped = selection->selected->parent != nullptr &&
+                                selection->selected->parent->parent != nullptr &&
+                                selection->selected->parent->parent->is_group;
+
         if (ImGui::BeginPopup(menu_id)) {
 
             if (enabled && ImGui::MenuItem("Disable")) {
@@ -522,8 +526,10 @@ namespace ex::gui {
                     tree::group_selected(state, gui, selection);
                 }
 
-                if (ImGui::MenuItem("Ungroup")) {
-                    tree::ungroup_selected(state, gui, selection);
+                if (is_grouped) {
+                    if (ImGui::MenuItem("Ungroup")) {
+                        tree::ungroup_selected(state, gui, selection);
+                    }
                 }
 
                 ImGui::Separator();
