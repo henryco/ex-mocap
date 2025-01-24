@@ -264,14 +264,71 @@ namespace ex::gui {
         }
 
         void ungroup_selected(State &state, GuiState &, selection_node *selection) {
-            const auto sorted    = bubble_sort_selection(selection->root);
-            const auto parent    = selection->root->selected->parent;
-            const auto parent_id = parent->id_local;
+            const auto sorted = bubble_sort_selection(selection->root);
+            const auto parent = selection->root->selected->parent;
+
+            const std::size_t parent_id = parent->parent->id_local;
+            const std::size_t index     = parent->index;
 
             reset_state_(state);
             const auto snapshot = state.work_tree->deep_copy();
 
-            // TODO
+            TreeNode       *temp_group = TreeNode::create();
+            selection_node *head       = sorted;
+
+            while (head != nullptr) {
+                temp_group->add_node(head->selected->deep_copy(true));
+                head->selected->deleted = true;
+                head->selected          = TreeNode::shallow_copy(head->selected);
+                head                    = head->next;
+            }
+
+            for (int c = 0, i = index; c < temp_group->children_n; c++) {
+                parent->parent->insert_node(++i, temp_group->children[c]->deep_copy());
+            }
+
+            undo_history().push("Ungroup selected",
+            new std::function([snapshot] (ex::State *s) {
+                reset_state_(*s);
+                if (s->work_tree != nullptr && s->work_tree != snapshot)
+                    delete s->work_tree;
+                s->work_tree            = snapshot->deep_copy();
+                s->work_tree->connected = false;
+                s->work_tree->created   = true;
+            }),
+
+            new std::function([index, parent_id, sorted, temp_group] (ex::State *s) {
+                if (index < 0)
+                    throw std::runtime_error("Cannot find original node, index < 0");
+
+                auto node = sorted;
+                while (node != nullptr) {
+                    const auto child = s->work_tree->find_node(node->selected->id_local);
+                    if (child == nullptr)
+                        throw std::runtime_error("Cannot find original child node");
+                    child->deleted = true;
+                    node = node->next;
+                }
+
+                const auto p_node = s->work_tree->find_node(parent_id);
+                if (p_node == nullptr)
+                    throw std::runtime_error("Cannot find original parent node");
+
+                for (int c = 0, i = index; c < temp_group->children_n; c++) {
+                    const auto child = temp_group->children[c]->deep_copy();
+                    child->created   = true;
+                    p_node->insert_node(++i, child);
+                }
+
+            }),
+
+            new std::function([snapshot, temp_group, sorted] {
+                if (temp_group != nullptr)
+                    delete temp_group;
+                if (snapshot != nullptr)
+                    delete snapshot;
+                selection_node::free(sorted);
+            }));
         }
 
         void enable_node(State &state, GuiState &, TreeNode *node) {
