@@ -14,8 +14,9 @@ namespace ex::gui {
             if (selection == nullptr)
                 return nullptr;
 
-            selection_node *root = nullptr;
-            selection_node *node = selection->root;
+            const selection_node *node = selection->root;
+            selection_node       *root = nullptr;
+
             while (node != nullptr) {
                 auto curr = root;
 
@@ -31,13 +32,29 @@ namespace ex::gui {
                 }
 
                 while (node->selected->index > curr->selected->index && curr->next != nullptr) {
+                    if (curr->next->selected->index > node->selected->index)
+                        break;
                     curr = curr->next;
                 }
 
                 const auto new_node = new selection_node;
                 new_node->selected  = node->selected;
 
-                if (curr == root) {
+                if (curr->selected->index < node->selected->index) {
+                    const auto next = curr->next;
+                    new_node->root  = root->root;
+                    new_node->prev  = curr;
+                    new_node->next  = next;
+                    curr->next      = new_node;
+
+                    if (next != nullptr)
+                        next->prev = new_node;
+
+                    node = node->next;
+                    continue;
+                }
+
+                if (curr->prev == nullptr) {
                     new_node->root = new_node;
                     new_node->prev = nullptr;
                     new_node->next = curr;
@@ -48,14 +65,11 @@ namespace ex::gui {
                     continue;
                 }
 
-                const auto next = curr->next;
+                const auto prev = curr->prev;
                 new_node->root  = root->root;
-                new_node->prev  = curr;
-                new_node->next  = next;
-                curr->next      = new_node;
-
-                if (next != nullptr)
-                    next->prev = new_node;
+                new_node->next  = curr;
+                new_node->prev  = prev;
+                curr->prev      = new_node;
 
                 node = node->next;
             }
