@@ -85,6 +85,7 @@ namespace ex::gui {
 
         void copy_selected(State &state, GuiState &, selection_node *selection) {
             reset_state_(state);
+            // TODO FIXME: use ROOT
             node_buffer::create(&state.clipboard_node, selection, false, false);
         }
 
