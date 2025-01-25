@@ -55,7 +55,7 @@ namespace ex {
         new_node->index      = this->index;
         new_node->dimmed     = this->dimmed;
         new_node->is_group   = this->is_group;
-        new_node->shared     = this->shared;
+        new_node->is_link    = this->is_link;
         new_node->disabled   = this->disabled;
         new_node->id_local   = this->id_local;
         new_node->id_node    = this->id_node;
@@ -72,13 +72,13 @@ namespace ex {
         new_node->selected   = generated_id ? false : selected;
         new_node->deleted    = generated_id ? false : deleted;
         new_node->dimmed     = generated_id ? false : dimmed;
-        new_node->shared     = generated_id ? false : shared;
         new_node->disabled   = generated_id ? false : disabled;
         new_node->updated    = generated_id ? false : updated;
         new_node->parent     = parent;
         new_node->name       = name;
         new_node->index      = index;
         new_node->is_group   = is_group;
+        new_node->is_link    = is_link;
         new_node->id_node    = id_node;
         new_node->data_size  = data_size;
         new_node->children_n = children_n;

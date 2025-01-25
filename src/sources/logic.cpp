@@ -239,7 +239,7 @@ namespace ex::main {
 
         node->deleted = true;
 
-        if (!node->shared && nodes_.contains(node->id_local)) {
+        if (!node->is_link && nodes_.contains(node->id_local)) {
             const auto base = nodes_.at(node->id_local);
             nodes_.erase(node->id_local);
             base->detach_all_any();
@@ -424,7 +424,7 @@ namespace ex::main {
         if (node == nullptr || group_list == nullptr || node->deleted)
             return;
 
-        if (!node->shared && !node->is_group) {
+        if (!node->is_link && !node->is_group) {
             node->connected = false;
         }
 
@@ -473,12 +473,12 @@ namespace ex::main {
         if (from == nullptr || to == nullptr)
             return;
 
-        if (from->shared && !nodes_.contains(from->id_local)) {
+        if (from->is_link && !nodes_.contains(from->id_local)) {
             log->warn("Cannot connect shared node, reference deleted: {}", from->id_local);
             return;
         }
 
-        if (to->shared) {
+        if (to->is_link) {
             return;
         }
 

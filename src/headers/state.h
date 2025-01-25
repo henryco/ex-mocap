@@ -26,6 +26,7 @@ namespace ex {
         void       *data       = nullptr;
 
         const char *name       = nullptr;
+        TreeNode   *link       = nullptr;
         TreeNode   *parent     = nullptr;
         TreeNode  **children   = nullptr;
 
@@ -36,11 +37,11 @@ namespace ex {
         std::size_t index      = 0;
 
         bool        is_group   = false;
+        bool        is_link    = false;
         bool        disabled   = false;
         bool        updated    = false;
         bool        deleted    = false;
         bool        dimmed     = false;
-        bool        shared     = false;
         bool        created    = false;
         bool        selected   = false;
         bool        connected  = false;

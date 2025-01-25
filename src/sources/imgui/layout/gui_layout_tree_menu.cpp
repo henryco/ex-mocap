@@ -187,12 +187,87 @@ namespace ex::gui {
             }));
         }
 
-        void paste_after_node(State &state, GuiState &, TreeNode *) {
-            // TODO
+        void paste_after_node(State &state, GuiState &, TreeNode *node) {
+            if (node == nullptr || node->parent == nullptr || state.clipboard_node == nullptr) {
+                reset_state_(state);
+                return;
+            }
+            const auto parent    = node->parent;
+            const auto parent_id = parent->id_local;
+            const auto index     = node->index;
+
+            const auto selection = bubble_sort_selection(state.clipboard_node->selection);
+            const bool move      = state.clipboard_node->move;
+            const bool ref       = state.clipboard_node->ref;
+
             reset_state_(state);
+            const auto snapshot = state.work_tree->deep_copy();
+
+            selection_node *pasted = nullptr;
+
+            int c = index;
+            auto head = selection;
+            while (head != nullptr) {
+                const auto deep_copy = TreeNode::deep_copy(head->selected, true);
+                const auto copy      = TreeNode::shallow_copy(head->selected);
+
+                // TODO REFERENCE
+                parent->insert_node(++c, deep_copy);
+
+                head->selected->deleted |= move;
+                head->selected = copy;
+                head           = head->next;
+
+                if (pasted == nullptr) {
+                    pasted = selection_node::from_node(TreeNode::deep_copy(deep_copy));
+                } else {
+                    pasted->next = selection_node::from_node(TreeNode::deep_copy(deep_copy));
+                    pasted->next->root = pasted->root;
+                    pasted->next->prev = pasted;
+                    pasted             = pasted->next;
+                }
+            }
+
+            undo_history().push("Paste after",
+            new std::function([snapshot] (ex::State *s) {
+                reset_state_(*s);
+                if (s->work_tree != nullptr && s->work_tree != snapshot)
+                    delete s->work_tree;
+                s->work_tree            = snapshot->deep_copy();
+                s->work_tree->connected = false;
+                s->work_tree->created   = true;
+            }),
+            new std::function([parent_id, move, ref, index, selection, pasted] (ex::State *s) {
+                const auto p_node = s->work_tree->find_node(parent_id);
+                if (p_node == nullptr)
+                    throw std::runtime_error("Cannot find original node");
+
+                auto root = selection;
+                while (root != nullptr) {
+                    const auto f_node = s->work_tree->find_node(root->selected->id_local);
+                    if (f_node == nullptr)
+                        throw std::runtime_error("Cannot find original node");
+                    f_node->deleted |= move;
+                    root = root->next;
+                }
+
+                int k = index;
+                root = pasted;
+                while (root != nullptr) {
+                    // TODO REFERENCE
+                    p_node->insert_node(++k, TreeNode::deep_copy(pasted->selected));
+                    root = root->next;
+                }
+            }),
+            new std::function([snapshot, selection, pasted] {
+                if (snapshot != nullptr)
+                    delete snapshot;
+                selection_node::free(selection);
+                selection_node::free(pasted);
+            }));
         }
 
-        void paste_into_node(State &state, GuiState &, TreeNode *) {
+        void paste_into_node(State &state, GuiState &, TreeNode *node) {
             // TODO
             reset_state_(state);
         }
@@ -634,7 +709,8 @@ namespace ex::gui {
             ImGui::OpenPopup(menu_id);
         }
 
-        const auto parent     = node->parent;
+        const auto parent = node->parent;
+        // ReSharper disable once CppDFANullDereference
         const bool is_grouped = (parent != nullptr) && (parent->parent != nullptr) && (parent->parent->is_group);
 
         if (ImGui::BeginPopup(menu_id)) {
@@ -696,7 +772,7 @@ namespace ex::gui {
 
             if (ImGui::BeginMenu("Paste", state.clipboard_node != nullptr)) {
 
-                if (ImGui::MenuItem("Paste", "Ctrl+V")) {
+                if (ImGui::MenuItem("Paste after", "Ctrl+V")) {
                     tree::paste_after_node(state, gui, node);
                 }
 
