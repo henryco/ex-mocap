@@ -261,7 +261,7 @@ namespace ex::gui {
                 }
 
                 int k = index;
-                root = pasted;
+                root = pasted->root;
                 while (root != nullptr) {
                     // TODO REFERENCE
                     // TODO FIXME PASTE MULTIPLE (INDEX?)
@@ -366,7 +366,7 @@ namespace ex::gui {
                 }
 
                 TreeNode *group = p_node->children[0];
-                root            = pasted;
+                root            = pasted->root;
                 while (root != nullptr) {
                     const auto dcp = TreeNode::deep_copy(root->selected);
                     dcp->created   = true;
