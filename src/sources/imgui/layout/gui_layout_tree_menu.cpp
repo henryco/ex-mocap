@@ -212,16 +212,11 @@ namespace ex::gui {
             auto head = selection;
             while (head != nullptr) {
                 const auto deep_copy = TreeNode::deep_copy(head->selected, true);
+                const auto copy = TreeNode::shallow_copy(head->selected);
 
                 if (!move) {
                     deep_copy->name = (new std::string(deep_copy->name))->append(" (copy)").c_str();
                 }
-
-                const auto copy = TreeNode::shallow_copy(head->selected);
-
-                // TODO REFERENCE
-                // TODO FIXME PASTE MULTIPLE (INDEX?)
-                parent->insert_node(++c, deep_copy);
 
                 head->selected->deleted |= move;
                 head->selected = copy;
@@ -231,10 +226,15 @@ namespace ex::gui {
                     pasted = selection_node::from_node(TreeNode::deep_copy(deep_copy));
                 } else {
                     pasted->next = selection_node::from_node(TreeNode::deep_copy(deep_copy));
-                    pasted->next->root = pasted->root;
                     pasted->next->prev = pasted;
+                    pasted->next->root = pasted->root;
                     pasted             = pasted->next;
                 }
+
+                 // TODO REFERENCE
+                // TODO FIXME PASTE MULTIPLE (INDEX?)
+                deep_copy->created = true;
+                parent->insert_node(++c, deep_copy);
             }
 
             undo_history().push("Paste after",
@@ -265,7 +265,9 @@ namespace ex::gui {
                 while (root != nullptr) {
                     // TODO REFERENCE
                     // TODO FIXME PASTE MULTIPLE (INDEX?)
-                    p_node->insert_node(++k, TreeNode::deep_copy(pasted->selected));
+                    const auto dcp = TreeNode::deep_copy(root->selected);
+                    dcp->created   = true;
+                    p_node->insert_node(++k, dcp);
                     root = root->next;
                 }
             }),
@@ -291,24 +293,93 @@ namespace ex::gui {
             const auto snapshot = state.work_tree->deep_copy();
 
             if (node->children == nullptr || node->children_n <= 0) {
-                TreeNode *group   = TreeNode::create();
-                group->name       = "generic_input_group";
-                group->created    = true;
-                group->is_group   = true;
+                TreeNode *group = TreeNode::create();
+                group->is_group = true;
+                group->created  = true;
                 node->add_node(group);
-
-                std::cout << "created new group" << '\n';
             }
 
-            std::cout << "into: " << node->name << '\n';
+            TreeNode       *parent = node->children[0];
+            selection_node *pasted = nullptr;
 
-            TreeNode *parent = node->children[0];
+            const auto parent_id = node->id_local;
+            const auto group_id  = parent->id_local;
 
             auto head = selection;
             while (head != nullptr) {
-                parent->add_node(TreeNode::deep_copy(head->selected, true));
-                head = head->next;
+                const auto deep_copy = TreeNode::deep_copy(head->selected, true);
+                const auto copy = TreeNode::shallow_copy(head->selected);
+
+                if (!move) {
+                    deep_copy->name = (new std::string(deep_copy->name))->append(" (copy)").c_str();
+                }
+
+                head->selected->deleted |= move;
+                head->selected = copy;
+                head           = head->next;
+
+                if (pasted == nullptr) {
+                    pasted = selection_node::from_node(TreeNode::deep_copy(deep_copy));
+                } else {
+                    pasted->next = selection_node::from_node(TreeNode::deep_copy(deep_copy));
+                    pasted->next->prev = pasted;
+                    pasted->next->root = pasted->root;
+                    pasted             = pasted->next;
+                }
+
+                // TODO REFERENCE
+                // TODO FIXME PASTE MULTIPLE (INDEX?)
+                deep_copy->created = true;
+                parent->add_node(deep_copy);
             }
+
+            undo_history().push("Paste into",
+            new std::function([snapshot] (ex::State *s) {
+                reset_state_(*s);
+                if (s->work_tree != nullptr && s->work_tree != snapshot)
+                    delete s->work_tree;
+                s->work_tree            = snapshot->deep_copy();
+                s->work_tree->connected = false;
+                s->work_tree->created   = true;
+            }),
+            new std::function([parent_id, group_id, move, ref, selection, pasted] (ex::State *s) {
+
+                const auto p_node = s->work_tree->find_node(parent_id);
+                if (p_node == nullptr)
+                    throw std::runtime_error("Cannot find original node");
+
+                auto root = selection;
+                while (root != nullptr) {
+                    const auto f_node = s->work_tree->find_node(root->selected->id_local);
+                    if (f_node == nullptr)
+                        throw std::runtime_error("Cannot find original node");
+                    f_node->deleted |= move;
+                    root = root->next;
+                }
+
+                if (p_node->children_n <= 0 || p_node->children == nullptr) {
+                    TreeNode *group = TreeNode::create();
+                    group->id_local = group_id;
+                    group->is_group = true;
+                    group->created  = true;
+                    p_node->add_node(group);
+                }
+
+                TreeNode *group = p_node->children[0];
+                root            = pasted;
+                while (root != nullptr) {
+                    const auto dcp = TreeNode::deep_copy(root->selected);
+                    dcp->created   = true;
+                    group->add_node(dcp);
+                    root = root->next;
+                }
+            }),
+            new std::function([snapshot, selection, pasted] {
+                if (snapshot != nullptr)
+                    delete snapshot;
+                selection_node::free(selection);
+                selection_node::free(pasted);
+            }));
 
         }
 
