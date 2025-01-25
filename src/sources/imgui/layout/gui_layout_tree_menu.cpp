@@ -231,8 +231,8 @@ namespace ex::gui {
                     pasted             = pasted->next;
                 }
 
-                 // TODO REFERENCE
-                // TODO FIXME PASTE MULTIPLE (INDEX?)
+                // TODO REFERENCE
+                // TODO FIXME PASTE MULTIPLE (Ctrl select)
                 deep_copy->created = true;
                 parent->insert_node(++c, deep_copy);
             }
@@ -264,7 +264,7 @@ namespace ex::gui {
                 root = pasted->root;
                 while (root != nullptr) {
                     // TODO REFERENCE
-                    // TODO FIXME PASTE MULTIPLE (INDEX?)
+                    // TODO FIXME PASTE MULTIPLE (Ctrl select)
                     const auto dcp = TreeNode::deep_copy(root->selected);
                     dcp->created   = true;
                     p_node->insert_node(++k, dcp);
@@ -328,7 +328,7 @@ namespace ex::gui {
                 }
 
                 // TODO REFERENCE
-                // TODO FIXME PASTE MULTIPLE (INDEX?)
+                // TODO FIXME PASTE MULTIPLE (Ctrl select)
                 deep_copy->created = true;
                 parent->add_node(deep_copy);
             }
@@ -372,6 +372,9 @@ namespace ex::gui {
                     dcp->created   = true;
                     group->add_node(dcp);
                     root = root->next;
+
+                    // TODO REFERENCE
+                    // TODO FIXME PASTE MULTIPLE (Ctrl select)
                 }
             }),
             new std::function([snapshot, selection, pasted] {
