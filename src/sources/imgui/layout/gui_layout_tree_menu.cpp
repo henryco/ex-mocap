@@ -616,6 +616,9 @@ namespace ex::gui {
     bool show_context_menu_element(State &state, GuiState &gui, TreeNode *node,
         const bool last, const bool nested, const bool selected)
     {
+        if (node == nullptr)
+            return false;
+
         static auto menu_id = "show_context_menu_element";
         static char name_buffer[64] = "";
 
@@ -631,6 +634,9 @@ namespace ex::gui {
             ImGui::OpenPopup(menu_id);
         }
 
+        const auto parent     = node->parent;
+        const bool is_grouped = (parent != nullptr) && (parent->parent != nullptr) && (parent->parent->is_group);
+
         if (ImGui::BeginPopup(menu_id)) {
 
             if (ImGui::MenuItem("Rename")) {
@@ -643,6 +649,26 @@ namespace ex::gui {
             if (ImGui::MenuItem(enabled ? "Disable" : "Enable")) {
                 if (enabled) tree::disable_node(state, gui, node);
                 else tree::enable_node(state, gui, node);
+            }
+
+            if (ImGui::MenuItem("Group")) {
+                selection_node selection;
+                selection.selected = node;
+                selection.root     = &selection;
+                selection.next     = nullptr;
+                selection.prev     = nullptr;
+                tree::group_selected(state, gui, &selection);
+            }
+
+            if (is_grouped) {
+                if (ImGui::MenuItem("Ungroup")) {
+                    selection_node selection;
+                    selection.selected = node;
+                    selection.root     = &selection;
+                    selection.next     = nullptr;
+                    selection.prev     = nullptr;
+                    tree::ungroup_selected(state, gui, &selection);
+                }
             }
 
             node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);

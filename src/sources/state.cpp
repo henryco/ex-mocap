@@ -301,6 +301,17 @@ namespace ex {
         return src->copy();
     }
 
+    selection_node *selection_node::from_node(TreeNode *node) {
+        if (node == nullptr)
+            return nullptr;
+        const auto instance = new selection_node;
+        instance->selected  = node;
+        instance->root      = instance;
+        instance->prev      = nullptr;
+        instance->next      = nullptr;
+        return instance;
+    }
+
     bool selection_node::single(selection_node *node) {
         return node == nullptr || node->root->next == nullptr;
     }

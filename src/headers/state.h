@@ -76,6 +76,7 @@ namespace ex {
 
         selection_node        *copy() const;
         static selection_node *copy(selection_node *src);
+        static selection_node *from_node(TreeNode *node);
         static bool            single(selection_node *node);
         static void            remove(selection_node *node, selection_node **next);
         static void            free(selection_node *node, bool unselect = false);
