@@ -232,6 +232,8 @@ namespace ex::gui {
     int count_children(TreeNode *node, const int counter) {
         if (node == nullptr)
             return counter;
+//        if (node == nullptr || node->created)
+//            return counter;
 
         int counter_i = counter;
 
@@ -268,6 +270,8 @@ namespace ex::gui {
     {
         if (node == nullptr)
             return counter;
+//        if (node == nullptr || node->created)
+//            return counter;
 
         int counter_i = counter;
 
@@ -328,7 +332,7 @@ namespace ex::gui {
                 ImGui::TextDisabled(connected ? (node->children_n > 0 ? ICON_LC_ARROW_DOWN_RIGHT : "") : ICON_LC_UNPLUG);
             }
 
-            if (open && node->children_n > 0) {
+            if (open && node->children_n > 0 && !node->children[0]->created) {
                 if (disabled || disabled_ || dimmed)
                     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 

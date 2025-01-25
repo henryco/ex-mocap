@@ -295,7 +295,6 @@ namespace ex::gui {
                 group->name       = "generic_input_group";
                 group->created    = true;
                 group->is_group   = true;
-                group->children_n = 0;
                 node->add_node(group);
 
                 std::cout << "created new group" << '\n';
