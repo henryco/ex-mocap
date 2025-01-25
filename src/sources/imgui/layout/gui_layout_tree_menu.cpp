@@ -99,13 +99,16 @@ namespace ex::gui {
         }
 
         void cut_selected(State &state, GuiState &, selection_node *selection) {
+            const auto copy = selection_node::copy(selection->root);
             reset_state_(state);
-            node_buffer::create(&state.clipboard_node, selection, true, false);
-            auto head = selection->root;
+
+            node_buffer::create(&state.clipboard_node, copy, true, false);
+            auto head = copy->root;
             while (head != nullptr) {
                 head->selected->dimmed = true;
                 head = head->next;
             }
+            selection_node::free(copy);
         }
 
         void cut_node(State &state, GuiState &, TreeNode *node) {
@@ -268,8 +271,32 @@ namespace ex::gui {
         }
 
         void paste_into_node(State &state, GuiState &, TreeNode *node) {
-            // TODO
+            if (node == nullptr || state.clipboard_node == nullptr) {
+                reset_state_(state);
+                return;
+            }
+            const auto parent_id = node->id_local;
+
+            const auto selection = bubble_sort_selection(state.clipboard_node->selection);
+            const bool move      = state.clipboard_node->move;
+            const bool ref       = state.clipboard_node->ref;
+
             reset_state_(state);
+            const auto snapshot = state.work_tree->deep_copy();
+
+            selection_node *pasted = nullptr;
+
+            if (node->children == nullptr || node->children_n <= 0) {
+                if (node->children != nullptr)
+                    delete[] node->children;
+                node->children   = new TreeNode *[1];
+                node->children_n = 1;
+            }
+
+            TreeNode *target = node->children[0];
+
+            // TODO
+
         }
 
         void group_selected(State &state, GuiState &, selection_node *selection) {
