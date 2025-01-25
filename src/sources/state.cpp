@@ -166,7 +166,7 @@ namespace ex {
         node->index            = new_size - 1;
 
         if (this->children != nullptr)
-            delete this->children;
+            delete[] this->children;
 
         this->children_n = new_size;
         this->children   = children;
@@ -186,7 +186,7 @@ namespace ex {
 
         if (curr_n <= 0 || new_size == 1 || this->children == nullptr) {
             if (this->children != nullptr)
-                delete this->children;
+                delete[] this->children;
             this->children           = new TreeNode *[1];
             this->children_n         = 1;
             this->children[0]        = node;

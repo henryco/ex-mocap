@@ -199,7 +199,7 @@ namespace ex::gui {
             const auto parent_id = parent->id_local;
             const auto index     = node->index;
 
-            const auto selection = bubble_sort_selection(state.clipboard_node->selection);
+            const auto selection = bubble_sort_selection(state.clipboard_node->selection->root);
             const bool move      = state.clipboard_node->move;
             const bool ref       = state.clipboard_node->ref;
 
@@ -212,7 +212,12 @@ namespace ex::gui {
             auto head = selection;
             while (head != nullptr) {
                 const auto deep_copy = TreeNode::deep_copy(head->selected, true);
-                const auto copy      = TreeNode::shallow_copy(head->selected);
+
+                if (!move) {
+                    deep_copy->name = (new std::string(deep_copy->name))->append(" (copy)").c_str();
+                }
+
+                const auto copy = TreeNode::shallow_copy(head->selected);
 
                 // TODO REFERENCE
                 // TODO FIXME PASTE MULTIPLE (INDEX?)
@@ -277,27 +282,34 @@ namespace ex::gui {
                 reset_state_(state);
                 return;
             }
-            const auto parent_id = node->id_local;
 
-            const auto selection = bubble_sort_selection(state.clipboard_node->selection);
+            const auto selection = bubble_sort_selection(state.clipboard_node->selection->root);
             const bool move      = state.clipboard_node->move;
             const bool ref       = state.clipboard_node->ref;
 
             reset_state_(state);
             const auto snapshot = state.work_tree->deep_copy();
 
-            selection_node *pasted = nullptr;
-
             if (node->children == nullptr || node->children_n <= 0) {
-                if (node->children != nullptr)
-                    delete[] node->children;
-                node->children   = new TreeNode *[1];
-                node->children_n = 1;
+                TreeNode *group   = TreeNode::create();
+                group->name       = "generic_input_group";
+                group->created    = true;
+                group->is_group   = true;
+                group->children_n = 0;
+                node->add_node(group);
+
+                std::cout << "created new group" << '\n';
             }
 
-            TreeNode *target = node->children[0];
+            std::cout << "into: " << node->name << '\n';
 
-            // TODO
+            TreeNode *parent = node->children[0];
+
+            auto head = selection;
+            while (head != nullptr) {
+                parent->add_node(TreeNode::deep_copy(head->selected, true));
+                head = head->next;
+            }
 
         }
 
