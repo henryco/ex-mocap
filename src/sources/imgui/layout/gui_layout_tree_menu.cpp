@@ -102,7 +102,7 @@ namespace ex::gui {
             const auto copy = selection_node::copy(selection->root);
             reset_state_(state);
 
-            node_buffer::create(&state.clipboard_node, copy, true, false);
+            node_buffer::create(&state.clipboard_node, copy->root, true, false);
             auto head = copy->root;
             while (head != nullptr) {
                 head->selected->dimmed = true;
@@ -215,6 +215,7 @@ namespace ex::gui {
                 const auto copy      = TreeNode::shallow_copy(head->selected);
 
                 // TODO REFERENCE
+                // TODO FIXME PASTE MULTIPLE (INDEX?)
                 parent->insert_node(++c, deep_copy);
 
                 head->selected->deleted |= move;
@@ -258,6 +259,7 @@ namespace ex::gui {
                 root = pasted;
                 while (root != nullptr) {
                     // TODO REFERENCE
+                    // TODO FIXME PASTE MULTIPLE (INDEX?)
                     p_node->insert_node(++k, TreeNode::deep_copy(pasted->selected));
                     root = root->next;
                 }
