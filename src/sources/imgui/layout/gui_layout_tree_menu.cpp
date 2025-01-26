@@ -402,10 +402,13 @@ namespace ex::gui {
             while (head != nullptr) {
                 if (index == -1)
                     index = head->selected->index;
-                new_group->add_node(head->selected->deep_copy(true));
-                head->selected->deleted = true;
-                head->selected          = TreeNode::shallow_copy(head->selected);
-                head                    = head->next;
+                TreeNode *new_one = head->selected->deep_copy();
+                new_one->created  = true;
+
+                new_group->add_node(new_one);
+                head->selected->moved = true;
+                head->selected        = TreeNode::shallow_copy(head->selected);
+                head                  = head->next;
             }
 
             if (index >= 0)
@@ -430,8 +433,8 @@ namespace ex::gui {
                     const auto child = s->work_tree->find_node(node->selected->id_local);
                     if (child == nullptr)
                         throw std::runtime_error("Cannot find original child node");
-                    child->deleted = true;
-                    node = node->next;
+                    child->moved = true;
+                    node         = node->next;
                 }
 
                 const auto p_node = s->work_tree->find_node(parent_id);
@@ -464,10 +467,13 @@ namespace ex::gui {
             selection_node *head       = sorted;
 
             while (head != nullptr) {
-                temp_group->add_node(head->selected->deep_copy(true));
-                head->selected->deleted = true;
-                head->selected          = TreeNode::shallow_copy(head->selected);
-                head                    = head->next;
+                TreeNode *new_one = head->selected->deep_copy();
+                new_one->created  = true;
+
+                temp_group->add_node(new_one);
+                head->selected->moved = true;
+                head->selected        = TreeNode::shallow_copy(head->selected);
+                head                  = head->next;
             }
 
             for (int c = 0, i = index; c < temp_group->children_n; c++) {
@@ -493,8 +499,8 @@ namespace ex::gui {
                     const auto child = s->work_tree->find_node(node->selected->id_local);
                     if (child == nullptr)
                         throw std::runtime_error("Cannot find original child node");
-                    child->deleted = true;
-                    node = node->next;
+                    child->moved = true;
+                    node         = node->next;
                 }
 
                 const auto p_node = s->work_tree->find_node(parent_id);

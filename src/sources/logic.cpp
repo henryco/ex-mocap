@@ -233,13 +233,14 @@ namespace ex::main {
         }
     }
 
-    void Logic::mark_node_deleted_(TreeNode *node) {
+    void Logic::mark_node_deleted_(State &state, TreeNode *node, const bool moved) {
         if (node == nullptr)
             return;
 
-        node->deleted = true;
+        node->deleted = !moved;
+        node->moved   = moved;
 
-        if (!node->is_link && nodes_.contains(node->id_local)) {
+        if (!moved && !node->is_link && nodes_.contains(node->id_local)) {
             const auto base = nodes_.at(node->id_local);
             nodes_.erase(node->id_local);
             base->detach_all_any();
@@ -250,12 +251,24 @@ namespace ex::main {
             delete base;
         }
 
+        if (moved) {
+            const auto base = nodes_.at(node->id_local);
+            const auto r_func = mappers_.at(node->id_node).relocate;
+            if (r_func != nullptr) {
+                const auto new_one = r_func(state, node, base);
+                if (base != new_one) {
+                    nodes_.erase(node->id_local);
+                    nodes_.emplace(node->id_local, new_one);
+                }
+            }
+        }
+
         if (node->children_n <= 0 || node->children == nullptr) {
             return;
         }
 
         for (int i = 0; i < node->children_n; i++) {
-            mark_node_deleted_(node->children[i]);
+            mark_node_deleted_(state, node->children[i], moved);
         }
     }
 
@@ -263,7 +276,7 @@ namespace ex::main {
         if (node == nullptr)
             return;
 
-        if (node->deleted) {
+        if (node->deleted || node->moved) {
             *rewire = true;
             return;
         }
@@ -271,7 +284,7 @@ namespace ex::main {
         for (std::size_t i = 0; i < node->children_n; i++) {
             const auto child = node->children[i];
 
-            if (child->deleted) {
+            if (child->deleted || child->moved) {
                 *rewire = true;
             }
 
@@ -288,21 +301,18 @@ namespace ex::main {
         while (true) {
             if (o >= node->children_n)
                 break;
-            if (!node->children[o]->deleted) {
+            const auto child = node->children[o];
+            if (!child->deleted && !child->moved) {
                 o += 1;
                 continue;
             }
-            const auto child = node->children[o];
-            mark_node_deleted_(child);
+            mark_node_deleted_(state, child, child->moved);
             node->remove_node(child);
             delete child;
             o = 0;
         }
 
         if (node->created || fresh) {
-
-//            if (node->id_local <= 0)
-//                node->id_local = id_counter++;
 
             if (!node->is_group) {
                 const DataMappers &mappers = mappers_.at(node->id_node);
@@ -316,8 +326,10 @@ namespace ex::main {
         if (node->is_group || !nodes_.contains(node->id_local))
             return;
 
-        if (ptr_counter_.contains(node->id_local))
-            ptr_counter_.at(node->id_local) += 1;
+        if (ptr_counter_.contains(node->id_local)) {
+            const auto v = ptr_counter_.at(node->id_local);
+            ptr_counter_.at(node->id_local) = std::min(v + 1, 10000000);
+        }
         else
             ptr_counter_.emplace(node->id_local, 1);
 

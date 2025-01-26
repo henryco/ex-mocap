@@ -83,6 +83,11 @@ namespace ex::gui::test::one {
         return node;
     }
 
+    nodes::BaseNode *relocate(const State &state, TreeNode *tree, nodes::BaseNode *node) {
+        std::cout << "relocate: " << tree->id_local << '\n';
+        return node;
+    }
+
 }
 
 namespace ex::gui::test::two {
@@ -142,6 +147,11 @@ namespace ex::gui::test::two {
         return node;
     }
 
+    nodes::BaseNode *relocate(const State &state, TreeNode *tree, nodes::BaseNode *node) {
+        std::cout << "relocate: " << tree->id_local << '\n';
+        return node;
+    }
+
 }
 
 namespace ex::gui::test::tri {
@@ -195,4 +205,8 @@ namespace ex::gui::test::tri {
         return node;
     }
 
+    nodes::BaseNode *relocate(const State &state, TreeNode *tree, nodes::BaseNode *node) {
+        std::cout << "relocate: " << tree->id_local << '\n';
+        return node;
+    }
 }

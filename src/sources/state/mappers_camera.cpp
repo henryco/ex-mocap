@@ -43,4 +43,8 @@ namespace ex::map::camera {
         return node;
     }
 
-}
+    node_ *relocate(const State &state, TreeNode *tree, node_ *self) {
+        return self;
+    }
+
+} // namespace ex::map::camera
