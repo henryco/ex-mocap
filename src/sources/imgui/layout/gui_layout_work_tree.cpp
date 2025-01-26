@@ -281,8 +281,9 @@ namespace ex::gui {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
 
+            const bool reference = node->is_link;
             const bool connected = node->connected || n == 0;
-            const bool disabled  = node->disabled || !connected;
+            const bool disabled  = node->disabled || (!connected && !reference);
             const bool dimmed    = node->dimmed;
 
             if (disabled || disabled_ || dimmed)
@@ -322,6 +323,10 @@ namespace ex::gui {
             if (disabled) {
                 ImGui::TableNextColumn();
                 ImGui::TextDisabled(ICON_LC_LINK_2_OFF);
+            }
+            else if (reference) {
+                ImGui::TableNextColumn();
+                ImGui::TextDisabled(ICON_LC_LINK);
             }
             else if (ImGui::IsItemHovered()) {
                 ImGui::TableNextColumn();

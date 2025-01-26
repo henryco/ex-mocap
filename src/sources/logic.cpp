@@ -483,7 +483,7 @@ namespace ex::main {
     }
 
     void Logic::connect_nodes_(TreeNode *from, TreeNode *to) {
-        if (from == nullptr || to == nullptr)
+        if (from == nullptr || to == nullptr || to->is_link)
             return;
 
         const std::size_t from_id_local = from->is_link ? from->id_link : from->id_local;
