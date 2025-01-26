@@ -48,6 +48,7 @@ namespace ex {
         new_node->deleted    = this->deleted;
         new_node->created    = this->created;
         new_node->updated    = this->updated;
+        new_node->warning    = this->warning;
         new_node->parent     = this->parent;
         new_node->children   = nullptr;
         new_node->data       = nullptr;
@@ -70,6 +71,7 @@ namespace ex {
         new_node->created    = generated_id ? true : created;
         new_node->connected  = generated_id ? false : connected;
         new_node->selected   = generated_id ? false : selected;
+        new_node->warning    = generated_id ? false : warning;
         new_node->deleted    = generated_id ? false : deleted;
         new_node->dimmed     = generated_id ? false : dimmed;
         new_node->disabled   = generated_id ? false : disabled;

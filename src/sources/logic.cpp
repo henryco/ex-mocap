@@ -240,7 +240,7 @@ namespace ex::main {
         node->deleted = !moved;
         node->moved   = moved;
 
-        if (!moved && !node->is_link && nodes_.contains(node->id_local)) {
+        if (!moved && !node->is_link && !node->is_group && nodes_.contains(node->id_local)) {
             const auto base = nodes_.at(node->id_local);
             nodes_.erase(node->id_local);
             base->detach_all_any();
@@ -251,7 +251,7 @@ namespace ex::main {
             delete base;
         }
 
-        if (moved && !node->is_group) {
+        if (moved && !node->is_link && !node->is_group) {
             const auto base = nodes_.at(node->id_local);
             const auto r_func = mappers_.at(node->id_node).relocate;
             if (r_func != nullptr) {
@@ -314,16 +314,17 @@ namespace ex::main {
 
         if (node->created || fresh) {
 
-            if (!node->is_group) {
+            if (!node->is_group && !node->is_link) {
                 const DataMappers &mappers = mappers_.at(node->id_node);
                 if (!nodes_.contains(node->id_local))
                     nodes_.emplace(node->id_local, mappers.instance(state, node));
             }
+
             node->created = false;
             *rewire = true;
         }
 
-        if (node->is_group || !nodes_.contains(node->id_local))
+        if (node->is_group || node->is_link || !nodes_.contains(node->id_local))
             return;
 
         if (ptr_counter_.contains(node->id_local)) {
@@ -485,20 +486,19 @@ namespace ex::main {
         if (from == nullptr || to == nullptr)
             return;
 
-        if (from->is_link && !nodes_.contains(from->id_local)) {
-            log->warn("Cannot connect shared node, reference deleted: {}", from->id_local);
-            return;
-        }
+        const std::size_t from_id_local = from->is_link ? from->id_link : from->id_local;
 
-        if (to->is_link) {
+        if (from->is_link && !nodes_.contains(from_id_local)) {
+            log->warn("Cannot connect shared node, reference deleted: {}", from_id_local);
+            from->connected = false;
             return;
         }
 
         nodes::BaseNode *node_dst = nodes_.at(to->id_local);
-        nodes::BaseNode *node_src = nodes_.at(from->id_local);
+        nodes::BaseNode *node_src = nodes_.at(from_id_local);
 
         if (node_dst == nullptr || node_src == nullptr) {
-            log->error("One of nodes does not exist: {}, {}", to->id_local, from->id_local);
+            log->error("One of nodes does not exist: {}, {}", to->id_local, from_id_local);
             return;
         }
 
@@ -548,7 +548,7 @@ namespace ex::main {
         }
 
         to->connected = (connects_num > 0);
-        log->debug("CONNECTION STATUS: {} -> {} [{}]", from->id_local, to->id_local, to->connected);
+        log->debug("CONNECTION STATUS: {} -> {} [{}]", from_id_local, to->id_local, to->connected);
     }
 
 }

@@ -43,6 +43,7 @@ namespace ex {
         bool        deleted    = false;
         bool        moved      = false;
         bool        dimmed     = false;
+        bool        warning    = false;
         bool        created    = false;
         bool        selected   = false;
         bool        connected  = false;
