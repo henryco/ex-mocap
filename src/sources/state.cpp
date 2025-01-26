@@ -261,10 +261,23 @@ namespace ex {
         if (id > 0) {
             state::uuid::set_last_id(id);
             node->id_local = id;
-        } else {
+        }
+        else {
             node->id_local = state::uuid::generate_id_inc();
         }
         return node;
+    }
+
+    TreeNode *TreeNode::link(TreeNode *node) {
+        if (node == nullptr)
+            return nullptr;
+        TreeNode *new_one = TreeNode::create();
+        new_one->name     = node->name;
+        new_one->id_link  = node->id_local;
+        new_one->id_node  = node->id_node;
+        new_one->created  = true;
+        new_one->is_link  = true;
+        return new_one;
     }
 
     selection_node *selection_node::copy() const {

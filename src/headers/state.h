@@ -63,6 +63,7 @@ namespace ex {
         static TreeNode *deep_copy(TreeNode *node, bool generated_id = false);
 
         static TreeNode *create(std::size_t id = 0);
+        static TreeNode *link(TreeNode *node);
 
     private:
         TreeNode() = default;

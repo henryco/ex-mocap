@@ -213,10 +213,10 @@ namespace ex::gui {
             int c = index;
             auto head = selection;
             while (head != nullptr) {
-                const auto deep_copy = TreeNode::deep_copy(head->selected, !move);
+                TreeNode *deep_copy = ref ? TreeNode::link(head->selected) : TreeNode::deep_copy(head->selected, !move);
                 const auto copy = TreeNode::shallow_copy(head->selected);
 
-                if (!move) {
+                if (!move && !ref) {
                     deep_copy->name = (new std::string(deep_copy->name))->append(" (copy)").c_str();
                 }
 
@@ -233,7 +233,6 @@ namespace ex::gui {
                     pasted             = pasted->next;
                 }
 
-                // TODO REFERENCE
                 deep_copy->created = true;
                 parent->insert_node(++c, deep_copy);
             }
@@ -264,8 +263,7 @@ namespace ex::gui {
                 int k = index;
                 root = pasted->root;
                 while (root != nullptr) {
-                    // TODO REFERENCE
-                    const auto dcp = TreeNode::deep_copy(root->selected);
+                    const auto dcp = ref ? TreeNode::link(root->selected) : TreeNode::deep_copy(root->selected);
                     dcp->created   = true;
                     p_node->insert_node(++k, dcp);
                     root = root->next;
@@ -307,10 +305,10 @@ namespace ex::gui {
 
             auto head = selection;
             while (head != nullptr) {
-                const auto deep_copy = TreeNode::deep_copy(head->selected, !move);
+                TreeNode *deep_copy = ref ? TreeNode::link(head->selected) : TreeNode::deep_copy(head->selected, !move);
                 const auto copy = TreeNode::shallow_copy(head->selected);
 
-                if (!move) {
+                if (!move && !ref) {
                     deep_copy->name = (new std::string(deep_copy->name))->append(" (copy)").c_str();
                 }
 
@@ -327,7 +325,6 @@ namespace ex::gui {
                     pasted             = pasted->next;
                 }
 
-                // TODO REFERENCE
                 deep_copy->created = true;
                 parent->add_node(deep_copy);
             }
@@ -367,12 +364,10 @@ namespace ex::gui {
                 TreeNode *group = p_node->children[0];
                 root            = pasted->root;
                 while (root != nullptr) {
-                    const auto dcp = TreeNode::deep_copy(root->selected);
+                    const auto dcp = ref ? TreeNode::link(root->selected) : TreeNode::deep_copy(root->selected);
                     dcp->created   = true;
                     group->add_node(dcp);
                     root = root->next;
-
-                    // TODO REFERENCE
                 }
             }),
             new std::function([snapshot, selection, pasted] {
