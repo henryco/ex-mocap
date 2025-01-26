@@ -375,8 +375,9 @@ namespace ex::gui {
         // It's a group, and it has children (not an empty)
         const auto first = node->children[0];
 
+        const bool reference = first->is_link;
         const bool connected = first->connected || n == 0;
-        const bool disabled  = first->disabled || !connected;
+        const bool disabled  = first->disabled || (!connected && !reference);
         const bool dimmed    = first->dimmed;
 
         if (first->children_n <= 0) {
@@ -414,6 +415,10 @@ namespace ex::gui {
                 if (disabled) {
                     ImGui::TableNextColumn();
                     ImGui::TextDisabled(ICON_LC_LINK_2_OFF);
+                }
+                else if (reference) {
+                    ImGui::TableNextColumn();
+                    ImGui::TextDisabled(ICON_LC_LINK);
                 }
                 else if (ImGui::IsItemHovered()) {
                     ImGui::TableNextColumn();
