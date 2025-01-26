@@ -84,9 +84,10 @@ namespace ex::gui {
         }
 
         void copy_selected(State &state, GuiState &, selection_node *selection) {
+            const auto copy = selection_node::copy(selection->root);
             reset_state_(state);
-            // TODO FIXME: use ROOT
-            node_buffer::create(&state.clipboard_node, selection, false, false);
+            node_buffer::create(&state.clipboard_node, copy->root, false, false);
+            selection_node::free(copy);
         }
 
         void copy_node(State &state, GuiState &, TreeNode *node) {
@@ -233,7 +234,6 @@ namespace ex::gui {
                 }
 
                 // TODO REFERENCE
-                // TODO FIXME PASTE MULTIPLE (Ctrl select)
                 deep_copy->created = true;
                 parent->insert_node(++c, deep_copy);
             }
@@ -265,7 +265,6 @@ namespace ex::gui {
                 root = pasted->root;
                 while (root != nullptr) {
                     // TODO REFERENCE
-                    // TODO FIXME PASTE MULTIPLE (Ctrl select)
                     const auto dcp = TreeNode::deep_copy(root->selected);
                     dcp->created   = true;
                     p_node->insert_node(++k, dcp);
@@ -329,7 +328,6 @@ namespace ex::gui {
                 }
 
                 // TODO REFERENCE
-                // TODO FIXME PASTE MULTIPLE (Ctrl select)
                 deep_copy->created = true;
                 parent->add_node(deep_copy);
             }
@@ -375,7 +373,6 @@ namespace ex::gui {
                     root = root->next;
 
                     // TODO REFERENCE
-                    // TODO FIXME PASTE MULTIPLE (Ctrl select)
                 }
             }),
             new std::function([snapshot, selection, pasted] {
