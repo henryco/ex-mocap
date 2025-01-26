@@ -246,7 +246,7 @@ namespace ex::gui {
                 s->work_tree->connected = false;
                 s->work_tree->created   = true;
             }),
-            new std::function([parent_id, move, ref, index, selection, pasted] (ex::State *s) {
+            new std::function([parent_id, move, index, selection, pasted] (ex::State *s) {
                 const auto p_node = s->work_tree->find_node(parent_id);
                 if (p_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
@@ -263,7 +263,7 @@ namespace ex::gui {
                 int k = index;
                 root = pasted->root;
                 while (root != nullptr) {
-                    const auto dcp = ref ? TreeNode::link(root->selected) : TreeNode::deep_copy(root->selected);
+                    const auto dcp = TreeNode::deep_copy(root->selected);
                     dcp->created   = true;
                     p_node->insert_node(++k, dcp);
                     root = root->next;
@@ -338,7 +338,7 @@ namespace ex::gui {
                 s->work_tree->connected = false;
                 s->work_tree->created   = true;
             }),
-            new std::function([parent_id, group_id, move, ref, selection, pasted] (ex::State *s) {
+            new std::function([parent_id, group_id, move, selection, pasted] (ex::State *s) {
 
                 const auto p_node = s->work_tree->find_node(parent_id);
                 if (p_node == nullptr)
@@ -364,7 +364,7 @@ namespace ex::gui {
                 TreeNode *group = p_node->children[0];
                 root            = pasted->root;
                 while (root != nullptr) {
-                    const auto dcp = ref ? TreeNode::link(root->selected) : TreeNode::deep_copy(root->selected);
+                    const auto dcp = TreeNode::deep_copy(root->selected);
                     dcp->created   = true;
                     group->add_node(dcp);
                     root = root->next;
@@ -860,40 +860,42 @@ namespace ex::gui {
                 }
             }
 
-            node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);
+            if (!node->is_link) {
+                node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);
 
-            if (ImGui::MenuItem("Duplicate", "Ctrl+D")) {
-                tree::duplicate_node(state, gui, node);
-            }
-
-            if (ImGui::MenuItem("Cut", "Ctrl+Z")) {
-                tree::cut_node(state, gui, node);
-            }
-
-            if (ImGui::BeginMenu("Copy")) {
-
-                if (ImGui::MenuItem("Copy", "Ctrl+C")) {
-                    tree::copy_node(state, gui, node);
+                if (ImGui::MenuItem("Duplicate", "Ctrl+D")) {
+                    tree::duplicate_node(state, gui, node);
                 }
 
-                if (ImGui::MenuItem("Copy Ref", "Ctrl+R")) {
-                    tree::ref_node(state, gui, node);
+                if (ImGui::MenuItem("Cut", "Ctrl+Z")) {
+                    tree::cut_node(state, gui, node);
                 }
 
-                ImGui::EndMenu();
-            }
+                if (ImGui::BeginMenu("Copy")) {
 
-            if (ImGui::BeginMenu("Paste", state.clipboard_node != nullptr)) {
+                    if (ImGui::MenuItem("Copy", "Ctrl+C")) {
+                        tree::copy_node(state, gui, node);
+                    }
 
-                if (ImGui::MenuItem("Paste after", "Ctrl+V")) {
-                    tree::paste_after_node(state, gui, node);
+                    if (ImGui::MenuItem("Copy Ref", "Ctrl+R")) {
+                        tree::ref_node(state, gui, node);
+                    }
+
+                    ImGui::EndMenu();
                 }
 
-                if (ImGui::MenuItem("Paste into")) {
-                    tree::paste_into_node(state, gui, node);
-                }
+                if (ImGui::BeginMenu("Paste", state.clipboard_node != nullptr)) {
 
-                ImGui::EndMenu();
+                    if (ImGui::MenuItem("Paste after", "Ctrl+V")) {
+                        tree::paste_after_node(state, gui, node);
+                    }
+
+                    if (ImGui::MenuItem("Paste into")) {
+                        tree::paste_into_node(state, gui, node);
+                    }
+
+                    ImGui::EndMenu();
+                }
             }
 
             ImGui::Separator();

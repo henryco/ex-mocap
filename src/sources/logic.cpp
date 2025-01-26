@@ -483,6 +483,7 @@ namespace ex::main {
     }
 
     void Logic::connect_nodes_(TreeNode *from, TreeNode *to) {
+        // TODO: HANDLE DISABLED
         if (from == nullptr || to == nullptr || to->is_link)
             return;
 
@@ -494,8 +495,8 @@ namespace ex::main {
             return;
         }
 
-        nodes::BaseNode *node_dst = nodes_.at(to->id_local);
         nodes::BaseNode *node_src = nodes_.at(from_id_local);
+        nodes::BaseNode *node_dst = nodes_.at(to->id_local);
 
         if (node_dst == nullptr || node_src == nullptr) {
             log->error("One of nodes does not exist: {}, {}", to->id_local, from_id_local);

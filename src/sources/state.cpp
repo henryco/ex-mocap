@@ -60,6 +60,7 @@ namespace ex {
         new_node->disabled   = this->disabled;
         new_node->id_local   = this->id_local;
         new_node->id_node    = this->id_node;
+        new_node->id_link    = this->id_link;
         new_node->data_size  = 0;
         new_node->children_n = 0;
         return new_node;
@@ -76,6 +77,7 @@ namespace ex {
         new_node->dimmed     = generated_id ? false : dimmed;
         new_node->disabled   = generated_id ? false : disabled;
         new_node->updated    = generated_id ? false : updated;
+        new_node->id_link    = id_link;
         new_node->parent     = parent;
         new_node->name       = name;
         new_node->index      = index;
