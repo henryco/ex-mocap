@@ -251,7 +251,7 @@ namespace ex::main {
             delete base;
         }
 
-        if (moved) {
+        if (moved && !node->is_group) {
             const auto base = nodes_.at(node->id_local);
             const auto r_func = mappers_.at(node->id_node).relocate;
             if (r_func != nullptr) {

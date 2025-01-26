@@ -213,14 +213,14 @@ namespace ex::gui {
             int c = index;
             auto head = selection;
             while (head != nullptr) {
-                const auto deep_copy = TreeNode::deep_copy(head->selected, true);
+                const auto deep_copy = TreeNode::deep_copy(head->selected, !move);
                 const auto copy = TreeNode::shallow_copy(head->selected);
 
                 if (!move) {
                     deep_copy->name = (new std::string(deep_copy->name))->append(" (copy)").c_str();
                 }
 
-                head->selected->deleted |= move;
+                head->selected->moved = move;
                 head->selected = copy;
                 head           = head->next;
 
@@ -257,7 +257,7 @@ namespace ex::gui {
                     const auto f_node = s->work_tree->find_node(root->selected->id_local);
                     if (f_node == nullptr)
                         throw std::runtime_error("Cannot find original node");
-                    f_node->deleted |= move;
+                    f_node->moved = move;
                     root = root->next;
                 }
 
@@ -307,14 +307,14 @@ namespace ex::gui {
 
             auto head = selection;
             while (head != nullptr) {
-                const auto deep_copy = TreeNode::deep_copy(head->selected, true);
+                const auto deep_copy = TreeNode::deep_copy(head->selected, !move);
                 const auto copy = TreeNode::shallow_copy(head->selected);
 
                 if (!move) {
                     deep_copy->name = (new std::string(deep_copy->name))->append(" (copy)").c_str();
                 }
 
-                head->selected->deleted |= move;
+                head->selected->moved = move;
                 head->selected = copy;
                 head           = head->next;
 
@@ -352,7 +352,7 @@ namespace ex::gui {
                     const auto f_node = s->work_tree->find_node(root->selected->id_local);
                     if (f_node == nullptr)
                         throw std::runtime_error("Cannot find original node");
-                    f_node->deleted |= move;
+                    f_node->moved = move;
                     root = root->next;
                 }
 
