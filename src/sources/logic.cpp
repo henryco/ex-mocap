@@ -493,7 +493,6 @@ namespace ex::main {
     }
 
     bool Logic::connect_nodes_(TreeNode *from, TreeNode *to) {
-        // TODO: HANDLE DISABLED
         if (from == nullptr || to == nullptr || to->is_link)
             return false;
 
