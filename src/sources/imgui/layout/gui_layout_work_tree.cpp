@@ -282,18 +282,18 @@ namespace ex::gui {
             ImGui::TableNextColumn();
 
             const bool reference = node->is_link;
-            const bool connected = node->connected || n == 0;
-            const bool disabled  = node->disabled || (!connected && !reference);
+            const bool connected = node->connected || n == 0 || reference;
+            const bool disabled  = node->disabled;
             const bool dimmed    = node->dimmed;
 
-            if (disabled || disabled_ || dimmed)
+            if (disabled || disabled_ || dimmed || !connected)
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
             ImGui::PushID(node->id_local);
             const bool open = node_mappers_.at(node->id_node).draw_tree_node(
                 gui, state, node, node->children_n > 0, node->selected);
 
-            if (disabled || disabled_ || dimmed)
+            if (disabled || disabled_ || dimmed || !connected)
                 ImGui::PopStyleVar();
 
 
@@ -338,22 +338,22 @@ namespace ex::gui {
             }
 
             if (open && node->children_n > 0 && !node->children[0]->created) {
-                if (disabled || disabled_ || dimmed)
+                if (disabled || disabled_ || dimmed || !connected)
                     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
                 // Regular element but it has children
                 const auto next = node->children[0];
                 for (int i = 0; i < next->children_n; i++) {
                     counter_i = show_tree_node(state, gui, next->children[i], selected, active, menu_node,
-                        disabled || disabled_ || dimmed, counter_i + 1, i);
+                        disabled || disabled_ || dimmed || !connected, counter_i + 1, i);
                 }
                 ImGui::TreePop();
 
-                if (disabled || disabled_ || dimmed)
+                if (disabled || disabled_ || dimmed || !connected)
                     ImGui::PopStyleVar();
 
                 ImGui::Unindent();
-                brackets_end_half(pos, 0, disabled || disabled_ || dimmed ? 0.5f : 1.f);
+                brackets_end_half(pos, 0, (disabled || disabled_ || dimmed || !connected) ? 0.5f : 1.f);
             }
 
             else if (node->children_n > 0)
@@ -376,22 +376,22 @@ namespace ex::gui {
         const auto first = node->children[0];
 
         const bool reference = first->is_link;
-        const bool connected = first->connected || n == 0;
-        const bool disabled  = first->disabled || (!connected && !reference);
+        const bool connected = first->connected || n == 0 || reference;
+        const bool disabled  = first->disabled;
         const bool dimmed    = first->dimmed;
 
         if (first->children_n <= 0) {
             // Group with children, where the first element _HAS NO_ its own children
             const ImVec2 outer_start = brackets_start();
             {
-                if (disabled || disabled_ || dimmed)
+                if (disabled || disabled_ || dimmed || !connected)
                     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
                 ImGui::PushID(first->id_local);
                 node_mappers_.at(first->id_node).draw_tree_node(
                     gui, state, first, false, first->selected);
 
-                if (disabled || disabled_ || dimmed)
+                if (disabled || disabled_ || dimmed || !connected)
                     ImGui::PopStyleVar();
 
                 bool menu_element = false;
