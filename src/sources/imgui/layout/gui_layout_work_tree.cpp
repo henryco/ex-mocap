@@ -286,14 +286,14 @@ namespace ex::gui {
             const bool disabled  = node->disabled;
             const bool dimmed    = node->dimmed;
 
-            if (disabled || disabled_ || dimmed || !connected)
+            if (disabled || disabled_ || dimmed)
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
             ImGui::PushID(node->id_local);
             const bool open = node_mappers_.at(node->id_node).draw_tree_node(
                 gui, state, node, node->children_n > 0, node->selected);
 
-            if (disabled || disabled_ || dimmed || !connected)
+            if (disabled || disabled_ || dimmed)
                 ImGui::PopStyleVar();
 
 
@@ -330,30 +330,38 @@ namespace ex::gui {
             }
             else if (ImGui::IsItemHovered()) {
                 ImGui::TableNextColumn();
+                if (!connected)
+                    ImGui::PushStyleColor(ImGuiCol_TextDisabled, IM_COL32(255, 140, 40, 255));
                 ImGui::TextDisabled(connected ? "" : ICON_LC_UNPLUG);
+                if (!connected)
+                    ImGui::PopStyleColor();
             }
             else {
                 ImGui::TableNextColumn();
+                if (!connected)
+                    ImGui::PushStyleColor(ImGuiCol_TextDisabled, IM_COL32(255, 140, 40, 255));
                 ImGui::TextDisabled(connected ? (node->children_n > 0 ? ICON_LC_ARROW_DOWN_RIGHT : "") : ICON_LC_UNPLUG);
+                if (!connected)
+                    ImGui::PopStyleColor();
             }
 
             if (open && node->children_n > 0 && !node->children[0]->created) {
-                if (disabled || disabled_ || dimmed || !connected)
+                if (disabled || disabled_ || dimmed)
                     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
                 // Regular element but it has children
                 const auto next = node->children[0];
                 for (int i = 0; i < next->children_n; i++) {
                     counter_i = show_tree_node(state, gui, next->children[i], selected, active, menu_node,
-                        disabled || disabled_ || dimmed || !connected, counter_i + 1, i);
+                        disabled || disabled_ || dimmed, counter_i + 1, i);
                 }
                 ImGui::TreePop();
 
-                if (disabled || disabled_ || dimmed || !connected)
+                if (disabled || disabled_ || dimmed)
                     ImGui::PopStyleVar();
 
                 ImGui::Unindent();
-                brackets_end_half(pos, 0, (disabled || disabled_ || dimmed || !connected) ? 0.5f : 1.f);
+                brackets_end_half(pos, 0, (disabled || disabled_ || dimmed) ? 0.5f : 1.f);
             }
 
             else if (node->children_n > 0)
@@ -384,14 +392,14 @@ namespace ex::gui {
             // Group with children, where the first element _HAS NO_ its own children
             const ImVec2 outer_start = brackets_start();
             {
-                if (disabled || disabled_ || dimmed || !connected)
+                if (disabled || disabled_ || dimmed)
                     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
                 ImGui::PushID(first->id_local);
                 node_mappers_.at(first->id_node).draw_tree_node(
                     gui, state, first, false, first->selected);
 
-                if (disabled || disabled_ || dimmed || !connected)
+                if (disabled || disabled_ || dimmed)
                     ImGui::PopStyleVar();
 
                 bool menu_element = false;
@@ -422,11 +430,19 @@ namespace ex::gui {
                 }
                 else if (ImGui::IsItemHovered()) {
                     ImGui::TableNextColumn();
+                    if (!connected)
+                        ImGui::PushStyleColor(ImGuiCol_TextDisabled, IM_COL32(255, 140, 40, 255));
                     ImGui::TextDisabled(connected ? "" : ICON_LC_UNPLUG);
+                    if (!connected)
+                        ImGui::PopStyleColor();
                 }
                 else {
                     ImGui::TableNextColumn();
+                    if (!connected)
+                        ImGui::PushStyleColor(ImGuiCol_TextDisabled, IM_COL32(255, 140, 40, 255));
                     ImGui::TextDisabled(connected ? ICON_LC_ARROW_DOWN : ICON_LC_UNPLUG);
+                    if (!connected)
+                        ImGui::PopStyleColor();
                 }
 
                 if (node->children_n > 1) {
