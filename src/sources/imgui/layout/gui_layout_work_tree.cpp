@@ -232,8 +232,6 @@ namespace ex::gui {
     int count_children(TreeNode *node, const int counter) {
         if (node == nullptr)
             return counter;
-//        if (node == nullptr || node->created)
-//            return counter;
 
         int counter_i = counter;
 
@@ -270,8 +268,6 @@ namespace ex::gui {
     {
         if (node == nullptr)
             return counter;
-//        if (node == nullptr || node->created)
-//            return counter;
 
         int counter_i = counter;
 
