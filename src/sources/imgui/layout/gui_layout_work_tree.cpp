@@ -278,7 +278,7 @@ namespace ex::gui {
             ImGui::TableNextColumn();
 
             const bool reference = node->is_link;
-            const bool connected = node->connected || reference || n <= 0; // TODO N != 0
+            const bool connected = node->connected || reference || n <= 0;
             const bool disabled  = node->disabled;
             const bool dimmed    = node->dimmed;
 
@@ -381,7 +381,6 @@ namespace ex::gui {
         const auto first = node->children[0];
 
         const bool reference = first->is_link;
-        const bool connected = first->connected || reference || n <= 0; // TODO N != 0
         const bool disabled  = first->disabled;
         const bool dimmed    = first->dimmed;
 
@@ -427,19 +426,11 @@ namespace ex::gui {
                 }
                 else if (ImGui::IsItemHovered()) {
                     ImGui::TableNextColumn();
-                    if (!connected)
-                        ImGui::PushStyleColor(ImGuiCol_TextDisabled, IM_COL32(255, 140, 40, 255));
-                    ImGui::TextDisabled(connected ? "" : ICON_LC_UNPLUG);
-                    if (!connected)
-                        ImGui::PopStyleColor();
+                    ImGui::TextDisabled("");
                 }
                 else {
                     ImGui::TableNextColumn();
-                    if (!connected)
-                        ImGui::PushStyleColor(ImGuiCol_TextDisabled, IM_COL32(255, 140, 40, 255));
-                    ImGui::TextDisabled(connected ? ICON_LC_ARROW_DOWN : ICON_LC_UNPLUG);
-                    if (!connected)
-                        ImGui::PopStyleColor();
+                    ImGui::TextDisabled(ICON_LC_ARROW_DOWN);
                 }
 
                 int u = disabled ? 0 : 1;
