@@ -647,7 +647,7 @@ namespace ex::gui {
             if (selection == nullptr)
                 return;
 
-            const auto copy_selection = selection_node::copy(selection);
+            const auto copy_selection = selection_node::copy(selection->root);
             reset_state_(state);
 
             auto head = copy_selection->root;
