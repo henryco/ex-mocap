@@ -525,9 +525,12 @@ namespace ex::gui {
 
             reset_state_(state);
 
+            state.force_rewire = true;
+
             undo_history().push("Node enabled",
             new std::function([id_l = node->id_local, og_state] (ex::State *s) {
                 reset_state_(*s);
+                s->force_rewire = true;
                 const auto f_node = s->work_tree->find_node(id_l);
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
@@ -536,6 +539,7 @@ namespace ex::gui {
             }),
             new std::function([id_l = node->id_local] (ex::State *s) {
                 reset_state_(*s);
+                s->force_rewire = true;
                 const auto f_node = s->work_tree->find_node(id_l);
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
@@ -549,10 +553,12 @@ namespace ex::gui {
             node->disabled = true;
 
             reset_state_(state);
+            state.force_rewire = true;
 
             undo_history().push("Node disabled",
             new std::function([id_l = node->id_local, og_state] (ex::State *s) {
                 reset_state_(*s);
+                s->force_rewire = true;
                 const auto f_node = s->work_tree->find_node(id_l);
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
@@ -561,6 +567,7 @@ namespace ex::gui {
             }),
             new std::function([id_l = node->id_local] (ex::State *s) {
                 reset_state_(*s);
+                s->force_rewire = true;
                 const auto f_node = s->work_tree->find_node(id_l);
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
@@ -582,10 +589,12 @@ namespace ex::gui {
             }
 
             reset_state_(state);
+            state.force_rewire = true;
 
             undo_history().push("Selection enabled",
             new std::function([og_state = og_map](ex::State *s) {
                 reset_state_(*s);
+                s->force_rewire = true;
                 for (const auto &[k, v] : og_state) {
                     const auto f_node = s->work_tree->find_node(k);
                     if (f_node == nullptr)
@@ -596,6 +605,7 @@ namespace ex::gui {
             }),
             new std::function([og_state = og_map](ex::State *s) {
                 reset_state_(*s);
+                s->force_rewire = true;
                 for (const auto &k : std::views::keys(og_state)) {
                     const auto f_node = s->work_tree->find_node(k);
                     if (f_node == nullptr)
@@ -619,9 +629,11 @@ namespace ex::gui {
             }
 
             reset_state_(state);
+            state.force_rewire = true;
 
             undo_history().push("Selection disabled",
             new std::function([og_state = og_map](ex::State *s) {
+                s->force_rewire = true;
                 for (const auto &[k, v] : og_state) {
                     const auto f_node = s->work_tree->find_node(k);
                     if (f_node == nullptr)
@@ -632,6 +644,7 @@ namespace ex::gui {
                 reset_state_(*s);
             }),
             new std::function([og_state = og_map](ex::State *s) {
+                s->force_rewire = true;
                 for (const auto &k : std::views::keys(og_state)) {
                     const auto f_node = s->work_tree->find_node(k);
                     if (f_node == nullptr)

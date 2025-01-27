@@ -217,7 +217,7 @@ namespace ex::main {
         state.force_sync = false;
         timestamp = now;
 
-        bool rewire = false;
+        bool rewire = state.force_rewire;
         traverse_(state, state.work_tree, &rewire, false);
 
         static bool gc_run = false;
@@ -231,6 +231,8 @@ namespace ex::main {
             rewire_(state);
             gc_run = true;
         }
+
+        state.force_rewire = false;
     }
 
     void Logic::mark_node_deleted_(State &state, TreeNode *node, const bool moved) {
@@ -279,10 +281,6 @@ namespace ex::main {
         if (node->deleted || node->moved) {
             *rewire = true;
             return;
-        }
-
-        if (node->disabled) {
-            *rewire = true;
         }
 
         for (std::size_t i = 0; i < node->children_n; i++) {

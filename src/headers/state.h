@@ -110,6 +110,7 @@ namespace ex {
         short           clock_freq     = -1;
         bool            gl_sharing     = false;
         bool            force_sync     = false;
+        bool            force_rewire   = false;
     };
 
     namespace state {
