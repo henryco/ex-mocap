@@ -281,6 +281,10 @@ namespace ex::main {
             return;
         }
 
+        if (node->disabled) {
+            *rewire = true;
+        }
+
         for (std::size_t i = 0; i < node->children_n; i++) {
             const auto child = node->children[i];
 

@@ -8,35 +8,27 @@
 namespace ex::map::camera {
 
     void from_base(State &state, nodes::BaseNode *from, TreeNode *to) {
-        auto *node = dynamic_cast<cmp::CameraNode *>(from);
-        if (node == nullptr) {
-            to->deleted  = true;
-            return;
-        }
-
         if (to->data == nullptr) {
-            to->data = new state::camera{};
+            // TODO
         }
 
-        auto data = static_cast<state::camera *>(to->data);
-        auto camera = node->get();
-
+        const auto cam = static_cast<ex::camera::Camera *>(from->get_generic_data_ptr());
         // TODO
     }
 
     void from_tree(State &state, TreeNode *from, nodes::BaseNode *to) {
-        auto *node = dynamic_cast<cmp::CameraNode *>(to);
-        if (node == nullptr)
+        if (from == nullptr || to == nullptr)
             return;
 
-        auto camera = node->get();
+        const auto camera = static_cast<ex::camera::Camera *>(to->get_generic_data_ptr());
+        if (camera == nullptr)
+            return;
         // TODO
     }
 
     nodes::BaseNode *instance(const State &state, TreeNode *from) {
         if (from->data != nullptr)
             delete static_cast<state::camera *>(from->data);
-        from->data = new state::camera{};
 
         nodes::BaseNode *node = new cmp::CameraNode(state.ocl_context, state.ocl_device);
         node->set_id(from->id_local);

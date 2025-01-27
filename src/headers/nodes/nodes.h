@@ -58,14 +58,6 @@ namespace ex::nodes {
         }
     };
 
-    template<typename T>
-    class State {
-    public:
-        virtual ~State() = default;
-
-        virtual T *get() = 0;
-    };
-
     class IO {
     public:
         virtual ~IO() = default;
@@ -723,7 +715,7 @@ namespace ex::nodes {
 
         int last_clock_i = -1;
 
-        static bool pull_incompatible(io_node *_, void *__, bool *compatible) {
+        static bool pull_incompatible(io_node *, void *, bool *compatible) {
             *compatible = false;
             return false;
         }
@@ -1152,11 +1144,21 @@ namespace ex::nodes {
 
     }
 
+    class GenericDataPtr {
+    public:
+        virtual ~GenericDataPtr() = default;
+
+        virtual void *get_generic_data_ptr() {
+            return nullptr;
+        }
+    };
+
     class BaseNode : public virtual IN,
                      public virtual OUT,
                      public virtual NodeDescriptor,
                      public virtual IODescriptor,
-                     public virtual DefaultAny
+                     public virtual DefaultAny,
+                     public virtual GenericDataPtr
     {
     protected:
         std::size_t local_id = -1;
@@ -1174,6 +1176,18 @@ namespace ex::nodes {
 
         virtual bool updated() {
             return true;
+        }
+    };
+
+    template<typename T>
+    class State : public virtual GenericDataPtr {
+    public:
+        ~State() override = default;
+
+        virtual T *get() = 0;
+
+        void *get_generic_data_ptr() override {
+            return static_cast<void *>(this->get());
         }
     };
 
@@ -1273,15 +1287,15 @@ namespace ex::nodes {
             last_frame_duration = frame_time.count();
         }
 
-        static bool pull_out(io_node *head, void *data_, bool *_) {
+        static bool pull_out(io_node *head, void *data_, bool *) {
             static std::size_t size = 0;
-            auto               clock_i = static_cast<int *>(data_);
-            auto               out     = static_cast<OUT *>(head->this_out);
+            const auto         clock_i = static_cast<int *>(data_);
+            const auto         out     = static_cast<OUT *>(head->this_out);
             out->out_any(head->index_out, *clock_i, &size);
             return false;
         }
 
-        static bool pull_incompatible(io_node *_, void *__, bool *___) {
+        static bool pull_incompatible(io_node *, void *, bool *) {
             return false;
         }
 
