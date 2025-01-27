@@ -482,17 +482,17 @@ namespace ex::main {
         }
     }
 
-    void Logic::connect_nodes_(TreeNode *from, TreeNode *to) {
+    bool Logic::connect_nodes_(TreeNode *from, TreeNode *to) {
         // TODO: HANDLE DISABLED
         if (from == nullptr || to == nullptr || to->is_link)
-            return;
+            return false;
 
         const std::size_t from_id_local = from->is_link ? from->id_link : from->id_local;
 
         if (from->is_link && !nodes_.contains(from_id_local)) {
             log->warn("Cannot connect shared node, reference deleted: {}", from_id_local);
             from->connected = false;
-            return;
+            return false;
         }
 
         nodes::BaseNode *node_src = nodes_.at(from_id_local);
@@ -500,7 +500,7 @@ namespace ex::main {
 
         if (node_dst == nullptr || node_src == nullptr) {
             log->error("One of nodes does not exist: {}, {}", to->id_local, from_id_local);
-            return;
+            return false;
         }
 
         int        inputs_num  = 0;
@@ -550,6 +550,8 @@ namespace ex::main {
 
         to->connected = (connects_num > 0);
         log->debug("CONNECTION STATUS: {} -> {} [{}]", from_id_local, to->id_local, to->connected);
+
+        return to->connected;
     }
 
 }

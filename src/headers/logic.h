@@ -87,9 +87,9 @@ namespace ex::main {
 
         void gc_(State &state);
 
-        void connect_nodes_(TreeNode *from, TreeNode *to);
-
         void mark_node_deleted_(State &state, TreeNode *node, bool moved);
+
+        bool connect_nodes_(TreeNode *from, TreeNode *to);
     };
 
     Logic create_logic(State& state);
