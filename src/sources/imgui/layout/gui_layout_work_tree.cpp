@@ -278,7 +278,7 @@ namespace ex::gui {
             ImGui::TableNextColumn();
 
             const bool reference = node->is_link;
-            const bool connected = node->connected || reference; // TODO N != 0
+            const bool connected = node->connected || reference || n <= 0; // TODO N != 0
             const bool disabled  = node->disabled;
             const bool dimmed    = node->dimmed;
 
@@ -347,9 +347,10 @@ namespace ex::gui {
 
                 // Regular element but it has children
                 const auto next = node->children[0];
-                for (int i = 0; i < next->children_n; i++) {
+                for (int i = 0, u = 0; i < next->children_n; i++) {
                     counter_i = show_tree_node(state, gui, next->children[i], selected, active, menu_node,
-                        disabled || disabled_ || dimmed, counter_i + 1, i);
+                        disabled || disabled_ || dimmed, counter_i + 1, u);
+                    u += !(next->children[i]->disabled);
                 }
                 ImGui::TreePop();
 
@@ -380,7 +381,7 @@ namespace ex::gui {
         const auto first = node->children[0];
 
         const bool reference = first->is_link;
-        const bool connected = first->connected || reference; // TODO N != 0
+        const bool connected = first->connected || reference || n <= 0; // TODO N != 0
         const bool disabled  = first->disabled;
         const bool dimmed    = first->dimmed;
 
@@ -441,10 +442,12 @@ namespace ex::gui {
                         ImGui::PopStyleColor();
                 }
 
+                int u = disabled ? 0 : 1;
                 if (node->children_n > 1) {
                     for (int i = 1; i < node->children_n; i++) {
                         counter_i = show_tree_node(state, gui, node->children[i], selected, active, menu_node,
-                            disabled_, counter_i + 1, i);
+                            disabled_, counter_i + 1, u);
+                        u += !(node->children[i]->disabled);
                     }
                 }
 
@@ -457,9 +460,10 @@ namespace ex::gui {
 
         // Group with children, where the first element _HAS_ its own children
         const ImVec2 outer_start = brackets_start();
-        for (int i = 0; i < node->children_n; i++) {
+        for (int i = 0, u = 0; i < node->children_n; i++) {
             counter_i = show_tree_node(state, gui, node->children[i], selected, active, menu_node,
-                 disabled_, counter_i + 1, i);
+                 disabled_, counter_i + 1, u);
+            u += !(node->children[i]->disabled);
         }
         brackets_end(outer_start, 0,  disabled_ ? 0.5f : 1.f);
 
