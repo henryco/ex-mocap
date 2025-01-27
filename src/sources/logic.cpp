@@ -336,6 +336,9 @@ namespace ex::main {
         else
             ptr_counter_.emplace(node->id_local, 1);
 
+        if (node->disabled)
+            return;
+
         nodes::BaseNode *node_ptr = nodes_.at(node->id_local);
 
         if (node->updated) {
@@ -448,7 +451,12 @@ namespace ex::main {
             TreeNode *curr_node = nullptr;
 
             for (std::size_t i = 0; i < node->children_n; i++) {
-                curr_node = node->children[i];
+                const auto child_node = node->children[i];
+
+                if (child_node->disabled)
+                    continue;
+
+                curr_node = child_node;
 
                 build_tree_(state, curr_node, prev_node, group_list);
 
@@ -469,7 +477,7 @@ namespace ex::main {
             TreeNode *curr_node = node->children[i];
 
             // non-group element can contain only groups as children
-            if (!curr_node->is_group)
+            if (!curr_node->is_group || curr_node->disabled)
                 continue;
 
             simple_list list = {};
@@ -488,6 +496,8 @@ namespace ex::main {
         // TODO: HANDLE DISABLED
         if (from == nullptr || to == nullptr || to->is_link)
             return false;
+
+        to->connected = false;
 
         const std::size_t from_id_local = from->is_link ? from->id_link : from->id_local;
 

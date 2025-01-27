@@ -282,7 +282,7 @@ namespace ex::gui {
             ImGui::TableNextColumn();
 
             const bool reference = node->is_link;
-            const bool connected = node->connected || n == 0 || reference;
+            const bool connected = node->connected || reference; // TODO N != 0
             const bool disabled  = node->disabled;
             const bool dimmed    = node->dimmed;
 
@@ -376,7 +376,7 @@ namespace ex::gui {
         const auto first = node->children[0];
 
         const bool reference = first->is_link;
-        const bool connected = first->connected || n == 0 || reference;
+        const bool connected = first->connected || reference; // TODO N != 0
         const bool disabled  = first->disabled;
         const bool dimmed    = first->dimmed;
 

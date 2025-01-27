@@ -265,9 +265,11 @@ namespace ex {
         if (id > 0) {
             state::uuid::set_last_id(id);
             node->id_local = id;
+            node->disabled = false;
         }
         else {
             node->id_local = state::uuid::generate_id_inc();
+            node->disabled = false;
         }
         return node;
     }
