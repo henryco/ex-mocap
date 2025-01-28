@@ -16,20 +16,46 @@ namespace ex::gui::tree {
             return;
         }
 
+        const auto base_node = static_cast<ex::nodes::BaseNode *>(inspected_node->node);
+
         const auto rf = ex::gui::window_reset_flags(gui.view.reset, true);
         ImGui::Begin("Node inspector", &inspection_open, rf);
-        ImGui::Text("%s", inspected_node->name);
+        ImGui::Text("%s: [%lu] %s", inspected_node->name, inspected_node->id_local, base_node->get_node_name());
 
-        const auto base_node = static_cast<ex::nodes::BaseNode *>(inspected_node->node);
+        ImGui::TextDisabled("");
 
         int inputs_size;
         const auto inputs = base_node->describe_inputs(&inputs_size);
 
+        int outputs_size;
+        const auto outputs = base_node->describe_outputs(&outputs_size);
+
         for (int i = 0; i < inputs_size; i++) {
-            ImGui::Text("input: %s", inputs[i].name);
+            ImGui::Text("input  [%d]: %s (%s)", inputs[i].index, inputs[i].name, inputs[i].aux ? "aux" : "reg");
         }
 
-        // TODO
+        ImGui::TextDisabled("");
+
+        for (int i = 0; i < outputs_size; i++) {
+            ImGui::Text("output [%d]: %s (%s)", outputs[i].index, outputs[i].name, outputs[i].aux ? "aux" : "reg");
+        }
+
+        ImGui::TextDisabled("");
+        ImGui::TextDisabled("---");
+        ImGui::TextDisabled("");
+
+        const auto connections = base_node->list_connections();
+        auto head = connections;
+        while (head != nullptr) {
+            const auto io = dynamic_cast<ex::nodes::NodeDescriptor *>(head->io_ptr);
+            if (io != nullptr) {
+                ImGui::Text("* %d -> %d [%s] [%lu]", head->index_in, head->index_out, io->get_node_name(), head->io_ptr->get_id());
+            } else {
+                ImGui::Text("* %d -> %d [-] [%lu]", head->index_in, head->index_out, head->io_ptr->get_id());
+            }
+            head = head->next;
+        }
+
         ImGui::End();
     }
 
