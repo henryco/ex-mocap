@@ -44,6 +44,7 @@ namespace ex::gui {
     bool begin_docked_window(const char *name, bool *p_open, bool reset = false, bool standalone = false,
                              ImGuiWindowFlags window_flags = 0);
 
+    int window_reset_flags(bool reset, bool standalone);
 }
 
 #endif // EX_MOTION_GUI_UTILS_H

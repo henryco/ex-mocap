@@ -592,6 +592,8 @@ namespace ex::gui {
 
         process_tree_actions(state, gui);
         ImGui::End();
+
+        tree::show_inspected_node(state, gui);
     }
 
 }

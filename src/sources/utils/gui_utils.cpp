@@ -9,14 +9,14 @@
 
 namespace ex::gui {
 
-    inline int reset_flag_(const bool reset, const bool standalone) {
+    inline int window_reset_flags(const bool reset, const bool standalone) {
         return reset ? (ImGuiWindowFlags_NoSavedSettings | (standalone ? ImGuiWindowFlags_AlwaysAutoResize : 0)) : 0;
     }
 
     bool begin_docked_window(const char *name, bool *p_open, const bool reset, const bool standalone,
                              const ImGuiWindowFlags window_flags) {
         return ImGui::Begin(name, p_open,
-                            reset_flag_(reset, standalone) | ImGuiWindowFlags_NoCollapse |
+                            window_reset_flags(reset, standalone) | ImGuiWindowFlags_NoCollapse |
                                     ImGuiWindowFlags_NoFocusOnAppearing | window_flags);
     }
 
