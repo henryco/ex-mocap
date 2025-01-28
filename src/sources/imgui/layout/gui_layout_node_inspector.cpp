@@ -20,7 +20,7 @@ namespace ex::gui::tree {
 
         const auto rf = ex::gui::window_reset_flags(gui.view.reset, true);
         ImGui::Begin("Node inspector", &inspection_open, rf);
-        ImGui::Text("%s: [%lu] %s", inspected_node->name, inspected_node->id_local, base_node->get_node_name());
+        ImGui::Text("%s: [%lu] [%s]", inspected_node->name, inspected_node->id_local, base_node->get_node_name());
 
         ImGui::TextDisabled("");
 
@@ -49,9 +49,9 @@ namespace ex::gui::tree {
         while (head != nullptr) {
             const auto io = dynamic_cast<ex::nodes::NodeDescriptor *>(head->io_ptr);
             if (io != nullptr) {
-                ImGui::Text("* %d -> %d [%s] [%lu]", head->index_in, head->index_out, io->get_node_name(), head->io_ptr->get_id());
+                ImGui::Text("* %d -> %d [%lu] [%s]", head->index_in, head->index_out, head->io_ptr->get_id(), io->get_node_name());
             } else {
-                ImGui::Text("* %d -> %d [-] [%lu]", head->index_in, head->index_out, head->io_ptr->get_id());
+                ImGui::Text("* %d -> %d [%lu] [-]", head->index_in, head->index_out, head->io_ptr->get_id());
             }
             head = head->next;
         }
