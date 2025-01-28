@@ -3,6 +3,7 @@
 //
 
 #include "../../headers/imgui/gui_layout.h"
+#include "../../headers/imgui/gui_keymap.h"
 
 namespace ex::gui {
 
@@ -33,13 +34,14 @@ namespace ex::gui {
     }
 
     void process_shortcuts(ex::State &state, GuiState &gui) {
-        if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_Z)) {
+        const auto [undo, redo] = keys::mapping().history;
+        if (ImGui::Shortcut(undo.key)) {
             if (undo_history().can_undo()) {
                 undo_history().undo();
                 undo_history().apply(&state);
             }
         }
-        else if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_Y)) {
+        else if (ImGui::Shortcut(redo.key)) {
             if (undo_history().can_redo()) {
                 undo_history().redo();
                 undo_history().apply(&state);
