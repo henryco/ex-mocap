@@ -11,9 +11,6 @@ namespace ex::gui {
 
     namespace tree {
 
-        static TreeNode *inspected_node  = nullptr;
-        static bool      inspection_open = false;
-
         selection_node *bubble_sort_selection(selection_node *selection) {
             if (selection == nullptr)
                 return nullptr;
@@ -85,24 +82,6 @@ namespace ex::gui {
             selection_node::free(state.selected_nodes, true);
             node_buffer::remove(&(state.clipboard_node));
             state.selected_nodes = nullptr;
-        }
-
-        void show_inspected_node(State &, GuiState &gui) {
-            if (inspected_node == nullptr || inspected_node->deleted || !inspection_open) {
-                inspection_open = false;
-                return;
-            }
-
-            const auto rf = ex::gui::window_reset_flags(gui.view.reset, true);
-            ImGui::Begin("Node inspector", &inspection_open, rf);
-            ImGui::Text("%s", inspected_node->name);
-            // TODO
-            ImGui::End();
-        }
-
-        void pick_inspected_node(State &, GuiState &, TreeNode *node) {
-            inspection_open = true;
-            inspected_node  = node;
         }
 
         void copy_selected(State &state, GuiState &, selection_node *selection) {
