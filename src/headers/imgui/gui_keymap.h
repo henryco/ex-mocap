@@ -16,6 +16,11 @@ namespace ex::gui::keys {
 
     struct KeyMapping {
         struct {
+            Op undo = { "C-z", ImGuiMod_Ctrl | ImGuiKey_Z };
+            Op redo = { "C-y", ImGuiMod_Ctrl | ImGuiKey_Y };
+        } history;
+
+        struct {
             Op cut       = { "C-x", ImGuiMod_Ctrl | ImGuiKey_X };
             Op copy      = { "C-c", ImGuiMod_Ctrl | ImGuiKey_C };
             Op paste     = { "C-v", ImGuiMod_Ctrl | ImGuiKey_V };
@@ -23,7 +28,7 @@ namespace ex::gui::keys {
             Op reference = { "C-r", ImGuiMod_Ctrl | ImGuiKey_R };
             Op duplicate = { "C-d", ImGuiMod_Ctrl | ImGuiKey_D };
             Op deletion  = { "Delete", ImGuiKey_Delete };
-        }work_tree;
+        } work_tree;
     };
 
     inline KeyMapping mapping() {

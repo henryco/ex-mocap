@@ -3,6 +3,7 @@
 //
 
 #include "../../../headers/imgui/gui_layout.h"
+#include "../../../headers/imgui/gui_keymap.h"
 #include <IconsLucide.h>
 
 namespace ex::gui {
@@ -43,26 +44,27 @@ namespace ex::gui {
                 ImGui::EndMenu();
             }
 
+            const auto [history, work_tree] = keys::mapping();
             if (ImGui::BeginMenu("Edit")) {
 
-                if (ImGui::MenuItem(ICON_LC_UNDO " Undo", "Ctrl+Z", false, undo_history().can_undo())) {
+                if (ImGui::MenuItem(ICON_LC_UNDO " Undo", history.undo.label, false, undo_history().can_undo())) {
                     undo_history().undo();
                     undo_history().apply(&state);
                 }
-                if (ImGui::MenuItem(ICON_LC_REDO " Redo", "Ctrl+Y", false, undo_history().can_redo())) {
+                if (ImGui::MenuItem(ICON_LC_REDO " Redo", history.redo.label, false, undo_history().can_redo())) {
                     undo_history().redo();
                     undo_history().apply(&state);
                 }
 
                 ImGui::Separator();
 
-                if (ImGui::MenuItem(ICON_LC_SCISSORS " Cut", "Ctrl+X", false, false)) {
+                if (ImGui::MenuItem(ICON_LC_SCISSORS " Cut", work_tree.cut.label, false, false)) {
                     // TODO
                 }
-                if (ImGui::MenuItem(ICON_LC_CLIPBOARD_COPY " Copy", "Ctrl+C", false, false)) {
+                if (ImGui::MenuItem(ICON_LC_CLIPBOARD_COPY " Copy", work_tree.copy.label, false, false)) {
                     // TODO
                 }
-                if (ImGui::MenuItem(ICON_LC_CLIPBOARD_PASTE " Paste", "Ctrl+V", false, false)) {
+                if (ImGui::MenuItem(ICON_LC_CLIPBOARD_PASTE " Paste", work_tree.paste.label, false, false)) {
                     // TODO
                 }
                 ImGui::EndMenu();
