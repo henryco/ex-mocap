@@ -513,12 +513,23 @@ namespace ex::gui {
         ImGui::EndChild();
     }
 
+    void process_single_action(ex::State &state, GuiState &gui, TreeNode *node) {
+
+    }
+
+    void process_multi_action(ex::State &state, GuiState &gui, selection_node *node) {
+
+    }
+
     void process_tree_actions(ex::State &state, GuiState &gui) {
         if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
             return;
-
-        // TODO
-
+        if (state.selected_nodes == nullptr)
+            return;
+        if (selection_node::single(state.selected_nodes))
+            process_single_action(state, gui, state.selected_nodes->selected);
+        else
+            process_multi_action(state, gui, state.selected_nodes);
     }
 
     void show_work_tree(ex::State &state, GuiState &gui) {
