@@ -2,9 +2,11 @@
 // Created by xd on 02/12/24.
 //
 
+#include <IconsLucide.h>
 #include "../../../headers/imgui/gui_layout.h"
 #include "../../../headers/imgui/gui_tree_ops.h"
-#include <IconsLucide.h>
+
+#include "../../../headers/imgui/gui_keymap.h"
 
 namespace ex::gui {
 
@@ -514,10 +516,32 @@ namespace ex::gui {
     }
 
     void process_single_action(ex::State &state, GuiState &gui, TreeNode *node) {
+        if (node->is_link) {
+            if (ImGui::Shortcut(keys::mapping().work_tree.deletion.key))
+                tree::delete_node(state, gui, node);
+            return;
+        }
 
+        if (ImGui::Shortcut(keys::mapping().work_tree.duplicate.key))
+            tree::duplicate_node(state, gui, node);
+
+        else if (ImGui::Shortcut(keys::mapping().work_tree.cut.key))
+            tree::cut_node(state, gui, node);
+
+        else if (ImGui::Shortcut(keys::mapping().work_tree.copy.key))
+            tree::copy_node(state, gui, node);
+
+        else if (ImGui::Shortcut(keys::mapping().work_tree.reference.key))
+            tree::ref_node(state, gui, node);
+
+        else if (state.clipboard_node != nullptr && ImGui::Shortcut(keys::mapping().work_tree.paste.key))
+            tree::paste_after_node(state, gui, node);
+
+        else if (ImGui::Shortcut(keys::mapping().work_tree.deletion.key))
+            tree::delete_node(state, gui, node);
     }
 
-    void process_multi_action(ex::State &state, GuiState &gui, selection_node *node) {
+    void process_multi_action(ex::State &state, GuiState &gui, selection_node *selection) {
 
     }
 
