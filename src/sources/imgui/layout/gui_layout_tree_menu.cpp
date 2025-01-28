@@ -904,7 +904,7 @@ namespace ex::gui {
                         tree::paste_after_node(state, gui, node);
                     }
 
-                    if (ImGui::MenuItem("Paste into")) {
+                    if (ImGui::MenuItem("Paste into", keys::mapping().work_tree.insert.label)) {
                         tree::paste_into_node(state, gui, node);
                     }
 

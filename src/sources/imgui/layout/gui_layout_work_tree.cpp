@@ -537,12 +537,22 @@ namespace ex::gui {
         else if (state.clipboard_node != nullptr && ImGui::Shortcut(keys::mapping().work_tree.paste.key))
             tree::paste_after_node(state, gui, node);
 
+        else if (state.clipboard_node != nullptr && ImGui::Shortcut(keys::mapping().work_tree.insert.key))
+            tree::paste_into_node(state, gui, node);
+
         else if (ImGui::Shortcut(keys::mapping().work_tree.deletion.key))
             tree::delete_node(state, gui, node);
     }
 
     void process_multi_action(ex::State &state, GuiState &gui, selection_node *selection) {
+        if (ImGui::Shortcut(keys::mapping().work_tree.cut.key))
+            tree::cut_selected(state, gui, selection);
 
+        else if (ImGui::Shortcut(keys::mapping().work_tree.copy.key))
+            tree::copy_selected(state, gui, selection);
+
+        else if (ImGui::Shortcut(keys::mapping().work_tree.deletion.key))
+            tree::delete_selected(state, gui, selection);
     }
 
     void process_tree_actions(ex::State &state, GuiState &gui) {

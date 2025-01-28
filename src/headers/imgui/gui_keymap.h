@@ -16,13 +16,14 @@ namespace ex::gui::keys {
 
     struct KeyMapping {
         struct {
-            Op cut       = { "Ctrl+X", ImGuiMod_Ctrl | ImGuiKey_X };
-            Op copy      = { "Ctrl+C", ImGuiMod_Ctrl | ImGuiKey_C };
-            Op paste     = { "Ctrl+V", ImGuiMod_Ctrl | ImGuiKey_V };
-            Op reference = { "Ctrl+R", ImGuiMod_Ctrl | ImGuiKey_R };
-            Op duplicate = { "Ctrl+D", ImGuiMod_Ctrl | ImGuiKey_D };
+            Op cut       = { "C-x", ImGuiMod_Ctrl | ImGuiKey_X };
+            Op copy      = { "C-c", ImGuiMod_Ctrl | ImGuiKey_C };
+            Op paste     = { "C-v", ImGuiMod_Ctrl | ImGuiKey_V };
+            Op insert    = { "C-S-v", ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_V };
+            Op reference = { "C-r", ImGuiMod_Ctrl | ImGuiKey_R };
+            Op duplicate = { "C-d", ImGuiMod_Ctrl | ImGuiKey_D };
             Op deletion  = { "Delete", ImGuiKey_Delete };
-        } work_tree;
+        }work_tree;
     };
 
     inline KeyMapping mapping() {
