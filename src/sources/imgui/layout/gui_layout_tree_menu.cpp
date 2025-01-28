@@ -85,7 +85,6 @@ namespace ex::gui {
         }
 
         void inspect_node(State &, GuiState &, TreeNode *node) {
-            // TODO
 
         }
 

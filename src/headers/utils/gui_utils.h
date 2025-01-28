@@ -40,6 +40,10 @@ namespace ex::gui {
     void brackets_end_half(const ImVec2 &start, float indent = 0.f, float alpha = 1.0f);
 
     void draw_backward_arrow(const ImVec2 &start, float alpha = 1.0f);
+
+    bool begin_docked_window(const char *name, bool *p_open, bool reset = false, bool standalone = false,
+                             ImGuiWindowFlags window_flags = 0);
+
 }
 
 #endif // EX_MOTION_GUI_UTILS_H
