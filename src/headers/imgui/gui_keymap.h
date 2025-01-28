@@ -31,11 +31,6 @@ namespace ex::gui::keys {
         } work_tree;
     };
 
-    inline KeyMapping mapping() {
-        // TODO: move to source file
-        static KeyMapping instance;
-        return instance;
-    }
 }
 
 #endif //GUI_KEYMAP_H

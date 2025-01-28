@@ -44,7 +44,7 @@ namespace ex::gui {
                 ImGui::EndMenu();
             }
 
-            const auto [history, work_tree] = keys::mapping();
+            const auto &[history, work_tree] = key_mappings();
             if (ImGui::BeginMenu("Edit")) {
 
                 if (ImGui::MenuItem(ICON_LC_UNDO " Undo", history.undo.label, false, undo_history().can_undo())) {

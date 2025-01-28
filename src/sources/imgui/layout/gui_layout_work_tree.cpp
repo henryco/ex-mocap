@@ -517,41 +517,41 @@ namespace ex::gui {
 
     void process_single_action(ex::State &state, GuiState &gui, TreeNode *node) {
         if (node->is_link) {
-            if (ImGui::Shortcut(keys::mapping().work_tree.deletion.key))
+            if (ImGui::Shortcut(key_mappings().work_tree.deletion.key))
                 tree::delete_node(state, gui, node);
             return;
         }
 
-        if (ImGui::Shortcut(keys::mapping().work_tree.duplicate.key))
+        if (ImGui::Shortcut(key_mappings().work_tree.duplicate.key))
             tree::duplicate_node(state, gui, node);
 
-        else if (ImGui::Shortcut(keys::mapping().work_tree.cut.key))
+        else if (ImGui::Shortcut(key_mappings().work_tree.cut.key))
             tree::cut_node(state, gui, node);
 
-        else if (ImGui::Shortcut(keys::mapping().work_tree.copy.key))
+        else if (ImGui::Shortcut(key_mappings().work_tree.copy.key))
             tree::copy_node(state, gui, node);
 
-        else if (ImGui::Shortcut(keys::mapping().work_tree.reference.key))
+        else if (ImGui::Shortcut(key_mappings().work_tree.reference.key))
             tree::ref_node(state, gui, node);
 
-        else if (state.clipboard_node != nullptr && ImGui::Shortcut(keys::mapping().work_tree.paste.key))
+        else if (state.clipboard_node != nullptr && ImGui::Shortcut(key_mappings().work_tree.paste.key))
             tree::paste_after_node(state, gui, node);
 
-        else if (state.clipboard_node != nullptr && ImGui::Shortcut(keys::mapping().work_tree.insert.key))
+        else if (state.clipboard_node != nullptr && ImGui::Shortcut(key_mappings().work_tree.insert.key))
             tree::paste_into_node(state, gui, node);
 
-        else if (ImGui::Shortcut(keys::mapping().work_tree.deletion.key))
+        else if (ImGui::Shortcut(key_mappings().work_tree.deletion.key))
             tree::delete_node(state, gui, node);
     }
 
     void process_multi_action(ex::State &state, GuiState &gui, selection_node *selection) {
-        if (ImGui::Shortcut(keys::mapping().work_tree.cut.key))
+        if (ImGui::Shortcut(key_mappings().work_tree.cut.key))
             tree::cut_selected(state, gui, selection);
 
-        else if (ImGui::Shortcut(keys::mapping().work_tree.copy.key))
+        else if (ImGui::Shortcut(key_mappings().work_tree.copy.key))
             tree::copy_selected(state, gui, selection);
 
-        else if (ImGui::Shortcut(keys::mapping().work_tree.deletion.key))
+        else if (ImGui::Shortcut(key_mappings().work_tree.deletion.key))
             tree::delete_selected(state, gui, selection);
     }
 

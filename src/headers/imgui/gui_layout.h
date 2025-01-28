@@ -17,6 +17,7 @@
 #include <map>
 
 #include "cmp/test_cmp.h"
+#include "gui_keymap.h"
 #include "gui_mappers.h"
 
 namespace ex::gui {
@@ -103,9 +104,11 @@ namespace ex::gui {
         return ImGuiChildFlags_ResizeY;
     }
 
-    ex::undo::history<ex::State> &undo_history();
+    undo::history<ex::State> &undo_history();
 
-    ex::logs::logger &logger();
+    logs::logger &logger();
+
+    keys::KeyMapping &key_mappings();
 
     void show_menu_top_bar(ex::State &state, GuiState &gui);
 

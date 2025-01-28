@@ -34,7 +34,7 @@ namespace ex::gui {
     }
 
     void process_shortcuts(ex::State &state, GuiState &gui) {
-        const auto [undo, redo] = keys::mapping().history;
+        const auto &[undo, redo] = key_mappings().history;
         if (ImGui::Shortcut(undo.key)) {
             if (undo_history().can_undo()) {
                 undo_history().undo();
@@ -58,6 +58,11 @@ namespace ex::gui {
     ex::undo::history<ex::State> &undo_history() {
         static ex::undo::history<ex::State> undo_history("Blank");
         return undo_history;
+    }
+
+    keys::KeyMapping &key_mappings() {
+        static keys::KeyMapping instance;
+        return instance;
     }
 
     bool layout::build(ex::State &state) {

@@ -793,11 +793,11 @@ namespace ex::gui {
 
                 ImGui::Separator();
 
-                if (ImGui::MenuItem("Cut", keys::mapping().work_tree.cut.label)) {
+                if (ImGui::MenuItem("Cut", key_mappings().work_tree.cut.label)) {
                     tree::cut_selected(state, gui, selection);
                 }
 
-                if (ImGui::MenuItem("Copy", keys::mapping().work_tree.copy.label)) {
+                if (ImGui::MenuItem("Copy", key_mappings().work_tree.copy.label)) {
                     tree::copy_selected(state, gui, selection);
                 }
             }
@@ -877,21 +877,21 @@ namespace ex::gui {
             if (!node->is_link) {
                 node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);
 
-                if (ImGui::MenuItem("Duplicate", keys::mapping().work_tree.duplicate.label)) {
+                if (ImGui::MenuItem("Duplicate", key_mappings().work_tree.duplicate.label)) {
                     tree::duplicate_node(state, gui, node);
                 }
 
-                if (ImGui::MenuItem("Cut", keys::mapping().work_tree.cut.label)) {
+                if (ImGui::MenuItem("Cut", key_mappings().work_tree.cut.label)) {
                     tree::cut_node(state, gui, node);
                 }
 
                 if (ImGui::BeginMenu("Copy")) {
 
-                    if (ImGui::MenuItem("Copy", keys::mapping().work_tree.copy.label)) {
+                    if (ImGui::MenuItem("Copy", key_mappings().work_tree.copy.label)) {
                         tree::copy_node(state, gui, node);
                     }
 
-                    if (ImGui::MenuItem("Copy Ref", keys::mapping().work_tree.reference.label)) {
+                    if (ImGui::MenuItem("Copy Ref", key_mappings().work_tree.reference.label)) {
                         tree::ref_node(state, gui, node);
                     }
 
@@ -900,11 +900,11 @@ namespace ex::gui {
 
                 if (ImGui::BeginMenu("Paste", state.clipboard_node != nullptr)) {
 
-                    if (ImGui::MenuItem("Paste after", keys::mapping().work_tree.paste.label)) {
+                    if (ImGui::MenuItem("Paste after", key_mappings().work_tree.paste.label)) {
                         tree::paste_after_node(state, gui, node);
                     }
 
-                    if (ImGui::MenuItem("Paste into", keys::mapping().work_tree.insert.label)) {
+                    if (ImGui::MenuItem("Paste into", key_mappings().work_tree.insert.label)) {
                         tree::paste_into_node(state, gui, node);
                     }
 
