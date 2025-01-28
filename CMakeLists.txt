@@ -113,6 +113,7 @@ set(HEADER_FILES
         src/headers/imgui/cmp/test_cmp.h
         src/headers/undo/undo_history.h
         src/headers/imgui/gui_tree_ops.h
+        src/headers/imgui/gui_keymap.h
 )
 
 set(SOURCE_FILES
