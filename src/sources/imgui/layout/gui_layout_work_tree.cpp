@@ -3,6 +3,7 @@
 //
 
 #include "../../../headers/imgui/gui_layout.h"
+#include "../../../headers/imgui/gui_tree_ops.h"
 #include <IconsLucide.h>
 
 namespace ex::gui {
@@ -512,6 +513,14 @@ namespace ex::gui {
         ImGui::EndChild();
     }
 
+    void process_tree_actions(ex::State &state, GuiState &gui) {
+        if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
+            return;
+
+        // TODO
+
+    }
+
     void show_work_tree(ex::State &state, GuiState &gui) {
         static bool *watch = nullptr;
         if (watch != nullptr && !(*watch))
@@ -536,6 +545,7 @@ namespace ex::gui {
         work_tree_content(state, gui);
         ImGui::EndChild();
 
+        process_tree_actions(state, gui);
         ImGui::End();
     }
 

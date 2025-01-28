@@ -60,7 +60,7 @@ namespace ex::gui::test::one {
         ex::gui::next_no_close();
         ImGui::SetNextWindowDockID(gui.docking.dock_right_id, gui.view.reset ? ImGuiCond_Always : ImGuiCond_Once);
 
-        ImGui::Begin(node->uuid, ptr, reset_flag_(gui, true) | ImGuiWindowFlags_NoCollapse);
+        ImGui::Begin(node->uuid, ptr, reset_flag_(gui, true) | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing);
         node->docked = ex::gui::window_is_docked();
         node->visible = watch_parent_dock_(gui);
         ImGui::Text("This window: %d | %d | %d", node->docked, node->pinned, gui.view.docking);
@@ -124,7 +124,7 @@ namespace ex::gui::test::two {
         ex::gui::next_no_close();
         ImGui::SetNextWindowDockID(gui.docking.dock_right_id, gui.view.reset ? ImGuiCond_Always : ImGuiCond_Once);
 
-        ImGui::Begin(node->uuid, ptr, reset_flag_(gui, true) | ImGuiWindowFlags_NoCollapse);
+        ImGui::Begin(node->uuid, ptr, reset_flag_(gui, true) | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing);
         node->docked = ex::gui::window_is_docked();
         node->visible = watch_parent_dock_(gui);
         ImGui::Text("This window: %d | %d | %d", node->docked, node->pinned, gui.view.docking);
@@ -182,7 +182,7 @@ namespace ex::gui::test::tri {
         ex::gui::next_no_close();
         ImGui::SetNextWindowDockID(gui.docking.dock_right_id, gui.view.reset ? ImGuiCond_Always : ImGuiCond_Once);
 
-        ImGui::Begin(node->uuid, ptr, reset_flag_(gui, true) | ImGuiWindowFlags_NoCollapse);
+        ImGui::Begin(node->uuid, ptr, reset_flag_(gui, true) | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing);
         node->docked = ex::gui::window_is_docked();
         node->visible = watch_parent_dock_(gui);
         ImGui::Text("This window: %d | %d | %d", node->docked, node->pinned, gui.view.docking);
