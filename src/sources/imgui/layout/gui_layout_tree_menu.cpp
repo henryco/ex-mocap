@@ -84,6 +84,11 @@ namespace ex::gui {
             state.selected_nodes = nullptr;
         }
 
+        void inspect_node(State &, GuiState &, TreeNode *node) {
+            // TODO
+
+        }
+
         void copy_selected(State &state, GuiState &, selection_node *selection) {
             const auto copy = selection_node::copy(selection->root);
             reset_state_(state);
@@ -875,6 +880,10 @@ namespace ex::gui {
             }
 
             if (!node->is_link) {
+                if (ImGui::MenuItem("Inspect")) {
+                    tree::inspect_node(state, gui, node);
+                }
+
                 node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);
 
                 if (ImGui::MenuItem("Duplicate", key_mappings().work_tree.duplicate.label)) {

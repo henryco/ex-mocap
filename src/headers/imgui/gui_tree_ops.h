@@ -33,6 +33,8 @@ namespace ex::gui::tree {
     void disable_selected(State &state, GuiState &gui, selection_node *selection);
     void disable_node(State &state, GuiState &gui, TreeNode *node);
 
+    void inspect_node(State &state, GuiState &gui, TreeNode *node);
+
 }
 
 #endif //GUI_TREE_OPS_H
