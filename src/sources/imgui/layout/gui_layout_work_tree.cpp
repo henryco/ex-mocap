@@ -20,6 +20,8 @@ namespace ex::gui {
     constexpr auto col_purple = IM_COL32(255, 0, 255, 255);
     constexpr auto vec_purple = ImVec4(255, 0, 255, 255);
 
+    constexpr auto dnd_type = "node";
+
     void highlight_border() {
         constexpr auto off = 3.f;
         const auto p_min     = ImGui::GetItemRectMin();
@@ -315,6 +317,13 @@ namespace ex::gui {
             if (symlinked)
                 highlight_border();
 
+            if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+                ImGui::SetMouseCursor(ImGuiMouseCursor_NotAllowed);
+                ImGui::SetDragDropPayload(dnd_type, &node, sizeof(node));
+                node_mappers_.at(node->id_node).draw_tree_node(gui, state, node, false, false);
+                ImGui::EndDragDropSource();
+            }
+
             bool menu_element = false;
             if (selection_node::single(*selected)) {
                 menu_element = show_context_menu_element(state, gui, node, *menu_node == node->id_local,
@@ -432,6 +441,13 @@ namespace ex::gui {
 
                 if (symlinked)
                     highlight_border();
+
+                if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+                    ImGui::SetMouseCursor(ImGuiMouseCursor_NotAllowed);
+                    ImGui::SetDragDropPayload(dnd_type, &first, sizeof(first));
+                    node_mappers_.at(first->id_node).draw_tree_node(gui, state, first, false, false);
+                    ImGui::EndDragDropSource();
+                }
 
                 bool menu_element = false;
                 if (selection_node::single(*selected)) {
