@@ -130,10 +130,12 @@ namespace ex::gui {
     }
 
     void brackets_end(const ImVec2 &start, const float indent, const float alpha) {
-        const auto color = IM_COL32(0, 0, 0, 120 * alpha);
-        const auto color_2 = IM_COL32(0, 0, 0, 150 * alpha);
+        const auto color = IM_COL32(0, 0, 0, 150 * alpha);
 
         constexpr auto thickness = 1.25f;
+        constexpr auto width     = 3.0f;
+        constexpr auto height    = 3.0f;
+        constexpr auto offset    = 10.f;
 
         const ImVec2 inner_end = ImGui::GetCursorScreenPos();
 
@@ -150,15 +152,15 @@ namespace ex::gui {
 
         const auto p5 = ImVec2(p1.x - 4.f, p2.y - 0.f);
         const auto p6 = ImVec2(p5.x - 6.f, p2.y - 0.f);
-        const auto p7 = ImVec2(p6.x, p6.y - 10.f);
+        const auto p7 = ImVec2(p6.x, p6.y - offset + height);
 
-        draw_list->AddLine(p5, p6, color_2, thickness);
-        draw_list->AddLine(p6, p7, color_2, thickness);
+        draw_list->AddLine(p5, p6, color, thickness);
+        draw_list->AddLine(p6, p7, color, thickness);
 
-        const auto p0 = ImVec2(p7.x + 0.5, p7.y);
-        const auto p8 = ImVec2(p0.x - 3.f, p0.y + 3.f);
-        const auto p9 = ImVec2(p0.x + 3.f, p0.y + 3.f);
-        draw_list->AddTriangleFilled(p0, p8, p9, color_2);
+        const auto p0 = ImVec2(p7.x + 0.5, p7.y - height);
+        const auto p8 = ImVec2(p0.x - width, p0.y + height);
+        const auto p9 = ImVec2(p0.x + width, p0.y + height);
+        draw_list->AddTriangleFilled(p0, p8, p9, color);
 
         ImGui::Unindent(13.f);
         ImGui::Unindent(indent <= 0 ? 7.f : indent);
