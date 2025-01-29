@@ -16,6 +16,16 @@ namespace ex::gui {
     constexpr float ctrl_width   = 40.f;
     constexpr float min_width    = 100.f;
 
+    void highlight_border() {
+        constexpr auto color = IM_COL32(255, 0, 255, 255);
+        constexpr auto off = 3.f;
+        const auto p_min     = ImGui::GetItemRectMin();
+        const auto p_max     = ImGui::GetItemRectMax();
+        const auto draw_list = ImGui::GetWindowDrawList();
+        draw_list->AddRect(ImVec2(p_min.x, p_min.y - off), ImVec2(p_max.x, p_max.y + off),
+            color, 0.0f, 0, 1.0f);
+    }
+
     bool select_many(selection_node **selection, TreeNode *node, TreeNode *start, TreeNode *stop) {
         if (start == nullptr || stop == nullptr || node == nullptr || selection == nullptr)
             return false;
@@ -298,6 +308,9 @@ namespace ex::gui {
             if (disabled || disabled_ || dimmed)
                 ImGui::PopStyleVar();
 
+            if (*ref_node > 0 && *ref_node == node->id_local)
+                highlight_border();
+
             bool menu_element = false;
             if (selection_node::single(*selected)) {
                 menu_element = show_context_menu_element(state, gui, node, *menu_node == node->id_local,
@@ -406,6 +419,9 @@ namespace ex::gui {
 
                 if (disabled || disabled_ || dimmed)
                     ImGui::PopStyleVar();
+
+                if (*ref_node > 0 && *ref_node == first->id_local)
+                    highlight_border();
 
                 bool menu_element = false;
                 if (selection_node::single(*selected)) {
