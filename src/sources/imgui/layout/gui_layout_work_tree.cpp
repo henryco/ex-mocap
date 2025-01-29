@@ -265,10 +265,10 @@ namespace ex::gui {
         return counter_i;
     }
 
-    int show_tree_node(State &state, GuiState &gui, TreeNode *node, selection_node **selected,
-                        TreeNode **active, std::size_t *menu_node, const bool disabled_,
-                        const int counter, const int n)
-    {
+    int show_tree_node(State &state, GuiState &gui, TreeNode *node, selection_node **selected, TreeNode **active,
+                       std::size_t *menu_node, std::size_t *ref_node, const bool disabled_, const int counter,
+                       const int n) {
+
         if (node == nullptr)
             return counter;
 
@@ -289,18 +289,21 @@ namespace ex::gui {
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
             ImGui::PushID(node->id_local);
-            const bool open = node_mappers_.at(node->id_node).draw_tree_node(
-                gui, state, node, node->children_n > 0, node->selected);
+            const bool open = node_mappers_.at(node->id_node)
+                                      .draw_tree_node(gui, state, node, node->children_n > 0, node->selected);
+
+            if (ImGui::IsItemHovered())
+                *ref_node = node->is_link ? node->id_link : (-1);
 
             if (disabled || disabled_ || dimmed)
                 ImGui::PopStyleVar();
 
-
             bool menu_element = false;
             if (selection_node::single(*selected)) {
-                menu_element = show_context_menu_element(state, gui, node,
-                    *menu_node == node->id_local, node->children_n > 0, node->selected);
-            } else {
+                menu_element = show_context_menu_element(state, gui, node, *menu_node == node->id_local,
+                                                         node->children_n > 0, node->selected);
+            }
+            else {
                 show_context_menu_group(state, gui, *selected);
             }
 
@@ -339,7 +342,8 @@ namespace ex::gui {
                 ImGui::TableNextColumn();
                 if (!connected)
                     ImGui::PushStyleColor(ImGuiCol_TextDisabled, IM_COL32(255, 140, 40, 255));
-                ImGui::TextDisabled(connected ? (node->children_n > 0 ? ICON_LC_ARROW_DOWN_RIGHT : "") : ICON_LC_UNPLUG);
+                ImGui::TextDisabled(connected ? (node->children_n > 0 ? ICON_LC_ARROW_DOWN_RIGHT : "")
+                                              : ICON_LC_UNPLUG);
                 if (!connected)
                     ImGui::PopStyleColor();
             }
@@ -351,8 +355,8 @@ namespace ex::gui {
                 // Regular element but it has children
                 const auto next = node->children[0];
                 for (int i = 0, u = 0; i < next->children_n; i++) {
-                    counter_i = show_tree_node(state, gui, next->children[i], selected, active, menu_node,
-                        disabled || disabled_ || dimmed, counter_i + 1, u);
+                    counter_i = show_tree_node(state, gui, next->children[i], selected, active, menu_node, ref_node,
+                                               disabled || disabled_ || dimmed, counter_i + 1, u);
                     u += !(next->children[i]->disabled);
                 }
                 ImGui::TreePop();
@@ -395,17 +399,20 @@ namespace ex::gui {
                     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
                 ImGui::PushID(first->id_local);
-                node_mappers_.at(first->id_node).draw_tree_node(
-                    gui, state, first, false, first->selected);
+                node_mappers_.at(first->id_node).draw_tree_node(gui, state, first, false, first->selected);
+
+                if (ImGui::IsItemHovered())
+                    *ref_node = first->is_link ? first->id_link : (-1);
 
                 if (disabled || disabled_ || dimmed)
                     ImGui::PopStyleVar();
 
                 bool menu_element = false;
                 if (selection_node::single(*selected)) {
-                    menu_element = show_context_menu_element(state, gui, first,
-                        *menu_node == first->id_local, false, first->selected);
-                } else {
+                    menu_element = show_context_menu_element(state, gui, first, *menu_node == first->id_local, false,
+                                                             first->selected);
+                }
+                else {
                     show_context_menu_group(state, gui, *selected);
                 }
 
@@ -439,8 +446,8 @@ namespace ex::gui {
                 int u = disabled ? 0 : 1;
                 if (node->children_n > 1) {
                     for (int i = 1; i < node->children_n; i++) {
-                        counter_i = show_tree_node(state, gui, node->children[i], selected, active, menu_node,
-                            disabled_, counter_i + 1, u);
+                        counter_i = show_tree_node(state, gui, node->children[i], selected, active, menu_node, ref_node,
+                                                   disabled_, counter_i + 1, u);
                         u += !(node->children[i]->disabled);
                     }
                 }
@@ -455,11 +462,11 @@ namespace ex::gui {
         // Group with children, where the first element _HAS_ its own children
         const ImVec2 outer_start = brackets_start();
         for (int i = 0, u = 0; i < node->children_n; i++) {
-            counter_i = show_tree_node(state, gui, node->children[i], selected, active, menu_node,
-                 disabled_, counter_i + 1, u);
+            counter_i = show_tree_node(state, gui, node->children[i], selected, active, menu_node, ref_node, disabled_,
+                                       counter_i + 1, u);
             u += !(node->children[i]->disabled);
         }
-        brackets_end(outer_start, 0,  disabled_ ? 0.5f : 1.f);
+        brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
 
         return counter_i;
     }
@@ -483,6 +490,7 @@ namespace ex::gui {
             ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthFixed, items_width);
             ImGui::TableSetupColumn("Controls", ImGuiTableColumnFlags_WidthFixed, ctrl_width);
 
+            static std::size_t last_ref    = -1;
             static std::size_t last_menu   = -1;
             const std::size_t  prev_menu   = last_menu;
             TreeNode          *active_node = nullptr;
@@ -490,7 +498,7 @@ namespace ex::gui {
             ImGui::Indent(10.f);
             for (int i = 0, p = 0; i < state.work_tree->children_n; i++) {
                 p = show_tree_node(state, gui, state.work_tree->children[i], &state.selected_nodes,
-                    &active_node, &last_menu, false, p + 1, i);
+                    &active_node, &last_menu, &last_ref, false, p + 1, i);
             }
             ImGui::Unindent(10.f);
 
