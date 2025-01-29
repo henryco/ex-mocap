@@ -317,19 +317,26 @@ namespace ex::gui {
             if (symlinked)
                 highlight_border();
 
-            if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
-                ImGui::SetMouseCursor(ImGuiMouseCursor_NotAllowed);
-                ImGui::SetDragDropPayload(dnd_type, &node, sizeof(node));
-                node_mappers_.at(node->id_node).draw_tree_node(gui, state, node, false, false);
-                ImGui::EndDragDropSource();
+            if (ImGui::BeginDragDropTarget()) {
+                if (ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptPeekOnly))
+                    highlight_border();
+                // TODO
+                ImGui::EndDragDropTarget();
             }
 
             bool menu_element = false;
             if (selection_node::single(*selected)) {
                 menu_element = show_context_menu_element(state, gui, node, *menu_node == node->id_local,
                                                          node->children_n > 0, node->selected);
-            }
-            else {
+
+                if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+                    ImGui::SetMouseCursor(ImGuiMouseCursor_NotAllowed);
+                    ImGui::SetDragDropPayload(dnd_type, &node, sizeof(node));
+                    node_mappers_.at(node->id_node).draw_tree_node(gui, state, node, false, false);
+                    ImGui::EndDragDropSource();
+                }
+
+            } else {
                 show_context_menu_group(state, gui, *selected);
             }
 
@@ -442,19 +449,26 @@ namespace ex::gui {
                 if (symlinked)
                     highlight_border();
 
-                if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
-                    ImGui::SetMouseCursor(ImGuiMouseCursor_NotAllowed);
-                    ImGui::SetDragDropPayload(dnd_type, &first, sizeof(first));
-                    node_mappers_.at(first->id_node).draw_tree_node(gui, state, first, false, false);
-                    ImGui::EndDragDropSource();
+                if (ImGui::BeginDragDropTarget()) {
+                    if (ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptPeekOnly))
+                        highlight_border();
+                    // TODO
+                    ImGui::EndDragDropTarget();
                 }
 
                 bool menu_element = false;
                 if (selection_node::single(*selected)) {
                     menu_element = show_context_menu_element(state, gui, first, *menu_node == first->id_local, false,
                                                              first->selected);
-                }
-                else {
+
+                    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+                        ImGui::SetMouseCursor(ImGuiMouseCursor_NotAllowed);
+                        ImGui::SetDragDropPayload(dnd_type, &first, sizeof(first));
+                        node_mappers_.at(first->id_node).draw_tree_node(gui, state, first, false, false);
+                        ImGui::EndDragDropSource();
+                    }
+
+                } else {
                     show_context_menu_group(state, gui, *selected);
                 }
 
