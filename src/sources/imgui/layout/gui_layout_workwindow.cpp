@@ -9,7 +9,19 @@ namespace ex::gui {
     static std::map<std::size_t, NodeWindow<TreeNode> *> pinned_windows__;
     static NodeWindow<TreeNode>                         *active_window__ = nullptr;
 
-    void update_active_window(TreeNode *active_node) {
+    NodeWindow<TreeNode> *create_new_window(const State &state, TreeNode *node) {
+        if (node == nullptr)
+            return nullptr;
+
+        if (node->is_link) {
+            const auto source = TreeNode::find_node(state.work_tree, node->id_link);
+            return new NodeWindow{ .node = (source == nullptr) ? node : source };
+        }
+
+        return new NodeWindow{ .node = node };
+    }
+
+    void update_active_window(const State &state, TreeNode *active_node) {
         if (active_node == nullptr || active_node->deleted) {
             if (active_window__ != nullptr && !active_window__->pinned)
                 delete active_window__;
@@ -25,7 +37,7 @@ namespace ex::gui {
         }
 
         if (active_window__ == nullptr) {
-            active_window__ = new NodeWindow{ .node = active_node };
+            active_window__ = create_new_window(state, active_node);
             gen_uuid(active_window__);
             return;
         }
@@ -33,7 +45,7 @@ namespace ex::gui {
         if (active_window__->node != active_node) {
             if (!active_window__->pinned)
                 delete active_window__;
-            active_window__ = new NodeWindow{ .node = active_node };
+            active_window__ = create_new_window(state, active_node);
             gen_uuid(active_window__);
         }
     }
@@ -48,7 +60,7 @@ namespace ex::gui {
     }
 
     void show_work_window(ex::State &state, GuiState &gui) {
-        update_active_window(state.active_node);
+        update_active_window(state, state.active_node);
 
         for (auto it = pinned_windows__.begin(); it != pinned_windows__.end();) {
             const auto window = it->second;
