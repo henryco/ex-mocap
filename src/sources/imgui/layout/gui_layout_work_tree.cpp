@@ -16,6 +16,7 @@ namespace ex::gui {
     constexpr float ctrl_width   = 40.f;
     constexpr float min_width    = 100.f;
 
+    constexpr auto col_orange = IM_COL32(255, 140, 40, 255);
     constexpr auto col_purple = IM_COL32(255, 0, 255, 255);
     constexpr auto vec_purple = ImVec4(255, 0, 255, 255);
 
@@ -353,7 +354,7 @@ namespace ex::gui {
             else if (ImGui::IsItemHovered()) {
                 ImGui::TableNextColumn();
                 if (!connected)
-                    ImGui::PushStyleColor(ImGuiCol_TextDisabled, IM_COL32(255, 140, 40, 255));
+                    ImGui::PushStyleColor(ImGuiCol_TextDisabled, col_orange);
                 ImGui::TextDisabled(connected ? "" : ICON_LC_UNPLUG);
                 if (!connected)
                     ImGui::PopStyleColor();
@@ -361,7 +362,7 @@ namespace ex::gui {
             else {
                 ImGui::TableNextColumn();
                 if (!connected)
-                    ImGui::PushStyleColor(ImGuiCol_TextDisabled, IM_COL32(255, 140, 40, 255));
+                    ImGui::PushStyleColor(ImGuiCol_TextDisabled, col_orange);
                 ImGui::TextDisabled(connected ? (node->children_n > 0 ? ICON_LC_ARROW_DOWN_RIGHT : "")
                                               : ICON_LC_UNPLUG);
                 if (!connected)
