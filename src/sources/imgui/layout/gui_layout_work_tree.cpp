@@ -37,6 +37,35 @@ namespace ex::gui {
         draw_list->AddLine(ImVec2(p_min.x, p_max.y), ImVec2(p_max.x, p_max.y), col_purple, 1.f);
     }
 
+    void insertion_space(TreeNode *node) {
+        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0, 0.f));
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+
+        ImGui::PushID(node);
+        ImGui::InvisibleButton("", ImVec2(ImGui::GetContentRegionAvail().x, 0.01f), ImGuiButtonFlags_AllowOverlap);
+        if (ImGui::BeginDragDropTarget()) {
+            if (ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptPeekOnly))
+                highlight_line();
+            // TODO
+            ImGui::EndDragDropTarget();
+        }
+        ImGui::PopID();
+
+        ImGui::PopStyleVar();
+        ImGui::TableNextColumn();
+    }
+
+    void insertion_node(TreeNode *node) {
+        if (ImGui::BeginDragDropTarget()) {
+            if (ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptPeekOnly))
+                highlight_border();
+            // TODO
+            ImGui::EndDragDropTarget();
+        }
+    }
+
     bool select_many(selection_node **selection, TreeNode *node, TreeNode *start, TreeNode *stop) {
         if (start == nullptr || stop == nullptr || node == nullptr || selection == nullptr)
             return false;
@@ -323,12 +352,7 @@ namespace ex::gui {
             if (symlinked)
                 highlight_border();
 
-            if (ImGui::BeginDragDropTarget()) {
-                if (ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptPeekOnly))
-                    highlight_border();
-                // TODO
-                ImGui::EndDragDropTarget();
-            }
+            insertion_node(node);
 
             bool menu_element = false;
             if (selection_node::single(*selected)) {
@@ -421,18 +445,7 @@ namespace ex::gui {
 
             ImGui::PopID();
 
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::PushID(node);
-            ImGui::InvisibleButton("", ImVec2(ImGui::GetContentRegionAvail().x, 0.1f), ImGuiButtonFlags_AllowOverlap);
-            if (ImGui::BeginDragDropTarget()) {
-                if (ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptPeekOnly))
-                    highlight_line();
-                // TODO
-                ImGui::EndDragDropTarget();
-            }
-            ImGui::PopID();
-            ImGui::TableNextColumn();
+            insertion_space(node);
 
             return counter_i;
         }
@@ -474,12 +487,7 @@ namespace ex::gui {
                 if (symlinked)
                     highlight_border();
 
-                if (ImGui::BeginDragDropTarget()) {
-                    if (ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptPeekOnly))
-                        highlight_border();
-                    // TODO
-                    ImGui::EndDragDropTarget();
-                }
+                insertion_node(first);
 
                 bool menu_element = false;
                 if (selection_node::single(*selected)) {
@@ -533,6 +541,10 @@ namespace ex::gui {
                     ImGui::TextDisabled(ICON_LC_ARROW_DOWN);
                 }
 
+                ImGui::PopID();
+
+                insertion_space(first);
+
                 int u = disabled ? 0 : 1;
                 if (node->children_n > 1) {
                     for (int i = 1; i < node->children_n; i++) {
@@ -541,8 +553,6 @@ namespace ex::gui {
                         u += !(node->children[i]->disabled);
                     }
                 }
-
-                ImGui::PopID();
             }
 
             brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
