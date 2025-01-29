@@ -330,10 +330,15 @@ namespace ex::gui {
                                                          node->children_n > 0, node->selected);
 
                 if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
-                    ImGui::SetMouseCursor(ImGuiMouseCursor_NotAllowed);
-                    ImGui::SetDragDropPayload(dnd_type, &node, sizeof(node));
-                    node_mappers_.at(node->id_node).draw_tree_node(gui, state, node, false, false);
-                    ImGui::EndDragDropSource();
+                    if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+                        ImGui::ClearActiveID();
+                        ImGui::EndDragDropSource();
+                        ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
+                    } else {
+                        ImGui::SetDragDropPayload(dnd_type, &node, sizeof(node));
+                        node_mappers_.at(node->id_node).draw_tree_node(gui, state, node, false, false);
+                        ImGui::EndDragDropSource();
+                    }
                 }
 
             } else {
@@ -462,10 +467,15 @@ namespace ex::gui {
                                                              first->selected);
 
                     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
-                        ImGui::SetMouseCursor(ImGuiMouseCursor_NotAllowed);
-                        ImGui::SetDragDropPayload(dnd_type, &first, sizeof(first));
-                        node_mappers_.at(first->id_node).draw_tree_node(gui, state, first, false, false);
-                        ImGui::EndDragDropSource();
+                        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+                            ImGui::ClearActiveID();
+                            ImGui::EndDragDropSource();
+                            ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
+                        } else {
+                            ImGui::SetDragDropPayload(dnd_type, &first, sizeof(first));
+                            node_mappers_.at(first->id_node).draw_tree_node(gui, state, first, false, false);
+                            ImGui::EndDragDropSource();
+                        }
                     }
 
                 } else {
