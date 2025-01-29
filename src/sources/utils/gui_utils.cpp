@@ -132,10 +132,10 @@ namespace ex::gui {
     void brackets_end(const ImVec2 &start, const float indent, const float alpha) {
         const auto color = IM_COL32(0, 0, 0, 150 * alpha);
 
-        constexpr auto thickness = 1.25f;
-        constexpr auto width     = 3.0f;
-        constexpr auto height    = 3.0f;
-        constexpr auto offset    = 10.f;
+        constexpr float thickness = 1.25f;
+        constexpr float width     = 2.8f;
+        constexpr float height    = 2.8f;
+        constexpr float offset    = 8.f;
 
         const ImVec2 inner_end = ImGui::GetCursorScreenPos();
 
