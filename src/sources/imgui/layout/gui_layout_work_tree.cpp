@@ -31,11 +31,10 @@ namespace ex::gui {
     }
 
     void highlight_line() {
-        constexpr auto off       = 3.f;
-        const auto     p_min     = ImGui::GetItemRectMin();
-        const auto     p_max     = ImGui::GetItemRectMax();
-        const auto     draw_list = ImGui::GetWindowDrawList();
-        draw_list->AddLine(ImVec2(p_min.x + off, p_max.y + off), ImVec2(p_max.x - off, p_max.y + off), col_purple, 1.f);
+        const auto p_min     = ImGui::GetItemRectMin();
+        const auto p_max     = ImGui::GetItemRectMax();
+        const auto draw_list = ImGui::GetWindowDrawList();
+        draw_list->AddLine(ImVec2(p_min.x, p_max.y), ImVec2(p_max.x, p_max.y), col_purple, 1.f);
     }
 
     bool select_many(selection_node **selection, TreeNode *node, TreeNode *start, TreeNode *stop) {
@@ -331,8 +330,6 @@ namespace ex::gui {
                 ImGui::EndDragDropTarget();
             }
 
-//            highlight_line();
-
             bool menu_element = false;
             if (selection_node::single(*selected)) {
                 menu_element = show_context_menu_element(state, gui, node, *menu_node == node->id_local,
@@ -423,6 +420,20 @@ namespace ex::gui {
                 counter_i = count_children(node, counter_i);
 
             ImGui::PopID();
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::PushID(node);
+            ImGui::InvisibleButton("", ImVec2(ImGui::GetContentRegionAvail().x, 0.1f), ImGuiButtonFlags_AllowOverlap);
+            if (ImGui::BeginDragDropTarget()) {
+                if (ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptPeekOnly))
+                    highlight_line();
+                // TODO
+                ImGui::EndDragDropTarget();
+            }
+            ImGui::PopID();
+            ImGui::TableNextColumn();
+
             return counter_i;
         }
 
@@ -469,7 +480,6 @@ namespace ex::gui {
                     // TODO
                     ImGui::EndDragDropTarget();
                 }
-//                highlight_line();
 
                 bool menu_element = false;
                 if (selection_node::single(*selected)) {
