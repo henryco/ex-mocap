@@ -16,14 +16,16 @@ namespace ex::gui {
     constexpr float ctrl_width   = 40.f;
     constexpr float min_width    = 100.f;
 
+    constexpr auto col_purple = IM_COL32(255, 0, 255, 255);
+    constexpr auto vec_purple = ImVec4(255, 0, 255, 255);
+
     void highlight_border() {
-        constexpr auto color = IM_COL32(255, 0, 255, 255);
         constexpr auto off = 3.f;
         const auto p_min     = ImGui::GetItemRectMin();
         const auto p_max     = ImGui::GetItemRectMax();
         const auto draw_list = ImGui::GetWindowDrawList();
         draw_list->AddRect(ImVec2(p_min.x, p_min.y - off), ImVec2(p_max.x, p_max.y + off),
-            color, 0.0f, 0, 1.0f);
+            col_purple, 3.0f, 0, 1.0f);
     }
 
     bool select_many(selection_node **selection, TreeNode *node, TreeNode *start, TreeNode *stop) {
@@ -292,6 +294,7 @@ namespace ex::gui {
 
             const bool reference = node->is_link;
             const bool connected = node->connected || reference || n <= 0;
+            const bool symlinked = *ref_node > 0 && *ref_node == node->id_local;
             const bool disabled  = node->disabled;
             const bool dimmed    = node->dimmed;
 
@@ -308,7 +311,7 @@ namespace ex::gui {
             if (disabled || disabled_ || dimmed)
                 ImGui::PopStyleVar();
 
-            if (*ref_node > 0 && *ref_node == node->id_local)
+            if (symlinked)
                 highlight_border();
 
             bool menu_element = false;
@@ -335,7 +338,11 @@ namespace ex::gui {
 
             const auto pos = ImGui::GetCursorScreenPos();
 
-            if (disabled) {
+            if (symlinked) {
+                ImGui::TableNextColumn();
+                ImGui::TextColored(vec_purple, ICON_LC_LINK_2);
+            }
+            else if (disabled) {
                 ImGui::TableNextColumn();
                 ImGui::TextDisabled(ICON_LC_LINK_2_OFF);
             }
@@ -400,9 +407,11 @@ namespace ex::gui {
         // It's a group, and it has children (not an empty)
         const auto first = node->children[0];
 
+        const bool symlinked = *ref_node > 0 && *ref_node == first->id_local;
         const bool reference = first->is_link;
         const bool disabled  = first->disabled;
         const bool dimmed    = first->dimmed;
+
 
         if (first->children_n <= 0) {
             // Group with children, where the first element _HAS NO_ its own children
@@ -420,7 +429,7 @@ namespace ex::gui {
                 if (disabled || disabled_ || dimmed)
                     ImGui::PopStyleVar();
 
-                if (*ref_node > 0 && *ref_node == first->id_local)
+                if (symlinked)
                     highlight_border();
 
                 bool menu_element = false;
@@ -442,7 +451,11 @@ namespace ex::gui {
                     }
                 }
 
-                if (disabled) {
+                if (symlinked) {
+                    ImGui::TableNextColumn();
+                    ImGui::TextColored(vec_purple, ICON_LC_LINK_2);
+                }
+                else if (disabled) {
                     ImGui::TableNextColumn();
                     ImGui::TextDisabled(ICON_LC_LINK_2_OFF);
                 }
