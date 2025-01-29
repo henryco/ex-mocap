@@ -23,12 +23,19 @@ namespace ex::gui {
     constexpr auto dnd_type = "node";
 
     void highlight_border() {
-        constexpr auto off = 3.f;
-        const auto p_min     = ImGui::GetItemRectMin();
-        const auto p_max     = ImGui::GetItemRectMax();
-        const auto draw_list = ImGui::GetWindowDrawList();
-        draw_list->AddRect(ImVec2(p_min.x, p_min.y - off), ImVec2(p_max.x, p_max.y + off),
-            col_purple, 3.0f, 0, 1.0f);
+        constexpr auto off       = 3.f;
+        const auto     p_min     = ImGui::GetItemRectMin();
+        const auto     p_max     = ImGui::GetItemRectMax();
+        const auto     draw_list = ImGui::GetWindowDrawList();
+        draw_list->AddRect(ImVec2(p_min.x, p_min.y - off), ImVec2(p_max.x, p_max.y + off), col_purple, 3.f, 0, 1.f);
+    }
+
+    void highlight_line() {
+        constexpr auto off       = 3.f;
+        const auto     p_min     = ImGui::GetItemRectMin();
+        const auto     p_max     = ImGui::GetItemRectMax();
+        const auto     draw_list = ImGui::GetWindowDrawList();
+        draw_list->AddLine(ImVec2(p_min.x + off, p_max.y + off), ImVec2(p_max.x - off, p_max.y + off), col_purple, 1.f);
     }
 
     bool select_many(selection_node **selection, TreeNode *node, TreeNode *start, TreeNode *stop) {
@@ -324,6 +331,8 @@ namespace ex::gui {
                 ImGui::EndDragDropTarget();
             }
 
+//            highlight_line();
+
             bool menu_element = false;
             if (selection_node::single(*selected)) {
                 menu_element = show_context_menu_element(state, gui, node, *menu_node == node->id_local,
@@ -460,6 +469,7 @@ namespace ex::gui {
                     // TODO
                     ImGui::EndDragDropTarget();
                 }
+//                highlight_line();
 
                 bool menu_element = false;
                 if (selection_node::single(*selected)) {
