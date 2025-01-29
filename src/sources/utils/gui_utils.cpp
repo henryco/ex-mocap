@@ -167,10 +167,14 @@ namespace ex::gui {
     }
 
     void brackets_end_half(const ImVec2 &start, const float indent, const float alpha) {
+        const auto color_1 = IM_COL32(0, 0, 0, 150 * alpha);
+
         const float off = indent <= 0 ? 13.f : indent;
 
-        const auto color_1   = IM_COL32(0, 0, 0, 120 * alpha);
-        constexpr auto thickness = 1.25f;
+        constexpr float thickness = 1.25f;
+        constexpr float width     = 2.8f;
+        constexpr float height    = 2.8f;
+        constexpr float offset    = 8.f;
 
         const ImVec2 inner_end = ImGui::GetCursorScreenPos();
 
@@ -183,18 +187,10 @@ namespace ex::gui {
         draw_list->AddLine(p2, p4, color_1, thickness);
 
         const auto p7 = ImVec2(p1.x + 0.5f, p1.y);
-        draw_backward_arrow(p7, alpha);
-    }
+        const auto p5 = ImVec2(p7.x - width, p7.y + height);
+        const auto p6 = ImVec2(p7.x + width, p7.y + height);
 
-    void draw_backward_arrow(const ImVec2 &p1, const float alpha) {
-        const auto color_2 = IM_COL32(0, 0, 0, 150 * alpha);
-
-        const auto p7 = ImVec2(p1.x + 0.5f, p1.y);
-        const auto p5 = ImVec2(p7.x - 4.f, p7.y + 7.f);
-        const auto p6 = ImVec2(p7.x + 4.f, p7.y + 7.f);
-
-        ImDrawList *draw_list = ImGui::GetWindowDrawList();
-        draw_list->AddTriangleFilled(p5, p7, p6, color_2);
+        draw_list->AddTriangleFilled(p5, p7, p6, color_1);
     }
 
 } // namespace ex::gui

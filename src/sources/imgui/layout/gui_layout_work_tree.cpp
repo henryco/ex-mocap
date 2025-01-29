@@ -451,13 +451,13 @@ namespace ex::gui {
         }
 
         // It's a group
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-
         if (node->children_n <= 0 || node->children == nullptr) {
             // ignore such case
             return counter_i;
         }
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
 
         // It's a group, and it has children (not an empty)
         const auto first = node->children[0];
@@ -466,7 +466,6 @@ namespace ex::gui {
         const bool reference = first->is_link;
         const bool disabled  = first->disabled;
         const bool dimmed    = first->dimmed;
-
 
         if (first->children_n <= 0) {
             // Group with children, where the first element _HAS NO_ its own children
