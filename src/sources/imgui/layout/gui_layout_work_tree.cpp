@@ -26,19 +26,19 @@ namespace ex::gui {
         constexpr auto off       = 3.f;
         const auto     p_min     = ImGui::GetItemRectMin();
         const auto     p_max     = ImGui::GetItemRectMax();
-        const auto     draw_list = ImGui::GetWindowDrawList();
+        const auto     draw_list = ImGui::GetForegroundDrawList();
         draw_list->AddRect(ImVec2(p_min.x, p_min.y - off), ImVec2(p_max.x, p_max.y + off), col_purple, 3.f, 0, 1.f);
     }
 
     void highlight_line() {
         const auto p_min     = ImGui::GetItemRectMin();
         const auto p_max     = ImGui::GetItemRectMax();
-        const auto draw_list = ImGui::GetWindowDrawList();
+        const auto draw_list = ImGui::GetForegroundDrawList();
         draw_list->AddLine(ImVec2(p_min.x, p_max.y), ImVec2(p_max.x, p_max.y), col_purple, 1.f);
     }
 
     void drag_space(State &state, GuiState &gui, TreeNode *node) {
-        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None | ImGuiDragDropFlags_SourceNoHoldToOpenOthers)) {
+        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_PayloadAutoExpire | ImGuiDragDropFlags_SourceNoHoldToOpenOthers)) {
             if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
                 ImGui::ClearActiveID();
                 ImGui::EndDragDropSource();
