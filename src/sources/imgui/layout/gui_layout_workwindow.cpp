@@ -14,11 +14,13 @@ namespace ex::gui {
             return nullptr;
 
         if (node->is_link) {
-            const auto source = TreeNode::find_node(state.work_tree, node->id_link);
-            return new NodeWindow{ .node = (source == nullptr) ? node : source };
+            TreeNode             *source  = TreeNode::find_node(state.work_tree, node->id_link);
+            NodeWindow<TreeNode> *new_win = new NodeWindow{ .node = (source == nullptr) ? node : source };
+            new_win->name                 = new_win->node->name;
+            return new_win;
         }
 
-        return new NodeWindow{ .node = node };
+        return new NodeWindow{ .name = node->name, .node = node };
     }
 
     void update_active_window(const State &state, TreeNode *active_node) {
@@ -56,6 +58,12 @@ namespace ex::gui {
         const auto n_type = window->node->id_node;
         if (!node_mappers_.contains(n_type))
             return false;
+
+        if (window->node->name != window->name) {
+            window->name = window->node->name;
+            gen_uuid(window);
+        }
+
         return node_mappers_.at(n_type).draw_node_window(gui, state, window);
     }
 

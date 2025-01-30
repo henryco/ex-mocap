@@ -17,6 +17,7 @@ namespace ex::gui {
     template <typename NODE_>
     struct NodeWindow {
         const char *uuid    = nullptr;
+        const char *name    = nullptr;
         NODE_      *node    = nullptr;
         bool       *visible = nullptr;
 

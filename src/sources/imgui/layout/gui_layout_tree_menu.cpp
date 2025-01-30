@@ -131,7 +131,6 @@ namespace ex::gui {
             node->name = new_name;
 
             reset_state_(state);
-            state.active_node = nullptr;
 
             undo_history().push("Node renamed",
             new std::function([id_local, og_name] (State *s) {
@@ -140,7 +139,6 @@ namespace ex::gui {
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
                 f_node->name = og_name;
-                s->active_node = nullptr;
             }),
             new std::function([id_local, new_name] (State *s) {
                 reset_state_(*s);
@@ -148,7 +146,6 @@ namespace ex::gui {
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
                 f_node->name = new_name;
-                s->active_node = nullptr;
             }));
         }
 
