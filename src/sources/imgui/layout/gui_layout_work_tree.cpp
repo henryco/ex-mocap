@@ -49,7 +49,7 @@ namespace ex::gui {
         if (ImGui::BeginDragDropTarget()) {
             if (const auto payload = ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptPeekOnly)) {
                 const auto data_node = static_cast<TreeNode **>(payload->Data);
-                if (*data_node == node) {
+                if (data_node == nullptr || *data_node == node || TreeNode::is_parent(node, *data_node)) {
                     ImGui::EndDragDropTarget();
                     ImGui::PopID();
                     ImGui::PopStyleVar();
@@ -77,7 +77,7 @@ namespace ex::gui {
         if (ImGui::BeginDragDropTarget()) {
             if (const auto payload = ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptPeekOnly)) {
                 const auto data_node = static_cast<TreeNode **>(payload->Data);
-                if (*data_node == node) {
+                if (data_node == nullptr || *data_node == node || TreeNode::is_parent(node, *data_node)) {
                     ImGui::EndDragDropTarget();
                     return;
                 }

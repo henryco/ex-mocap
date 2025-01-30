@@ -151,6 +151,18 @@ namespace ex {
         node->index      = 0;
     }
 
+    bool TreeNode::is_parent(TreeNode *node) const {
+        if (node == nullptr)
+            return false;
+        auto head = this;
+        while (head != nullptr) {
+            if (head == node)
+                return true;
+            head = head->parent;
+        }
+        return false;
+    }
+
     void TreeNode::add_node(TreeNode *node) {
         if (node == nullptr)
             return;
@@ -286,6 +298,12 @@ namespace ex {
         new_one->created  = true;
         new_one->is_link  = true;
         return new_one;
+    }
+
+    bool TreeNode::is_parent(TreeNode *test, TreeNode *node) {
+        if (node == nullptr || test == nullptr)
+            return false;
+        return test->is_parent(node);
     }
 
     selection_node *selection_node::copy() const {

@@ -58,6 +58,7 @@ namespace ex {
         void add_node(TreeNode *node);
         void insert_node(int idx, TreeNode *node);
         void remove_node(TreeNode *node);
+        bool is_parent(TreeNode *node) const;
 
         TreeNode *find_node(std::size_t id);
         TreeNode *find_node(TreeNode *node);
@@ -70,6 +71,8 @@ namespace ex {
 
         static TreeNode *create(std::size_t id = 0);
         static TreeNode *link(TreeNode *node);
+
+        static bool is_parent(TreeNode *test, TreeNode *node);
 
     private:
         TreeNode() = default;
