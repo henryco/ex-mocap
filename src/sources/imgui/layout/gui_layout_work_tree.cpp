@@ -45,12 +45,23 @@ namespace ex::gui {
 
         ImGui::PushID(node);
         ImGui::InvisibleButton("", ImVec2(ImGui::GetContentRegionAvail().x, 0.01f), ImGuiButtonFlags_AllowOverlap);
+
         if (ImGui::BeginDragDropTarget()) {
-            if (ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptPeekOnly))
+            if (const auto payload = ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptPeekOnly)) {
+                const auto data_node = static_cast<TreeNode **>(payload->Data);
+                if (*data_node == node) {
+                    ImGui::EndDragDropTarget();
+                    ImGui::PopID();
+                    ImGui::PopStyleVar();
+                    ImGui::TableNextColumn();
+                    return;
+                }
                 highlight_line();
+            }
             // TODO
             ImGui::EndDragDropTarget();
         }
+
         ImGui::PopID();
 
         ImGui::PopStyleVar();
