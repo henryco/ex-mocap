@@ -24,7 +24,12 @@ namespace ex::gui {
     }
 
     void update_active_window(const State &state, TreeNode *active_node) {
+        if (active_node == nullptr && active_window__ == nullptr) {
+            return;
+        }
+
         if (active_node == nullptr || active_node->deleted || active_node->moved) {
+            std::cout << "reset window" << '\n';
             if (active_window__ != nullptr && !active_window__->pinned)
                 delete active_window__;
             active_window__ = nullptr;

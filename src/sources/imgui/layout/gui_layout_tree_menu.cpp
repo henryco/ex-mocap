@@ -105,11 +105,12 @@ namespace ex::gui {
         }
 
         void add_into_node(State &state, GuiState &, TreeNode *node, TreeNode *add) {
-
             reset_state_(state);
             const auto snapshot = state.work_tree->deep_copy();
 
             TreeNode *copy = TreeNode::deep_copy(add);
+            copy->created  = true;
+            add->created   = true;
 
             if (node->children == nullptr || node->children_n <= 0) {
                 TreeNode *group = TreeNode::create();
@@ -122,7 +123,6 @@ namespace ex::gui {
             const auto parent_id = node->id_local;
             const auto group_id  = parent->id_local;
 
-            add->created  = true;
             parent->add_node(add);
             state.active_node = add;
 
@@ -165,7 +165,45 @@ namespace ex::gui {
         }
 
         void add_after_node(State &state, GuiState &, TreeNode *node, TreeNode *add) {
-            // TODO
+            reset_state_(state);
+            const auto snapshot = state.work_tree->deep_copy();
+
+            TreeNode *copy = TreeNode::deep_copy(add);
+            copy->created  = true;
+            add->created   = true;
+
+            const auto parent    = node->parent;
+            const auto index     = node->index;
+            const auto parent_id = parent->id_local;
+
+            parent->insert_node(index + 1, add);
+
+            undo_history().push("Add after",
+            new std::function([snapshot] (ex::State *s) {
+                reset_state_(*s);
+                if (s->work_tree != nullptr && s->work_tree != snapshot)
+                    delete s->work_tree;
+                s->work_tree            = snapshot->deep_copy();
+                s->work_tree->connected = false;
+                s->work_tree->created   = true;
+            }),
+            new std::function([parent_id, index, copy] (ex::State *s) {
+                reset_state_(*s);
+                const auto p_node = s->work_tree->find_node(parent_id);
+                if (p_node == nullptr)
+                    throw std::runtime_error("Cannot find original node");
+
+                TreeNode *new_copy = TreeNode::deep_copy(copy);
+                new_copy->created  = true;
+
+                p_node->insert_node(index + 1, new_copy);
+            }),
+            new std::function([snapshot, copy] {
+                if (snapshot != nullptr)
+                    delete snapshot;
+                if (copy != nullptr)
+                    delete copy;
+            }));
         }
 
         void cut_selected(State &state, GuiState &, selection_node *selection) {
@@ -484,7 +522,7 @@ namespace ex::gui {
                 TreeNode *new_copy = TreeNode::deep_copy(copy);
                 new_copy->created  = true;
 
-                p_node->insert_node(index + 1, TreeNode::deep_copy(copy));
+                p_node->insert_node(index + 1, new_copy);
             }),
             new std::function([snapshot, copy] {
                 if (snapshot != nullptr)
