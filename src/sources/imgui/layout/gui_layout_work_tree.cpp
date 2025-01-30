@@ -37,13 +37,13 @@ namespace ex::gui {
         draw_list->AddLine(ImVec2(p_min.x, p_max.y), ImVec2(p_max.x, p_max.y), col_purple, 1.f);
     }
 
-    void insertion_space(State &state, GuiState &gui, TreeNode *node) {
+    void insertion_space(State &state, GuiState &gui, TreeNode *node, const int n) {
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0, 0.f));
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
 
-        ImGui::PushID(node);
+        ImGui::PushID(n);
         ImGui::InvisibleButton("", ImVec2(ImGui::GetContentRegionAvail().x, 0.01f), ImGuiButtonFlags_AllowOverlap);
 
         if (ImGui::BeginDragDropTarget()) {
@@ -472,7 +472,7 @@ namespace ex::gui {
 
             ImGui::PopID();
 
-            insertion_space(state, gui, node);
+            insertion_space(state, gui, node, counter_i);
 
             return counter_i;
         }
@@ -567,9 +567,8 @@ namespace ex::gui {
                     ImGui::TextDisabled(ICON_LC_ARROW_DOWN);
                 }
 
+                insertion_space(state, gui, first, counter_i);
                 ImGui::PopID();
-
-                insertion_space(state, gui, first);
 
                 int u = disabled ? 0 : 1;
                 if (node->children_n > 1) {
@@ -582,7 +581,7 @@ namespace ex::gui {
             }
 
             brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
-            insertion_space(state, gui, node->parent);
+            insertion_space(state, gui, node->parent, counter_i);
             return counter_i;
         }
 
@@ -595,7 +594,7 @@ namespace ex::gui {
         }
 
         brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
-        insertion_space(state, gui, node->parent);
+        insertion_space(state, gui, node->parent, counter_i);
         return counter_i;
     }
 

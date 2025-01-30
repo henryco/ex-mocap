@@ -381,12 +381,14 @@ namespace ex::gui {
             }));
         }
 
-        void move_after_node(State &state, GuiState &gui, TreeNode *node, TreeNode *move) {
+        void move_after_node(State &, GuiState &, TreeNode *node, TreeNode *move) {
             // TODO
+            std::cout << "after: " << node->id_local << ", " << node->name << '\n';
         }
 
-        void move_into_node(State &state, GuiState &gui, TreeNode *node, TreeNode *move) {
+        void move_into_node(State &, GuiState &, TreeNode *node, TreeNode *move) {
             // TODO
+            std::cout << "into: " << node->id_local << ", " << node->name << '\n';
         }
 
         void group_selected(State &state, GuiState &, selection_node *selection) {
