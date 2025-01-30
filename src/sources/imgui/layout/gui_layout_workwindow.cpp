@@ -29,7 +29,6 @@ namespace ex::gui {
         }
 
         if (active_node == nullptr || active_node->deleted || active_node->moved) {
-            std::cout << "reset window" << '\n';
             if (active_window__ != nullptr && !active_window__->pinned)
                 delete active_window__;
             active_window__ = nullptr;

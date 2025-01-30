@@ -14,6 +14,40 @@ namespace ex::gui {
 
     namespace tree {
 
+        struct Snapshot {
+            TreeNode *work_tree   = nullptr;
+            TreeNode *active_node = nullptr;
+
+            void rollback(State *s) const {
+                if (s->work_tree != nullptr && s->work_tree != this->work_tree)
+                    delete s->work_tree;
+                s->work_tree            = this->work_tree->deep_copy();
+                s->work_tree->connected = false;
+                s->work_tree->created   = true;
+
+                if (active_node == nullptr)
+                    s->active_node = nullptr;
+                else
+                    s->active_node = s->work_tree->find_node(active_node->id_local);
+            }
+
+            static Snapshot *create(State &state) {
+                const auto snapshot = state.work_tree->deep_copy();
+                const auto active_copy = TreeNode::shallow_copy(state.active_node);
+                return new Snapshot(snapshot, active_copy);
+            }
+
+            static void destroy(Snapshot *snapshot) {
+                if (snapshot == nullptr)
+                    return;
+                if (snapshot->work_tree != nullptr)
+                    delete snapshot->work_tree;
+                if (snapshot->active_node != nullptr)
+                    delete snapshot->active_node;
+                delete snapshot;
+            }
+        };
+
         selection_node *bubble_sort_selection(selection_node *selection) {
             if (selection == nullptr)
                 return nullptr;
@@ -106,7 +140,7 @@ namespace ex::gui {
 
         void add_node(State &state, GuiState &, TreeNode *add) {
             reset_state_(state);
-            const auto snapshot = state.work_tree->deep_copy();
+            const auto snapshot = Snapshot::create(state);
 
             TreeNode *copy = TreeNode::deep_copy(add);
             copy->created  = true;
@@ -118,21 +152,17 @@ namespace ex::gui {
             undo_history().push("Add node",
             new std::function([snapshot](State *s) {
                 reset_state_(*s);
-                if (s->work_tree != nullptr && s->work_tree != snapshot)
-                    delete s->work_tree;
-                s->work_tree            = snapshot->deep_copy();
-                s->work_tree->connected = false;
-                s->work_tree->created   = true;
+                snapshot->rollback(s);
             }),
             new std::function([copy](State *s) {
                 reset_state_(*s);
                 TreeNode *new_copy = TreeNode::deep_copy(copy);
                 new_copy->created  = true;
                 s->work_tree->add_node(new_copy);
+                s->active_node = new_copy;
             }),
             new std::function([snapshot, copy] {
-                if (snapshot != nullptr)
-                    delete snapshot;
+                Snapshot::destroy(snapshot);
                 if (copy != nullptr)
                     delete copy;
             }));
@@ -140,7 +170,7 @@ namespace ex::gui {
 
         void add_into_node(State &state, GuiState &, TreeNode *node, TreeNode *add) {
             reset_state_(state);
-            const auto snapshot = state.work_tree->deep_copy();
+            const auto snapshot = Snapshot::create(state);
 
             TreeNode *copy = TreeNode::deep_copy(add);
             copy->created  = true;
@@ -163,11 +193,7 @@ namespace ex::gui {
             undo_history().push("Add into",
             new std::function([snapshot] (ex::State *s) {
                 reset_state_(*s);
-                if (s->work_tree != nullptr && s->work_tree != snapshot)
-                    delete s->work_tree;
-                s->work_tree            = snapshot->deep_copy();
-                s->work_tree->connected = false;
-                s->work_tree->created   = true;
+                snapshot->rollback(s);
             }),
             new std::function([parent_id, group_id, copy] (ex::State *s) {
                 reset_state_(*s);
@@ -187,10 +213,10 @@ namespace ex::gui {
                 TreeNode *new_copy = TreeNode::deep_copy(copy);
                 new_copy->created  = true;
                 group->add_node(new_copy);
+                s->active_node = new_copy;
             }),
             new std::function([snapshot, copy] {
-                if (snapshot != nullptr)
-                    delete snapshot;
+                Snapshot::destroy(snapshot);
                 if (copy != nullptr)
                     delete copy;
             }));
@@ -198,7 +224,7 @@ namespace ex::gui {
 
         void add_after_node(State &state, GuiState &, TreeNode *node, TreeNode *add) {
             reset_state_(state);
-            const auto snapshot = state.work_tree->deep_copy();
+            const auto snapshot = Snapshot::create(state);
 
             TreeNode *copy = TreeNode::deep_copy(add);
             copy->created  = true;
@@ -209,15 +235,12 @@ namespace ex::gui {
             const auto parent_id = parent->id_local;
 
             parent->insert_node(index + 1, add);
+            state.active_node = add;
 
             undo_history().push("Add after",
             new std::function([snapshot] (ex::State *s) {
                 reset_state_(*s);
-                if (s->work_tree != nullptr && s->work_tree != snapshot)
-                    delete s->work_tree;
-                s->work_tree            = snapshot->deep_copy();
-                s->work_tree->connected = false;
-                s->work_tree->created   = true;
+                snapshot->rollback(s);
             }),
             new std::function([parent_id, index, copy] (ex::State *s) {
                 reset_state_(*s);
@@ -229,10 +252,10 @@ namespace ex::gui {
                 new_copy->created  = true;
 
                 p_node->insert_node(index + 1, new_copy);
+                s->active_node = new_copy;
             }),
             new std::function([snapshot, copy] {
-                if (snapshot != nullptr)
-                    delete snapshot;
+                Snapshot::destroy(snapshot);
                 if (copy != nullptr)
                     delete copy;
             }));
@@ -286,7 +309,7 @@ namespace ex::gui {
 
         void duplicate_node(State &state, GuiState &, TreeNode *node) {
             reset_state_(state);
-            const auto snapshot = state.work_tree->deep_copy();
+            const auto snapshot = Snapshot::create(state);
 
             TreeNode *copy = TreeNode::deep_copy(node, true);
             copy->name     = (new std::string(node->name))->append(" (copy)").c_str();
@@ -299,14 +322,12 @@ namespace ex::gui {
             TreeNode *snap = TreeNode::deep_copy(copy);
             node->parent->insert_node(child_index, copy);
 
+            state.active_node = copy;
+
             undo_history().push("Node duplicated",
             new std::function([snapshot] (ex::State *s) -> void {
                 reset_state_(*s);
-                if (s->work_tree != nullptr && s->work_tree != snapshot)
-                    delete s->work_tree;
-                s->work_tree            = snapshot->deep_copy();
-                s->work_tree->created   = true;
-                s->work_tree->connected = false;
+                snapshot->rollback(s);
             }),
 
             new std::function([parent_id, child_index, snap] (ex::State *s) -> void {
@@ -315,13 +336,13 @@ namespace ex::gui {
                     const auto new_copy = snap->deep_copy();
                     new_copy->created   = true;
                     p_node->insert_node(child_index, new_copy);
+                    s->active_node = new_copy;
                 } else
                     throw std::runtime_error("Cannot find original node");
             }),
 
             new std::function([snapshot, snap] {
-                if (snapshot != nullptr)
-                    delete snapshot;
+                Snapshot::destroy(snapshot);
                 if (snap != nullptr)
                     delete snap;
             }));
@@ -341,7 +362,7 @@ namespace ex::gui {
             const bool ref       = state.clipboard_node->ref;
 
             reset_state_(state);
-            const auto snapshot = state.work_tree->deep_copy();
+            const auto snapshot = Snapshot::create(state);
 
             selection_node *pasted = nullptr;
 
@@ -375,11 +396,7 @@ namespace ex::gui {
             undo_history().push("Paste after",
             new std::function([snapshot] (ex::State *s) {
                 reset_state_(*s);
-                if (s->work_tree != nullptr && s->work_tree != snapshot)
-                    delete s->work_tree;
-                s->work_tree            = snapshot->deep_copy();
-                s->work_tree->connected = false;
-                s->work_tree->created   = true;
+                snapshot->rollback(s);
             }),
             new std::function([parent_id, move, index, selection, pasted] (ex::State *s) {
                 reset_state_(*s);
@@ -406,8 +423,7 @@ namespace ex::gui {
                 }
             }),
             new std::function([snapshot, selection, pasted] {
-                if (snapshot != nullptr)
-                    delete snapshot;
+                Snapshot::destroy(snapshot);
                 selection_node::free(selection);
                 selection_node::free(pasted);
             }));
@@ -424,7 +440,7 @@ namespace ex::gui {
             const bool ref       = state.clipboard_node->ref;
 
             reset_state_(state);
-            const auto snapshot = state.work_tree->deep_copy();
+            const auto snapshot = Snapshot::create(state);
 
             if (node->children == nullptr || node->children_n <= 0) {
                 TreeNode *group = TreeNode::create();
@@ -468,11 +484,7 @@ namespace ex::gui {
             undo_history().push("Paste into",
             new std::function([snapshot] (ex::State *s) {
                 reset_state_(*s);
-                if (s->work_tree != nullptr && s->work_tree != snapshot)
-                    delete s->work_tree;
-                s->work_tree            = snapshot->deep_copy();
-                s->work_tree->connected = false;
-                s->work_tree->created   = true;
+                snapshot->rollback(s);
             }),
             new std::function([parent_id, group_id, move, selection, pasted] (ex::State *s) {
                 reset_state_(*s);
@@ -507,8 +519,7 @@ namespace ex::gui {
                 }
             }),
             new std::function([snapshot, selection, pasted] {
-                if (snapshot != nullptr)
-                    delete snapshot;
+                Snapshot::destroy(snapshot);
                 selection_node::free(selection);
                 selection_node::free(pasted);
             }));
@@ -519,7 +530,7 @@ namespace ex::gui {
                 return;
 
             reset_state_(state);
-            const auto snapshot = state.work_tree->deep_copy();
+            const auto snapshot = Snapshot::create(state);
 
             const auto parent    = node->parent;
             const auto index     = node->index;
@@ -529,16 +540,14 @@ namespace ex::gui {
             copy->created  = true;
             move->moved    = true;
 
-            parent->insert_node(index + 1, TreeNode::deep_copy(copy));
+            TreeNode *nco = TreeNode::deep_copy(copy);
+            parent->insert_node(index + 1, nco);
+            state.active_node = nco;
 
             undo_history().push("Move after",
             new std::function([snapshot] (ex::State *s) {
                 reset_state_(*s);
-                if (s->work_tree != nullptr && s->work_tree != snapshot)
-                    delete s->work_tree;
-                s->work_tree            = snapshot->deep_copy();
-                s->work_tree->connected = false;
-                s->work_tree->created   = true;
+                snapshot->rollback(s);
             }),
             new std::function([parent_id, index, copy] (ex::State *s) {
                 reset_state_(*s);
@@ -555,10 +564,10 @@ namespace ex::gui {
                 new_copy->created  = true;
 
                 p_node->insert_node(index + 1, new_copy);
+                s->active_node = new_copy;
             }),
             new std::function([snapshot, copy] {
-                if (snapshot != nullptr)
-                    delete snapshot;
+                Snapshot::destroy(snapshot);
                 if (copy != nullptr)
                     delete copy;
             }));
@@ -569,7 +578,7 @@ namespace ex::gui {
                 return;
 
             reset_state_(state);
-            const auto snapshot = state.work_tree->deep_copy();
+            const auto snapshot = Snapshot::create(state);
 
             if (node->children == nullptr || node->children_n <= 0) {
                 TreeNode *group = TreeNode::create();
@@ -586,16 +595,15 @@ namespace ex::gui {
             copy->created  = true;
             move->moved    = true;
 
-            parent->add_node(TreeNode::deep_copy(copy));
+            TreeNode *nco = TreeNode::deep_copy(copy);
+            parent->add_node(nco);
+
+            state.active_node = nco;
 
             undo_history().push("Move into",
             new std::function([snapshot] (ex::State *s) {
                 reset_state_(*s);
-                if (s->work_tree != nullptr && s->work_tree != snapshot)
-                    delete s->work_tree;
-                s->work_tree            = snapshot->deep_copy();
-                s->work_tree->connected = false;
-                s->work_tree->created   = true;
+                snapshot->rollback(s);
             }),
             new std::function([parent_id, group_id, copy] (ex::State *s) {
                 reset_state_(*s);
@@ -620,10 +628,10 @@ namespace ex::gui {
                 TreeNode *new_copy = TreeNode::deep_copy(copy);
                 new_copy->created  = true;
                 group->add_node(new_copy);
+                s->active_node = new_copy;
             }),
             new std::function([snapshot, copy] {
-                if (snapshot != nullptr)
-                    delete snapshot;
+                Snapshot::destroy(snapshot);
                 if (copy != nullptr)
                     delete copy;
             }));
@@ -921,7 +929,7 @@ namespace ex::gui {
                 head = head->next;
             }
 
-            const auto snapshot = state.work_tree->deep_copy();
+            const auto snapshot = Snapshot::create(state);
 
             head = copy_selection->root;
             while (head != nullptr) {
@@ -934,11 +942,7 @@ namespace ex::gui {
             undo_history().push("Selection deleted",
             new std::function([snapshot] (ex::State *s) {
                 reset_state_(*s);
-                if (s->work_tree != nullptr && s->work_tree != snapshot)
-                    delete s->work_tree;
-                s->work_tree            = snapshot->deep_copy();
-                s->work_tree->connected = false;
-                s->work_tree->created   = true;
+                snapshot->rollback(s);
             }),
             new std::function([copy_selection] (ex::State *s) {
                 reset_state_(*s);
@@ -951,8 +955,7 @@ namespace ex::gui {
                 }
             }),
             new std::function([snapshot, copy_selection] {
-                if (snapshot != nullptr)
-                    delete snapshot;
+                Snapshot::destroy(snapshot);
                 selection_node::free(copy_selection);
             }));
         }
@@ -965,18 +968,13 @@ namespace ex::gui {
 
             node->selected = false;
             const auto node_id  = node->id_local;
-            const auto snapshot = state.work_tree->deep_copy();
+            const auto snapshot = Snapshot::create(state);
             node->deleted = true;
 
             undo_history().push("Node deleted",
             new std::function([snapshot] (ex::State *s) {
                 reset_state_(*s);
-
-                if (s->work_tree != nullptr && s->work_tree != snapshot)
-                    delete s->work_tree;
-                s->work_tree            = snapshot->deep_copy();
-                s->work_tree->connected = false;
-                s->work_tree->created   = true;
+                snapshot->rollback(s);
             }),
             new std::function([node_id] (ex::State *s) {
                 reset_state_(*s);
@@ -988,8 +986,7 @@ namespace ex::gui {
                 f_node->deleted   = true;
             }),
             new std::function([snapshot] {
-                if (snapshot != nullptr)
-                    delete snapshot;
+                Snapshot::destroy(snapshot);
             }));
         }
     }
