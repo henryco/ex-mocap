@@ -1212,6 +1212,7 @@ namespace ex::gui {
         if (ImGui::BeginPopup(menu_id)) {
             if (ImGui::BeginMenu("Add new node")) {
                 if (const auto new_node = create_node_from_menu(state, gui)) {
+                    // TODO FIXME
                     tree::add_into_node(state, gui, state.work_tree, new_node);
                 }
                 ImGui::EndMenu();
