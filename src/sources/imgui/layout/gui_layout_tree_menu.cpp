@@ -104,6 +104,19 @@ namespace ex::gui {
             node_buffer::create(&state.clipboard_node, node, false, true);
         }
 
+        void add_node(State &state, GuiState &gui, TreeNode *add) {
+            reset_state_(state);
+            const auto snapshot = state.work_tree->deep_copy();
+
+            TreeNode *copy = TreeNode::deep_copy(add);
+            copy->created  = true;
+            add->created   = true;
+
+            state.work_tree->add_node(add);
+
+
+        }
+
         void add_into_node(State &state, GuiState &, TreeNode *node, TreeNode *add) {
             reset_state_(state);
             const auto snapshot = state.work_tree->deep_copy();
@@ -1040,9 +1053,10 @@ namespace ex::gui {
             if (ImGui::MenuItem(mapper.get_node_name(gui, state) )) {
                 ImGui::PopID();
                 TreeNode *new_node = TreeNode::create();
-                new_node->created  = true;
-                new_node->id_node  = type_id;
-                new_node->name     = "New node";
+                new_node->created    = true;
+                new_node->children_n = 0;
+                new_node->id_node    = type_id;
+                new_node->name       = "New node";
                 return new_node;
             }
             ImGui::PopID();
@@ -1211,10 +1225,8 @@ namespace ex::gui {
 
         if (ImGui::BeginPopup(menu_id)) {
             if (ImGui::BeginMenu("Add new node")) {
-                if (const auto new_node = create_node_from_menu(state, gui)) {
-                    // TODO FIXME
-                    tree::add_into_node(state, gui, state.work_tree, new_node);
-                }
+                if (const auto new_node = create_node_from_menu(state, gui))
+                    tree::add_node(state, gui, new_node);
                 ImGui::EndMenu();
             }
             ImGui::EndPopup();

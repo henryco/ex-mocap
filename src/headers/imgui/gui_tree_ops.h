@@ -12,6 +12,8 @@ namespace ex::gui::tree {
 
     void ref_node(State &state, GuiState &gui, TreeNode *node);
 
+    void add_node(State &state, GuiState &gui, TreeNode *add);
+
     void add_into_node(State &state, GuiState &gui, TreeNode *node, TreeNode *add);
     void add_after_node(State &state, GuiState &gui, TreeNode *node, TreeNode *add);
 
