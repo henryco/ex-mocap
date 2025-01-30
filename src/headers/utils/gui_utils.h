@@ -43,6 +43,10 @@ namespace ex::gui {
                              ImGuiWindowFlags window_flags = 0);
 
     int window_reset_flags(bool reset, bool standalone);
+
+    bool generic_node(const char *name, bool selected = false, bool nested = false);
+
+    bool plain_node(const char *name, bool selected = false, bool nested = false);
 }
 
 #endif // EX_MOTION_GUI_UTILS_H

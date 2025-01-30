@@ -193,4 +193,26 @@ namespace ex::gui {
         draw_list->AddTriangleFilled(p7, p5, p6, color_1);
     }
 
+    bool generic_node(const char *name, const bool selected, const bool nested) {
+        constexpr auto tree_bull_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+        constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
+        const auto c_flag = tree_node_flags | (selected ? ImGuiTreeNodeFlags_Selected : 0);
+
+        const auto c_bullet = nested ? 0 : tree_bull_flags;
+
+        if (!nested) ImGui::Unindent();
+        const bool open = ImGui::TreeNodeEx(name, c_flag | c_bullet);
+        if (!nested) ImGui::Indent();
+        return open;
+    }
+
+    bool plain_node(const char *name, const bool selected, const bool nested) {
+        constexpr auto tree_bull_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+        constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
+        const auto c_flag = tree_node_flags | (selected ? ImGuiTreeNodeFlags_Selected : 0);
+        const auto c_bullet = nested ? 0 : tree_bull_flags;
+        const bool open = ImGui::TreeNodeEx(name, c_flag | c_bullet);
+        return open;
+    }
+
 }

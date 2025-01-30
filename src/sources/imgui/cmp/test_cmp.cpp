@@ -21,19 +21,9 @@ namespace ex::gui::test {
 }
 
 namespace ex::gui::test::one {
-    constexpr auto tree_bull_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-    constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
-
     bool draw_tree_node(GuiState &gui, ex::State &state, TreeNode *node, const bool nested, const bool selected) {
-        const auto c_flag = tree_node_flags | (selected ? ImGuiTreeNodeFlags_Selected : 0);
         const std::string text = std::string(ICON_LC_COMPONENT) + " 1 " + std::string(node->name);
-        const char *text_2 = text.c_str();
-        const auto c_bullet = nested ? 0 : tree_bull_flags;
-
-        if (!nested) ImGui::Unindent();
-        const bool open = ImGui::TreeNodeEx(text_2, c_flag | c_bullet);
-        if (!nested) ImGui::Indent();
-        return open;
+        return generic_node(text.c_str(), selected, nested);
     }
 
     void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, const bool nested, const bool selected) {
@@ -85,19 +75,9 @@ namespace ex::gui::test::one {
 }
 
 namespace ex::gui::test::two {
-    constexpr auto tree_bull_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-    constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
-
     bool draw_tree_node(GuiState &gui, ex::State &state, TreeNode *node, const bool nested, const bool selected) {
-        const auto c_flag = tree_node_flags | (selected ? ImGuiTreeNodeFlags_Selected : 0);
         const std::string text = std::string(ICON_LC_WAND_SPARKLES) + " 2 " + std::string(node->name);
-        const char *text_2 = text.c_str();
-        const auto c_bullet = nested ? 0 : tree_bull_flags;
-
-        if (!nested) ImGui::Unindent();
-        const bool open = ImGui::TreeNodeEx(text_2, c_flag | c_bullet);
-        if (!nested) ImGui::Indent();
-        return open;
+        return generic_node(text.c_str(), selected, nested);
     }
 
     void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, const bool nested, const bool selected) {
@@ -153,9 +133,7 @@ namespace ex::gui::test::tri {
     constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
 
     bool draw_tree_node(GuiState &gui, ex::State &state, TreeNode *node, const bool nested, const bool selected) {
-        const auto c_flag = tree_node_flags | (selected ? ImGuiTreeNodeFlags_Selected : 0);
-        const auto c_bullet = nested ? 0 : tree_bull_flags;
-        return ImGui::TreeNodeEx(node->name, c_flag | c_bullet);
+        return plain_node(node->name, selected, nested);
     }
 
     void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, const bool nested, const bool selected) {

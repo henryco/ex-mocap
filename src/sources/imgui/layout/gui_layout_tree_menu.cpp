@@ -964,12 +964,14 @@ namespace ex::gui {
 
             if (ImGui::BeginMenu("New")) {
 
-                if (ImGui::MenuItem("Add into")) {
+                if (ImGui::BeginMenu("Add into")) {
                     // TODO
+                    ImGui::EndMenu();
                 }
 
-                if (ImGui::MenuItem("Add After")) {
+                if (ImGui::BeginMenu("Add After")) {
                     // TODO
+                    ImGui::EndMenu();
                 }
 
                 ImGui::EndMenu();
