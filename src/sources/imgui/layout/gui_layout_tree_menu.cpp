@@ -386,9 +386,68 @@ namespace ex::gui {
             std::cout << "after: " << node->id_local << ", " << node->name << '\n';
         }
 
-        void move_into_node(State &, GuiState &, TreeNode *node, TreeNode *move) {
-            // TODO
-            std::cout << "into: " << node->id_local << ", " << node->name << '\n';
+        void move_into_node(State &state, GuiState &gui, TreeNode *node, TreeNode *move) {
+            if (node == nullptr || move == nullptr)
+                return;
+
+            reset_state_(state);
+            const auto snapshot = state.work_tree->deep_copy();
+
+            if (node->children == nullptr || node->children_n <= 0) {
+                TreeNode *group = TreeNode::create();
+                group->is_group = true;
+                group->created  = true;
+                node->add_node(group);
+            }
+
+            TreeNode  *parent    = node->children[0];
+            const auto parent_id = node->id_local;
+            const auto group_id  = parent->id_local;
+
+            TreeNode *copy = TreeNode::deep_copy(move);
+            copy->created  = true;
+            move->moved    = true;
+
+            parent->add_node(TreeNode::deep_copy(copy));
+
+            undo_history().push("Move into",
+            new std::function([snapshot] (ex::State *s) {
+                reset_state_(*s);
+                if (s->work_tree != nullptr && s->work_tree != snapshot)
+                    delete s->work_tree;
+                s->work_tree            = snapshot->deep_copy();
+                s->work_tree->connected = false;
+                s->work_tree->created   = true;
+            }),
+            new std::function([parent_id, group_id, copy] (ex::State *s) {
+                const auto p_node = s->work_tree->find_node(parent_id);
+                if (p_node == nullptr)
+                    throw std::runtime_error("Cannot find original node");
+
+                const auto f_node = s->work_tree->find_node(copy->id_local);
+                if (f_node == nullptr)
+                    throw std::runtime_error("Cannot find original node");
+                f_node->moved = true;
+
+                if (p_node->children_n <= 0 || p_node->children == nullptr) {
+                    TreeNode *group = TreeNode::create();
+                    group->id_local = group_id;
+                    group->is_group = true;
+                    group->created  = true;
+                    p_node->add_node(group);
+                }
+
+                TreeNode *group    = p_node->children[0];
+                TreeNode *new_copy = TreeNode::deep_copy(copy);
+                new_copy->created  = true;
+                group->add_node(new_copy);
+            }),
+            new std::function([snapshot, copy] {
+                if (snapshot != nullptr)
+                    delete snapshot;
+                if (copy != nullptr)
+                    delete copy;
+            }));
         }
 
         void group_selected(State &state, GuiState &, selection_node *selection) {
