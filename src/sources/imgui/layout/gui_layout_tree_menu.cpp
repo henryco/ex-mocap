@@ -1003,6 +1003,7 @@ namespace ex::gui {
         bool clicked = false;
 
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.f);
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 6.0f));
         if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
             ImGui::OpenPopup(menu_id);
             clicked = true;
@@ -1062,7 +1063,7 @@ namespace ex::gui {
 
             ImGui::EndPopup();
         }
-        ImGui::PopStyleVar();
+        ImGui::PopStyleVar(2);
 
         return clicked;
     }
@@ -1097,6 +1098,7 @@ namespace ex::gui {
         bool clicked      = false;
 
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.f);
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 6.0f));
         if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
             ImGui::OpenPopup(menu_id);
             clicked = true;
@@ -1226,7 +1228,7 @@ namespace ex::gui {
             ImGui::OpenPopup("rename-popup");
         }
 
-        ImGui::PopStyleVar();
+        ImGui::PopStyleVar(2);
         return clicked;
     }
 
@@ -1236,6 +1238,7 @@ namespace ex::gui {
         bool clicked = false;
 
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.f);
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 6.0f));
         if (!ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
             selection_node::free(state.selected_nodes, true);
             state.selected_nodes = nullptr;
@@ -1252,7 +1255,7 @@ namespace ex::gui {
             ImGui::EndPopup();
         }
 
-        ImGui::PopStyleVar();
+        ImGui::PopStyleVar(2);
         return clicked;
     }
 
