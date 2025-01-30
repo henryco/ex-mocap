@@ -37,7 +37,7 @@ namespace ex::gui {
         draw_list->AddLine(ImVec2(p_min.x, p_max.y), ImVec2(p_max.x, p_max.y), col_purple, 1.f);
     }
 
-    void insertion_space(TreeNode *node) {
+    void insertion_space(State &state, GuiState &gui, TreeNode *node) {
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0, 0.f));
 
         ImGui::TableNextRow();
@@ -58,7 +58,12 @@ namespace ex::gui {
                 }
                 highlight_line();
             }
-            // TODO
+
+            if (const auto payload = ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptNoDrawDefaultRect)) {
+                const auto data_node = static_cast<TreeNode **>(payload->Data);
+                tree::move_after_node(state, gui, node, *data_node);
+            }
+
             ImGui::EndDragDropTarget();
         }
 
@@ -68,7 +73,7 @@ namespace ex::gui {
         ImGui::TableNextColumn();
     }
 
-    void insertion_node(TreeNode *node) {
+    void insertion_node(State &state, GuiState &gui, TreeNode *node) {
         if (ImGui::BeginDragDropTarget()) {
             if (const auto payload = ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptPeekOnly)) {
                 const auto data_node = static_cast<TreeNode **>(payload->Data);
@@ -79,7 +84,10 @@ namespace ex::gui {
                 highlight_border();
             }
 
-            // TODO
+            if (const auto payload = ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptNoDrawDefaultRect)) {
+                const auto data_node = static_cast<TreeNode **>(payload->Data);
+                tree::move_into_node(state, gui, node, *data_node);
+            }
 
             ImGui::EndDragDropTarget();
         }
@@ -371,7 +379,7 @@ namespace ex::gui {
             if (symlinked)
                 highlight_border();
 
-            insertion_node(node);
+            insertion_node(state, gui, node);
 
             bool menu_element = false;
             if (selection_node::single(*selected)) {
@@ -464,7 +472,7 @@ namespace ex::gui {
 
             ImGui::PopID();
 
-            insertion_space(node);
+            insertion_space(state, gui, node);
 
             return counter_i;
         }
@@ -505,7 +513,7 @@ namespace ex::gui {
                 if (symlinked)
                     highlight_border();
 
-                insertion_node(first);
+                insertion_node(state, gui, first);
 
                 bool menu_element = false;
                 if (selection_node::single(*selected)) {
@@ -561,7 +569,7 @@ namespace ex::gui {
 
                 ImGui::PopID();
 
-                insertion_space(first);
+                insertion_space(state, gui, first);
 
                 int u = disabled ? 0 : 1;
                 if (node->children_n > 1) {
@@ -574,7 +582,7 @@ namespace ex::gui {
             }
 
             brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
-            insertion_space(node->parent);
+            insertion_space(state, gui, node->parent);
             return counter_i;
         }
 
@@ -587,7 +595,7 @@ namespace ex::gui {
         }
 
         brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
-        insertion_space(node->parent);
+        insertion_space(state, gui, node->parent);
         return counter_i;
     }
 

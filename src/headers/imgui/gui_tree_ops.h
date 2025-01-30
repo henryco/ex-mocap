@@ -21,6 +21,9 @@ namespace ex::gui::tree {
     void paste_after_node(State &state, GuiState &gui, TreeNode *node);
     void paste_into_node(State &state, GuiState &gui, TreeNode *node);
 
+    void move_after_node(State &state, GuiState &gui, TreeNode *node, TreeNode *move);
+    void move_into_node(State &state, GuiState &gui, TreeNode *node, TreeNode *move);
+
     void group_selected(State &state, GuiState &gui, selection_node *selection);
     void ungroup_selected(State &state, GuiState &gui, selection_node *selection);
 

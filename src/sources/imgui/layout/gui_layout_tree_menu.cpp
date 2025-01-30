@@ -379,7 +379,14 @@ namespace ex::gui {
                 selection_node::free(selection);
                 selection_node::free(pasted);
             }));
+        }
 
+        void move_after_node(State &state, GuiState &gui, TreeNode *node, TreeNode *move) {
+            // TODO
+        }
+
+        void move_into_node(State &state, GuiState &gui, TreeNode *node, TreeNode *move) {
+            // TODO
         }
 
         void group_selected(State &state, GuiState &, selection_node *selection) {
