@@ -174,23 +174,23 @@ namespace ex::gui {
         constexpr float thickness = 1.25f;
         constexpr float width     = 2.8f;
         constexpr float height    = 2.8f;
-        constexpr float offset    = 8.f;
+        constexpr float offset    = 2.f;
 
         const ImVec2 inner_end = ImGui::GetCursorScreenPos();
 
-        const auto p1 = ImVec2(start.x - off, start.y + 2.f);
         const auto p2 = ImVec2(start.x - off, inner_end.y - 6.f);
         const auto p4 = ImVec2(p2.x + 7.f, p2.y);
+        const auto p1 = ImVec2(start.x - off, start.y + offset + height);
 
         ImDrawList *draw_list = ImGui::GetWindowDrawList();
-        draw_list->AddLine(p1, p2, color_1, thickness);
-        draw_list->AddLine(p2, p4, color_1, thickness);
+        draw_list->AddLine(p4, p2, color_1, thickness);
+        draw_list->AddLine(p2, p1, color_1, thickness);
 
-        const auto p7 = ImVec2(p1.x + 0.5f, p1.y);
-        const auto p5 = ImVec2(p7.x - width, p7.y + height);
-        const auto p6 = ImVec2(p7.x + width, p7.y + height);
+        const auto p7 = ImVec2(p1.x + 0.5f, p1.y - height);
+        const auto p5 = ImVec2(p7.x - width, p1.y);
+        const auto p6 = ImVec2(p7.x + width, p1.y);
 
-        draw_list->AddTriangleFilled(p5, p7, p6, color_1);
+        draw_list->AddTriangleFilled(p7, p5, p6, color_1);
     }
 
-} // namespace ex::gui
+}
