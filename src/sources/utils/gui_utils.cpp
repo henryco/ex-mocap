@@ -172,8 +172,8 @@ namespace ex::gui {
         const float off = indent <= 0 ? 13.f : indent;
 
         constexpr float thickness = 1.25f;
-        constexpr float width     = 2.8f;
-        constexpr float height    = 2.8f;
+        constexpr float width     = 3.f;
+        constexpr float height    = 3.f;
         constexpr float offset    = 1.f;
 
         const ImVec2 inner_end = ImGui::GetCursorScreenPos();
