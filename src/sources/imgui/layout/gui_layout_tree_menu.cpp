@@ -159,8 +159,6 @@ namespace ex::gui {
             parent->add_node(add);
             state.active_node = add;
 
-            // TODO: FIXME ACTIVE WINDOW
-
             undo_history().push("Add into",
             new std::function([snapshot] (ex::State *s) {
                 reset_state_(*s);
