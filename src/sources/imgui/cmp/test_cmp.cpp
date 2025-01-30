@@ -21,6 +21,10 @@ namespace ex::gui::test {
 }
 
 namespace ex::gui::test::one {
+    const char *get_node_name(GuiState &, ex::State &) {
+        return ICON_LC_COMPONENT " Component One";
+    }
+
     bool draw_tree_node(GuiState &gui, ex::State &state, TreeNode *node, const bool nested, const bool selected) {
         const std::string text = std::string(ICON_LC_COMPONENT) + " 1 " + std::string(node->name);
         return generic_node(text.c_str(), selected, nested);
@@ -75,6 +79,10 @@ namespace ex::gui::test::one {
 }
 
 namespace ex::gui::test::two {
+    const char *get_node_name(GuiState &, ex::State &) {
+        return ICON_LC_WAND_SPARKLES " Component Two";
+    }
+
     bool draw_tree_node(GuiState &gui, ex::State &state, TreeNode *node, const bool nested, const bool selected) {
         const std::string text = std::string(ICON_LC_WAND_SPARKLES) + " 2 " + std::string(node->name);
         return generic_node(text.c_str(), selected, nested);
@@ -131,6 +139,10 @@ namespace ex::gui::test::two {
 namespace ex::gui::test::tri {
     constexpr auto tree_bull_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen;
     constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
+
+    const char *get_node_name(GuiState &, ex::State &) {
+        return " Component Three";
+    }
 
     bool draw_tree_node(GuiState &gui, ex::State &state, TreeNode *node, const bool nested, const bool selected) {
         return plain_node(node->name, selected, nested);

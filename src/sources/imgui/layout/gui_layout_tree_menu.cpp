@@ -935,6 +935,22 @@ namespace ex::gui {
         return clicked;
     }
 
+    TreeNode *create_node_from_menu(State &state, GuiState &gui) {
+        for (const auto &[type_id, mapper]: node_mappers_) {
+            ImGui::PushID(type_id);
+            if (ImGui::MenuItem(mapper.get_node_name(gui, state) )) {
+                ImGui::PopID();
+                TreeNode *new_node = TreeNode::create();
+                new_node->created  = true;
+                new_node->id_node  = type_id;
+                new_node->name     = "New node";
+                return new_node;
+            }
+            ImGui::PopID();
+        }
+        return nullptr;
+    }
+
     bool show_context_menu_element(State &state, GuiState &gui, TreeNode *node,
         const bool last, const bool nested, const bool selected)
     {
@@ -963,17 +979,16 @@ namespace ex::gui {
         if (ImGui::BeginPopup(menu_id)) {
 
             if (ImGui::BeginMenu("New")) {
-
                 if (ImGui::BeginMenu("Add into")) {
-                    // TODO
+                    if (const auto new_node = create_node_from_menu(state, gui))
+                        tree::add_into_node(state, gui, node, new_node);
                     ImGui::EndMenu();
                 }
-
                 if (ImGui::BeginMenu("Add After")) {
-                    // TODO
+                    if (const auto new_node = create_node_from_menu(state, gui))
+                        tree::add_after_node(state, gui, node, new_node);
                     ImGui::EndMenu();
                 }
-
                 ImGui::EndMenu();
             }
 
@@ -1082,7 +1097,7 @@ namespace ex::gui {
         return clicked;
     }
 
-    bool show_context_menu_general(State &state, GuiState &) {
+    bool show_context_menu_general(State &state, GuiState &gui) {
         static auto menu_id = "show_context_menu_general";
 
         bool clicked = false;
@@ -1096,11 +1111,12 @@ namespace ex::gui {
         }
 
         if (ImGui::BeginPopup(menu_id)) {
-
-            if (ImGui::MenuItem("Add new node")) {
-                // TODO
+            if (ImGui::BeginMenu("Add new node")) {
+                if (const auto new_node = create_node_from_menu(state, gui)) {
+                    tree::add_into_node(state, gui, state.work_tree, new_node);
+                }
+                ImGui::EndMenu();
             }
-
             ImGui::EndPopup();
         }
 
