@@ -104,7 +104,7 @@ namespace ex::gui {
             node_buffer::create(&state.clipboard_node, node, false, true);
         }
 
-        void add_node(State &state, GuiState &gui, TreeNode *add) {
+        void add_node(State &state, GuiState &, TreeNode *add) {
             reset_state_(state);
             const auto snapshot = state.work_tree->deep_copy();
 
@@ -114,7 +114,27 @@ namespace ex::gui {
 
             state.work_tree->add_node(add);
 
-
+            undo_history().push("Add node",
+            new std::function([snapshot](State *s) {
+                reset_state_(*s);
+                if (s->work_tree != nullptr && s->work_tree != snapshot)
+                    delete s->work_tree;
+                s->work_tree            = snapshot->deep_copy();
+                s->work_tree->connected = false;
+                s->work_tree->created   = true;
+            }),
+            new std::function([copy](State *s) {
+                reset_state_(*s);
+                TreeNode *new_copy = TreeNode::deep_copy(copy);
+                new_copy->created  = true;
+                s->work_tree->add_node(new_copy);
+            }),
+            new std::function([snapshot, copy] {
+                if (snapshot != nullptr)
+                    delete snapshot;
+                if (copy != nullptr)
+                    delete copy;
+            }));
         }
 
         void add_into_node(State &state, GuiState &, TreeNode *node, TreeNode *add) {
