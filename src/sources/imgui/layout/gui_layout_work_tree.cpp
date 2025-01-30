@@ -37,6 +37,20 @@ namespace ex::gui {
         draw_list->AddLine(ImVec2(p_min.x, p_max.y), ImVec2(p_max.x, p_max.y), col_purple, 1.f);
     }
 
+    void drag_space(State &state, GuiState &gui, TreeNode *node) {
+        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None | ImGuiDragDropFlags_SourceNoHoldToOpenOthers)) {
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+                ImGui::ClearActiveID();
+                ImGui::EndDragDropSource();
+                ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
+            } else {
+                ImGui::SetDragDropPayload(dnd_type, &node, sizeof(node));
+                node_mappers_.at(node->id_node).draw_tree_node(gui, state, node, false, false);
+                ImGui::EndDragDropSource();
+            }
+        }
+    }
+
     void insertion_space(State &state, GuiState &gui, TreeNode *node, const int n) {
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0, 0.f));
 
@@ -385,19 +399,7 @@ namespace ex::gui {
             if (selection_node::single(*selected)) {
                 menu_element = show_context_menu_element(state, gui, node, *menu_node == node->id_local,
                                                          node->children_n > 0, node->selected);
-
-                if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
-                    if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
-                        ImGui::ClearActiveID();
-                        ImGui::EndDragDropSource();
-                        ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
-                    } else {
-                        ImGui::SetDragDropPayload(dnd_type, &node, sizeof(node));
-                        node_mappers_.at(node->id_node).draw_tree_node(gui, state, node, false, false);
-                        ImGui::EndDragDropSource();
-                    }
-                }
-
+                drag_space(state, gui, node);
             } else {
                 show_context_menu_group(state, gui, *selected);
             }
@@ -519,19 +521,7 @@ namespace ex::gui {
                 if (selection_node::single(*selected)) {
                     menu_element = show_context_menu_element(state, gui, first, *menu_node == first->id_local, false,
                                                              first->selected);
-
-                    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
-                        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
-                            ImGui::ClearActiveID();
-                            ImGui::EndDragDropSource();
-                            ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
-                        } else {
-                            ImGui::SetDragDropPayload(dnd_type, &first, sizeof(first));
-                            node_mappers_.at(first->id_node).draw_tree_node(gui, state, first, false, false);
-                            ImGui::EndDragDropSource();
-                        }
-                    }
-
+                    drag_space(state, gui, first);
                 } else {
                     show_context_menu_group(state, gui, *selected);
                 }
