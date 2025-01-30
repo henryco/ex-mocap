@@ -582,7 +582,7 @@ namespace ex::gui {
 
             brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
 
-            insertion_space(state, gui, node->parent, counter_i); // TODO FIXME ID COLLISION
+            insertion_space(state, gui, node->parent, counter);
             return counter_i;
         }
 
@@ -596,7 +596,7 @@ namespace ex::gui {
 
         brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
 
-        insertion_space(state, gui, node->parent, counter_i); // TODO FIXME ID COLLISION
+        insertion_space(state, gui, node->parent, counter);
         return counter_i;
     }
 
