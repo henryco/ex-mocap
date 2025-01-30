@@ -113,6 +113,7 @@ namespace ex::gui {
             add->created   = true;
 
             state.work_tree->add_node(add);
+            state.active_node = add;
 
             undo_history().push("Add node",
             new std::function([snapshot](State *s) {
