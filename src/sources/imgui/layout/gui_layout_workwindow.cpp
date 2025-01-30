@@ -24,7 +24,7 @@ namespace ex::gui {
     }
 
     void update_active_window(const State &state, TreeNode *active_node) {
-        if (active_node == nullptr || active_node->deleted) {
+        if (active_node == nullptr || active_node->deleted || active_node->moved) {
             if (active_window__ != nullptr && !active_window__->pinned)
                 delete active_window__;
             active_window__ = nullptr;
@@ -53,7 +53,7 @@ namespace ex::gui {
     }
 
     bool render_window(ex::State &state, GuiState &gui, NodeWindow<TreeNode> *window) {
-        if (window == nullptr || window->node == nullptr || window->node->deleted)
+        if (window == nullptr || window->node == nullptr || window->node->deleted || window->node->moved)
             return false;
         const auto n_type = window->node->id_node;
         if (!node_mappers_.contains(n_type))
