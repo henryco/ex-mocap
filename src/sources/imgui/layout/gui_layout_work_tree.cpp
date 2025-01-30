@@ -70,9 +70,17 @@ namespace ex::gui {
 
     void insertion_node(TreeNode *node) {
         if (ImGui::BeginDragDropTarget()) {
-            if (ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptPeekOnly))
+            if (const auto payload = ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptPeekOnly)) {
+                const auto data_node = static_cast<TreeNode **>(payload->Data);
+                if (*data_node == node) {
+                    ImGui::EndDragDropTarget();
+                    return;
+                }
                 highlight_border();
+            }
+
             // TODO
+
             ImGui::EndDragDropTarget();
         }
     }
@@ -566,6 +574,7 @@ namespace ex::gui {
             }
 
             brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
+            insertion_space(node->parent);
             return counter_i;
         }
 
@@ -576,8 +585,9 @@ namespace ex::gui {
                                        counter_i + 1, u);
             u += !(node->children[i]->disabled);
         }
-        brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
 
+        brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
+        insertion_space(node->parent);
         return counter_i;
     }
 
