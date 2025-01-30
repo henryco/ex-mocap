@@ -4,10 +4,11 @@
 
 // ReSharper disable CppDFAMemoryLeak
 // ReSharper disable CppDFANullDereference
+#include <oneapi/tbb/partitioner.h>
+#include <ranges>
+#include "../../../headers/imgui/gui_keymap.h"
 #include "../../../headers/imgui/gui_layout.h"
 #include "../../../headers/imgui/gui_tree_ops.h"
-#include "../../../headers/imgui/gui_keymap.h"
-#include <ranges>
 
 namespace ex::gui {
 
@@ -961,6 +962,21 @@ namespace ex::gui {
 
         if (ImGui::BeginPopup(menu_id)) {
 
+            if (ImGui::BeginMenu("New")) {
+
+                if (ImGui::MenuItem("Add into")) {
+                    // TODO
+                }
+
+                if (ImGui::MenuItem("Add After")) {
+                    // TODO
+                }
+
+                ImGui::EndMenu();
+            }
+
+            ImGui::Separator();
+
             if (ImGui::MenuItem("Rename")) {
                 std::memset(name_buffer, 0, sizeof(name_buffer));
                 std::memcpy(name_buffer, node->name, std::strlen(node->name));
@@ -1058,6 +1074,32 @@ namespace ex::gui {
             ImGui::EndPopup();
         } else if (rename_popup) {
             ImGui::OpenPopup("rename-popup");
+        }
+
+        ImGui::PopStyleVar();
+        return clicked;
+    }
+
+    bool show_context_menu_general(State &state, GuiState &) {
+        static auto menu_id = "show_context_menu_general";
+
+        bool clicked = false;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.f);
+        if (!ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+            selection_node::free(state.selected_nodes, true);
+            state.selected_nodes = nullptr;
+            ImGui::OpenPopup(menu_id);
+            clicked = true;
+        }
+
+        if (ImGui::BeginPopup(menu_id)) {
+
+            if (ImGui::MenuItem("Add new node")) {
+                // TODO
+            }
+
+            ImGui::EndPopup();
         }
 
         ImGui::PopStyleVar();

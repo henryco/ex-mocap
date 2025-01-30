@@ -714,6 +714,7 @@ namespace ex::gui {
         watch = watch_parent_dock(gui);
 
         ImGui::BeginChild("WorkTreeBox", ImVec2(0, 0), 0, ImGuiWindowFlags_NoDecoration);
+        show_context_menu_general(state, gui);
         work_tree_content(state, gui);
         ImGui::EndChild();
 

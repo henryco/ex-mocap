@@ -130,5 +130,7 @@ namespace ex::gui {
 
     bool show_context_menu_element(State &state, GuiState &gui, TreeNode *node, bool last, bool nested, bool selected);
 
+    bool show_context_menu_general(State &state, GuiState &gui);
+
 }
 #endif // EX_MOTION_GUI_LAYOUT_H
