@@ -12,6 +12,9 @@ namespace ex::gui::tree {
 
     void ref_node(State &state, GuiState &gui, TreeNode *node);
 
+    void add_into_node(State &state, GuiState &gui, TreeNode *node, TreeNode *add);
+    void add_after_node(State &state, GuiState &gui, TreeNode *node, TreeNode *add);
+
     void copy_selected(State &state, GuiState &gui, selection_node *selection);
     void copy_node(State &state, GuiState &gui, TreeNode *node);
 

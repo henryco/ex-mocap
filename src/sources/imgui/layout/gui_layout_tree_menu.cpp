@@ -103,6 +103,14 @@ namespace ex::gui {
             node_buffer::create(&state.clipboard_node, node, false, true);
         }
 
+        void add_into_node(State &state, GuiState &gui, TreeNode *node, TreeNode *add) {
+            // TODO
+        }
+
+        void add_after_node(State &state, GuiState &gui, TreeNode *node, TreeNode *add) {
+            // TODO
+        }
+
         void cut_selected(State &state, GuiState &, selection_node *selection) {
             const auto copy = selection_node::copy(selection->root);
             reset_state_(state);
