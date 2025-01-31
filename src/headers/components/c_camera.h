@@ -44,13 +44,13 @@ namespace ex::cmp {
     public:
         CameraNode(cl_context context, cl_device_id device);
 
-        CameraNode(const camera::Camera &camera);
+        explicit CameraNode(const camera::Camera &camera);
 
         ~CameraNode() override;
 
         camera::Camera *get() override;
 
-        proto::image on_output(proto::image *_, int __, int clock_i, nodes::Input<proto::image> *io) override;
+        proto::image on_output(proto::image *, int, int clock_i, nodes::Input<proto::image> *io) override;
 
     protected:
         void capture_frame(int clock_i);
