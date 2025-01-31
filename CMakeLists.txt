@@ -106,9 +106,9 @@ set(HEADER_FILES
         src/headers/core/camera.h
         src/headers/components/c_camera.h
         src/headers/logic.h
-        src/headers/state/mappers.h
+        src/headers/nodes/node_mapper.h
         src/headers/components/image_protocol.h
-        src/headers/imgui/gui_mappers.h
+        src/headers/imgui/gui_component.h
         src/headers/imgui/gui_state.h
         src/headers/imgui/cmp/test_cmp.h
         src/headers/undo/undo_history.h

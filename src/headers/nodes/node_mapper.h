@@ -5,8 +5,8 @@
 #ifndef MAPPERS_H
 #define MAPPERS_H
 
-#include "../nodes/nodes.h"
 #include "../state.h"
+#include "nodes.h"
 
 namespace ex {
     using node_ = nodes::BaseNode;

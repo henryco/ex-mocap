@@ -2,8 +2,8 @@
 // Created by xd on 19/12/24.
 //
 
-#include "../../headers/state/mappers.h"
 #include "../../headers/components/c_camera.h"
+#include "../../headers/nodes/node_mapper.h"
 
 namespace ex::map::camera {
 

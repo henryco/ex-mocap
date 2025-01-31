@@ -5,9 +5,9 @@
 #ifndef TEST_CMP_H
 #define TEST_CMP_H
 
+#include "../../nodes/node_mapper.h"
 #include "../../nodes/nodes.h"
-#include "../../state/mappers.h"
-#include "../gui_components.h"
+#include "../gui_component.h"
 
 namespace ex::gui::test {
 
@@ -194,7 +194,7 @@ namespace ex::gui::test {
         void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
         bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *window);
         const char *get_node_name(GuiState &gui, ex::State &state);
-        static constexpr GuiComponent gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
+        static constexpr NodeComponent gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
 
         void from_base(State &state, nodes::BaseNode *from, TreeNode *to);
         void from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
@@ -208,7 +208,7 @@ namespace ex::gui::test {
         void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
         bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *window);
         const char *get_node_name(GuiState &gui, ex::State &state);
-        static constexpr GuiComponent gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
+        static constexpr NodeComponent gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
 
         void from_base(State &state, nodes::BaseNode *from, TreeNode *to);
         void from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
@@ -222,7 +222,7 @@ namespace ex::gui::test {
         void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
         bool draw_node_window(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *window);
         const char *get_node_name(GuiState &gui, ex::State &state);
-        static constexpr GuiComponent gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
+        static constexpr NodeComponent gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
 
         void from_base(State &state, nodes::BaseNode *from, TreeNode *to);
         void from_tree(State &state, TreeNode *from, nodes::BaseNode *to);

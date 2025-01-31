@@ -3,7 +3,7 @@
 //
 
 #include "../../headers/components/c_camera.h"
-#include "../../headers/state/mappers.h"
+#include "../../headers/nodes/node_mapper.h"
 
 namespace ex::cmp {
 

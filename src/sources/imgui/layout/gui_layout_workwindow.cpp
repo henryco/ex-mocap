@@ -4,6 +4,9 @@
 
 #include "../../../headers/imgui/gui_layout.h"
 
+#include <cstring>
+#include <string>
+
 namespace ex::gui {
 
     static std::map<std::size_t, NodeWindow<TreeNode> *> pinned_windows__;

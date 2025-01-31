@@ -9,9 +9,9 @@
 
 #include "components/c_camera.h"
 #include "imgui/cmp/test_cmp.h"
+#include "nodes/node_mapper.h"
 #include "nodes/nodes.h"
 #include "state.h"
-#include "state/mappers.h"
 #include "utils/log_utils.h"
 
 namespace ex::main {
