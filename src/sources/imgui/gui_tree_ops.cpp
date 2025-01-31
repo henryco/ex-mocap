@@ -32,7 +32,7 @@ namespace ex::gui::tree {
             return new Snapshot(snapshot, active_copy);
         }
 
-        static void destroy(Snapshot *snapshot) {
+        static void free(Snapshot *snapshot) {
             if (snapshot == nullptr)
                 return;
             if (snapshot->work_tree != nullptr)
@@ -157,7 +157,7 @@ namespace ex::gui::tree {
             s->active_node = new_copy;
         }),
         new std::function([snapshot, copy] {
-            Snapshot::destroy(snapshot);
+            Snapshot::free(snapshot);
             if (copy != nullptr)
                 delete copy;
         }));
@@ -211,7 +211,7 @@ namespace ex::gui::tree {
             s->active_node = new_copy;
         }),
         new std::function([snapshot, copy] {
-            Snapshot::destroy(snapshot);
+            Snapshot::free(snapshot);
             if (copy != nullptr)
                 delete copy;
         }));
@@ -250,7 +250,7 @@ namespace ex::gui::tree {
             s->active_node = new_copy;
         }),
         new std::function([snapshot, copy] {
-            Snapshot::destroy(snapshot);
+            Snapshot::free(snapshot);
             if (copy != nullptr)
                 delete copy;
         }));
@@ -337,7 +337,7 @@ namespace ex::gui::tree {
         }),
 
         new std::function([snapshot, snap] {
-            Snapshot::destroy(snapshot);
+            Snapshot::free(snapshot);
             if (snap != nullptr)
                 delete snap;
         }));
@@ -418,7 +418,7 @@ namespace ex::gui::tree {
             }
         }),
         new std::function([snapshot, selection, pasted] {
-            Snapshot::destroy(snapshot);
+            Snapshot::free(snapshot);
             selection_node::free(selection);
             selection_node::free(pasted);
         }));
@@ -514,7 +514,7 @@ namespace ex::gui::tree {
             }
         }),
         new std::function([snapshot, selection, pasted] {
-            Snapshot::destroy(snapshot);
+            Snapshot::free(snapshot);
             selection_node::free(selection);
             selection_node::free(pasted);
         }));
@@ -562,7 +562,7 @@ namespace ex::gui::tree {
             s->active_node = new_copy;
         }),
         new std::function([snapshot, copy] {
-            Snapshot::destroy(snapshot);
+            Snapshot::free(snapshot);
             if (copy != nullptr)
                 delete copy;
         }));
@@ -626,7 +626,7 @@ namespace ex::gui::tree {
             s->active_node = new_copy;
         }),
         new std::function([snapshot, copy] {
-            Snapshot::destroy(snapshot);
+            Snapshot::free(snapshot);
             if (copy != nullptr)
                 delete copy;
         }));
@@ -950,7 +950,7 @@ namespace ex::gui::tree {
             }
         }),
         new std::function([snapshot, copy_selection] {
-            Snapshot::destroy(snapshot);
+            Snapshot::free(snapshot);
             selection_node::free(copy_selection);
         }));
     }
@@ -981,7 +981,7 @@ namespace ex::gui::tree {
             f_node->deleted   = true;
         }),
         new std::function([snapshot] {
-            Snapshot::destroy(snapshot);
+            Snapshot::free(snapshot);
         }));
     }
 
