@@ -105,7 +105,7 @@ set(HEADER_FILES
         src/headers/nodes/test_nodes.h
         src/headers/core/camera.h
         src/headers/components/c_camera.h
-        src/headers/logic.h
+        src/headers/logic/logic.h
         src/headers/nodes/nodes_component.h
         src/headers/core/image_protocol.h
         src/headers/imgui/gui_component.h

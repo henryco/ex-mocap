@@ -7,12 +7,12 @@
 
 #include <map>
 
-#include "components/c_camera.h"
-#include "imgui/cmp/test_cmp.h"
-#include "nodes/nodes.h"
-#include "nodes/nodes_component.h"
-#include "state.h"
-#include "utils/log_utils.h"
+#include "../components/c_camera.h"
+#include "../imgui/cmp/test_cmp.h"
+#include "../nodes/nodes.h"
+#include "../nodes/nodes_component.h"
+#include "../state.h"
+#include "../utils/log_utils.h"
 
 namespace ex::main {
 

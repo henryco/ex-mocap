@@ -5,7 +5,7 @@
 #include <map>
 #include <ranges>
 
-#include "../headers/logic.h"
+#include "../headers/logic/logic.h"
 #include "../headers/components/c_camera.h"
 
 namespace ex::main {
