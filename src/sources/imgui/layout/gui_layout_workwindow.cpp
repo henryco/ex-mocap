@@ -9,6 +9,15 @@ namespace ex::gui {
     static std::map<std::size_t, NodeWindow<TreeNode> *> pinned_windows__;
     static NodeWindow<TreeNode>                         *active_window__ = nullptr;
 
+    void gen_uuid(NodeWindow<TreeNode> *window) {
+        const auto s_uuid =
+                std::string(std::string(window->node->name) + "##" + std::to_string(window->node->id_local) + "/" +
+                            std::to_string(window->node->id_node));
+        const auto buffer = new char[s_uuid.size() + 1];
+        strcpy(buffer, s_uuid.c_str());
+        window->uuid = buffer;
+    }
+
     NodeWindow<TreeNode> *create_new_window(const State &state, TreeNode *node) {
         if (node == nullptr)
             return nullptr;
