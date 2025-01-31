@@ -78,7 +78,7 @@ namespace ex::boot {
         state.ocl_context = ocl_context;
     }
 
-    int gui(int argc, char **argv, const char *project_path) {
+    int gui(int, char **, const char *project_path) {
 
         State state{ .project_path = project_path };
         log->info("Application context created");
