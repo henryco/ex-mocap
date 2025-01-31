@@ -4,6 +4,7 @@
 
 #include "../../../headers/imgui/gui_layout.h"
 #include "../../../headers/imgui/gui_tree_ops.h"
+#include "../../../headers/nodes/nodes.h"
 
 namespace ex::gui::tree {
 

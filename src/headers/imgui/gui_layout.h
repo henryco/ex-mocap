@@ -13,10 +13,6 @@
 #include <imgui_internal.h>
 
 #include <imgui.h>
-#include <map>
-
-#include "cmp/test_cmp.h"
-#include "gui_component.h"
 
 namespace ex::gui {
 
@@ -29,17 +25,6 @@ namespace ex::gui {
 
     static void (*left_pane_menu)(State &state, GuiState &gui)  = nullptr;
     static void (*right_pane_menu)(State &state, GuiState &gui) = nullptr;
-
-    static inline const std::map<type_id_, ex::gui::NodeComponent> node_mappers_ = {
-        // TODO REMOVE
-        { 0, ex::gui::test::one::gui_mappers },
-        { 1, ex::gui::test::tri::gui_mappers },
-        { 2, ex::gui::test::two::gui_mappers },
-        { 3, ex::gui::test::one::gui_mappers },
-        { 4, ex::gui::test::tri::gui_mappers },
-        { 5, ex::gui::test::two::gui_mappers },
-        { 6, ex::gui::test::one::gui_mappers },
-    };
 
     namespace layout {
         /**

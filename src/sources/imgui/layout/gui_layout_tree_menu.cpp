@@ -8,6 +8,10 @@
 
 namespace ex::gui {
 
+    namespace tm {
+        const auto &node_mappers_ = node_components();
+    }
+
     bool show_context_menu_group(State &state, GuiState &gui, selection_node *selection) {
         if (selection == nullptr)
             return false;
@@ -82,7 +86,7 @@ namespace ex::gui {
     }
 
     TreeNode *create_node_from_menu(State &state, GuiState &gui) {
-        for (const auto &[type_id, mapper]: node_mappers_) {
+        for (const auto &[type_id, mapper]: tm::node_mappers_) {
             ImGui::PushID(type_id);
             if (ImGui::MenuItem(mapper.get_node_name(gui, state) )) {
                 ImGui::PopID();
@@ -179,7 +183,7 @@ namespace ex::gui {
                     tree::pick_inspected_node(state, gui, node);
                 }
 
-                node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);
+                tm::node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);
 
                 if (ImGui::MenuItem("Duplicate", key_mappings().work_tree.duplicate.label)) {
                     tree::duplicate_node(state, gui, node);

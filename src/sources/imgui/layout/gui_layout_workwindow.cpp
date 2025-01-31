@@ -2,12 +2,17 @@
 // Created by xd on 04/01/25.
 //
 
+#include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/gui_layout.h"
 
 #include <cstring>
 #include <string>
 
 namespace ex::gui {
+
+    namespace ww {
+        const auto &node_mappers_ = node_components();
+    }
 
     static std::map<std::size_t, NodeWindow<TreeNode> *> pinned_windows__;
     static NodeWindow<TreeNode>                         *active_window__ = nullptr;
@@ -47,7 +52,7 @@ namespace ex::gui {
             return;
         }
 
-        if (!node_mappers_.contains(active_node->id_node)) {
+        if (!ww::node_mappers_.contains(active_node->id_node)) {
             if (active_window__ != nullptr && !active_window__->pinned)
                 delete active_window__;
             active_window__ = nullptr;
@@ -72,7 +77,7 @@ namespace ex::gui {
         if (window == nullptr || window->node == nullptr || window->node->deleted || window->node->moved)
             return false;
         const auto n_type = window->node->id_node;
-        if (!node_mappers_.contains(n_type))
+        if (!ww::node_mappers_.contains(n_type))
             return false;
 
         if (window->node->name != window->name) {
@@ -80,7 +85,7 @@ namespace ex::gui {
             gen_uuid(window);
         }
 
-        return node_mappers_.at(n_type).draw_node_window(gui, state, window);
+        return ww::node_mappers_.at(n_type).draw_node_window(gui, state, window);
     }
 
     void show_work_window(ex::State &state, GuiState &gui) {
