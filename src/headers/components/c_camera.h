@@ -5,10 +5,10 @@
 #ifndef C_CAMERA_H
 #define C_CAMERA_H
 
-#include "../nodes/nodes_component.h"
 #include "../cl/ocl_interop.h"
 #include "../core/camera.h"
-#include "image_protocol.h"
+#include "../core/image_protocol.h"
+#include "../nodes/nodes_component.h"
 
 namespace ex::map::camera {
     void             from_base(State &state, nodes::BaseNode *from, TreeNode *to);
