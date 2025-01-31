@@ -131,20 +131,20 @@ namespace ex::gui::test {
     };
 
     class NodeTri: public nodes::Node<NodeTri>,
-                       public nodes::id::name<"node_tri">,
-                       public nodes::Serializable<std::string>,
+                   public nodes::id::name<"node_tri">,
+                   public nodes::Serializable<std::string>,
 
-                       public nodes::io::out<short, 1, "out 1 s">,
-                       public nodes::io::out<short, 2, "out 2 s">,
-                       public nodes::io::out<float, 3, "out 3 f">,
-                       public nodes::io::out<short, 4, "out 4 s">,
+                   public nodes::io::out<short, 1, "out 1 s">,
+                   public nodes::io::out<short, 2, "out 2 s">,
+                   public nodes::io::out<float, 3, "out 3 f">,
+                   public nodes::io::out<short, 4, "out 4 s">,
 
-                       public nodes::io::in<bool, 1, "in 1 b">,
-                       public nodes::io::in<char, 2, "in 2 c">,
-                       public nodes::io::in<float, 3, "in 3 f">,
+                   public nodes::io::in<bool, 1, "in 1 b">,
+                   public nodes::io::in<char, 2, "in 2 c">,
+                   public nodes::io::in<float, 3, "in 3 f">,
 
-                       public nodes::ReactiveOut<short, float>,
-                       public nodes::ReactiveIn<bool, char, float>
+                   public nodes::ReactiveOut<short, float>,
+                   public nodes::ReactiveIn<bool, char, float>
     {
     private:
         float stored_float = 0.f;
