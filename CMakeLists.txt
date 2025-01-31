@@ -106,7 +106,7 @@ set(HEADER_FILES
         src/headers/core/camera.h
         src/headers/components/c_camera.h
         src/headers/logic.h
-        src/headers/nodes/node_mapper.h
+        src/headers/nodes/nodes_component.h
         src/headers/components/image_protocol.h
         src/headers/imgui/gui_component.h
         src/headers/imgui/gui_state.h
@@ -144,8 +144,8 @@ set(SOURCE_FILES
         src/sources/state/mappers_camera.cpp
         src/sources/state.cpp
         src/sources/imgui/cmp/test_cmp.cpp
-        src/sources/imgui/layout/gui_layout_workwindow.cpp
         src/sources/imgui/layout/gui_layout_tree_menu.cpp
+        src/sources/imgui/layout/gui_layout_work_window.cpp
         src/sources/imgui/layout/gui_layout_node_inspector.cpp
         src/sources/imgui/gui_globals.cpp
         src/sources/imgui/gui_tree_ops.cpp

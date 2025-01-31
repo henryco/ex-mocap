@@ -9,8 +9,8 @@
 
 #include "components/c_camera.h"
 #include "imgui/cmp/test_cmp.h"
-#include "nodes/node_mapper.h"
 #include "nodes/nodes.h"
+#include "nodes/nodes_component.h"
 #include "state.h"
 #include "utils/log_utils.h"
 
@@ -34,7 +34,7 @@ namespace ex::main {
 
     class Logic {
     private:
-        static inline const std::map<type_id_, DataMappers> mappers_ = {
+        static inline const std::map<type_id_, BaseNodeComponent> mappers_ = {
 //            { cmp::CameraNode::get_node_id(), map::camera::mappers },
 
             // TODO REMOVE

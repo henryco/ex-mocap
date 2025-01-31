@@ -317,7 +317,7 @@ namespace ex::main {
         if (node->created || fresh) {
 
             if (!node->is_group && !node->is_link) {
-                const DataMappers &mappers = mappers_.at(node->id_node);
+                const BaseNodeComponent &mappers = mappers_.at(node->id_node);
                 if (!nodes_.contains(node->id_local))
                     nodes_.emplace(node->id_local, mappers.instance(state, node));
             }

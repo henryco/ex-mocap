@@ -3,7 +3,7 @@
 //
 
 #include "../../headers/components/c_camera.h"
-#include "../../headers/nodes/node_mapper.h"
+#include "../../headers/nodes/nodes_component.h"
 
 namespace ex::map::camera {
 
@@ -35,7 +35,7 @@ namespace ex::map::camera {
         return node;
     }
 
-    node_ *relocate(const State &state, TreeNode *tree, node_ *self) {
+    nodes::BaseNode *relocate(const State &state, TreeNode *tree, nodes::BaseNode *self) {
         return self;
     }
 

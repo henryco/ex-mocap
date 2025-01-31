@@ -5,8 +5,8 @@
 #ifndef TEST_CMP_H
 #define TEST_CMP_H
 
-#include "../../nodes/node_mapper.h"
 #include "../../nodes/nodes.h"
+#include "../../nodes/nodes_component.h"
 #include "../gui_component.h"
 
 namespace ex::gui::test {
@@ -200,7 +200,7 @@ namespace ex::gui::test {
         void from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
         nodes::BaseNode *instance(const State &state, TreeNode *from);
         nodes::BaseNode *relocate(const State &state, TreeNode *tree, nodes::BaseNode *node);
-        static constexpr DataMappers data_mappers = { from_base, from_tree, instance, relocate };
+        static constexpr BaseNodeComponent data_mappers = { from_base, from_tree, instance, relocate };
     }
 
     namespace two {
@@ -214,7 +214,7 @@ namespace ex::gui::test {
         void from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
         nodes::BaseNode *instance(const State &state, TreeNode *from);
         nodes::BaseNode *relocate(const State &state, TreeNode *tree, nodes::BaseNode *node);
-        static constexpr DataMappers data_mappers = { from_base, from_tree, instance, relocate };
+        static constexpr BaseNodeComponent data_mappers = { from_base, from_tree, instance, relocate };
     }
 
     namespace tri {
@@ -228,7 +228,7 @@ namespace ex::gui::test {
         void from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
         nodes::BaseNode *instance(const State &state, TreeNode *from);
         nodes::BaseNode *relocate(const State &state, TreeNode *tree, nodes::BaseNode *node);
-        static constexpr DataMappers data_mappers = { from_base, from_tree, instance, relocate };
+        static constexpr BaseNodeComponent data_mappers = { from_base, from_tree, instance, relocate };
     }
 
 }
