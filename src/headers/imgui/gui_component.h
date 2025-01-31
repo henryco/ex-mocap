@@ -24,7 +24,7 @@ namespace ex::gui {
     struct GuiNodeComponent {
         bool (*draw_tree_node)(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected) = nullptr;
         void (*draw_tree_menu)(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected) = nullptr;
-        bool (*draw_node_window)(GuiState &gui, ex::State &state, GuiNodeWindow<TreeNode> *win)                = nullptr;
+        bool (*draw_node_window)(GuiState &gui, ex::State &state, GuiNodeWindow<TreeNode> *win)             = nullptr;
         const char *(*get_node_name)(GuiState &gui, ex::State &state)                                       = nullptr;
     };
 }
