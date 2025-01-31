@@ -22,9 +22,9 @@ namespace ex::gui {
         return instance;
     }
 
-    const std::map<std::size_t, ex::gui::NodeComponent> &node_components() {
+    const std::map<std::size_t, ex::gui::GuiNodeComponent> &node_components() {
         // TODO REPLACE WITH REAL COMPONENTS
-        static std::map<std::size_t, ex::gui::NodeComponent> instance = {
+        static std::map<std::size_t, ex::gui::GuiNodeComponent> instance = {
             { 0, ex::gui::test::one::gui_mappers },
             { 1, ex::gui::test::tri::gui_mappers },
             { 2, ex::gui::test::two::gui_mappers },

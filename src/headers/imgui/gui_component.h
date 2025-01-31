@@ -11,7 +11,7 @@
 namespace ex::gui {
 
     template <typename NODE_>
-    struct NodeWindow {
+    struct GuiNodeWindow {
         const char *uuid    = nullptr;
         const char *name    = nullptr;
         NODE_      *node    = nullptr;
@@ -21,10 +21,10 @@ namespace ex::gui {
         bool pinned = false;
     };
 
-    struct NodeComponent {
+    struct GuiNodeComponent {
         bool (*draw_tree_node)(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected) = nullptr;
         void (*draw_tree_menu)(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected) = nullptr;
-        bool (*draw_node_window)(GuiState &gui, ex::State &state, NodeWindow<TreeNode> *win)                = nullptr;
+        bool (*draw_node_window)(GuiState &gui, ex::State &state, GuiNodeWindow<TreeNode> *win)                = nullptr;
         const char *(*get_node_name)(GuiState &gui, ex::State &state)                                       = nullptr;
     };
 }

@@ -14,10 +14,10 @@ namespace ex::gui {
         const auto &node_mappers_ = node_components();
     }
 
-    static std::map<std::size_t, NodeWindow<TreeNode> *> pinned_windows__;
-    static NodeWindow<TreeNode>                         *active_window__ = nullptr;
+    static std::map<std::size_t, GuiNodeWindow<TreeNode> *> pinned_windows__;
+    static GuiNodeWindow<TreeNode>                         *active_window__ = nullptr;
 
-    void gen_uuid(NodeWindow<TreeNode> *window) {
+    void gen_uuid(GuiNodeWindow<TreeNode> *window) {
         const auto s_uuid =
                 std::string(std::string(window->node->name) + "##" + std::to_string(window->node->id_local) + "/" +
                             std::to_string(window->node->id_node));
@@ -26,18 +26,18 @@ namespace ex::gui {
         window->uuid = buffer;
     }
 
-    NodeWindow<TreeNode> *create_new_window(const State &state, TreeNode *node) {
+    GuiNodeWindow<TreeNode> *create_new_window(const State &state, TreeNode *node) {
         if (node == nullptr)
             return nullptr;
 
         if (node->is_link) {
             TreeNode             *source  = TreeNode::find_node(state.work_tree, node->id_link);
-            NodeWindow<TreeNode> *new_win = new NodeWindow{ .node = (source == nullptr) ? node : source };
+            GuiNodeWindow<TreeNode> *new_win = new GuiNodeWindow{ .node = (source == nullptr) ? node : source };
             new_win->name                 = new_win->node->name;
             return new_win;
         }
 
-        return new NodeWindow{ .name = node->name, .node = node };
+        return new GuiNodeWindow{ .name = node->name, .node = node };
     }
 
     void update_active_window(const State &state, TreeNode *active_node) {
@@ -73,7 +73,7 @@ namespace ex::gui {
         }
     }
 
-    bool render_window(ex::State &state, GuiState &gui, NodeWindow<TreeNode> *window) {
+    bool render_window(ex::State &state, GuiState &gui, GuiNodeWindow<TreeNode> *window) {
         if (window == nullptr || window->node == nullptr || window->node->deleted || window->node->moved)
             return false;
         const auto n_type = window->node->id_node;

@@ -21,7 +21,7 @@ namespace ex::gui {
 
     keys::KeyMapping &key_mappings();
 
-    const std::map<std::size_t, ex::gui::NodeComponent> &node_components();
+    const std::map<std::size_t, ex::gui::GuiNodeComponent> &node_components();
 
 }
 
