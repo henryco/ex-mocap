@@ -2,9 +2,6 @@
 // Created by xd on 17/01/25.
 //
 
-// ReSharper disable CppDFAMemoryLeak
-// ReSharper disable CppDFANullDereference
-
 #include "../../../headers/imgui/gui_layout.h"
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/gui_tree_ops.h"
