@@ -5,10 +5,15 @@
 #include <map>
 #include <ranges>
 
-#include "../headers/logic/logic.h"
-#include "../headers/components/c_camera.h"
+#include "../../headers/components/c_camera.h"
+#include "../../headers/logic/logic.h"
+#include "../../headers/logic/logic_globals.h"
 
 namespace ex::main {
+
+    namespace gg {
+        const auto &mappers_  = ex::logic::globals::node_components();
+    }
 
     #define update_threshold 1000
 
@@ -255,7 +260,7 @@ namespace ex::main {
 
         if (moved && !node->is_link && !node->is_group) {
             const auto base = nodes_.at(node->id_local);
-            const auto r_func = mappers_.at(node->id_node).relocate;
+            const auto r_func = gg::mappers_.at(node->id_node).relocate;
             if (r_func != nullptr) {
                 const auto new_one = r_func(state, node, base);
                 if (base != new_one) {
@@ -317,7 +322,7 @@ namespace ex::main {
         if (node->created || fresh) {
 
             if (!node->is_group && !node->is_link) {
-                const BaseNodeComponent &mappers = mappers_.at(node->id_node);
+                const BaseNodeComponent &mappers = gg::mappers_.at(node->id_node);
                 if (!nodes_.contains(node->id_local))
                     nodes_.emplace(node->id_local, mappers.instance(state, node));
             }
@@ -344,12 +349,12 @@ namespace ex::main {
         node->node = static_cast<void *>(node_ptr);
 
         if (node->updated) {
-            mappers_.at(node->id_node).from_tree(state, node, node_ptr);
+            gg::mappers_.at(node->id_node).from_tree(state, node, node_ptr);
             node->updated = false;
         }
 
         if (node_ptr->updated())
-            mappers_.at(node->id_node).from_base(state, node_ptr, node);
+            gg::mappers_.at(node->id_node).from_base(state, node_ptr, node);
     }
 
     void Logic::rewire_(State &state) {

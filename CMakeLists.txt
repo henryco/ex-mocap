@@ -115,6 +115,7 @@ set(HEADER_FILES
         src/headers/imgui/gui_tree_ops.h
         src/headers/imgui/gui_keymap.h
         src/headers/imgui/gui_globals.h
+        src/headers/logic/logic_globals.h
 )
 
 set(SOURCE_FILES
@@ -140,7 +141,7 @@ set(SOURCE_FILES
         src/sources/imgui/layout/gui_layout_main_content.cpp
         src/sources/core/camera.cpp
         src/sources/components/c_camera.cpp
-        src/sources/logic.cpp
+        src/sources/logic/logic.cpp
         src/sources/state.cpp
         src/sources/imgui/cmp/test_cmp.cpp
         src/sources/imgui/layout/gui_layout_tree_menu.cpp
@@ -148,6 +149,7 @@ set(SOURCE_FILES
         src/sources/imgui/layout/gui_layout_node_inspector.cpp
         src/sources/imgui/gui_globals.cpp
         src/sources/imgui/gui_tree_ops.cpp
+        src/sources/logic/logic_globals.cpp
 )
 
 # =================== OpenCL kernels generation =====================
