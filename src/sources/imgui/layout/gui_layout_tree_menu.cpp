@@ -12,6 +12,23 @@ namespace ex::gui {
         const auto &node_mappers_ = node_components();
     }
 
+    TreeNode *create_node_from_menu(State &state, GuiState &gui) {
+        for (const auto &[type_id, mapper]: tm::node_mappers_) {
+            ImGui::PushID(type_id);
+            if (ImGui::MenuItem(mapper.get_node_name(gui, state) )) {
+                ImGui::PopID();
+                TreeNode *new_node = TreeNode::create();
+                new_node->created    = true;
+                new_node->children_n = 0;
+                new_node->id_node    = type_id;
+                new_node->name       = "New node";
+                return new_node;
+            }
+            ImGui::PopID();
+        }
+        return nullptr;
+    }
+
     bool show_context_menu_group(State &state, GuiState &gui, selection_node *selection) {
         if (selection == nullptr)
             return false;
@@ -83,23 +100,6 @@ namespace ex::gui {
         ImGui::PopStyleVar(2);
 
         return clicked;
-    }
-
-    TreeNode *create_node_from_menu(State &state, GuiState &gui) {
-        for (const auto &[type_id, mapper]: tm::node_mappers_) {
-            ImGui::PushID(type_id);
-            if (ImGui::MenuItem(mapper.get_node_name(gui, state) )) {
-                ImGui::PopID();
-                TreeNode *new_node = TreeNode::create();
-                new_node->created    = true;
-                new_node->children_n = 0;
-                new_node->id_node    = type_id;
-                new_node->name       = "New node";
-                return new_node;
-            }
-            ImGui::PopID();
-        }
-        return nullptr;
     }
 
     bool show_context_menu_element(State &state, GuiState &gui, TreeNode *node,
