@@ -148,6 +148,7 @@ set(SOURCE_FILES
         src/sources/imgui/layout/gui_layout_tree_menu.cpp
         src/sources/imgui/layout/gui_layout_node_inspector.cpp
         src/sources/imgui/gui_globals.cpp
+        src/sources/imgui/gui_tree_ops.cpp
 )
 
 # =================== OpenCL kernels generation =====================
