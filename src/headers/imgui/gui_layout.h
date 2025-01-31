@@ -6,7 +6,6 @@
 #define EX_MOTION_GUI_LAYOUT_H
 
 #include "../state.h"
-#include "../undo/undo_history.h"
 #include "../utils/gui_utils.h"
 #include "../utils/log_utils.h"
 #include "gui_state.h"
@@ -18,7 +17,6 @@
 
 #include "cmp/test_cmp.h"
 #include "gui_component.h"
-#include "gui_keymap.h"
 
 namespace ex::gui {
 
@@ -103,12 +101,6 @@ namespace ex::gui {
         }
         return ImGuiChildFlags_ResizeY;
     }
-
-    undo::history<ex::State> &undo_history();
-
-    logs::logger &logger();
-
-    keys::KeyMapping &key_mappings();
 
     void show_menu_top_bar(ex::State &state, GuiState &gui);
 

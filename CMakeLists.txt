@@ -114,6 +114,7 @@ set(HEADER_FILES
         src/headers/undo/undo_history.h
         src/headers/imgui/gui_tree_ops.h
         src/headers/imgui/gui_keymap.h
+        src/headers/imgui/gui_globals.h
 )
 
 set(SOURCE_FILES
@@ -146,6 +147,7 @@ set(SOURCE_FILES
         src/sources/imgui/layout/gui_layout_workwindow.cpp
         src/sources/imgui/layout/gui_layout_tree_menu.cpp
         src/sources/imgui/layout/gui_layout_node_inspector.cpp
+        src/sources/imgui/gui_globals.cpp
 )
 
 # =================== OpenCL kernels generation =====================

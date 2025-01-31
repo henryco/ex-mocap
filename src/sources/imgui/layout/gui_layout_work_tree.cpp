@@ -5,8 +5,8 @@
 #include <IconsLucide.h>
 #include "../../../headers/imgui/gui_layout.h"
 #include "../../../headers/imgui/gui_tree_ops.h"
+#include "../../../headers/imgui/gui_globals.h"
 
-#include "../../../headers/imgui/gui_keymap.h"
 
 namespace ex::gui {
 

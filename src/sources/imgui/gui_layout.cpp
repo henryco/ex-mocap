@@ -3,7 +3,7 @@
 //
 
 #include "../../headers/imgui/gui_layout.h"
-#include "../../headers/imgui/gui_keymap.h"
+#include "../../headers/imgui/gui_globals.h"
 
 namespace ex::gui {
 
@@ -33,7 +33,7 @@ namespace ex::gui {
         }
     }
 
-    void process_shortcuts(ex::State &state, GuiState &gui) {
+    void process_shortcuts(ex::State &state, GuiState &) {
         const auto &[undo, redo] = key_mappings().history;
         if (ImGui::Shortcut(undo.key)) {
             if (undo_history().can_undo()) {
@@ -48,21 +48,6 @@ namespace ex::gui {
             }
         }
         // TODO MORE SHORTCUTS
-    }
-
-    logs::logger &logger() {
-        static ex::logs::logger log = ex::logs::get_logger("gui_layout");
-        return log;
-    }
-
-    ex::undo::history<ex::State> &undo_history() {
-        static ex::undo::history<ex::State> undo_history("Blank");
-        return undo_history;
-    }
-
-    keys::KeyMapping &key_mappings() {
-        static keys::KeyMapping instance;
-        return instance;
     }
 
     bool layout::build(ex::State &state) {
