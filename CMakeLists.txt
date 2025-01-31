@@ -141,7 +141,6 @@ set(SOURCE_FILES
         src/sources/core/camera.cpp
         src/sources/components/c_camera.cpp
         src/sources/logic.cpp
-        src/sources/state/mappers_camera.cpp
         src/sources/state.cpp
         src/sources/imgui/cmp/test_cmp.cpp
         src/sources/imgui/layout/gui_layout_tree_menu.cpp

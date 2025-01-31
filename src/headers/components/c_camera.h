@@ -5,15 +5,23 @@
 #ifndef C_CAMERA_H
 #define C_CAMERA_H
 
+#include "../nodes/nodes_component.h"
 #include "../cl/ocl_interop.h"
 #include "../core/camera.h"
-#include "../nodes/nodes.h"
 #include "image_protocol.h"
+
+namespace ex::map::camera {
+    void             from_base(State &state, nodes::BaseNode *from, TreeNode *to);
+    void             from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
+    nodes::BaseNode *instance(const State &state, TreeNode *from);
+    nodes::BaseNode *relocate(const State &state, TreeNode *tree, nodes::BaseNode *node);
+    static constexpr BaseNodeComponent mappers = { from_base, from_tree, instance };
+}
 
 namespace ex::cmp {
 
-#define CAM_          0
-#define CAM_OUT_FRAME 1
+    #define CAM_          0
+    #define CAM_OUT_FRAME 1
 
     class CameraNode : public nodes::Node<CameraNode>,
                        public nodes::State<camera::Camera>,
