@@ -5,6 +5,9 @@
 #ifndef GUI_TREE_OPS_H
 #define GUI_TREE_OPS_H
 
+#include "gui_state.h"
+#include "../state.h"
+
 namespace ex::gui::tree {
     void rename_node(State &state, GuiState &gui, TreeNode *node, const char *name);
 
