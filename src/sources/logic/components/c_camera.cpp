@@ -2,8 +2,8 @@
 // Created by xd on 15/12/24.
 //
 
-#include "../../headers/components/c_camera.h"
-#include "../../headers/nodes/nodes_component.h"
+#include "../../../headers/logic/components/c_camera.h"
+#include "../../../headers/nodes/nodes_component.h"
 
 namespace ex::cmp {
 
