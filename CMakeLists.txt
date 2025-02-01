@@ -102,7 +102,6 @@ set(HEADER_FILES
         src/headers/cl/ocl_interop_ext.h
         src/headers/imgui/gui_layout.h
         src/headers/nodes/nodes.h
-        src/headers/nodes/test_nodes.h
         src/headers/core/camera.h
         src/headers/logic/components/c_camera.h
         src/headers/logic/logic.h

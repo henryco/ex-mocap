@@ -945,7 +945,7 @@ namespace ex::nodes {
 
         virtual T serialize() const = 0;
 
-        virtual void deserialize(const T &serialized) = 0;
+        virtual void deserialize(const T &) = 0;
     };
 
     template<typename T>
@@ -953,9 +953,9 @@ namespace ex::nodes {
     public:
         virtual ~Serializer() = default;
 
-        virtual T serialize(const std::vector<Serializable<T> *> &serializable) const = 0;
+        virtual T serialize(void *) const = 0;
 
-        virtual std::vector<Serializable<T> *> deserialize(const T &serialized) = 0;
+        virtual void *deserialize(const T &) = 0;
     };
 
     namespace internal_ {
