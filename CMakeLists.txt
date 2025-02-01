@@ -115,6 +115,7 @@ set(HEADER_FILES
         src/headers/imgui/gui_keymap.h
         src/headers/imgui/gui_globals.h
         src/headers/logic/logic_globals.h
+        src/headers/logic/io/json_serializer.h
 )
 
 set(SOURCE_FILES

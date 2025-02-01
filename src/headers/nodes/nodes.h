@@ -953,9 +953,9 @@ namespace ex::nodes {
     public:
         virtual ~Serializer() = default;
 
-        virtual T serialize(void *) const = 0;
+        virtual T serialize(const void *) const = 0;
 
-        virtual void *deserialize(const T &) = 0;
+        virtual void *deserialize(const T &) const = 0;
     };
 
     namespace internal_ {
