@@ -13,7 +13,6 @@ namespace ex::gui::test {
 
     class NodeOne: public nodes::Node<NodeOne>,
                    public nodes::id::name<"node_one">,
-                   public nodes::Serializable<std::string>,
 
                    public nodes::io::out<short, 1, "out 1 s">,
                    public nodes::io::out<short, 2, "out 2 s">,
@@ -35,14 +34,6 @@ namespace ex::gui::test {
 
         ~NodeOne() override {
             std::cout << "DSTR 1: " << local_id << '\n';
-        }
-
-        std::string serialize() const override {
-            return "";
-        }
-
-        void deserialize(const std::string &serialized) override {
-
         }
 
         bool on_input(const bool data, int input_index, int output_index, int clock_i, Output<bool> *io) override {
@@ -73,7 +64,6 @@ namespace ex::gui::test {
 
     class NodeTwo: public nodes::Node<NodeTwo>,
                    public nodes::id::name<"node_two">,
-                   public nodes::Serializable<std::string>,
 
                    public nodes::io::out<short, 1, "out 1 s">,
                    public nodes::io::out<short, 2, "out 2 s">,
@@ -94,14 +84,6 @@ namespace ex::gui::test {
     public:
         ~NodeTwo() override {
             std::cout << "DSTR 2: " << local_id << '\n';
-        }
-
-        std::string serialize() const override {
-            return "";
-        }
-
-        void deserialize(const std::string &serialized) override {
-
         }
 
         bool on_input(const bool data, int input_index, int output_index, int clock_i, Output<bool> *io) override {
@@ -132,7 +114,6 @@ namespace ex::gui::test {
 
     class NodeTri: public nodes::Node<NodeTri>,
                    public nodes::id::name<"node_tri">,
-                   public nodes::Serializable<std::string>,
 
                    public nodes::io::out<short, 1, "out 1 s">,
                    public nodes::io::out<short, 2, "out 2 s">,
@@ -153,14 +134,6 @@ namespace ex::gui::test {
     public:
         ~NodeTri() override {
             std::cout << "DSTR 3: " << local_id << '\n';
-        }
-
-        std::string serialize() const override {
-            return "";
-        }
-
-        void deserialize(const std::string &serialized) override {
-
         }
 
         bool on_input(const bool data, int input_index, int output_index, int clock_i, Output<bool> *io) override {

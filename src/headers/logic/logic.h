@@ -60,8 +60,6 @@ namespace ex::main {
 
         void rewire_(State &state);
 
-        void restore_(State &state);
-
         void build_tree_(State &state, TreeNode *node, TreeNode *previous, simple_list *group_list);
 
         void deserialize_(State &state);

@@ -5,9 +5,10 @@
 #include <map>
 #include <ranges>
 
-#include "../../headers/logic/logic.h"
-#include "../../headers/logic/logic_globals.h"
 #include "../../headers/logic/components/c_camera.h"
+#include "../../headers/logic/io/json_serializer.h"
+#include "../../headers/logic/logic_globals.h"
+#include "../../headers/logic/logic.h"
 
 namespace ex::main {
 
@@ -39,7 +40,6 @@ namespace ex::main {
 
         // TODO UNCOMMENT
         // deserialize_(state);
-        // restore_(state);
         // TODO UNCOMMENT
 
 
@@ -170,41 +170,21 @@ namespace ex::main {
     }
 
     void Logic::run(State &state) {
-        if (state.work_tree == nullptr) {
-            restore_(state);
-            return;
-        }
+        if (state.work_tree == nullptr)
+            throw std::runtime_error("Logic::run: work tree is null");
         synchronize_(state);
         process_(state);
     }
 
-    void Logic::serialize(State &_) {
+    void Logic::serialize(State &state) {
+        const auto serialized = (ex::io::json::JsonSerializer()).serialize(&state);
         // TODO write to json from clock
     }
 
-    void Logic::deserialize_(State &_) {
+    void Logic::deserialize_(State &state) {
+        const std::string todo;
+        state = *(static_cast<State *>((ex::io::json::JsonSerializer()).deserialize(todo)));
         // TODO read from json to clock
-    }
-
-    void Logic::restore_(State &state) {
-        if (state.work_tree != nullptr)
-            delete state.work_tree;
-
-        state::uuid::reset_last_id();
-
-        state.work_tree = TreeNode::create();
-        state.work_tree->children_n = 0;
-        state.work_tree->is_group   = true;
-
-        for (const auto &node: nodes_ | std::views::values) {
-            if (node != nullptr) {
-                node->detach_all_any();
-                delete node;
-            }
-        }
-
-        ptr_counter_.clear();
-        nodes_.clear();
     }
 
     void Logic::process_(State &_) {
