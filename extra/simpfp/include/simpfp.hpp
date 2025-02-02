@@ -10,6 +10,11 @@
 namespace simpfp {
 
     namespace internal_ {
+
+        struct FileInfo {
+            std::filesystem::path path;
+        };
+
         inline const char *label     = nullptr;
         inline const char *file_path = nullptr;
         inline bool       *open_ptr  = nullptr;
@@ -158,8 +163,7 @@ namespace simpfp {
         ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
         if (ImGui::BeginPopupModal(internal_::label, internal_::open_ptr,
-                                   ImGuiWindowFlags_NoCollapse |
-                                   ImGuiWindowFlags_NoDocking  |
+                                   ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking |
                                    (internal_::resizable ? 0 : ImGuiWindowFlags_NoResize))) {
 
             static const float reserve_y = (ImGui::GetFrameHeight() * 4) + ImGui::GetStyle().ItemSpacing.y;
