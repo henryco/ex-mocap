@@ -15,6 +15,10 @@ namespace ex::boot {
 
     const auto log = logs::get_logger("boot_gui");
 
+    void framebuffer_size_callback(GLFWwindow *, const int width, const int height) {
+        glViewport(0, 0, width, height);
+    }
+
     GLFWwindow *init_gl_context(State &state) {
         if (!glfwInit()) {
             std::cerr << "Failed to initialize GLFW";
@@ -26,6 +30,7 @@ namespace ex::boot {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
         const auto window = gl::create_window("ExMoCap");
         log->info("Window created");
@@ -38,6 +43,8 @@ namespace ex::boot {
         }
 
         glfwMakeContextCurrent(window);
+        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+        glfwSwapInterval(0);
         log->info("GL context created");
 
         return window;
@@ -102,9 +109,6 @@ namespace ex::boot {
             logic.run(state);
             gui.build(state);
 
-            int display_w, display_h;
-            glfwGetFramebufferSize(window, &display_w, &display_h);
-            glViewport(0, 0, display_w, display_h);
             glClearColor(0, 0, 0, 0);
             glClear(GL_COLOR_BUFFER_BIT);
 
