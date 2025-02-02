@@ -16,7 +16,7 @@
 - [ImGui](https://github.com/ocornut/imgui) (external/imgui)
 - [JSON](https://github.com/nlohmann/json) (external/json)
 - [Glm](https://github.com/g-truc/glm) (external/glm)
-- [V4l2 (linux)](https://trac.gateworks.com/wiki/linux/v4l2)
+- [V4L2 (linux)](https://trac.gateworks.com/wiki/linux/v4l2)
 - [OpenCV](https://opencv.org/get-started)
 - [OpenCL](https://www.khronos.org/opencl/)
 - [OpenGL](https://www.opengl.org/)
