@@ -85,9 +85,13 @@ namespace ex::gui {
                     gui.window.resized = true;
                 }
 
-                if(ImGui::MenuItem("Logs", nullptr, &gui.view.show_logs)) {
+                if (ImGui::MenuItem("Logs", nullptr, &gui.view.show_logs)) {
                     gui.view.expanded_logs = gui.view.show_logs;
                     gui.window.resized     = true;
+                }
+
+                if (ImGui::MenuItem("Metrics", nullptr, &gui.view.show_debug)) {
+                    gui.window.resized = true;
                 }
 
                 ImGui::Separator();

@@ -81,7 +81,9 @@ namespace ex::gui {
             show_work_window(state, gui);
 
             process_shortcuts(state, gui);
-//            ImGui::ShowMetricsWindow();
+
+            if (gui.view.show_debug)
+                ImGui::ShowMetricsWindow(&gui.view.show_debug);
         }
         ImGui::End();
 

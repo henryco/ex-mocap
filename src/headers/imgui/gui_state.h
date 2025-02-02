@@ -26,6 +26,7 @@ namespace ex::gui {
         float main_free_x = 0.f;
         float main_free_y = 0.f;
 
+        bool show_debug = false;
         bool show_right = true;
         bool show_left  = true;
         bool show_logs  = true;
