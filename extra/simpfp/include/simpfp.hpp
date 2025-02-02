@@ -6,7 +6,7 @@
 #define SIMPFP_HPP
 
 namespace simpfp {
-
+    
 }
 
 #endif //SIMPFP_HPP

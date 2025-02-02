@@ -23,7 +23,7 @@ link_directories(${ONNXRUNTIME_ROOT}/lib)
 add_subdirectory(external/argparse)
 add_subdirectory(external/json)
 add_subdirectory(external/glm)
-add_subdirectory(extra/simpfp)
+#add_subdirectory(extra/simpfp)
 
 set(CMAKE_C_COMPILER "clang-18")
 set(CMAKE_CXX_COMPILER "clang++-18")
@@ -67,6 +67,10 @@ target_include_directories(imgui PUBLIC
 
 target_link_libraries(imgui PUBLIC
         OpenGL::GL glfw)
+
+set(EXTRA_FILES
+        extra/simpfp/include/simpfp.hpp
+)
 
 set(PLATFORM_FILES
         platforms/device.h
@@ -183,6 +187,7 @@ set(RESULT_SOURCES
         ${PLATFORM_FILES}
         ${HEADER_FILES}
         ${SOURCE_FILES}
+        ${EXTRA_FILES}
 )
 
 add_executable(ex_motion
@@ -209,7 +214,7 @@ if (UNIX AND NOT APPLE)
             PRIVATE lucide
             PRIVATE ifcpph
             PRIVATE imgui
-            PRIVATE simpfp
+#            PRIVATE simpfp
             PRIVATE glm)
     target_compile_options(${PROJECT_NAME}
             PRIVATE ${V4L2_CFLAGS_OTHER})
