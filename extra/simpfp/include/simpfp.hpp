@@ -10,11 +10,13 @@
 namespace simpfp {
 
     namespace internal_ {
-        inline const char *label    = nullptr;
-        inline const char *cur_path = nullptr;
-        inline bool       *open_ptr = nullptr;
-        inline bool        closed   = false;
-        inline bool        reset    = false;
+        inline const char *label      = nullptr;
+        inline const char *file_path  = nullptr;
+        inline const ImVec2 *min_size = nullptr;
+        inline bool       *open_ptr   = nullptr;
+        inline bool        closed     = false;
+        inline bool        reset      = false;
+        inline bool        resizable  = true;
 
         inline void full_width_input(char *buffer, const std::size_t buffer_size) {
             const auto input_pos = ImGui::GetCursorScreenPos();
@@ -72,28 +74,32 @@ namespace simpfp {
         }
     }
 
-    inline void OpenFileDialog(const char *label, const char *default_path = nullptr) {
-        internal_::open_ptr = nullptr;
-        internal_::closed   = false;
-        internal_::reset    = true;
-        internal_::label    = label;
-        internal_::cur_path = default_path;
+    inline void OpenFileDialog(const char *label, const char *default_path = nullptr, const ImVec2 *size = nullptr, const bool resizable = true) {
+        internal_::open_ptr  = nullptr;
+        internal_::closed    = false;
+        internal_::reset     = true;
+        internal_::label     = label;
+        internal_::file_path = default_path;
+        internal_::resizable = resizable;
+        internal_::min_size  = size;
     }
 
     inline bool ShowFileDialog(const char *label, bool *open = nullptr) {
         if (open != nullptr && !*open) {
-            internal_::open_ptr = nullptr;
-            internal_::label    = nullptr;
-            internal_::reset    = false;
-            internal_::closed   = true;
+            internal_::open_ptr  = nullptr;
+            internal_::label     = nullptr;
+            internal_::reset     = false;
+            internal_::closed    = true;
+            internal_::resizable = true;
             return false;
         }
 
         if (label == nullptr) {
-            internal_::open_ptr = nullptr;
-            internal_::label    = nullptr;
-            internal_::reset    = false;
-            internal_::closed   = true;
+            internal_::open_ptr  = nullptr;
+            internal_::label     = nullptr;
+            internal_::reset     = false;
+            internal_::closed    = true;
+            internal_::resizable = true;
             return false;
         }
 
@@ -105,6 +111,8 @@ namespace simpfp {
             }
 
             if (internal_::reset) {
+                if (internal_::min_size != nullptr)
+                    ImGui::SetNextWindowSizeConstraints(*internal_::min_size, ImVec2(0, 0));
                 ImGui::OpenPopup(internal_::label, ImGuiPopupFlags_NoReopen);
                 internal_::reset = false;
             }
@@ -117,6 +125,9 @@ namespace simpfp {
         internal_::label    = label;
         internal_::reset    = false;
         internal_::closed   = false;
+
+        if (internal_::min_size != nullptr)
+            ImGui::SetNextWindowSizeConstraints(*internal_::min_size, ImVec2(0, 0));
         ImGui::OpenPopup(internal_::label, ImGuiPopupFlags_NoReopen);
         return true;
     }
@@ -136,7 +147,9 @@ namespace simpfp {
         ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
         if (ImGui::BeginPopupModal(internal_::label, internal_::open_ptr,
-                                   ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking)) {
+                                   ImGuiWindowFlags_NoCollapse |
+                                   ImGuiWindowFlags_NoDocking  |
+                                   (internal_::resizable ? 0 : ImGuiWindowFlags_NoResize))) {
 
             static const float reserve_y = (ImGui::GetFrameHeight() * 4) + ImGui::GetStyle().ItemSpacing.y;
 
@@ -172,6 +185,8 @@ namespace simpfp {
             internal_::buttons_dir(&create, &remove);
             ImGui::Spacing();
             internal_::buttons_action(&cancel, &accept);
+
+            // TODO
 
             ImGui::EndPopup();
         }
