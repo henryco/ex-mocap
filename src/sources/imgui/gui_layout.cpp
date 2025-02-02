@@ -87,9 +87,19 @@ namespace ex::gui {
 
             // TODO REMOVE
             static bool fp_open = true;
-            char buffer[64] = "";
-            if (simpfp::ShowFileDialog("Select a file", buffer, sizeof(buffer), &fp_open)) {
 
+            if (simpfp::ShowFileDialog("Select a file", &fp_open)) {
+                char buffer[64] = "";
+
+                if (simpfp::FileSelected(buffer, sizeof(buffer))) {
+
+                }
+
+                if (simpfp::FileAccepted(buffer, sizeof(buffer))) {
+
+                }
+
+                simpfp::EndFileDialog();
             }
             // TODO REMOVE
 
