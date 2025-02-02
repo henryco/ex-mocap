@@ -197,6 +197,15 @@ namespace simpfp {
             ImGui::Spacing();
             internal_::buttons_action(&cancel, &accept);
 
+
+            if (cancel) {
+                *internal_::open_ptr = false;
+                internal_::closed    = true;
+                ImGui::CloseCurrentPopup();
+                ImGui::EndPopup();
+                return;
+            }
+
             // TODO
 
             ImGui::EndPopup();
