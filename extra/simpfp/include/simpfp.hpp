@@ -17,6 +17,60 @@ namespace simpfp {
         inline bool        reset     = false;
         inline bool        resizable = true;
 
+        inline bool show_dialog(const char *label, bool *open = nullptr, const ImVec2 *size = nullptr, const bool resizable = true) {
+            if (open != nullptr && !*open) {
+                internal_::open_ptr  = nullptr;
+                internal_::label     = nullptr;
+                internal_::reset     = false;
+                internal_::closed    = true;
+                internal_::resizable = true;
+                return false;
+            }
+
+            if (label == nullptr) {
+                internal_::open_ptr  = nullptr;
+                internal_::label     = nullptr;
+                internal_::reset     = false;
+                internal_::closed    = true;
+                internal_::resizable = true;
+                return false;
+            }
+
+            if (internal_::label == label) {
+                if (internal_::closed) {
+                    if (open != nullptr)
+                        *open = false;
+                    return false;
+                }
+
+                if (internal_::reset) {
+                    if (size != nullptr) {
+                        ImGui::SetNextWindowSizeConstraints(*size, ImVec2(-1, -1));
+                        ImGui::SetNextWindowSize(*size, ImGuiCond_Appearing);
+                    }
+                    internal_::resizable = resizable;
+                    internal_::reset = false;
+                    ImGui::OpenPopup(internal_::label, ImGuiPopupFlags_NoReopen);
+                }
+
+                internal_::open_ptr = open;
+                return true;
+            }
+
+            internal_::open_ptr  = open;
+            internal_::label     = label;
+            internal_::reset     = false;
+            internal_::closed    = false;
+            internal_::resizable = resizable;
+
+            if (size != nullptr) {
+                ImGui::SetNextWindowSizeConstraints(*size, ImVec2(-1, -1));
+                ImGui::SetNextWindowSize(*size, ImGuiCond_Appearing);
+            }
+            ImGui::OpenPopup(internal_::label, ImGuiPopupFlags_NoReopen);
+            return true;
+        }
+
         inline void full_width_input(char *buffer, const std::size_t buffer_size) {
             const auto input_pos = ImGui::GetCursorScreenPos();
             const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
@@ -81,54 +135,12 @@ namespace simpfp {
         internal_::file_path = default_path;
     }
 
-    inline bool ShowFileDialog(const char *label, bool *open = nullptr, ImVec2 *size = nullptr, const bool resizable = true) {
-        if (open != nullptr && !*open) {
-            internal_::open_ptr  = nullptr;
-            internal_::label     = nullptr;
-            internal_::reset     = false;
-            internal_::closed    = true;
-            internal_::resizable = true;
-            return false;
-        }
+    inline bool ShowFileDialog(const char *label, bool *open = nullptr) {
+        return internal_::show_dialog(label, open);
+    }
 
-        if (label == nullptr) {
-            internal_::open_ptr  = nullptr;
-            internal_::label     = nullptr;
-            internal_::reset     = false;
-            internal_::closed    = true;
-            internal_::resizable = true;
-            return false;
-        }
-
-        if (internal_::label == label) {
-            if (internal_::closed) {
-                if (open != nullptr)
-                    *open = false;
-                return false;
-            }
-
-            if (internal_::reset) {
-                if (size != nullptr)
-                    ImGui::SetNextWindowSizeConstraints(*size, ImVec2(0, 0));
-                internal_::resizable = resizable;
-                internal_::reset = false;
-                ImGui::OpenPopup(internal_::label, ImGuiPopupFlags_NoReopen);
-            }
-
-            internal_::open_ptr = open;
-            return true;
-        }
-
-        internal_::open_ptr  = open;
-        internal_::label     = label;
-        internal_::reset     = false;
-        internal_::closed    = false;
-        internal_::resizable = resizable;
-
-        if (size != nullptr)
-            ImGui::SetNextWindowSizeConstraints(*size, ImVec2(0, 0));
-        ImGui::OpenPopup(internal_::label, ImGuiPopupFlags_NoReopen);
-        return true;
+    inline bool ShowFileDialog(const char *label, bool *open, const ImVec2 &size, const bool resize = true) {
+        return internal_::show_dialog(label, open, &size, resize);
     }
 
     inline void EndFileDialog() {

@@ -87,8 +87,9 @@ namespace ex::gui {
 
             // TODO REMOVE
             static bool fp_open = true;
+            static constexpr auto min_size = ImVec2(900, 600);
 
-            if (simpfp::ShowFileDialog("Select a file", &fp_open)) {
+            if (simpfp::ShowFileDialog("Select a file", &fp_open, min_size, true)) {
                 char buffer[64] = "";
 
                 if (simpfp::FileSelected(buffer, sizeof(buffer))) {
