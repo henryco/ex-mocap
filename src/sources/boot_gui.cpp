@@ -85,6 +85,10 @@ namespace ex::boot {
         state.ocl_context = ocl_context;
     }
 
+    void gui_set_target_fps(State &state, const double fps) {
+        state.gui_target_ns = static_cast<int>(1000000000.0 / fps);
+    }
+
     inline void update_gui(const ex::gui::GUI &gui, State &state, GLFWwindow *window) {
         if (state.gui_target_ns > 0) {
             static auto t0 = std::chrono::high_resolution_clock::now();
@@ -104,6 +108,8 @@ namespace ex::boot {
     int gui(int, char **, const char *project_path) {
 
         State state{ .project_path = project_path };
+        gui_set_target_fps(state, 60);
+
         log->info("Application context created");
 
         const auto window = init_gl_context(state);

@@ -115,7 +115,7 @@ namespace ex {
         node_buffer    *clipboard_node = nullptr;
         cl_context      ocl_context    = nullptr;
         cl_device_id    ocl_device     = nullptr;
-        int             gui_target_ns  = 16000000;
+        int             gui_target_ns  = -1;
         short           clock_freq     = -1;
         bool            gl_sharing     = false;
         bool            force_sync     = false;
