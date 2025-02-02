@@ -5,6 +5,10 @@
 #include "../../headers/imgui/gui_layout.h"
 #include "../../headers/imgui/gui_globals.h"
 
+// TODO REMOVE
+#include "../../../extra/simpfp/include/simpfp.hpp"
+// TODO REMOVE
+
 namespace ex::gui {
 
     bool is_window_resized() {
@@ -47,7 +51,6 @@ namespace ex::gui {
                 undo_history().apply(&state);
             }
         }
-        // TODO MORE SHORTCUTS
     }
 
     bool layout::build(ex::State &state) {
@@ -81,6 +84,13 @@ namespace ex::gui {
             show_work_window(state, gui);
 
             process_shortcuts(state, gui);
+
+            // TODO REMOVE
+            char buffer[64] = "";
+            if (simpfp::ShowFileDialog("Select a file", buffer, sizeof(buffer))) {
+
+            }
+            // TODO REMOVE
 
             if (gui.view.show_debug)
                 ImGui::ShowMetricsWindow(&gui.view.show_debug);
