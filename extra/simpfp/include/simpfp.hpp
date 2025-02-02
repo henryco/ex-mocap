@@ -30,7 +30,6 @@ namespace simpfp {
         }
 
         inline void buttons_dir(bool *create, bool *remove) {
-
             ImGui::BeginDisabled(create == nullptr);
             if (ImGui::Button("New Folder")) {
                 if (create != nullptr)
