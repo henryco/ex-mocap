@@ -23,6 +23,7 @@ link_directories(${ONNXRUNTIME_ROOT}/lib)
 add_subdirectory(external/argparse)
 add_subdirectory(external/json)
 add_subdirectory(external/glm)
+add_subdirectory(extra/simpfp)
 
 set(CMAKE_C_COMPILER "clang-18")
 set(CMAKE_CXX_COMPILER "clang++-18")
@@ -208,6 +209,7 @@ if (UNIX AND NOT APPLE)
             PRIVATE lucide
             PRIVATE ifcpph
             PRIVATE imgui
+            PRIVATE simpfp
             PRIVATE glm)
     target_compile_options(${PROJECT_NAME}
             PRIVATE ${V4L2_CFLAGS_OTHER})
