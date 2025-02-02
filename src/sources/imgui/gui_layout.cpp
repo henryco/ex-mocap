@@ -86,8 +86,9 @@ namespace ex::gui {
             process_shortcuts(state, gui);
 
             // TODO REMOVE
+            static bool fp_open = true;
             char buffer[64] = "";
-            if (simpfp::ShowFileDialog("Select a file", buffer, sizeof(buffer))) {
+            if (simpfp::ShowFileDialog("Select a file", buffer, sizeof(buffer), &fp_open)) {
 
             }
             // TODO REMOVE
