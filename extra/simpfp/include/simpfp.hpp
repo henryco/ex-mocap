@@ -11,8 +11,126 @@ namespace simpfp {
 
     namespace internal_ {
 
+        inline std::filesystem::path load_path(const char *file) {
+            if (file == nullptr)
+                return std::filesystem::current_path();
+            const auto path = std::filesystem::path(file);
+            if (std::filesystem::exists(path))
+                return std::filesystem::is_directory(path) ? path : path.parent_path();
+            return std::filesystem::current_path();
+        }
+
+        inline char *cpy_str(const char *str) {
+            if (str == nullptr)
+                return nullptr;
+            const auto len  = std::strlen(str);
+            char *buff = new char[len + 1];
+            std::strcpy(buff, str);
+            return buff;
+        }
+
         struct FileInfo {
-            std::filesystem::path path;
+            const std::filesystem::path *path;
+
+            const char *name;
+            const char *type;
+            std::size_t size;
+            std::size_t date;
+            bool        selected;
+
+            ~FileInfo() {
+                if (path != nullptr)
+                    delete path;
+                if (name != nullptr)
+                    delete name;
+                if (type != nullptr)
+                    delete type;
+            }
+        };
+
+        struct FileContext {
+            const std::filesystem::path *path = nullptr;
+
+            const FileInfo *files = nullptr;
+            const FileInfo *dirs  = nullptr;
+
+            int files_num = 0;
+            int dirs_num  = 0;
+            char sort_by  = 0;
+            bool sort_asc = false;
+
+            ~FileContext() {
+                if (files != nullptr)
+                    delete[] files;
+                if (dirs != nullptr)
+                    delete[] dirs;
+                if (path != nullptr)
+                    delete[] path;
+            }
+
+            static void load(FileContext **context, const char *path) {
+                if (*context != nullptr)
+                    delete *context;
+
+                const auto file = new std::filesystem::path(load_path(path));
+
+                const auto new_context = new FileContext;
+                new_context->path      = file;
+                new_context->sort_by   = 0;
+                new_context->sort_asc  = false;
+
+                int dirs_num  = 1;
+                int files_num = 0;
+                for (const auto &entry : std::filesystem::directory_iterator(*file)) {
+                    if (entry.is_directory())
+                        dirs_num++;
+                    else if (entry.is_regular_file())
+                        files_num++;
+                }
+
+                const auto files = new FileInfo[files_num];
+                const auto dirs  = new FileInfo[dirs_num];
+
+                dirs[0] = FileInfo();
+                dirs[0].path = new std::filesystem::path(file->parent_path());
+                dirs[0].selected = false;
+                dirs[0].size     = 0;
+                dirs[0].date     = 0;
+                dirs[0].name     = cpy_str("..");
+                dirs[0].type     = cpy_str("..");
+
+                int d_ = 1, f_ = 0;
+                for (const auto &entry : std::filesystem::directory_iterator(*file)) {
+                    const auto ep = new std::filesystem::path(entry.path());
+                    if (entry.is_directory()) {
+                        dirs[d_]          = FileInfo();
+                        dirs[d_].path     = ep;
+                        dirs[d_].name     = cpy_str(ep->filename().c_str());
+                        dirs[d_].type     = cpy_str("");
+                        dirs[d_].selected = false;
+                        dirs[d_].size     = 0;
+                        dirs[d_].date     = 0;
+                        d_++;
+                    }
+                    else if (entry.is_regular_file()) {
+                        files[f_]          = FileInfo();
+                        files[f_].path     = ep;
+                        files[f_].type     = cpy_str(ep->has_extension() ? ep->extension().c_str() : "");
+                        files[f_].name     = cpy_str(ep->filename().c_str());
+                        files[f_].size     = entry.file_size();
+                        files[f_].selected = false;
+                        files[f_].date     = 0;
+                        f_++;
+                    }
+                }
+
+                new_context->files_num = files_num;
+                new_context->files     = files;
+                new_context->dirs_num  = dirs_num;
+                new_context->dirs      = dirs;
+
+                *context = new_context;
+            }
         };
 
         inline const char *label     = nullptr;
@@ -97,14 +215,13 @@ namespace simpfp {
             }
             ImGui::EndDisabled();
 
-            ImGui::SameLine();
-
-            ImGui::BeginDisabled(remove == nullptr);
-            if (ImGui::Button("Delete Folder")) {
-                if (remove != nullptr)
-                    *remove = true;
-            }
-            ImGui::EndDisabled();
+//            ImGui::SameLine();
+//            ImGui::BeginDisabled(remove == nullptr);
+//            if (ImGui::Button("Delete Folder")) {
+//                if (remove != nullptr)
+//                    *remove = true;
+//            }
+//            ImGui::EndDisabled();
         }
 
         inline void buttons_action(bool *cancel, bool *accept) {
@@ -149,14 +266,29 @@ namespace simpfp {
     }
 
     inline void EndFileDialog() {
+        static internal_::FileContext *context = nullptr;
+
         if (internal_::closed) {
             if (internal_::open_ptr != nullptr)
                 *internal_::open_ptr = false;
+            if (context != nullptr) {
+                delete context;
+                context = nullptr;
+            }
             return;
         }
 
         if (internal_::open_ptr != nullptr && !*internal_::open_ptr) {
             internal_::closed = true;
+            if (context != nullptr) {
+                delete context;
+                context = nullptr;
+            }
+            return;
+        }
+
+        if (context == nullptr) {
+            internal_::FileContext::load(&context, internal_::file_path);
         }
 
         const auto center = ImGui::GetMainViewport()->GetCenter();
@@ -176,16 +308,63 @@ namespace simpfp {
             const float free_x_des = free_x * (1.f - ratio);
 
             ImGui::Spacing();
-            ImGui::Text("File");
+            ImGui::Text("%s", context->path->c_str());
 
-            ImGui::BeginChild("##region_list", ImVec2(free_x_uno, -reserve_y), ImGuiChildFlags_Borders);
-            // TODO
+            ImGui::BeginChild("##region_dirs", ImVec2(free_x_uno, -reserve_y), ImGuiChildFlags_Borders);
+
+            for (int i = 0; i < context->dirs_num; i++) {
+                const auto &dir = context->dirs[i];
+                bool selected = false;
+                ImGui::PushID(i);
+                ImGui::Selectable(dir.name, &selected);
+                ImGui::PopID();
+
+                if (selected) {
+                    // TODO
+                }
+            }
+
             ImGui::EndChild();
 
             ImGui::SameLine();
 
-            ImGui::BeginChild("##region_table", ImVec2(free_x_des, -reserve_y), ImGuiChildFlags_Borders);
-            // TODO
+            ImGui::BeginChild("##region_files", ImVec2(free_x_des, -reserve_y), ImGuiChildFlags_Borders);
+            if (ImGui::BeginTable("##files_table", 4,
+                ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_Sortable)) {
+
+                ImGui::TableSetupColumn("File", ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("Date", ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableHeadersRow();
+                for (int i = 0; i < context->files_num; i++) {
+                    const auto &file = context->files[i];
+                    bool selected = false;
+
+                    ImGui::PushID(i);
+
+                    ImGui::TableNextRow();
+
+                    ImGui::TableNextColumn();
+                    ImGui::Selectable(file.name, &selected, ImGuiSelectableFlags_SpanAllColumns);
+
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%lu", file.size);
+
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%s", file.type);
+
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%s", "DATE"); // TODO
+
+                    ImGui::PopID();
+
+                    if (selected) {
+                        // TODO
+                    }
+                }
+                ImGui::EndTable();
+            }
             ImGui::EndChild();
 
             static char buffer[128] = "some path";
@@ -207,6 +386,10 @@ namespace simpfp {
                 internal_::closed    = true;
                 ImGui::CloseCurrentPopup();
                 ImGui::EndPopup();
+                if (context != nullptr) {
+                    delete context;
+                    context = nullptr;
+                }
                 return;
             }
 
@@ -217,7 +400,15 @@ namespace simpfp {
 
         if (internal_::open_ptr != nullptr && !*internal_::open_ptr) {
             internal_::closed = true;
+            if (context != nullptr) {
+                delete context;
+                context = nullptr;
+            }
         }
+    }
+
+    inline void SelectFile(const char *file) {
+        // TODO
     }
 
     inline bool FileSelected(char *buffer, std::size_t buffer_size) {
