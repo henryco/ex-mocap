@@ -85,6 +85,22 @@ namespace ex::boot {
         state.ocl_context = ocl_context;
     }
 
+    inline void update_gui(const ex::gui::GUI &gui, State &state, GLFWwindow *window) {
+        if (state.gui_target_ns > 0) {
+            static auto t0 = std::chrono::high_resolution_clock::now();
+            const auto t1 = std::chrono::high_resolution_clock::now();
+            if (t1 - t0 < std::chrono::nanoseconds(state.gui_target_ns))
+                return;
+            t0 = std::chrono::high_resolution_clock::now();
+        }
+
+        gui.build(state);
+        glClearColor(0, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        gui.draw(0.f);
+        glfwSwapBuffers(window);
+    }
+
     int gui(int, char **, const char *project_path) {
 
         State state{ .project_path = project_path };
@@ -107,14 +123,7 @@ namespace ex::boot {
             glfwPollEvents();
 
             logic.run(state);
-            gui.build(state);
-
-            glClearColor(0, 0, 0, 0);
-            glClear(GL_COLOR_BUFFER_BIT);
-
-            gui.draw(0.f);
-
-            glfwSwapBuffers(window);
+            update_gui(gui, state, window);
         }
 
         if (state.ocl_context != nullptr)
