@@ -828,7 +828,7 @@ namespace simpfp {
         }
     }
 
-    inline bool FileSelected(char *buffer, std::size_t buffer_size) {
+    inline bool PeekSelected(char *buffer, std::size_t buffer_size) {
         if (context == nullptr)
             return false;
 

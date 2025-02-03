@@ -95,7 +95,7 @@ namespace ex::gui {
             if (simpfp::ShowFileDialog("Select a file", &fp_open, min_size, true)) {
                 char buffer[64] = "";
 
-                if (simpfp::FileSelected(buffer, sizeof(buffer))) {
+                if (simpfp::PeekSelected(buffer, sizeof(buffer))) {
                     // TODO
                 }
 
