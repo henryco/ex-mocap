@@ -36,6 +36,13 @@ namespace simpfp {
             return buff;
         }
 
+        inline void cat_str(char *dst, const char *src, const std::size_t size) {
+            const std::size_t free_len = size - std::strlen(dst);
+            const std::size_t src_len  = std::strlen(src);
+            const std::size_t lim_len  = std::min(src_len, free_len);
+            std::strncat(dst, src, lim_len);
+        }
+
         inline fs::path load_path(const char *file) {
             if (file == nullptr)
                 return fs::current_path();
@@ -712,27 +719,33 @@ namespace simpfp {
             ImGui::EndChild();
 
             static char buffer[256];
+            constexpr std::size_t max_len = sizeof(buffer) - 1;
 
             if (selection_change) {
                 std::memset(buffer, 0, sizeof(buffer));
+
                 if (context->selected != nullptr && context->selected_num == 1) {
                     const auto str_src = context->selected[0]->name;
                     std::strncpy(buffer, str_src, std::min(sizeof(buffer) - 1, std::strlen(str_src)));
                 }
+
                 else if (context->selected != nullptr && context->selected_num > 1) {
-                    std::size_t total = 0;
-                    for (int k = 0; k < context->selected_num - 1; k++) {
+                    for (int k = 0; k < context->selected_num; k++) {
+                        if (k > 0)
+                            internal_::cat_str(buffer, "; ", max_len);
                         const auto str_src = context->selected[k]->name;
-                        const auto std_len = std::strlen(str_src);
-                        // TODO
-                        total += std_len;
+                        internal_::cat_str(buffer, str_src, max_len);
                     }
                 }
             }
 
+            if (context->selected_num > 1)
+                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
             ImGui::BeginDisabled(context->selected_num > 1);
             internal_::full_width_input(buffer, IM_ARRAYSIZE(buffer));
             ImGui::EndDisabled();
+            if (context->selected_num > 1)
+                ImGui::PopStyleVar();
 
             ImGui::Spacing();
 
