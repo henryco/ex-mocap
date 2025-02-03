@@ -590,14 +590,14 @@ namespace simpfp {
 
                     ImGui::PopID();
 
-                    if (internal_::single && selected && !file.selected) {
-                        internal_::FileContext::select_single(context, i);
-                    }
-                    else if (!internal_::single && selected != file.selected && ImGui::GetIO().KeyCtrl) {
-
+                    if (!internal_::single && selected != file.selected && ImGui::GetIO().KeyCtrl) {
+                        // TODO
                     }
                     else if (!internal_::single && selected != file.selected && ImGui::GetIO().KeyShift) {
-
+                        // TODO
+                    }
+                    else if (selected && !file.selected) {
+                        internal_::FileContext::select_single(context, i);
                     }
                 }
                 ImGui::EndTable();
