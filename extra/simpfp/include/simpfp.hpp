@@ -828,36 +828,50 @@ namespace simpfp {
         }
     }
 
-    inline bool PeekSelected(char *buffer, std::size_t buffer_size) {
-        if (context == nullptr)
-            return false;
+    inline int NumberSelected() {
+        if (context == nullptr || context->selected == nullptr)
+            return 0;
+        return context->selected_num;
+    }
+
+    inline const char *CurrentPath() {
+        if (context == nullptr || context->path == nullptr)
+            return nullptr;
+        return context->path->c_str();
+    }
+
+    inline const char **PeekSelected(std::size_t *const out_n) {
+        if (context == nullptr || context->selected_num <= 0)
+            return nullptr;
+
+        *out_n = context->selected_num;
 
         if (internal_::accept_dir) {
             // TODO
-            return true;
+            return nullptr;
         }
 
         // TODO
-        return false;
+        return nullptr;
     }
 
-    inline bool FilesAccepted(char *buffer, std::size_t buffer_size) {
+    inline const char **FilesAccepted(std::size_t *const out_n) {
         internal_::single = false;
-        if (context == nullptr || !context->accepted)
-            return false;
+        if (context == nullptr || context->selected_num <= 0 || !context->accepted)
+            return nullptr;
 
         context->accepted = false;
-        return true;
+        return nullptr;
     }
 
-    inline bool FileAccepted(char *buffer, std::size_t buffer_size) {
-        if (context == nullptr || !context->accepted)
-            return false;
+    inline const char *FileAccepted() {
+        if (context == nullptr || context->selected_num <= 0 || !context->accepted)
+            return nullptr;
 
         // TODO
 
         context->accepted = false;
-        return true;
+        return nullptr;
     }
 
 }

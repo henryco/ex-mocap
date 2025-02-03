@@ -93,13 +93,17 @@ namespace ex::gui {
                 simpfp::OpenFileDialog("Select a file", nullptr);
 
             if (simpfp::ShowFileDialog("Select a file", &fp_open, min_size, true)) {
-                char buffer[64] = "";
 
-                if (simpfp::PeekSelected(buffer, sizeof(buffer))) {
+                if (std::size_t n; const char **files = simpfp::PeekSelected(&n)) {
                     // TODO
                 }
 
-                if (simpfp::FileAccepted(buffer, sizeof(buffer))) {
+//                if (std::size_t n; const char **files = simpfp::FilesAccepted(&n)) {
+//                    // TODO
+//                    simpfp::CloseFileDialog();
+//                }
+
+                if (const char *file = simpfp::FileAccepted()) {
                     // TODO
                     simpfp::CloseFileDialog();
                 }
