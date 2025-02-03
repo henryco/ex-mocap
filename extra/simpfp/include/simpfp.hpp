@@ -5,21 +5,24 @@
 #ifndef SIMPFP_HPP
 #define SIMPFP_HPP
 
-#include <filesystem>
 #include <chrono>
+#include <string.h>
+#include <filesystem>
 
 namespace simpfp {
 
     namespace internal_ {
         namespace fs = std::filesystem;
 
-        #define SORT_NAME 0
-        #define SORT_SIZE 1
-        #define SORT_TYPE 2
-        #define SORT_TIME 3
+        #define SORT_NONE 0
 
-        #define SORT_ASC 0
-        #define SORT_DSC 1
+        #define SORT_NAME 1
+        #define SORT_SIZE 2
+        #define SORT_TYPE 3
+        #define SORT_TIME 4
+
+        #define SORT_ASC 1
+        #define SORT_DSC 2
 
         inline char *cpy_str(const char *str) {
             if (str == nullptr)
@@ -85,8 +88,8 @@ namespace simpfp {
             int files_num = 0;
             int dirs_num  = 0;
 
-            char sort_by   = SORT_NAME;
-            char sort_type = SORT_DSC;
+            char sort_by   = SORT_NONE;
+            char sort_type = SORT_NONE;
 
             ~FileContext() {
                 if (files != nullptr)
@@ -98,15 +101,21 @@ namespace simpfp {
             }
 
             static void load(FileContext **context, const char *path) {
-                if (*context != nullptr)
+                char sort_by   = SORT_NONE;
+                char sort_type = SORT_NONE;
+
+                if (*context != nullptr) {
+                    sort_by   = (*context)->sort_by;
+                    sort_type = (*context)->sort_type;
                     delete *context;
+                }
 
                 const auto file = new fs::path(load_path(path));
 
                 const auto new_context = new FileContext;
                 new_context->path      = file;
-                new_context->sort_by   = SORT_NAME;
-                new_context->sort_type = SORT_DSC;
+                new_context->sort_by   = sort_by;
+                new_context->sort_type = sort_type;
 
                 const int     init_dirs  = file->has_parent_path() ? 1 : 0;
                 constexpr int init_files = 0;
@@ -168,6 +177,16 @@ namespace simpfp {
                 new_context->dirs      = dirs;
 
                 *context = new_context;
+
+                if (sort_by != SORT_NONE && sort_type != SORT_NONE)
+                    FileContext::sort(*context, sort_by, sort_type);
+            }
+
+            static void sort(FileContext *context, const char by, const char order) {
+                context->sort_by   = by;
+                context->sort_type = order;
+
+                // TODO
             }
         };
 
@@ -378,6 +397,13 @@ namespace simpfp {
                 ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoHide);
                 ImGui::TableSetupColumn("Date", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoHide);
                 ImGui::TableHeadersRow();
+
+                if (const auto sp = ImGui::TableGetSortSpecs(); sp != nullptr && sp->SpecsDirty) {
+                    if (const auto cs = sp->Specs)
+                        internal_::FileContext::sort(context, (cs->ColumnIndex + 1), cs->SortDirection);
+                    sp->SpecsDirty = false;
+                }
+
                 for (int i = 0; i < context->files_num; i++) {
                     const auto &file = context->files[i];
                     bool selected = false;
