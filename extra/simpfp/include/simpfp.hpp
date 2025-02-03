@@ -433,8 +433,8 @@ namespace simpfp {
         inline const char *label      = nullptr;
         inline const char *file_path  = nullptr;
         inline bool       *open_ptr   = nullptr;
-        inline bool        closed     = false;
         inline bool        reset      = false;
+        inline bool        closed     = true;
         inline bool        resizable  = true;
         inline bool        single     = true;
         inline bool        accept_dir = false;
@@ -559,6 +559,8 @@ namespace simpfp {
         }
     }
 
+    inline internal_::FileContext *context = nullptr;
+
     inline void OpenFileDialog(
         const char *label,
         const char *default_path = nullptr,
@@ -582,6 +584,19 @@ namespace simpfp {
 //        internal_::label_remove = remove_label;
     }
 
+    inline bool FileDialogOpen() {
+        return !internal_::closed;
+    }
+
+    inline void CloseFileDialog() {
+        *internal_::open_ptr = false;
+        internal_::closed    = true;
+        if (context != nullptr) {
+            delete context;
+            context = nullptr;
+        }
+    }
+
     inline bool ShowFileDialog(const char *label, bool *open = nullptr) {
         return internal_::show_dialog(label, open);
     }
@@ -589,8 +604,6 @@ namespace simpfp {
     inline bool ShowFileDialog(const char *label, bool *open, const ImVec2 &size, const bool resize = true) {
         return internal_::show_dialog(label, open, &size, resize);
     }
-
-    inline internal_::FileContext *context = nullptr;
 
     inline void EndFileDialog() {
         if (internal_::closed) {
@@ -721,22 +734,12 @@ namespace simpfp {
 
                     selection_change = true;
 
-//                    if (!internal_::single && key_ctrl) {
-//                        internal_::FileContext::select_add(context, i);
-//                        continue;
-//                    }
-
-//                    if (!internal_::single && key_shift) {
-//                        internal_::FileContext::select_range(context, i);
-//                        continue;
-//                    }
-
-                    if (key_ctrl) {
+                    if (!internal_::single && key_ctrl) {
                         internal_::FileContext::select_add(context, i);
                         continue;
                     }
 
-                    if (key_shift) {
+                    if (!internal_::single && key_shift) {
                         internal_::FileContext::select_range(context, i);
                         continue;
                     }
@@ -845,16 +848,8 @@ namespace simpfp {
 
         // TODO
 
+        context->accepted = false;
         return true;
-    }
-
-    inline void CloseFileDialog() {
-        *internal_::open_ptr = false;
-        internal_::closed    = true;
-        if (context != nullptr) {
-            delete context;
-            context = nullptr;
-        }
     }
 
 }
