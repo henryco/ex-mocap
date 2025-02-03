@@ -7,8 +7,9 @@
 
 #include <chrono>
 #include <filesystem>
-#include <iostream>
+#include <algorithm>
 #include <string.h>
+#include <cstring>
 
 namespace simpfp {
 
@@ -60,14 +61,48 @@ namespace simpfp {
         }
 
         struct FileInfo {
-            const fs::path *path;
+            const fs::path *path     = nullptr;
+            const char     *name     = nullptr;
+            const char     *type     = nullptr;
+            const char     *time     = nullptr;
+            std::size_t     size     = 0;
+            std::size_t     date     = 0;
+            bool            selected = false;
 
-            const char *name;
-            const char *type;
-            const char *time;
-            std::size_t size;
-            std::size_t date;
-            bool        selected;
+            FileInfo() = default;
+
+            FileInfo(const FileInfo &other) {
+                this->path     = other.path != nullptr ? (new fs::path(*other.path)) : nullptr;
+                this->name     = cpy_str(other.name);
+                this->type     = cpy_str(other.type);
+                this->time     = cpy_str(other.time);
+                this->selected = other.selected;
+                this->size     = other.size;
+                this->date     = other.date;
+            }
+
+            FileInfo &operator = (const FileInfo &other) {
+                if (&other == this)
+                    return *this;
+
+                if (name != nullptr && other.name != name)
+                    delete[] name;
+                if (type != nullptr && other.type != type)
+                    delete[] type;
+                if (time != nullptr && other.time != time)
+                    delete[] time;
+                if (path != nullptr && other.path != path)
+                    delete path;
+
+                this->path     = other.path != nullptr ? (new fs::path(*other.path)) : nullptr;
+                this->name     = cpy_str(other.name);
+                this->type     = cpy_str(other.type);
+                this->time     = cpy_str(other.time);
+                this->selected = other.selected;
+                this->size     = other.size;
+                this->date     = other.date;
+                return *this;
+            }
 
             ~FileInfo() {
                 if (name != nullptr)
@@ -84,7 +119,7 @@ namespace simpfp {
         struct FileContext {
             const fs::path *path  = nullptr;
             const FileInfo *dirs  = nullptr;
-            const FileInfo *files = nullptr;
+            FileInfo       *files = nullptr;
 
             int files_num = 0;
             int dirs_num  = 0;
@@ -134,8 +169,7 @@ namespace simpfp {
                 const auto dirs  = new FileInfo[dirs_num];
 
                 if (init_dirs > 0) {
-                    dirs[0] = FileInfo();
-                    dirs[0].path = new fs::path(file->parent_path());
+                    dirs[0].path     = new fs::path(file->parent_path());
                     dirs[0].selected = false;
                     dirs[0].size     = 0;
                     dirs[0].date     = 0;
@@ -148,7 +182,6 @@ namespace simpfp {
                 for (const auto &entry : fs::directory_iterator(*file)) {
                     const auto ep = new fs::path(entry.path());
                     if (entry.is_directory()) {
-                        dirs[d_]          = FileInfo();
                         dirs[d_].path     = ep;
                         dirs[d_].name     = cpy_str(ep->filename().c_str());
                         dirs[d_].type     = new char[]{""};
@@ -160,7 +193,7 @@ namespace simpfp {
                     }
                     else if (entry.is_regular_file()) {
                         const auto time_entry = fs::last_write_time(entry);
-                        files[f_]          = FileInfo();
+
                         files[f_].path     = ep;
                         files[f_].type     = cpy_str(ep->has_extension() ? ep->extension().c_str() : new char[]{""});
                         files[f_].name     = cpy_str(ep->filename().c_str());
@@ -187,7 +220,65 @@ namespace simpfp {
                 context->sort_by   = by;
                 context->sort_type = order;
 
-                // TODO
+                if (by <= 0 || order <= 0)
+                    return;
+
+                if (by == SORT_NAME) {
+                    if (order == SORT_ASC) {
+                        std::sort(context->files, context->files + context->files_num,
+                        [] (const FileInfo &a, const FileInfo &b) {
+                            return std::strcmp(a.name, b.name) < 0;
+                        });
+                    } else {
+                        std::sort(context->files, context->files + context->files_num,
+                        [] (const FileInfo &a, const FileInfo &b) {
+                            return std::strcmp(a.name, b.name) > 0;
+                        });
+                    }
+                }
+
+                else if (by == SORT_TYPE) {
+                    if (order == SORT_ASC) {
+                        std::sort(context->files, context->files + context->files_num,
+                        [] (const FileInfo &a, const FileInfo &b) {
+                            return std::strcmp(a.type, b.type) < 0;
+                        });
+                    } else {
+                        std::sort(context->files, context->files + context->files_num,
+                        [] (const FileInfo &a, const FileInfo &b) {
+                            return std::strcmp(a.type, b.type) > 0;
+                        });
+                    }
+                }
+
+                else if (by == SORT_SIZE) {
+                    if (order == SORT_ASC) {
+                        std::sort(context->files, context->files + context->files_num,
+                        [] (const FileInfo &a, const FileInfo &b) {
+                            return a.size < b.size;
+                        });
+                    } else {
+                        std::sort(context->files, context->files + context->files_num,
+                        [] (const FileInfo &a, const FileInfo &b) {
+                            return a.size > b.size;
+                        });
+                    }
+                }
+
+                else if (by == SORT_TIME) {
+                    if (order == SORT_ASC) {
+                        std::sort(context->files, context->files + context->files_num,
+                        [] (const FileInfo &a, const FileInfo &b) {
+                            return a.date < b.date;
+                        });
+                    } else {
+                        std::sort(context->files, context->files + context->files_num,
+                        [] (const FileInfo &a, const FileInfo &b) {
+                            return a.date > b.date;
+                        });
+                    }
+                }
+
             }
         };
 
