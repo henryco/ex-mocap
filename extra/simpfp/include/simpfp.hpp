@@ -6,34 +6,61 @@
 #define SIMPFP_HPP
 
 #include <filesystem>
+#include <chrono>
 
 namespace simpfp {
 
     namespace internal_ {
+        namespace fs = std::filesystem;
 
-        inline std::filesystem::path load_path(const char *file) {
-            if (file == nullptr)
-                return std::filesystem::current_path();
-            const auto path = std::filesystem::path(file);
-            if (std::filesystem::exists(path))
-                return std::filesystem::is_directory(path) ? path : path.parent_path();
-            return std::filesystem::current_path();
-        }
+        #define SORT_NAME 0
+        #define SORT_SIZE 1
+        #define SORT_TYPE 2
+        #define SORT_TIME 3
+
+        #define SORT_ASC 0
+        #define SORT_DSC 1
 
         inline char *cpy_str(const char *str) {
             if (str == nullptr)
                 return nullptr;
             const auto len  = std::strlen(str);
-            char *buff = new char[len + 1];
+            auto *buff = new char[len + 1];
             std::strcpy(buff, str);
             return buff;
         }
 
+        inline fs::path load_path(const char *file) {
+            if (file == nullptr)
+                return fs::current_path();
+            const auto path = fs::path(file);
+            if (fs::exists(path))
+                return fs::is_directory(path) ? path : path.parent_path();
+            return fs::current_path();
+        }
+
+        inline char* format_time(const fs::file_time_type& ftime) {
+            const auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+                    ftime - fs::file_time_type::clock::now() + std::chrono::system_clock::now());
+            const auto tt = std::chrono::system_clock::to_time_t(sctp);
+            const auto gmt = std::localtime(&tt);
+            char buffer[20];
+            std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", gmt);
+            return cpy_str(buffer);
+        }
+
+        inline std::size_t get_unix_timestamp_ms(const fs::file_time_type& ftime) {
+            const auto sctp = std::chrono::time_point_cast<std::chrono::milliseconds>(
+                ftime - fs::file_time_type::clock::now() + std::chrono::system_clock::now());
+            return static_cast<std::size_t>(sctp.time_since_epoch().count());
+        }
+
         struct FileInfo {
-            const std::filesystem::path *path;
+            const fs::path *path;
 
             const char *name;
             const char *type;
+            const char *time;
             std::size_t size;
             std::size_t date;
             bool        selected;
@@ -42,22 +69,24 @@ namespace simpfp {
                 if (path != nullptr)
                     delete path;
                 if (name != nullptr)
-                    delete name;
+                    delete[] name;
                 if (type != nullptr)
-                    delete type;
+                    delete[] type;
+                if (time != nullptr)
+                    delete[] time;
             }
         };
 
         struct FileContext {
-            const std::filesystem::path *path = nullptr;
-
+            const fs::path *path  = nullptr;
             const FileInfo *files = nullptr;
             const FileInfo *dirs  = nullptr;
 
             int files_num = 0;
             int dirs_num  = 0;
-            char sort_by  = 0;
-            bool sort_asc = false;
+
+            char sort_by   = SORT_NAME;
+            char sort_type = SORT_DSC;
 
             ~FileContext() {
                 if (files != nullptr)
@@ -72,16 +101,16 @@ namespace simpfp {
                 if (*context != nullptr)
                     delete *context;
 
-                const auto file = new std::filesystem::path(load_path(path));
+                const auto file = new fs::path(load_path(path));
 
                 const auto new_context = new FileContext;
                 new_context->path      = file;
-                new_context->sort_by   = 0;
-                new_context->sort_asc  = false;
+                new_context->sort_by   = SORT_NAME;
+                new_context->sort_type = SORT_DSC;
 
                 int dirs_num  = 1;
                 int files_num = 0;
-                for (const auto &entry : std::filesystem::directory_iterator(*file)) {
+                for (const auto &entry : fs::directory_iterator(*file)) {
                     if (entry.is_directory())
                         dirs_num++;
                     else if (entry.is_regular_file())
@@ -92,34 +121,38 @@ namespace simpfp {
                 const auto dirs  = new FileInfo[dirs_num];
 
                 dirs[0] = FileInfo();
-                dirs[0].path = new std::filesystem::path(file->parent_path());
+                dirs[0].path = new fs::path(file->parent_path());
                 dirs[0].selected = false;
                 dirs[0].size     = 0;
                 dirs[0].date     = 0;
-                dirs[0].name     = cpy_str("..");
-                dirs[0].type     = cpy_str("..");
+                dirs[0].name     = new char[]{".."};
+                dirs[0].type     = new char[]{".."};
+                dirs[0].time     = new char[]{".."};
 
                 int d_ = 1, f_ = 0;
-                for (const auto &entry : std::filesystem::directory_iterator(*file)) {
-                    const auto ep = new std::filesystem::path(entry.path());
+                for (const auto &entry : fs::directory_iterator(*file)) {
+                    const auto ep = new fs::path(entry.path());
                     if (entry.is_directory()) {
                         dirs[d_]          = FileInfo();
                         dirs[d_].path     = ep;
                         dirs[d_].name     = cpy_str(ep->filename().c_str());
-                        dirs[d_].type     = cpy_str("");
+                        dirs[d_].type     = new char[]{""};
+                        dirs[d_].time     = new char[]{""};
                         dirs[d_].selected = false;
                         dirs[d_].size     = 0;
                         dirs[d_].date     = 0;
                         d_++;
                     }
                     else if (entry.is_regular_file()) {
+                        const auto time_entry = fs::last_write_time(entry);
                         files[f_]          = FileInfo();
                         files[f_].path     = ep;
-                        files[f_].type     = cpy_str(ep->has_extension() ? ep->extension().c_str() : "");
+                        files[f_].type     = cpy_str(ep->has_extension() ? ep->extension().c_str() : new char[]{""});
                         files[f_].name     = cpy_str(ep->filename().c_str());
+                        files[f_].date     = get_unix_timestamp_ms(time_entry);
+                        files[f_].time     = format_time(time_entry);
                         files[f_].size     = entry.file_size();
                         files[f_].selected = false;
-                        files[f_].date     = 0;
                         f_++;
                     }
                 }
@@ -329,13 +362,16 @@ namespace simpfp {
             ImGui::SameLine();
 
             ImGui::BeginChild("##region_files", ImVec2(free_x_des, -reserve_y), ImGuiChildFlags_Borders);
-            if (ImGui::BeginTable("##files_table", 4,
-                ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_Sortable)) {
 
-                ImGui::TableSetupColumn("File", ImGuiTableColumnFlags_WidthFixed);
-                ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed);
-                ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed);
-                ImGui::TableSetupColumn("Date", ImGuiTableColumnFlags_WidthFixed);
+            ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(10.0f, 3.0f));
+            if (ImGui::BeginTable("##files_table", 4,
+                ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_Sortable |
+                ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit)) {
+
+                ImGui::TableSetupColumn(" File", ImGuiTableColumnFlags_WidthStretch, 0.35f);
+                ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoHide);
+                ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoHide);
+                ImGui::TableSetupColumn("Date", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoHide);
                 ImGui::TableHeadersRow();
                 for (int i = 0; i < context->files_num; i++) {
                     const auto &file = context->files[i];
@@ -346,6 +382,7 @@ namespace simpfp {
                     ImGui::TableNextRow();
 
                     ImGui::TableNextColumn();
+                    ImGui::SameLine(0, 5);
                     ImGui::Selectable(file.name, &selected, ImGuiSelectableFlags_SpanAllColumns);
 
                     ImGui::TableNextColumn();
@@ -355,7 +392,9 @@ namespace simpfp {
                     ImGui::Text("%s", file.type);
 
                     ImGui::TableNextColumn();
-                    ImGui::Text("%s", "DATE"); // TODO
+                    ImGui::Text("%s", file.time);
+                    ImGui::SameLine(0, 5);
+                    ImGui::TextDisabled(" ");
 
                     ImGui::PopID();
 
@@ -365,6 +404,7 @@ namespace simpfp {
                 }
                 ImGui::EndTable();
             }
+            ImGui::PopStyleVar();
             ImGui::EndChild();
 
             static char buffer[128] = "some path";
