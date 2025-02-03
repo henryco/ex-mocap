@@ -6,8 +6,9 @@
 #define SIMPFP_HPP
 
 #include <chrono>
-#include <string.h>
 #include <filesystem>
+#include <iostream>
+#include <string.h>
 
 namespace simpfp {
 
@@ -377,7 +378,7 @@ namespace simpfp {
                 ImGui::PopID();
 
                 if (selected) {
-                    // TODO
+                    internal_::FileContext::load(&context, internal_::fs::absolute(*dir.path).c_str());
                 }
             }
 
