@@ -333,6 +333,7 @@ namespace simpfp {
         inline bool        closed    = false;
         inline bool        reset     = false;
         inline bool        resizable = true;
+        inline bool        single    = true;
 
         inline bool show_dialog(const char *label, bool *open = nullptr, const ImVec2 *size = nullptr, const bool resizable = true) {
             if (open != nullptr && !*open) {
@@ -341,6 +342,7 @@ namespace simpfp {
                 internal_::reset     = false;
                 internal_::closed    = true;
                 internal_::resizable = true;
+                internal_::single    = true;
                 return false;
             }
 
@@ -350,6 +352,7 @@ namespace simpfp {
                 internal_::reset     = false;
                 internal_::closed    = true;
                 internal_::resizable = true;
+                internal_::single    = true;
                 return false;
             }
 
@@ -443,11 +446,12 @@ namespace simpfp {
         }
     }
 
-    inline void OpenFileDialog(const char *label, const char *default_path = nullptr) {
+    inline void OpenFileDialog(const char *label, const char *default_path = nullptr, const bool multi_select = false) {
         internal_::open_ptr  = nullptr;
         internal_::closed    = false;
         internal_::reset     = true;
         internal_::label     = label;
+        internal_::single    = !multi_select;
         internal_::file_path = default_path;
     }
 
