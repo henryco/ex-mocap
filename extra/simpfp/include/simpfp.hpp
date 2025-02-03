@@ -162,17 +162,21 @@ namespace simpfp {
         };
 
         struct FileContext {
-            const fs::path *path  = nullptr;
-            const FileInfo *dirs  = nullptr;
-            FileInfo       *files = nullptr;
+            const fs::path *path     = nullptr;
+            const FileInfo *dirs     = nullptr;
+            FileInfo       *files    = nullptr;
+            FileInfo      **selected = nullptr;
 
-            int files_num = 0;
-            int dirs_num  = 0;
+            int selected_num = 0;
+            int files_num    = 0;
+            int dirs_num     = 0;
 
             char sort_by   = SORT_NONE;
             char sort_type = SORT_NONE;
 
             ~FileContext() {
+                if (selected != nullptr)
+                    delete[] selected;
                 if (files != nullptr)
                     delete[] files;
                 if (dirs != nullptr)
@@ -259,6 +263,22 @@ namespace simpfp {
 
                 if (sort_by != SORT_NONE && sort_type != SORT_NONE)
                     FileContext::sort(*context, sort_by, sort_type);
+            }
+
+            static void select_single(FileContext *context, const int index) {
+                for (int c = 0; c < context->files_num; c++)
+                    context->files[c].selected = false;
+                context->files[index].selected = true;
+
+                if (context->selected != nullptr && context->selected_num == 1) {
+                    context->selected[0] = &context->files[index];
+                    return;
+                }
+
+                if (context->selected != nullptr)
+                    delete[] context->selected;
+                context->selected     = new FileInfo *[1]{ &context->files[index] };
+                context->selected_num = 1;
             }
 
             static void sort(FileContext *context, const char by, const char order) {
@@ -571,9 +591,7 @@ namespace simpfp {
                     ImGui::PopID();
 
                     if (internal_::single && selected && !file.selected) {
-                        for (int c = 0; c < context->files_num; c++)
-                            context->files[c].selected = false;
-                        file.selected = true;
+                        internal_::FileContext::select_single(context, i);
                     }
                     else if (!internal_::single && selected != file.selected && ImGui::GetIO().KeyCtrl) {
 
