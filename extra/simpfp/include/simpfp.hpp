@@ -5,11 +5,12 @@
 #ifndef SIMPFP_HPP
 #define SIMPFP_HPP
 
-#include <chrono>
-#include <filesystem>
 #include <algorithm>
-#include <string.h>
+#include <chrono>
 #include <cstring>
+#include <filesystem>
+#include <iostream>
+#include <string.h>
 
 namespace simpfp {
 
@@ -67,6 +68,7 @@ namespace simpfp {
             const char     *time     = nullptr;
             std::size_t     size     = 0;
             std::size_t     date     = 0;
+            int             index    = 0;
             bool            selected = false;
 
             FileInfo() = default;
@@ -220,6 +222,7 @@ namespace simpfp {
                 if (init_dirs > 0) {
                     dirs[0].path     = new fs::path(file->parent_path());
                     dirs[0].selected = false;
+                    dirs[0].index    = 0;
                     dirs[0].size     = 0;
                     dirs[0].date     = 0;
                     dirs[0].name     = new char[]{".."};
@@ -238,6 +241,7 @@ namespace simpfp {
                         dirs[d_].selected = false;
                         dirs[d_].size     = 0;
                         dirs[d_].date     = 0;
+                        dirs[d_].index    = d_;
                         d_++;
                     }
                     else if (entry.is_regular_file()) {
@@ -250,6 +254,7 @@ namespace simpfp {
                         files[f_].time     = format_time(time_entry);
                         files[f_].size     = entry.file_size();
                         files[f_].selected = false;
+                        files[f_].index    = f_;
                         f_++;
                     }
                 }
@@ -266,6 +271,9 @@ namespace simpfp {
             }
 
             static void select_single(FileContext *context, const int index) {
+                if (context->selected_num == 1 && context->files[index].selected)
+                    return;
+
                 for (int c = 0; c < context->files_num; c++)
                     context->files[c].selected = false;
                 context->files[index].selected = true;
@@ -279,6 +287,45 @@ namespace simpfp {
                     delete[] context->selected;
                 context->selected     = new FileInfo *[1]{ &context->files[index] };
                 context->selected_num = 1;
+            }
+
+            static void select_range(FileContext *context, const int index) {
+
+                std::cout << "range: " << index << '\n';
+                if (context->selected == nullptr || context->selected_num <= 0) {
+                    if (context->selected != nullptr)
+                        delete[] context->selected;
+                    context->selected     = new FileInfo *[1]{ &context->files[index] };
+                    context->selected_num = 1;
+                    return;
+                }
+
+                const int idx_min = context->selected[0]->index;
+                const int idx_max = context->selected[context->selected_num - 1]->index;
+
+                const int idx_st = std::min(idx_min, index);
+                const int idx_ed = std::max(idx_max, index);
+                const int size   = idx_ed - idx_min + 1;
+
+                if (size == 1) {
+                    select_single(context, index);
+                    return;
+                }
+
+                if (context->selected_num != size)
+                    delete[] context->selected;
+
+                context->selected     = new FileInfo *[size];
+                context->selected_num = size;
+
+                for (int c = 0, k = 0; c < context->files_num; c++) {
+                    if (c >= idx_st && c <= idx_ed) {
+                        context->files[c].selected = true;
+                        context->selected[k++]     = &context->files[c];
+                        continue;
+                    }
+                    context->files[c].selected = false;
+                }
             }
 
             static void sort(FileContext *context, const char by, const char order) {
@@ -566,7 +613,7 @@ namespace simpfp {
                 }
 
                 for (int i = 0; i < context->files_num; i++) {
-                    auto &file = context->files[i];
+                    const auto &file = context->files[i];
                     bool selected = file.selected;
 
                     ImGui::PushID(i);
@@ -575,7 +622,7 @@ namespace simpfp {
 
                     ImGui::TableNextColumn();
                     ImGui::SameLine(0, 5);
-                    ImGui::Selectable(file.name, &selected, ImGuiSelectableFlags_SpanAllColumns);
+                    ImGui::Selectable(file.name, &selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
 
                     ImGui::TableNextColumn();
                     ImGui::Text("%lu", file.size);
@@ -590,24 +637,28 @@ namespace simpfp {
 
                     ImGui::PopID();
 
+                    const bool key_shift = ImGui::IsItemFocused() && ImGui::IsKeyPressed(ImGuiKey_LeftShift);
+                    const bool key_ctrl  = ImGui::IsItemFocused() && ImGui::IsKeyPressed(ImGuiKey_LeftCtrl);
+
                     if (selected == file.selected)
                         continue;
 
-                    if (!internal_::single && ImGui::GetIO().KeyCtrl) {
+                    if (!internal_::single && (key_ctrl || ImGui::GetIO().KeyCtrl)) {
                         // TODO
-
                         continue;
                     }
 
-                    if (!internal_::single && ImGui::GetIO().KeyShift) {
-                        // TODO
+//                    if (!internal_::single && (key_shift || ImGui::GetIO().KeyShift)) {
+//                        internal_::FileContext::select_range(context, i);
+//                        continue;
+//                    }
 
+                    if (key_shift || ImGui::GetIO().KeyShift) {
+                        internal_::FileContext::select_range(context, i);
                         continue;
                     }
 
-                    if (selected && !file.selected) {
-                        internal_::FileContext::select_single(context, i);
-                    }
+                    internal_::FileContext::select_single(context, i);
                 }
                 ImGui::EndTable();
             }
