@@ -79,8 +79,8 @@ namespace simpfp {
 
         struct FileContext {
             const fs::path *path  = nullptr;
-            const FileInfo *files = nullptr;
             const FileInfo *dirs  = nullptr;
+            const FileInfo *files = nullptr;
 
             int files_num = 0;
             int dirs_num  = 0;
