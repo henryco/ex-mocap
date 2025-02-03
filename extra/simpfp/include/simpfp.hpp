@@ -865,13 +865,22 @@ namespace simpfp {
     }
 
     inline const char *FileAccepted() {
-        if (context == nullptr || context->selected_num <= 0 || !context->accepted)
+        if (context == nullptr || !context->accepted)
             return nullptr;
 
-        // TODO
-
         context->accepted = false;
-        return nullptr;
+
+        if (context->selected == nullptr || context->selected_num <= 0) {
+            if (std::strlen(context->buffer) <= 0)
+                return internal_::accept_dir ? context->path->c_str() : nullptr;
+
+            // TODO mem-leak
+            return (new internal_::fs::path(internal_::fs::absolute(*context->path / context->buffer)))->c_str();
+        }
+
+        const auto first = context->selected[0];
+        // TODO mem-leak
+        return (new internal_::fs::path(internal_::fs::absolute(first->path->parent_path() / context->buffer)))->c_str();
     }
 
 }

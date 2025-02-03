@@ -6,6 +6,9 @@
 #include "../../headers/imgui/gui_globals.h"
 
 // TODO REMOVE
+#include <iostream>
+
+
 #include "../../../extra/simpfp/include/simpfp.hpp"
 // TODO REMOVE
 
@@ -105,6 +108,7 @@ namespace ex::gui {
 
                 if (const char *file = simpfp::FileAccepted()) {
                     // TODO
+                    std::cout << "accepted: " << file << '\n';
                     simpfp::CloseFileDialog();
                 }
 
