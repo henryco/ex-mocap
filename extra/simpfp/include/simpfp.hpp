@@ -578,6 +578,18 @@ namespace simpfp {
             const bool key_shift = ImGui::IsKeyPressed(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_LeftShift);
             const bool key_ctrl  = ImGui::IsKeyPressed(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_LeftCtrl);
 
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsKeyDown(ImGuiKey_Escape)) {
+                *internal_::open_ptr = false;
+                internal_::closed    = true;
+                ImGui::CloseCurrentPopup();
+                ImGui::EndPopup();
+                if (context != nullptr) {
+                    delete context;
+                    context = nullptr;
+                }
+                return;
+            }
+
             ImGui::Spacing();
             ImGui::Text("%s", context->path->c_str());
             ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize("*").x
