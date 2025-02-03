@@ -289,9 +289,12 @@ namespace simpfp {
                 context->selected_num = 1;
             }
 
-            static void select_range(FileContext *context, const int index) {
+            static void select_add(FileContext *context, const int index) {
+                // TODO
+                std::cout << "add" << '\n';
+            }
 
-                std::cout << "range: " << index << '\n';
+            static void select_range(FileContext *context, const int index) {
                 if (context->selected == nullptr || context->selected_num <= 0) {
                     if (context->selected != nullptr)
                         delete[] context->selected;
@@ -305,7 +308,7 @@ namespace simpfp {
 
                 const int idx_st = std::min(idx_min, index);
                 const int idx_ed = std::max(idx_max, index);
-                const int size   = idx_ed - idx_min + 1;
+                const int size   = idx_ed - idx_st + 1;
 
                 if (size == 1) {
                     select_single(context, index);
@@ -572,8 +575,14 @@ namespace simpfp {
             const float free_x_uno = free_x * ratio;
             const float free_x_des = free_x * (1.f - ratio);
 
+            const bool key_shift = ImGui::IsKeyPressed(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_LeftShift);
+            const bool key_ctrl  = ImGui::IsKeyPressed(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_LeftCtrl);
+
             ImGui::Spacing();
             ImGui::Text("%s", context->path->c_str());
+            ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize("*").x
+                - ImGui::GetStyle().FramePadding.x - ImGui::GetStyle().ItemSpacing.x);
+            ImGui::TextDisabled("%s", (key_shift || key_ctrl) ? "*" : "");
 
             ImGui::BeginChild("##region_dirs", ImVec2(free_x_uno, -reserve_y), ImGuiChildFlags_Borders);
 
@@ -637,23 +646,25 @@ namespace simpfp {
 
                     ImGui::PopID();
 
-                    const bool key_shift = ImGui::IsItemFocused() && ImGui::IsKeyPressed(ImGuiKey_LeftShift);
-                    const bool key_ctrl  = ImGui::IsItemFocused() && ImGui::IsKeyPressed(ImGuiKey_LeftCtrl);
-
                     if (selected == file.selected)
                         continue;
 
-                    if (!internal_::single && (key_ctrl || ImGui::GetIO().KeyCtrl)) {
-                        // TODO
-                        continue;
-                    }
+//                    if (!internal_::single && key_ctrl) {
+//                        internal_::FileContext::select_add(context, i);
+//                        continue;
+//                    }
 
-//                    if (!internal_::single && (key_shift || ImGui::GetIO().KeyShift)) {
+//                    if (!internal_::single && key_shift) {
 //                        internal_::FileContext::select_range(context, i);
 //                        continue;
 //                    }
 
-                    if (key_shift || ImGui::GetIO().KeyShift) {
+                    if (key_ctrl) {
+                        internal_::FileContext::select_add(context, i);
+                        continue;
+                    }
+
+                    if (key_shift) {
                         internal_::FileContext::select_range(context, i);
                         continue;
                     }
