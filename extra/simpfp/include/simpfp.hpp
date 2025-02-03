@@ -170,6 +170,9 @@ namespace simpfp {
         };
 
         struct FileContext {
+            static constexpr std::size_t buffer_size = 256;
+            char                        *buffer      = new char[buffer_size]{};
+
             const fs::path *path     = nullptr;
             const FileInfo *dirs     = nullptr;
             FileInfo       *files    = nullptr;
@@ -182,6 +185,8 @@ namespace simpfp {
             char sort_by   = SORT_NONE;
             char sort_type = SORT_NONE;
 
+            bool accepted = false;
+
             ~FileContext() {
                 if (selected != nullptr)
                     delete[] selected;
@@ -191,6 +196,8 @@ namespace simpfp {
                     delete[] dirs;
                 if (path != nullptr)
                     delete path;
+                if (buffer != nullptr)
+                    delete[] buffer;
             }
 
             static void load(FileContext **context, const char *path) {
@@ -583,9 +590,9 @@ namespace simpfp {
         return internal_::show_dialog(label, open, &size, resize);
     }
 
-    inline void EndFileDialog() {
-        static internal_::FileContext *context = nullptr;
+    inline internal_::FileContext *context = nullptr;
 
+    inline void EndFileDialog() {
         if (internal_::closed) {
             if (internal_::open_ptr != nullptr)
                 *internal_::open_ptr = false;
@@ -741,15 +748,15 @@ namespace simpfp {
             ImGui::PopStyleVar();
             ImGui::EndChild();
 
-            static char buffer[256];
-            constexpr std::size_t max_len = sizeof(buffer) - 1;
+            char                 *buffer  = context->buffer;
+            constexpr std::size_t max_len = internal_::FileContext::buffer_size - 1;
 
             if (selection_change) {
-                std::memset(buffer, 0, sizeof(buffer));
+                std::memset(buffer, 0, internal_::FileContext::buffer_size);
 
                 if (context->selected != nullptr && context->selected_num == 1) {
                     const auto str_src = context->selected[0]->name;
-                    std::strncpy(buffer, str_src, std::min(sizeof(buffer) - 1, std::strlen(str_src)));
+                    std::strncpy(buffer, str_src, std::min(max_len, std::strlen(str_src)));
                 }
 
                 else if (context->selected != nullptr && context->selected_num > 1) {
@@ -765,7 +772,7 @@ namespace simpfp {
             if (context->selected_num > 1)
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
             ImGui::BeginDisabled(context->selected_num > 1);
-            internal_::full_width_input(buffer, IM_ARRAYSIZE(buffer));
+            internal_::full_width_input(buffer, max_len);
             ImGui::EndDisabled();
             if (context->selected_num > 1)
                 ImGui::PopStyleVar();
@@ -797,14 +804,12 @@ namespace simpfp {
 
             if (create) {
                 // TODO
-
                 ImGui::EndPopup();
                 return;
             }
 
             if (accept) {
-                // TODO
-
+                context->accepted = true;
                 ImGui::EndPopup();
                 return;
             }
@@ -822,20 +827,34 @@ namespace simpfp {
     }
 
     inline bool FileSelected(char *buffer, std::size_t buffer_size) {
+        if (context == nullptr)
+            return false;
+
+        if (internal_::accept_dir) {
+            // TODO
+            return true;
+        }
+
         // TODO
-        return true;
+        return false;
     }
 
     inline bool FileAccepted(char *buffer, std::size_t buffer_size) {
+        if (context == nullptr || !context->accepted)
+            return false;
+
         // TODO
+
         return true;
     }
 
     inline void CloseFileDialog() {
         *internal_::open_ptr = false;
         internal_::closed    = true;
-        ImGui::CloseCurrentPopup();
-        ImGui::EndPopup();
+        if (context != nullptr) {
+            delete context;
+            context = nullptr;
+        }
     }
 
 }

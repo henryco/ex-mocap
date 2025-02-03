@@ -93,11 +93,12 @@ namespace ex::gui {
                 char buffer[64] = "";
 
                 if (simpfp::FileSelected(buffer, sizeof(buffer))) {
-
+                    // TODO
                 }
 
                 if (simpfp::FileAccepted(buffer, sizeof(buffer))) {
-
+                    // TODO
+                    simpfp::CloseFileDialog();
                 }
 
                 simpfp::EndFileDialog();
