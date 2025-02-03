@@ -452,10 +452,6 @@ namespace simpfp {
         }
     }
 
-    inline void SelectFile(const char *file) {
-        // TODO
-    }
-
     inline bool FileSelected(char *buffer, std::size_t buffer_size) {
         // TODO
         return true;
