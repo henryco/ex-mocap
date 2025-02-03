@@ -564,20 +564,19 @@ namespace simpfp {
     inline void OpenFileDialog(
         const char *label,
         const char *default_path = nullptr,
-        const bool multi_select  = false,
         const bool accept_dir    = false,
         const char *accept_label = "Select",
         const char *cancel_label = "Cancel",
         const char *create_label = "New Folder"
 //        const char *remove_label = "Delete Folder"
     ) {
-        internal_::open_ptr   = nullptr;
-        internal_::closed     = false;
-        internal_::reset      = true;
-        internal_::label      = label;
-        internal_::single     = !multi_select;
-        internal_::accept_dir = accept_dir;
-        internal_::file_path  = default_path;
+        internal_::open_ptr     = nullptr;
+        internal_::closed       = false;
+        internal_::single       = true;
+        internal_::reset        = true;
+        internal_::label        = label;
+        internal_::accept_dir   = accept_dir;
+        internal_::file_path    = default_path;
         internal_::label_accept = accept_label;
         internal_::label_cancel = cancel_label;
         internal_::label_create = create_label;
@@ -840,6 +839,15 @@ namespace simpfp {
 
         // TODO
         return false;
+    }
+
+    inline bool FilesAccepted(char *buffer, std::size_t buffer_size) {
+        internal_::single = false;
+        if (context == nullptr || !context->accepted)
+            return false;
+
+        context->accepted = false;
+        return true;
     }
 
     inline bool FileAccepted(char *buffer, std::size_t buffer_size) {
