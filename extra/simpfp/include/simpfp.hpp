@@ -547,7 +547,7 @@ namespace simpfp {
 
                 for (int i = 0; i < context->files_num; i++) {
                     auto &file = context->files[i];
-                    bool *selected = &file.selected;
+                    bool selected = file.selected;
 
                     ImGui::PushID(i);
 
@@ -555,7 +555,7 @@ namespace simpfp {
 
                     ImGui::TableNextColumn();
                     ImGui::SameLine(0, 5);
-                    ImGui::Selectable(file.name, selected, ImGuiSelectableFlags_SpanAllColumns);
+                    ImGui::Selectable(file.name, &selected, ImGuiSelectableFlags_SpanAllColumns);
 
                     ImGui::TableNextColumn();
                     ImGui::Text("%lu", file.size);
@@ -570,8 +570,16 @@ namespace simpfp {
 
                     ImGui::PopID();
 
-                    if (selected) {
-                        // TODO
+                    if (internal_::single && selected && !file.selected) {
+                        for (int c = 0; c < context->files_num; c++)
+                            context->files[c].selected = false;
+                        file.selected = true;
+                    }
+                    else if (!internal_::single && selected != file.selected && ImGui::GetIO().KeyCtrl) {
+
+                    }
+                    else if (!internal_::single && selected != file.selected && ImGui::GetIO().KeyShift) {
+
                     }
                 }
                 ImGui::EndTable();
