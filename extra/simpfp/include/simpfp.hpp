@@ -108,8 +108,11 @@ namespace simpfp {
                 new_context->sort_by   = SORT_NAME;
                 new_context->sort_type = SORT_DSC;
 
-                int dirs_num  = 1;
-                int files_num = 0;
+                const int     init_dirs  = file->has_parent_path() ? 1 : 0;
+                constexpr int init_files = 0;
+
+                int dirs_num  = init_dirs;
+                int files_num = init_files;
                 for (const auto &entry : fs::directory_iterator(*file)) {
                     if (entry.is_directory())
                         dirs_num++;
@@ -120,16 +123,18 @@ namespace simpfp {
                 const auto files = new FileInfo[files_num];
                 const auto dirs  = new FileInfo[dirs_num];
 
-                dirs[0] = FileInfo();
-                dirs[0].path = new fs::path(file->parent_path());
-                dirs[0].selected = false;
-                dirs[0].size     = 0;
-                dirs[0].date     = 0;
-                dirs[0].name     = new char[]{".."};
-                dirs[0].type     = new char[]{".."};
-                dirs[0].time     = new char[]{".."};
+                if (init_dirs > 0) {
+                    dirs[0] = FileInfo();
+                    dirs[0].path = new fs::path(file->parent_path());
+                    dirs[0].selected = false;
+                    dirs[0].size     = 0;
+                    dirs[0].date     = 0;
+                    dirs[0].name     = new char[]{".."};
+                    dirs[0].type     = new char[]{".."};
+                    dirs[0].time     = new char[]{".."};
+                }
 
-                int d_ = 1, f_ = 0;
+                int d_ = init_dirs, f_ = init_files;
                 for (const auto &entry : fs::directory_iterator(*file)) {
                     const auto ep = new fs::path(entry.path());
                     if (entry.is_directory()) {
