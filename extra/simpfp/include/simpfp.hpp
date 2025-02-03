@@ -636,6 +636,7 @@ namespace simpfp {
 
             ImGui::BeginChild("##region_files", ImVec2(free_x_des, -reserve_y), ImGuiChildFlags_Borders);
 
+            bool selection_change = false;
             ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(10.0f, 3.0f));
             if (ImGui::BeginTable("##files_table", 4,
                 ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_Sortable |
@@ -681,6 +682,8 @@ namespace simpfp {
                     if (selected == file.selected)
                         continue;
 
+                    selection_change = true;
+
 //                    if (!internal_::single && key_ctrl) {
 //                        internal_::FileContext::select_add(context, i);
 //                        continue;
@@ -708,8 +711,29 @@ namespace simpfp {
             ImGui::PopStyleVar();
             ImGui::EndChild();
 
-            static char buffer[128] = "some path";
+            static char buffer[256];
+
+            if (selection_change) {
+                std::memset(buffer, 0, sizeof(buffer));
+                if (context->selected != nullptr && context->selected_num == 1) {
+                    const auto str_src = context->selected[0]->name;
+                    std::strncpy(buffer, str_src, std::min(sizeof(buffer) - 1, std::strlen(str_src)));
+                }
+                else if (context->selected != nullptr && context->selected_num > 1) {
+                    std::size_t total = 0;
+                    for (int k = 0; k < context->selected_num - 1; k++) {
+                        const auto str_src = context->selected[k]->name;
+                        const auto std_len = std::strlen(str_src);
+                        // TODO
+                        total += std_len;
+                    }
+                }
+            }
+
+            ImGui::BeginDisabled(context->selected_num > 1);
             internal_::full_width_input(buffer, IM_ARRAYSIZE(buffer));
+            ImGui::EndDisabled();
+
             ImGui::Spacing();
 
             bool create = false;
