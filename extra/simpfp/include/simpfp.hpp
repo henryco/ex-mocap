@@ -9,7 +9,6 @@
 #include <chrono>
 #include <cstring>
 #include <filesystem>
-#include <iostream>
 #include <string.h>
 
 namespace simpfp {
@@ -424,32 +423,42 @@ namespace simpfp {
             }
         };
 
-        inline const char *label     = nullptr;
-        inline const char *file_path = nullptr;
-        inline bool       *open_ptr  = nullptr;
-        inline bool        closed    = false;
-        inline bool        reset     = false;
-        inline bool        resizable = true;
-        inline bool        single    = true;
+        inline const char *label      = nullptr;
+        inline const char *file_path  = nullptr;
+        inline bool       *open_ptr   = nullptr;
+        inline bool        closed     = false;
+        inline bool        reset      = false;
+        inline bool        resizable  = true;
+        inline bool        single     = true;
+        inline bool        accept_dir = false;
+
+        inline auto label_accept = "Select";
+        inline auto label_cancel = "Cancel";
+        inline auto label_create = "New Folder";
+        inline auto label_remove = "Delete Folder";
+
+        inline void reset_vars() {
+            internal_::open_ptr   = nullptr;
+            internal_::label      = nullptr;
+            internal_::reset      = false;
+            internal_::closed     = true;
+            internal_::resizable  = true;
+            internal_::single     = true;
+            internal_::accept_dir = false;
+            internal_::label_accept = "Select";
+            internal_::label_cancel = "Cancel";
+            internal_::label_create = "New Folder";
+            internal_::label_remove = "Delete Folder";
+        }
 
         inline bool show_dialog(const char *label, bool *open = nullptr, const ImVec2 *size = nullptr, const bool resizable = true) {
             if (open != nullptr && !*open) {
-                internal_::open_ptr  = nullptr;
-                internal_::label     = nullptr;
-                internal_::reset     = false;
-                internal_::closed    = true;
-                internal_::resizable = true;
-                internal_::single    = true;
+                internal_::reset_vars();
                 return false;
             }
 
             if (label == nullptr) {
-                internal_::open_ptr  = nullptr;
-                internal_::label     = nullptr;
-                internal_::reset     = false;
-                internal_::closed    = true;
-                internal_::resizable = true;
-                internal_::single    = true;
+                internal_::reset_vars();
                 return false;
             }
 
@@ -501,9 +510,9 @@ namespace simpfp {
                 IM_COL32(0, 0, 0, 90));
         }
 
-        inline void buttons_dir(bool *create, bool *remove) {
+        inline void buttons_dir(bool *create, [[maybe_unused]] bool *remove) {
             ImGui::BeginDisabled(create == nullptr);
-            if (ImGui::Button("New Folder")) {
+            if (ImGui::Button(internal_::label_create)) {
                 if (create != nullptr)
                     *create = true;
             }
@@ -511,7 +520,7 @@ namespace simpfp {
 
 //            ImGui::SameLine();
 //            ImGui::BeginDisabled(remove == nullptr);
-//            if (ImGui::Button("Delete Folder")) {
+//            if (ImGui::Button(internal_::label_remove)) {
 //                if (remove != nullptr)
 //                    *remove = true;
 //            }
@@ -526,7 +535,7 @@ namespace simpfp {
             ImGui::SetCursorPosX(available_width - (button_width * 2 + spacing));
 
             ImGui::BeginDisabled(cancel == nullptr);
-            if (ImGui::Button("Cancel", ImVec2(button_width, 0))) {
+            if (ImGui::Button(internal_::label_cancel, ImVec2(button_width, 0))) {
                 if (cancel != nullptr)
                     *cancel = true;
             }
@@ -535,7 +544,7 @@ namespace simpfp {
             ImGui::SameLine();
 
             ImGui::BeginDisabled(accept == nullptr);
-            if (ImGui::Button("Accept", ImVec2(button_width, 0))) {
+            if (ImGui::Button(internal_::label_accept, ImVec2(button_width, 0))) {
                 if (accept != nullptr)
                     *accept = true;
             }
@@ -543,13 +552,27 @@ namespace simpfp {
         }
     }
 
-    inline void OpenFileDialog(const char *label, const char *default_path = nullptr, const bool multi_select = false) {
-        internal_::open_ptr  = nullptr;
-        internal_::closed    = false;
-        internal_::reset     = true;
-        internal_::label     = label;
-        internal_::single    = !multi_select;
-        internal_::file_path = default_path;
+    inline void OpenFileDialog(
+        const char *label,
+        const char *default_path = nullptr,
+        const bool multi_select  = false,
+        const bool accept_dir    = false,
+        const char *accept_label = "Select",
+        const char *cancel_label = "Cancel",
+        const char *create_label = "New Folder",
+        const char *remove_label = "Delete Folder"
+    ) {
+        internal_::open_ptr   = nullptr;
+        internal_::closed     = false;
+        internal_::reset      = true;
+        internal_::label      = label;
+        internal_::single     = !multi_select;
+        internal_::accept_dir = accept_dir;
+        internal_::file_path  = default_path;
+        internal_::label_accept = accept_label;
+        internal_::label_cancel = cancel_label;
+        internal_::label_create = create_label;
+        internal_::label_remove = remove_label;
     }
 
     inline bool ShowFileDialog(const char *label, bool *open = nullptr) {
@@ -749,6 +772,8 @@ namespace simpfp {
 
             ImGui::Spacing();
 
+            const bool can_save = internal_::accept_dir || context->selected_num > 0 || std::strlen(buffer) > 0;
+
             bool create = false;
             bool remove = false;
             bool cancel = false;
@@ -756,8 +781,7 @@ namespace simpfp {
 
             internal_::buttons_dir(&create, &remove);
             ImGui::Spacing();
-            internal_::buttons_action(&cancel, &accept);
-
+            internal_::buttons_action(&cancel, can_save ? &accept : nullptr);
 
             if (cancel) {
                 *internal_::open_ptr = false;
@@ -771,7 +795,19 @@ namespace simpfp {
                 return;
             }
 
-            // TODO
+            if (create) {
+                // TODO
+
+                ImGui::EndPopup();
+                return;
+            }
+
+            if (accept) {
+                // TODO
+
+                ImGui::EndPopup();
+                return;
+            }
 
             ImGui::EndPopup();
         }
@@ -793,6 +829,13 @@ namespace simpfp {
     inline bool FileAccepted(char *buffer, std::size_t buffer_size) {
         // TODO
         return true;
+    }
+
+    inline void CloseFileDialog() {
+        *internal_::open_ptr = false;
+        internal_::closed    = true;
+        ImGui::CloseCurrentPopup();
+        ImGui::EndPopup();
     }
 
 }
