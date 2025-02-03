@@ -290,16 +290,36 @@ namespace simpfp {
             }
 
             static void select_add(FileContext *context, const int index) {
-                // TODO
-                std::cout << "add" << '\n';
+                if (context->selected == nullptr || context->selected_num <= 0) {
+                    if (context->selected != nullptr)
+                        delete[] context->selected;
+                    context->selected              = new FileInfo *[1]{ &context->files[index] };
+                    context->selected_num          = 1;
+                    context->files[index].selected = true;
+                    return;
+                }
+
+                if (context->files[index].selected)
+                    return;
+
+                const auto new_arr = new FileInfo *[context->selected_num + 1];
+                std::memcpy(new_arr, context->selected, sizeof(FileInfo *) * context->selected_num);
+                new_arr[context->selected_num] = &context->files[index];
+                context->files[index].selected = true;
+
+                delete[] context->selected;
+
+                context->selected_num = context->selected_num + 1;
+                context->selected     = new_arr;
             }
 
             static void select_range(FileContext *context, const int index) {
                 if (context->selected == nullptr || context->selected_num <= 0) {
                     if (context->selected != nullptr)
                         delete[] context->selected;
-                    context->selected     = new FileInfo *[1]{ &context->files[index] };
-                    context->selected_num = 1;
+                    context->selected              = new FileInfo *[1]{ &context->files[index] };
+                    context->selected_num          = 1;
+                    context->files[index].selected = true;
                     return;
                 }
 
