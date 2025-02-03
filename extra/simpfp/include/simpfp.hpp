@@ -72,13 +72,57 @@ namespace simpfp {
             FileInfo() = default;
 
             FileInfo(const FileInfo &other) {
-                this->path     = other.path != nullptr ? (new fs::path(*other.path)) : nullptr;
-                this->name     = cpy_str(other.name);
-                this->type     = cpy_str(other.type);
-                this->time     = cpy_str(other.time);
-                this->selected = other.selected;
-                this->size     = other.size;
-                this->date     = other.date;
+                path     = other.path != nullptr ? (new fs::path(*other.path)) : nullptr;
+                name     = cpy_str(other.name);
+                type     = cpy_str(other.type);
+                time     = cpy_str(other.time);
+                selected = other.selected;
+                size     = other.size;
+                date     = other.date;
+            }
+
+            FileInfo(FileInfo &&other) noexcept {
+                path     = other.path;
+                name     = other.name;
+                type     = other.type;
+                time     = other.time;
+                size     = other.size;
+                date     = other.date;
+                selected = other.selected;
+
+                other.path = nullptr;
+                other.name = nullptr;
+                other.type = nullptr;
+                other.time = nullptr;
+            }
+
+            FileInfo &operator = (FileInfo &&other) noexcept {
+                if (&other == this)
+                    return *this;
+
+                if (name != nullptr && other.name != name)
+                    delete[] name;
+                if (type != nullptr && other.type != type)
+                    delete[] type;
+                if (time != nullptr && other.time != time)
+                    delete[] time;
+                if (path != nullptr && other.path != path)
+                    delete path;
+
+                path     = other.path;
+                name     = other.name;
+                type     = other.type;
+                time     = other.time;
+                size     = other.size;
+                date     = other.date;
+                selected = other.selected;
+
+                other.path = nullptr;
+                other.name = nullptr;
+                other.type = nullptr;
+                other.time = nullptr;
+
+                return *this;
             }
 
             FileInfo &operator = (const FileInfo &other) {
@@ -94,13 +138,14 @@ namespace simpfp {
                 if (path != nullptr && other.path != path)
                     delete path;
 
-                this->path     = other.path != nullptr ? (new fs::path(*other.path)) : nullptr;
-                this->name     = cpy_str(other.name);
-                this->type     = cpy_str(other.type);
-                this->time     = cpy_str(other.time);
-                this->selected = other.selected;
-                this->size     = other.size;
-                this->date     = other.date;
+                path     = other.path != nullptr ? (new fs::path(*other.path)) : nullptr;
+                name     = cpy_str(other.name);
+                type     = cpy_str(other.type);
+                time     = cpy_str(other.time);
+                selected = other.selected;
+                size     = other.size;
+                date     = other.date;
+
                 return *this;
             }
 
