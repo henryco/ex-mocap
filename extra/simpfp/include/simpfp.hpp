@@ -66,14 +66,14 @@ namespace simpfp {
             bool        selected;
 
             ~FileInfo() {
-                if (path != nullptr)
-                    delete path;
                 if (name != nullptr)
                     delete[] name;
                 if (type != nullptr)
                     delete[] type;
                 if (time != nullptr)
                     delete[] time;
+                if (path != nullptr)
+                    delete path;
             }
         };
 
@@ -94,7 +94,7 @@ namespace simpfp {
                 if (dirs != nullptr)
                     delete[] dirs;
                 if (path != nullptr)
-                    delete[] path;
+                    delete path;
             }
 
             static void load(FileContext **context, const char *path) {
