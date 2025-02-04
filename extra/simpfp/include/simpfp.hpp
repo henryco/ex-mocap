@@ -659,12 +659,20 @@ namespace simpfp {
             const float offset  = ImGui::GetStyle().FramePadding.x + ImGui::GetStyle().ItemSpacing.x;
             const float ok_size = ImGui::CalcTextSize(internal_::labels.main_create).x + offset;
 
-            ImGui::BeginDisabled(create == nullptr);
+            if (create == nullptr) {
+                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
+                ImGui::BeginDisabled(true);
+            }
+
             if (ImGui::Button(internal_::labels.main_create, ImVec2(ok_size, 0))) {
                 if (create != nullptr)
                     *create = true;
             }
-            ImGui::EndDisabled();
+
+            if (create == nullptr) {
+                ImGui::EndDisabled();
+                ImGui::PopStyleVar();
+            }
         }
 
         inline void buttons_action(bool *cancel, bool *accept) {
@@ -678,21 +686,33 @@ namespace simpfp {
 
             ImGui::SetCursorPosX(available_width - (ok_size + no_size + spacing));
 
-            ImGui::BeginDisabled(cancel == nullptr);
+            if (cancel == nullptr) {
+                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
+                ImGui::BeginDisabled(true);
+            }
             if (ImGui::Button(internal_::labels.main_cancel, ImVec2(ok_size, 0))) {
                 if (cancel != nullptr)
                     *cancel = true;
             }
-            ImGui::EndDisabled();
+            if (cancel == nullptr) {
+                ImGui::EndDisabled();
+                ImGui::PopStyleVar();
+            }
 
             ImGui::SameLine();
 
-            ImGui::BeginDisabled(accept == nullptr);
+            if (accept == nullptr) {
+                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
+                ImGui::BeginDisabled(true);
+            }
             if (ImGui::Button(internal_::labels.main_accept, ImVec2(no_size, 0))) {
                 if (accept != nullptr)
                     *accept = true;
             }
-            ImGui::EndDisabled();
+            if (accept == nullptr) {
+                ImGui::EndDisabled();
+                ImGui::PopStyleVar();
+            }
         }
     }
 
@@ -1011,7 +1031,11 @@ namespace simpfp {
                 const float spacing = ImGui::GetStyle().ItemSpacing.x;
 
                 ImGui::SetCursorPosX(free_w - (ok_size + no_size + spacing));
-                ImGui::BeginDisabled(!allowed);
+
+                if (!allowed) {
+                    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
+                    ImGui::BeginDisabled(true);
+                }
                 if (ImGui::Button(internal_::labels.dir_accept, ImVec2(ok_size, 0)) && allowed) {
                     allowed = false;
                     const auto new_dir = internal_::fs::absolute(*context->path / new_name_buffer);
@@ -1021,7 +1045,11 @@ namespace simpfp {
                         internal_::FileContext::reload(&context);
                     }
                 }
-                ImGui::EndDisabled();
+                if (!allowed) {
+                    ImGui::EndDisabled();
+                    ImGui::PopStyleVar();
+                }
+
                 ImGui::SameLine();
                 if (ImGui::Button(internal_::labels.dir_cancel, ImVec2(no_size, 0))) {
                     std::memset(new_name_buffer, 0, sizeof(new_name_buffer));
