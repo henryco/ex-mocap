@@ -905,7 +905,7 @@ namespace simpfp {
 
             ImGui::Spacing();
 
-            const bool can_save = internal_::accept_dir || context->selected_num > 0 || std::strlen(buffer) > 0;
+            const bool can_save = internal_::accept_dir || std::strlen(buffer) > 0;
 
             bool create = false;
             bool cancel = false;
