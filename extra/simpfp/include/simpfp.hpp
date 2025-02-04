@@ -395,6 +395,10 @@ namespace simpfp {
                     FileContext::sort(*context, sort_by, sort_type);
             }
 
+            static void reload(FileContext **context) {
+                FileContext::load(context, (*context)->path->c_str());
+            }
+
             static void select_single(FileContext *context, const int index) {
                 if (context->selected_num == 1 && context->files[index].selected)
                     return;
@@ -623,17 +627,32 @@ namespace simpfp {
             return true;
         }
 
-        inline void full_width_input(char *buffer, const std::size_t buffer_size, const float alpha = 1.0f) {
+        inline bool full_width_input(char *buffer, const std::size_t buffer_size, const float alpha = 1.0f) {
+            static bool updated = false;
+            static auto callback = [](ImGuiInputTextCallbackData *data) -> int {
+                if (data->EventFlag == ImGuiInputTextFlags_CallbackEdit)
+                    updated = true;
+                return 0;
+            };
+
             const auto input_pos = ImGui::GetCursorScreenPos();
             const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
 
             ImGui::SetNextItemWidth(input_size.x);
-            ImGui::InputText("##bordered_input", buffer, buffer_size);
+            ImGui::InputText("##bordered_input", buffer, buffer_size,
+                ImGuiInputTextFlags_CallbackEdit, callback);
 
             ImGui::GetWindowDrawList()->AddRect(
                 input_pos,
                 ImVec2(input_pos.x + input_size.x, input_pos.y + input_size.y),
                 IM_COL32(0, 0, 0, 90 * alpha));
+
+            if (updated) {
+                updated = false;
+                return true;
+            }
+
+            return false;
         }
 
         inline void buttons_dir(bool *create) {
@@ -958,7 +977,9 @@ namespace simpfp {
             }
 
             static char new_name_buffer[128];
+            static bool allowed = false;
             if (create) {
+                allowed = false;
                 std::memset(new_name_buffer, 0, sizeof(new_name_buffer));
                 ImGui::OpenPopup(internal_::labels.dir_title);
             }
@@ -975,7 +996,11 @@ namespace simpfp {
 
                 ImGui::Text("%s", internal_::labels.dir_input);
                 ImGui::Spacing();
-                internal_::full_width_input(new_name_buffer, sizeof(new_name_buffer));
+
+                if (internal_::full_width_input(new_name_buffer, sizeof(new_name_buffer))) {
+                    allowed = std::strlen(new_name_buffer) > 0 &&
+                        !internal_::fs::exists(internal_::fs::absolute(*context->path / new_name_buffer));
+                }
 
                 ImGui::Spacing();
                 ImGui::Spacing();
@@ -986,19 +1011,22 @@ namespace simpfp {
                 const float spacing = ImGui::GetStyle().ItemSpacing.x;
 
                 ImGui::SetCursorPosX(free_w - (ok_size + no_size + spacing));
-                ImGui::BeginDisabled(std::strlen(new_name_buffer) <= 0);
-                if (ImGui::Button(internal_::labels.dir_accept, ImVec2(ok_size, 0))) {
-
-                    // TODO
-
-                    std::memset(new_name_buffer, 0, sizeof(new_name_buffer));
-                    ImGui::CloseCurrentPopup();
+                ImGui::BeginDisabled(!allowed);
+                if (ImGui::Button(internal_::labels.dir_accept, ImVec2(ok_size, 0)) && allowed) {
+                    allowed = false;
+                    const auto new_dir = internal_::fs::absolute(*context->path / new_name_buffer);
+                    if (!internal_::fs::exists(new_dir) && internal_::fs::create_directory(new_dir)) {
+                        std::memset(new_name_buffer, 0, sizeof(new_name_buffer));
+                        ImGui::CloseCurrentPopup();
+                        internal_::FileContext::reload(&context);
+                    }
                 }
                 ImGui::EndDisabled();
                 ImGui::SameLine();
                 if (ImGui::Button(internal_::labels.dir_cancel, ImVec2(no_size, 0))) {
                     std::memset(new_name_buffer, 0, sizeof(new_name_buffer));
                     ImGui::CloseCurrentPopup();
+                    allowed = false;
                 }
                 ImGui::EndPopup();
             }
