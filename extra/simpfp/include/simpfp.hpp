@@ -810,6 +810,10 @@ namespace simpfp {
                     bool selected = file.selected;
 
                     ImGui::PushID(i);
+                    if (!file.read || !file.write) {
+                        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
+                        ImGui::BeginDisabled(true);
+                    }
 
                     ImGui::TableNextRow();
 
@@ -827,6 +831,11 @@ namespace simpfp {
                     ImGui::Text("%s", file.time);
                     ImGui::SameLine(0, 5);
                     ImGui::TextDisabled(" ");
+
+                    if (!file.read || !file.write) {
+                        ImGui::EndDisabled();
+                        ImGui::PopStyleVar();
+                    }
 
                     ImGui::PopID();
 
