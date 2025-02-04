@@ -93,7 +93,7 @@ namespace ex::gui {
             static constexpr auto min_size = ImVec2(900, 500);
 
             if (!simpfp::FileDialogOpen())
-                simpfp::OpenFileDialog("Select a file", nullptr);
+                simpfp::OpenFileDialog("Select a file", nullptr, false, true);
 
             if (simpfp::ShowFileDialog("Select a file", &fp_open, min_size, true)) {
 
