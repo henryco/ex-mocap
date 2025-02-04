@@ -637,8 +637,11 @@ namespace simpfp {
         }
 
         inline void buttons_dir(bool *create) {
+            const float offset  = ImGui::GetStyle().FramePadding.x + ImGui::GetStyle().ItemSpacing.x;
+            const float ok_size = ImGui::CalcTextSize(internal_::labels.main_create).x + offset;
+
             ImGui::BeginDisabled(create == nullptr);
-            if (ImGui::Button(internal_::labels.main_create)) {
+            if (ImGui::Button(internal_::labels.main_create, ImVec2(ok_size, 0))) {
                 if (create != nullptr)
                     *create = true;
             }
@@ -646,14 +649,18 @@ namespace simpfp {
         }
 
         inline void buttons_action(bool *cancel, bool *accept) {
-            constexpr float button_width = 60.0f;
+            const float offset  = ImGui::GetStyle().FramePadding.x * 2 + ImGui::GetStyle().ItemSpacing.x * 2;
             const float spacing = ImGui::GetStyle().ItemSpacing.x;
+
+            const float ok_size = ImGui::CalcTextSize(internal_::labels.main_accept).x + offset;
+            const float no_size = ImGui::CalcTextSize(internal_::labels.main_cancel).x + offset;
+
             const float available_width = ImGui::GetContentRegionMax().x;
 
-            ImGui::SetCursorPosX(available_width - (button_width * 2 + spacing));
+            ImGui::SetCursorPosX(available_width - (ok_size + no_size + spacing));
 
             ImGui::BeginDisabled(cancel == nullptr);
-            if (ImGui::Button(internal_::labels.main_cancel, ImVec2(button_width, 0))) {
+            if (ImGui::Button(internal_::labels.main_cancel, ImVec2(ok_size, 0))) {
                 if (cancel != nullptr)
                     *cancel = true;
             }
@@ -662,7 +669,7 @@ namespace simpfp {
             ImGui::SameLine();
 
             ImGui::BeginDisabled(accept == nullptr);
-            if (ImGui::Button(internal_::labels.main_accept, ImVec2(button_width, 0))) {
+            if (ImGui::Button(internal_::labels.main_accept, ImVec2(no_size, 0))) {
                 if (accept != nullptr)
                     *accept = true;
             }
