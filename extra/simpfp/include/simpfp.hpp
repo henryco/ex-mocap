@@ -853,19 +853,60 @@ namespace simpfp {
         return context->path->c_str();
     }
 
-    inline const char **PeekSelected(std::size_t *const out_n) {
-        if (context == nullptr || context->selected_num <= 0)
-            return nullptr;
+    inline bool PeekSelected(char *buffer_out, const std::size_t size, const std::size_t index) {
+        static std::size_t last_index = 0;
+        internal_::single = false;
 
-        *out_n = context->selected_num;
-
-        if (internal_::accept_dir) {
-            // TODO
-            return nullptr;
+        if (index < last_index || context == nullptr) {
+            last_index = 0;
+            return false;
         }
 
-        // TODO
-        return nullptr;
+        if (context->selected == nullptr ||
+            context->selected_num <= 0 ||
+            context->selected_num <= index)
+        {
+            last_index = 0;
+
+            if (index == 0) {
+
+                if (context->buffer == nullptr || std::strlen(context->buffer) <= 0) {
+                    if (internal_::accept_dir) {
+                        std::memset(buffer_out, 0, size);
+                        std::strncpy(buffer_out, context->path->c_str(), size);
+                        return true;
+                    }
+                    return false;
+                }
+
+                std::memset(buffer_out, 0, size);
+                std::strncpy(buffer_out, internal_::fs::absolute(*context->path / context->buffer).c_str(), size);
+                return true;
+
+            }
+            return false;
+        }
+
+        const auto &selected = context->selected[index];
+        if (selected == nullptr) {
+            last_index = 0;
+            return false;
+        }
+
+        if (index >= context->selected_num - 1)
+            last_index = 0;
+
+        if (context->selected_num == 1) {
+            last_index = 0;
+            std::memset(buffer_out, 0, size);
+            std::strncpy(buffer_out, internal_::fs::absolute(selected->path->parent_path() / context->buffer).c_str(),
+                         size);
+            return true;
+        }
+
+        std::memset(buffer_out, 0, size);
+        std::strncpy(buffer_out, internal_::fs::absolute(*selected->path).c_str(), size);
+        return true;
     }
 
     inline bool FilesAccepted(char *buffer_out, const std::size_t size, const std::size_t index) {
