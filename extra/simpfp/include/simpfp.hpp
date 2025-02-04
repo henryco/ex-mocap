@@ -534,7 +534,7 @@ namespace simpfp {
         inline auto label_accept = "Select";
         inline auto label_cancel = "Cancel";
         inline auto label_create = "New Folder";
-        inline auto label_remove = "Delete Folder";
+//        inline auto label_remove = "Delete Folder";
 
         inline void reset_vars() {
             internal_::open_ptr   = nullptr;
@@ -547,7 +547,7 @@ namespace simpfp {
             internal_::label_accept = "Select";
             internal_::label_cancel = "Cancel";
             internal_::label_create = "New Folder";
-            internal_::label_remove = "Delete Folder";
+//            internal_::label_remove = "Delete Folder";
         }
 
         inline bool show_dialog(const char *label, bool *open = nullptr, const ImVec2 *size = nullptr, const bool resizable = true) {
@@ -609,7 +609,7 @@ namespace simpfp {
                 IM_COL32(0, 0, 0, 90));
         }
 
-        inline void buttons_dir(bool *create,  bool *remove) {
+        inline void buttons_dir(bool *create, [[maybe_unused]] bool *remove) {
             ImGui::BeginDisabled(create == nullptr);
             if (ImGui::Button(internal_::label_create)) {
                 if (create != nullptr)
@@ -617,13 +617,13 @@ namespace simpfp {
             }
             ImGui::EndDisabled();
 
-            ImGui::SameLine();
-            ImGui::BeginDisabled(remove == nullptr);
-            if (ImGui::Button(internal_::label_remove)) {
-                if (remove != nullptr)
-                    *remove = true;
-            }
-            ImGui::EndDisabled();
+//            ImGui::SameLine();
+//            ImGui::BeginDisabled(remove == nullptr);
+//            if (ImGui::Button(internal_::label_remove)) {
+//                if (remove != nullptr)
+//                    *remove = true;
+//            }
+//            ImGui::EndDisabled();
         }
 
         inline void buttons_action(bool *cancel, bool *accept) {
@@ -659,8 +659,8 @@ namespace simpfp {
         const bool accept_dir    = false,
         const char *accept_label = "Select",
         const char *cancel_label = "Cancel",
-        const char *create_label = "New Folder",
-        const char *remove_label = "Delete Folder"
+        const char *create_label = "New Folder"
+//        const char *remove_label = "Delete Folder"
     ) {
         internal_::open_ptr     = nullptr;
         internal_::closed       = false;
@@ -672,7 +672,7 @@ namespace simpfp {
         internal_::label_accept = accept_label;
         internal_::label_cancel = cancel_label;
         internal_::label_create = create_label;
-        internal_::label_remove = remove_label;
+//        internal_::label_remove = remove_label;
     }
 
     inline bool FileDialogOpen() {
