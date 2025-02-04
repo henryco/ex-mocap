@@ -29,9 +29,8 @@ namespace simpfp {
 
         inline fs::path generate_temp_file(const fs::path& directory) {
             char temp_filename[L_tmpnam];
-            if (std::tmpnam(temp_filename)) {
+            if (std::tmpnam(temp_filename))
                 return directory / fs::path(temp_filename).filename();
-            }
             return directory / ".perm_check_tmp";
         }
 
