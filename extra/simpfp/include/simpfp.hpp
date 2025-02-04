@@ -854,6 +854,8 @@ namespace simpfp {
             ImGui::BeginChild("##region_files", ImVec2(free_x_des, -reserve_y), ImGuiChildFlags_Borders);
 
             bool selection_change = false;
+            bool double_click     = false;
+
             ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(10.0f, 3.0f));
             if (ImGui::BeginTable("##files_table", 4,
                 ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_Sortable |
@@ -888,6 +890,10 @@ namespace simpfp {
                     ImGui::TableNextColumn();
                     ImGui::SameLine(0, 5);
                     ImGui::Selectable(file.name, &selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
+
+                    if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && ImGui::GetIO().MouseClickedCount[ImGuiMouseButton_Left] == 2){
+                        double_click = true;
+                    }
 
                     ImGui::TableNextColumn();
                     ImGui::Text("%lu", file.size);
@@ -1059,7 +1065,7 @@ namespace simpfp {
                 ImGui::EndPopup();
             }
 
-            if (accept) {
+            if (accept || (can_save && double_click)) {
                 context->accepted = true;
                 ImGui::EndPopup();
                 return;
