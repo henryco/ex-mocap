@@ -35,8 +35,8 @@ namespace simpfp {
             return buff;
         }
 
-        inline void cat_str(char *dst, const char *src, const std::size_t size) {
-            const std::size_t free_len = size - std::strlen(dst);
+        inline void cat_str(char *dst, const char *src, const std::size_t dst_size) {
+            const std::size_t free_len = dst_size - std::strlen(dst);
             const std::size_t src_len  = std::strlen(src);
             const std::size_t lim_len  = std::min(src_len, free_len);
             std::strncat(dst, src, lim_len);
@@ -828,7 +828,7 @@ namespace simpfp {
         }
     }
 
-    inline int NumberSelected() {
+    inline int CountSelected() {
         if (context == nullptr || context->selected == nullptr)
             return 0;
         return context->selected_num;
@@ -864,23 +864,32 @@ namespace simpfp {
         return nullptr;
     }
 
-    inline const char *FileAccepted() {
+    inline bool FileAccepted(char *buffer_out, const std::size_t size) {
         if (context == nullptr || !context->accepted)
-            return nullptr;
+            return false;
 
         context->accepted = false;
 
         if (context->selected == nullptr || context->selected_num <= 0) {
-            if (std::strlen(context->buffer) <= 0)
-                return internal_::accept_dir ? context->path->c_str() : nullptr;
+            if (context->buffer == nullptr || std::strlen(context->buffer) <= 0) {
+                if (internal_::accept_dir) {
+                    std::memset(buffer_out, 0, size);
+                    std::strncpy(buffer_out, context->path->c_str(), size);
+                    return true;
+                }
+                return false;
+            }
 
-            // TODO mem-leak
-            return (new internal_::fs::path(internal_::fs::absolute(*context->path / context->buffer)))->c_str();
+            std::memset(buffer_out, 0, size);
+            std::strncpy(buffer_out, internal_::fs::absolute(*context->path / context->buffer).c_str(), size);
+            return true;
         }
 
-        const auto first = context->selected[0];
-        // TODO mem-leak
-        return (new internal_::fs::path(internal_::fs::absolute(first->path->parent_path() / context->buffer)))->c_str();
+        std::memset(buffer_out, 0, size);
+        std::strncpy(buffer_out,
+                     internal_::fs::absolute(context->selected[0]->path->parent_path() / context->buffer).c_str(),
+                     size);
+        return true;
     }
 
 }
