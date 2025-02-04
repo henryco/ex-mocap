@@ -950,26 +950,49 @@ namespace simpfp {
                 return;
             }
 
+            static char new_name_buffer[128];
             if (create) {
+                std::memset(new_name_buffer, 0, sizeof(new_name_buffer));
                 ImGui::OpenPopup(internal_::labels.dir_title);
             }
 
+            const auto offset     = ImGui::GetStyle().FramePadding.x * 2 + ImGui::GetStyle().ItemSpacing.x * 2;
+            const auto title_size = ImGui::CalcTextSize(internal_::labels.dir_input).x + offset * 4;
+
             ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+            ImGui::SetNextWindowSize(ImVec2(title_size, 0));
+
             if (ImGui::BeginPopupModal(internal_::labels.dir_title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-                ImGui::Text("All those beautiful files will be deleted.\nThis operation cannot be undone!");
-                ImGui::Separator();
+                ImGui::Spacing();
+                ImGui::Spacing();
 
-                static bool dont_ask_me_next_time = false;
-                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-                ImGui::Checkbox("Don't ask me next time", &dont_ask_me_next_time);
-                ImGui::PopStyleVar();
+                ImGui::Text("%s", internal_::labels.dir_input);
+                ImGui::Spacing();
+                internal_::full_width_input(new_name_buffer, sizeof(new_name_buffer));
 
-                // TODO
+                ImGui::Spacing();
+                ImGui::Spacing();
 
-                if (ImGui::Button(internal_::labels.dir_accept, ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
-                ImGui::SetItemDefaultFocus();
+                const float ok_size = ImGui::CalcTextSize(internal_::labels.dir_accept).x + offset;
+                const float no_size = ImGui::CalcTextSize(internal_::labels.dir_cancel).x + offset;
+                const float free_w  = ImGui::GetContentRegionMax().x;
+                const float spacing = ImGui::GetStyle().ItemSpacing.x;
+
+                ImGui::SetCursorPosX(free_w - (ok_size + no_size + spacing));
+                ImGui::BeginDisabled(std::strlen(new_name_buffer) <= 0);
+                if (ImGui::Button(internal_::labels.dir_accept, ImVec2(ok_size, 0))) {
+
+                    // TODO
+
+                    std::memset(new_name_buffer, 0, sizeof(new_name_buffer));
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndDisabled();
                 ImGui::SameLine();
-                if (ImGui::Button(internal_::labels.dir_cancel, ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+                if (ImGui::Button(internal_::labels.dir_cancel, ImVec2(no_size, 0))) {
+                    std::memset(new_name_buffer, 0, sizeof(new_name_buffer));
+                    ImGui::CloseCurrentPopup();
+                }
                 ImGui::EndPopup();
             }
 
