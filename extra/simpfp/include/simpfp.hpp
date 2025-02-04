@@ -24,6 +24,26 @@ namespace simpfp {
         const char *dir_cancel  = "Cancel";
     };
 
+    bool FileAccepted(char *buffer_out, std::size_t size);
+    bool FilesAccepted(char *buffer_out, std::size_t size, std::size_t index);
+    bool PeekSelected(char *buffer_out, std::size_t size, std::size_t index);
+    bool ShowFileDialog(const char *label, bool *open, const ImVec2 &size, bool resize = true);
+    bool ShowFileDialog(const char *label, bool *open = nullptr);
+    bool FileDialogOpen();
+
+    void CloseFileDialog();
+    void EndFileDialog();
+
+    void OpenFileDialog(
+        const char   *label,
+        const char   *default_path = nullptr,
+        bool          accept_dir   = false,
+        const Labels *labels       = nullptr
+    );
+
+    const char *CurrentPath();
+    int         CountSelected();
+
     namespace internal_ {
         namespace fs = std::filesystem;
 
@@ -649,19 +669,15 @@ namespace simpfp {
 
     inline internal_::FileContext *context = nullptr;
 
-    inline void OpenFileDialog(
-        const char   *label,
-        const char   *default_path = nullptr,
-        const bool    accept_dir   = false,
-        const Labels *labels       = nullptr
-    ) {
-        internal_::open_ptr     = nullptr;
-        internal_::closed       = false;
-        internal_::single       = true;
-        internal_::reset        = true;
-        internal_::label        = label;
-        internal_::accept_dir   = accept_dir;
-        internal_::file_path    = default_path;
+    inline void OpenFileDialog(const char *label, const char *default_path, const bool accept_dir,
+                               const Labels *labels) {
+        internal_::open_ptr   = nullptr;
+        internal_::closed     = false;
+        internal_::single     = true;
+        internal_::reset      = true;
+        internal_::label      = label;
+        internal_::accept_dir = accept_dir;
+        internal_::file_path  = default_path;
 
         if (labels != nullptr) {
             internal_::labels = *labels;
@@ -681,11 +697,11 @@ namespace simpfp {
         }
     }
 
-    inline bool ShowFileDialog(const char *label, bool *open = nullptr) {
+    inline bool ShowFileDialog(const char *label, bool *open) {
         return internal_::show_dialog(label, open);
     }
 
-    inline bool ShowFileDialog(const char *label, bool *open, const ImVec2 &size, const bool resize = true) {
+    inline bool ShowFileDialog(const char *label, bool *open, const ImVec2 &size, const bool resize) {
         return internal_::show_dialog(label, open, &size, resize);
     }
 
@@ -928,6 +944,8 @@ namespace simpfp {
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
                 ImGui::Checkbox("Don't ask me next time", &dont_ask_me_next_time);
                 ImGui::PopStyleVar();
+
+                // TODO
 
                 if (ImGui::Button(internal_::labels.dir_accept, ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
                 ImGui::SetItemDefaultFocus();
