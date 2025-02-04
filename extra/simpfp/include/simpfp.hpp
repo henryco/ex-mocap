@@ -928,10 +928,9 @@ namespace simpfp {
                 std::cout << "create" << '\n';
             }
 
-            if (remove) {
-                // TODO
-                std::cout << "remove" << '\n';
-            }
+//            if (remove) {
+//                std::cout << "remove" << '\n';
+//            }
 
             if (accept) {
                 context->accepted = true;
