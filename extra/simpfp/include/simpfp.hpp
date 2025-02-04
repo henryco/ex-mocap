@@ -236,6 +236,9 @@ namespace simpfp {
 
             bool accepted = false;
 
+            bool read  = false;
+            bool write = false;
+
             ~FileContext() {
                 if (selected != nullptr)
                     delete[] selected;
@@ -276,6 +279,8 @@ namespace simpfp {
                 new_context->path      = file;
                 new_context->sort_by   = sort_by;
                 new_context->sort_type = sort_type;
+                new_context->read      = can_read(*file);
+                new_context->write     = can_write(*file);
 
                 const int     init_dirs  = file->has_parent_path() ? 1 : 0;
                 constexpr int init_files = 0;
@@ -898,7 +903,11 @@ namespace simpfp {
             bool cancel = false;
             bool accept = false;
 
-            internal_::buttons_dir(&create, &remove);
+            if (context->read && context->write)
+                internal_::buttons_dir(&create, &remove);
+            else
+                internal_::buttons_dir(nullptr, nullptr);
+
             ImGui::Spacing();
             internal_::buttons_action(&cancel, can_save ? &accept : nullptr);
 
