@@ -319,9 +319,8 @@ namespace simpfp {
                     const auto &status = it->status(ec);
                     if (ec) continue;
 
-                    const auto ep = new fs::path(it->path());
-
                     if (fs::is_directory(status)) {
+                        const auto ep = new fs::path(it->path());
                         permissions(status, dirs[d_]);
                         dirs[d_].path     = ep;
                         dirs[d_].name     = cpy_str(ep->filename().c_str());
@@ -334,6 +333,7 @@ namespace simpfp {
                         d_++;
                     }
                     else if (fs::is_regular_file(status)) {
+                        const auto ep = new fs::path(it->path());
                         const auto time_entry = fs::last_write_time(*ep);
                         permissions(status, files[f_]);
                         files[f_].path     = ep;
