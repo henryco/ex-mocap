@@ -250,15 +250,8 @@ namespace simpfp {
                     delete[] buffer;
             }
 
-            static void permissions(const fs::directory_entry &entry, FileInfo &file) {
-                std::error_code ec;
-                const auto      perms = entry.status(ec).permissions();
-                if (ec) {
-                    file.write = false;
-                    file.read  = false;
-                    return;
-                }
-
+            static void permissions(const fs::file_status &status, FileInfo &file) {
+                const auto perms = status.permissions();
                 file.read = (perms & fs::perms::owner_read) != fs::perms::none ||
                             (perms & fs::perms::group_read) != fs::perms::none ||
                             (perms & fs::perms::others_read) != fs::perms::none;
@@ -290,10 +283,17 @@ namespace simpfp {
 
                 int dirs_num  = init_dirs;
                 int files_num = init_files;
-                for (const auto &entry : fs::directory_iterator(*file)) {
-                    if (entry.is_directory())
+
+                std::error_code ec;
+                for (fs::directory_iterator it(*file, ec); it != fs::directory_iterator(); it.increment(ec)) {
+                    if (ec) continue;
+
+                    const auto &status = it->status(ec);
+                    if (ec) continue;
+
+                    if (fs::is_directory(status))
                         dirs_num++;
-                    else if (entry.is_regular_file())
+                    else if (fs::is_regular_file(status))
                         files_num++;
                 }
 
@@ -313,10 +313,17 @@ namespace simpfp {
                 }
 
                 int d_ = init_dirs, f_ = init_files;
-                for (const auto &entry : fs::directory_iterator(*file)) {
-                    const auto ep = new fs::path(entry.path());
-                    if (entry.is_directory()) {
-                        permissions(entry, dirs[d_]);
+
+                for (fs::directory_iterator it(*file, ec); it != fs::directory_iterator(); it.increment(ec)) {
+                    if (ec) continue;
+
+                    const auto &status = it->status(ec);
+                    if (ec) continue;
+
+                    const auto ep = new fs::path(it->path());
+
+                    if (fs::is_directory(status)) {
+                        permissions(status, dirs[d_]);
                         dirs[d_].path     = ep;
                         dirs[d_].name     = cpy_str(ep->filename().c_str());
                         dirs[d_].type     = new char[]{""};
@@ -327,15 +334,15 @@ namespace simpfp {
                         dirs[d_].index    = d_;
                         d_++;
                     }
-                    else if (entry.is_regular_file()) {
-                        const auto time_entry = fs::last_write_time(entry);
-                        permissions(entry, files[f_]);
+                    else if (fs::is_regular_file(status)) {
+                        const auto time_entry = fs::last_write_time(*ep);
+                        permissions(status, files[f_]);
                         files[f_].path     = ep;
                         files[f_].type     = cpy_str(ep->has_extension() ? ep->extension().c_str() : new char[]{""});
                         files[f_].name     = cpy_str(ep->filename().c_str());
                         files[f_].date     = get_unix_timestamp_ms(time_entry);
                         files[f_].time     = format_time(time_entry);
-                        files[f_].size     = entry.file_size();
+                        files[f_].size     = it->file_size(ec);
                         files[f_].selected = false;
                         files[f_].index    = f_;
                         f_++;
