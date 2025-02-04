@@ -14,6 +14,16 @@
 
 namespace simpfp {
 
+    struct Labels {
+        const char *main_accept = "Select";
+        const char *main_cancel = "Cancel";
+        const char *main_create = "New Directory";
+        const char *dir_title   = "New Folder";
+        const char *dir_input   = "Enter a new folder name:";
+        const char *dir_accept  = "OK";
+        const char *dir_cancel  = "Cancel";
+    };
+
     namespace internal_ {
         namespace fs = std::filesystem;
 
@@ -531,10 +541,7 @@ namespace simpfp {
         inline bool        single     = true;
         inline bool        accept_dir = false;
 
-        inline auto label_accept = "Select";
-        inline auto label_cancel = "Cancel";
-        inline auto label_create = "New Folder";
-//        inline auto label_remove = "Delete Folder";
+        inline Labels labels;
 
         inline void reset_vars() {
             internal_::open_ptr   = nullptr;
@@ -544,10 +551,7 @@ namespace simpfp {
             internal_::resizable  = true;
             internal_::single     = true;
             internal_::accept_dir = false;
-            internal_::label_accept = "Select";
-            internal_::label_cancel = "Cancel";
-            internal_::label_create = "New Folder";
-//            internal_::label_remove = "Delete Folder";
+            internal_::labels     = Labels();
         }
 
         inline bool show_dialog(const char *label, bool *open = nullptr, const ImVec2 *size = nullptr, const bool resizable = true) {
@@ -609,21 +613,13 @@ namespace simpfp {
                 IM_COL32(0, 0, 0, 90));
         }
 
-        inline void buttons_dir(bool *create, [[maybe_unused]] bool *remove) {
+        inline void buttons_dir(bool *create) {
             ImGui::BeginDisabled(create == nullptr);
-            if (ImGui::Button(internal_::label_create)) {
+            if (ImGui::Button(internal_::labels.main_create)) {
                 if (create != nullptr)
                     *create = true;
             }
             ImGui::EndDisabled();
-
-//            ImGui::SameLine();
-//            ImGui::BeginDisabled(remove == nullptr);
-//            if (ImGui::Button(internal_::label_remove)) {
-//                if (remove != nullptr)
-//                    *remove = true;
-//            }
-//            ImGui::EndDisabled();
         }
 
         inline void buttons_action(bool *cancel, bool *accept) {
@@ -634,7 +630,7 @@ namespace simpfp {
             ImGui::SetCursorPosX(available_width - (button_width * 2 + spacing));
 
             ImGui::BeginDisabled(cancel == nullptr);
-            if (ImGui::Button(internal_::label_cancel, ImVec2(button_width, 0))) {
+            if (ImGui::Button(internal_::labels.main_cancel, ImVec2(button_width, 0))) {
                 if (cancel != nullptr)
                     *cancel = true;
             }
@@ -643,7 +639,7 @@ namespace simpfp {
             ImGui::SameLine();
 
             ImGui::BeginDisabled(accept == nullptr);
-            if (ImGui::Button(internal_::label_accept, ImVec2(button_width, 0))) {
+            if (ImGui::Button(internal_::labels.main_accept, ImVec2(button_width, 0))) {
                 if (accept != nullptr)
                     *accept = true;
             }
@@ -654,13 +650,10 @@ namespace simpfp {
     inline internal_::FileContext *context = nullptr;
 
     inline void OpenFileDialog(
-        const char *label,
-        const char *default_path = nullptr,
-        const bool accept_dir    = false,
-        const char *accept_label = "Select",
-        const char *cancel_label = "Cancel",
-        const char *create_label = "New Folder"
-//        const char *remove_label = "Delete Folder"
+        const char   *label,
+        const char   *default_path = nullptr,
+        const bool    accept_dir   = false,
+        const Labels *labels       = nullptr
     ) {
         internal_::open_ptr     = nullptr;
         internal_::closed       = false;
@@ -669,10 +662,10 @@ namespace simpfp {
         internal_::label        = label;
         internal_::accept_dir   = accept_dir;
         internal_::file_path    = default_path;
-        internal_::label_accept = accept_label;
-        internal_::label_cancel = cancel_label;
-        internal_::label_create = create_label;
-//        internal_::label_remove = remove_label;
+
+        if (labels != nullptr) {
+            internal_::labels = *labels;
+        }
     }
 
     inline bool FileDialogOpen() {
@@ -899,14 +892,13 @@ namespace simpfp {
             const bool can_save = internal_::accept_dir || context->selected_num > 0 || std::strlen(buffer) > 0;
 
             bool create = false;
-            bool remove = false;
             bool cancel = false;
             bool accept = false;
 
             if (context->read && context->write)
-                internal_::buttons_dir(&create, &remove);
+                internal_::buttons_dir(&create);
             else
-                internal_::buttons_dir(nullptr, nullptr);
+                internal_::buttons_dir(nullptr);
 
             ImGui::Spacing();
             internal_::buttons_action(&cancel, can_save ? &accept : nullptr);
@@ -924,13 +916,25 @@ namespace simpfp {
             }
 
             if (create) {
-                // TODO
-                std::cout << "create" << '\n';
+                ImGui::OpenPopup(internal_::labels.dir_title);
             }
 
-//            if (remove) {
-//                std::cout << "remove" << '\n';
-//            }
+            ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+            if (ImGui::BeginPopupModal(internal_::labels.dir_title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+                ImGui::Text("All those beautiful files will be deleted.\nThis operation cannot be undone!");
+                ImGui::Separator();
+
+                static bool dont_ask_me_next_time = false;
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+                ImGui::Checkbox("Don't ask me next time", &dont_ask_me_next_time);
+                ImGui::PopStyleVar();
+
+                if (ImGui::Button(internal_::labels.dir_accept, ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+                ImGui::SetItemDefaultFocus();
+                ImGui::SameLine();
+                if (ImGui::Button(internal_::labels.dir_cancel, ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+                ImGui::EndPopup();
+            }
 
             if (accept) {
                 context->accepted = true;
