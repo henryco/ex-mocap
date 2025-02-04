@@ -9,6 +9,7 @@
 #include <chrono>
 #include <cstring>
 #include <filesystem>
+#include <fstream>
 #include <string.h>
 
 namespace simpfp {
@@ -25,6 +26,45 @@ namespace simpfp {
 
         #define SORT_ASC 1
         #define SORT_DSC 2
+
+        inline fs::path generate_temp_file(const fs::path& directory) {
+            char temp_filename[L_tmpnam];
+            if (std::tmpnam(temp_filename)) {
+                return directory / fs::path(temp_filename).filename();
+            }
+            return directory / ".perm_check_tmp";
+        }
+
+        inline bool can_read(const fs::path& path) {
+            std::error_code ec;
+            const auto      perms = std::filesystem::status(path, ec).permissions();
+
+            if (ec) return false;
+
+            if ((perms & std::filesystem::perms::owner_read) != std::filesystem::perms::none ||
+                (perms & std::filesystem::perms::group_read) != std::filesystem::perms::none ||
+                (perms & std::filesystem::perms::others_read) != std::filesystem::perms::none) {
+                const std::ifstream file(path);
+                return file.good();
+            }
+
+            return false;
+        }
+
+        inline bool can_write(const fs::path& path) {
+            if (fs::is_directory(path)) {
+                std::error_code ec;
+                fs::path        temp_file = generate_temp_file(path);
+                std::ofstream   file(temp_file);
+                if (!file.is_open())
+                    return false;
+                file.close();
+                fs::remove(temp_file, ec);
+                return true;
+            }
+            std::ofstream file(path, std::ios::app);
+            return file.is_open();
+        }
 
         inline char *cpy_str(const char *str) {
             if (str == nullptr)
@@ -75,6 +115,8 @@ namespace simpfp {
             std::size_t     size     = 0;
             std::size_t     date     = 0;
             int             index    = 0;
+            bool            read     = false;
+            bool            write    = false;
             bool            selected = false;
 
             FileInfo() = default;
@@ -84,6 +126,8 @@ namespace simpfp {
                 name     = cpy_str(other.name);
                 type     = cpy_str(other.type);
                 time     = cpy_str(other.time);
+                read     = other.read;
+                write    = other.write;
                 selected = other.selected;
                 size     = other.size;
                 date     = other.date;
@@ -96,6 +140,8 @@ namespace simpfp {
                 time     = other.time;
                 size     = other.size;
                 date     = other.date;
+                read     = other.read;
+                write    = other.write;
                 selected = other.selected;
 
                 other.path = nullptr;
@@ -123,6 +169,8 @@ namespace simpfp {
                 time     = other.time;
                 size     = other.size;
                 date     = other.date;
+                read     = other.read;
+                write    = other.write;
                 selected = other.selected;
 
                 other.path = nullptr;
@@ -151,6 +199,8 @@ namespace simpfp {
                 type     = cpy_str(other.type);
                 time     = cpy_str(other.time);
                 selected = other.selected;
+                read     = other.read;
+                write    = other.write;
                 size     = other.size;
                 date     = other.date;
 
@@ -174,7 +224,7 @@ namespace simpfp {
             char                        *buffer      = new char[buffer_size]{};
 
             const fs::path *path     = nullptr;
-            const FileInfo *dirs     = nullptr;
+            FileInfo       *dirs     = nullptr;
             FileInfo       *files    = nullptr;
             FileInfo      **selected = nullptr;
 
@@ -198,6 +248,24 @@ namespace simpfp {
                     delete path;
                 if (buffer != nullptr)
                     delete[] buffer;
+            }
+
+            static void permissions(const fs::directory_entry &entry, FileInfo &file) {
+                std::error_code ec;
+                const auto      perms = entry.status(ec).permissions();
+                if (ec) {
+                    file.write = false;
+                    file.read  = false;
+                    return;
+                }
+
+                file.read = (perms & fs::perms::owner_read) != fs::perms::none ||
+                            (perms & fs::perms::group_read) != fs::perms::none ||
+                            (perms & fs::perms::others_read) != fs::perms::none;
+
+                file.write = (perms & fs::perms::owner_write) != fs::perms::none ||
+                             (perms & fs::perms::group_write) != fs::perms::none ||
+                             (perms & fs::perms::others_write) != fs::perms::none;
             }
 
             static void load(FileContext **context, const char *path) {
@@ -234,6 +302,7 @@ namespace simpfp {
 
                 if (init_dirs > 0) {
                     dirs[0].path     = new fs::path(file->parent_path());
+                    dirs[0].read     = can_read(file->parent_path());
                     dirs[0].selected = false;
                     dirs[0].index    = 0;
                     dirs[0].size     = 0;
@@ -247,6 +316,7 @@ namespace simpfp {
                 for (const auto &entry : fs::directory_iterator(*file)) {
                     const auto ep = new fs::path(entry.path());
                     if (entry.is_directory()) {
+                        permissions(entry, dirs[d_]);
                         dirs[d_].path     = ep;
                         dirs[d_].name     = cpy_str(ep->filename().c_str());
                         dirs[d_].type     = new char[]{""};
@@ -259,7 +329,7 @@ namespace simpfp {
                     }
                     else if (entry.is_regular_file()) {
                         const auto time_entry = fs::last_write_time(entry);
-
+                        permissions(entry, files[f_]);
                         files[f_].path     = ep;
                         files[f_].type     = cpy_str(ep->has_extension() ? ep->extension().c_str() : new char[]{""});
                         files[f_].name     = cpy_str(ep->filename().c_str());
@@ -679,13 +749,25 @@ namespace simpfp {
             ImGui::BeginChild("##region_dirs", ImVec2(free_x_uno, -reserve_y), ImGuiChildFlags_Borders);
 
             for (int i = 0; i < context->dirs_num; i++) {
-                const auto &dir = context->dirs[i];
+                auto &dir = context->dirs[i];
                 bool selected = false;
+
                 ImGui::PushID(i);
+                if (!dir.read) {
+                    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
+                    ImGui::BeginDisabled(true);
+                }
                 ImGui::Selectable(dir.name, &selected);
+                if (!dir.read) {
+                    ImGui::EndDisabled();
+                    ImGui::PopStyleVar();
+                }
                 ImGui::PopID();
 
-                if (selected) {
+                if (selected && dir.read) {
+                    dir.read = internal_::can_read(internal_::fs::absolute(*dir.path));
+                    if (!dir.read)
+                        continue;
                     internal_::FileContext::load(&context, internal_::fs::absolute(*dir.path).c_str());
                 }
             }
