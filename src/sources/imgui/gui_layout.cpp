@@ -106,10 +106,17 @@ namespace ex::gui {
 //                    simpfp::CloseFileDialog();
 //                }
 
-                if (char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
+                char file[256];
+                int n = 0;
+                while (simpfp::FilesAccepted(file, sizeof(file), n++)) {
                     std::cout << "accepted: " << file << '\n';
-                    simpfp::CloseFileDialog();
                 }
+
+
+//                if (char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
+//                    std::cout << "accepted: " << file << '\n';
+//                    simpfp::CloseFileDialog();
+//                }
 
                 simpfp::EndFileDialog();
             }

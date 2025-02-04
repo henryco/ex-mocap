@@ -302,6 +302,17 @@ namespace simpfp {
                 context->selected_num = 1;
             }
 
+            static void unselect_all(FileContext *context) {
+                if (context->selected_num > 1)
+                    std::memset(context->buffer, 0, FileContext::buffer_size);
+                for (int i = 0; i < context->files_num; i++)
+                    context->files[i].selected = false;
+                if (context->selected != nullptr)
+                    delete[] context->selected;
+                context->selected_num = 0;
+                context->selected     = nullptr;
+            }
+
             static void select_add(FileContext *context, const int index) {
                 if (context->selected == nullptr || context->selected_num <= 0) {
                     if (context->selected != nullptr)
@@ -698,8 +709,10 @@ namespace simpfp {
                 ImGui::TableHeadersRow();
 
                 if (const auto sp = ImGui::TableGetSortSpecs(); sp != nullptr && sp->SpecsDirty) {
-                    if (const auto cs = sp->Specs)
+                    if (const auto cs = sp->Specs) {
                         internal_::FileContext::sort(context, (cs->ColumnIndex + 1), cs->SortDirection);
+                        internal_::FileContext::unselect_all(context);
+                    }
                     sp->SpecsDirty = false;
                 }
 
@@ -855,13 +868,69 @@ namespace simpfp {
         return nullptr;
     }
 
-    inline const char **FilesAccepted(std::size_t *const out_n) {
+    inline bool FilesAccepted(char *buffer_out, const std::size_t size, const std::size_t index) {
+        static std::size_t last_index = 0;
         internal_::single = false;
-        if (context == nullptr || context->selected_num <= 0 || !context->accepted)
-            return nullptr;
 
-        context->accepted = false;
-        return nullptr;
+        if (index < last_index || context == nullptr || !context->accepted) {
+            if (context != nullptr)
+                context->accepted = false;
+            last_index = 0;
+            return false;
+        }
+
+        if (context->selected == nullptr ||
+            context->selected_num <= 0 ||
+            context->selected_num <= index)
+        {
+            context->accepted = false;
+            last_index = 0;
+
+            if (index == 0) {
+
+                if (context->buffer == nullptr || std::strlen(context->buffer) <= 0) {
+                    if (internal_::accept_dir) {
+                        std::memset(buffer_out, 0, size);
+                        std::strncpy(buffer_out, context->path->c_str(), size);
+                        return true;
+                    }
+                    return false;
+                }
+
+                std::memset(buffer_out, 0, size);
+                std::strncpy(buffer_out, internal_::fs::absolute(*context->path / context->buffer).c_str(), size);
+                return true;
+
+            }
+            return false;
+        }
+
+        const auto &selected = context->selected[index];
+        if (selected == nullptr) {
+            context->accepted = false;
+            last_index        = 0;
+            return false;
+        }
+
+        if (context->selected_num == 1) {
+            context->accepted = false;
+            last_index        = 0;
+
+            std::memset(buffer_out, 0, size);
+            std::strncpy(buffer_out, internal_::fs::absolute(selected->path->parent_path() / context->buffer).c_str(),
+                         size);
+            return true;
+        }
+
+        std::memset(buffer_out, 0, size);
+        std::strncpy(buffer_out, internal_::fs::absolute(*selected->path).c_str(), size);
+
+        if (index >= context->selected_num - 1) {
+            context->accepted = false;
+            last_index = 0;
+        }
+
+        return true;
     }
 
     inline bool FileAccepted(char *buffer_out, const std::size_t size) {
