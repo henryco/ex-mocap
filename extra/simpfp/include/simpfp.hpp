@@ -25,14 +25,18 @@ namespace simpfp {
     };
 
     bool FileAccepted(char *buffer_out, std::size_t size);
-    bool FilesAccepted(char *buffer_out, std::size_t size, std::size_t index);
+    bool FileAccepted(char *buffer_out, std::size_t size, std::size_t index);
+
     bool PeekSelected(char *buffer_out, std::size_t size);
     bool PeekSelected(char *buffer_out, std::size_t size, std::size_t index);
+
     bool ShowFileDialog(const char *label, bool *open, const ImVec2 &size, bool resize = true);
     bool ShowFileDialog(const char *label, bool *open = nullptr);
+
     bool FileDialogOpen();
 
     void CloseFileDialog();
+
     void EndFileDialog();
 
     void OpenFileDialog(
@@ -45,7 +49,8 @@ namespace simpfp {
     );
 
     const char *CurrentPath();
-    int         CountSelected();
+
+    int CountSelected();
 
     namespace internal_ {
         namespace fs = std::filesystem;
@@ -1209,7 +1214,7 @@ namespace simpfp {
         return true;
     }
 
-    inline bool FilesAccepted(char *buffer_out, const std::size_t size, const std::size_t index) {
+    inline bool FileAccepted(char *buffer_out, const std::size_t size, const std::size_t index) {
         static std::size_t last_index = 0;
         internal_::single = false;
 
