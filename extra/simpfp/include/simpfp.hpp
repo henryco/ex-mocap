@@ -26,6 +26,7 @@ namespace simpfp {
 
     bool FileAccepted(char *buffer_out, std::size_t size);
     bool FilesAccepted(char *buffer_out, std::size_t size, std::size_t index);
+    bool PeekSelected(char *buffer_out, std::size_t size);
     bool PeekSelected(char *buffer_out, std::size_t size, std::size_t index);
     bool ShowFileDialog(const char *label, bool *open, const ImVec2 &size, bool resize = true);
     bool ShowFileDialog(const char *label, bool *open = nullptr);
@@ -1104,8 +1105,46 @@ namespace simpfp {
         return context->path->c_str();
     }
 
+    inline bool PeekSelected(char *buffer_out, const std::size_t size) {
+        if (context == nullptr || context->peeked)
+            return false;
+
+        context->peeked = true;
+
+        if (context->selected == nullptr || context->selected_num <= 0) {
+            context->peeked = true;
+
+            if (context->buffer == nullptr || std::strlen(context->buffer) <= 0) {
+                std::memset(buffer_out, 0, size);
+                std::strncpy(buffer_out, context->path->c_str(), size);
+                return true;
+            }
+
+            std::memset(buffer_out, 0, size);
+            std::strncpy(buffer_out, internal_::fs::absolute(*context->path / context->buffer).c_str(), size);
+            return true;
+        }
+
+        const auto &selected = context->selected[0];
+        if (selected == nullptr) {
+            return false;
+        }
+
+        if (context->selected_num == 1) {
+            std::memset(buffer_out, 0, size);
+            std::strncpy(buffer_out, internal_::fs::absolute(selected->path->parent_path() / context->buffer).c_str(),
+                         size);
+            return true;
+        }
+
+        std::memset(buffer_out, 0, size);
+        std::strncpy(buffer_out, internal_::fs::absolute(*selected->path).c_str(), size);
+        return true;
+    }
+
     inline bool PeekSelected(char *buffer_out, const std::size_t size, const std::size_t index) {
         static std::size_t last_index = 0;
+        internal_::single = false;
 
         if (index < last_index || context == nullptr || context->peeked) {
             if (context != nullptr)
