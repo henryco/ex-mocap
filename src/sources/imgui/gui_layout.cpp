@@ -97,6 +97,10 @@ namespace ex::gui {
 
             if (simpfp::ShowFileDialog("Select a file", &fp_open, min_size, true)) {
 
+                for (char file[256], c = 0; simpfp::PeekSelected(file, sizeof(file), c); c++) {
+                    std::cout << "peek: " << file << '\n';
+                }
+
                 if (char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
                     std::cout << "accepted: " << file << '\n';
                     simpfp::CloseFileDialog();

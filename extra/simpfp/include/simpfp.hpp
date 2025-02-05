@@ -264,6 +264,7 @@ namespace simpfp {
             char sort_type = SORT_NONE;
 
             bool accepted = false;
+            bool peeked   = true;
 
             bool read  = false;
             bool write = false;
@@ -947,6 +948,7 @@ namespace simpfp {
             constexpr std::size_t max_len = internal_::FileContext::buffer_size - 1;
 
             if (selection_change) {
+                context->peeked = false;
                 std::memset(buffer, 0, internal_::FileContext::buffer_size);
 
                 if (context->selected != nullptr && context->selected_num == 1) {
@@ -971,7 +973,9 @@ namespace simpfp {
                 alpha = 0.5f;
             }
 
-            internal_::full_width_input(buffer, max_len, alpha);
+            if (internal_::full_width_input(buffer, max_len, alpha)) {
+                context->peeked = false;
+            }
 
             if (internal_::dir_only || context->selected_num > 1) {
                 ImGui::EndDisabled();
@@ -1104,7 +1108,9 @@ namespace simpfp {
         static std::size_t last_index = 0;
         internal_::single = false;
 
-        if (index < last_index || context == nullptr) {
+        if (index < last_index || context == nullptr || context->peeked) {
+            if (context != nullptr)
+                context->peeked = true;
             last_index = 0;
             return false;
         }
@@ -1113,17 +1119,15 @@ namespace simpfp {
             context->selected_num <= 0 ||
             context->selected_num <= index)
         {
+            context->peeked = true;
             last_index = 0;
 
             if (index == 0) {
 
                 if (context->buffer == nullptr || std::strlen(context->buffer) <= 0) {
-                    if (internal_::accept_empty) {
-                        std::memset(buffer_out, 0, size);
-                        std::strncpy(buffer_out, context->path->c_str(), size);
-                        return true;
-                    }
-                    return false;
+                    std::memset(buffer_out, 0, size);
+                    std::strncpy(buffer_out, context->path->c_str(), size);
+                    return true;
                 }
 
                 std::memset(buffer_out, 0, size);
@@ -1136,14 +1140,18 @@ namespace simpfp {
 
         const auto &selected = context->selected[index];
         if (selected == nullptr) {
+            context->peeked = true;
             last_index = 0;
             return false;
         }
 
-        if (index >= context->selected_num - 1)
+        if (index >= context->selected_num - 1) {
+            context->peeked = true;
             last_index = 0;
+        }
 
         if (context->selected_num == 1) {
+            context->peeked = true;
             last_index = 0;
             std::memset(buffer_out, 0, size);
             std::strncpy(buffer_out, internal_::fs::absolute(selected->path->parent_path() / context->buffer).c_str(),
