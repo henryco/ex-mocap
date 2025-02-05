@@ -390,6 +390,7 @@ namespace simpfp {
                         d_++;
                     }
                     else if (fs::is_regular_file(status)) {
+                        // TODO: FILTER
                         const auto ep = new fs::path(it->path());
                         const auto time_entry = fs::last_write_time(*ep);
                         permissions(status, files[f_]);
@@ -739,7 +740,7 @@ namespace simpfp {
             }
         }
 
-        inline bool select_filter(FileContext *context) {
+        inline bool select_filter(FileContext *context, const float alpha = 1.f) {
             ImGui::SameLine();
             constexpr float field_size      = 100.f;
             const float     available_width = ImGui::GetContentRegionMax().x;
@@ -747,6 +748,12 @@ namespace simpfp {
 
             ImGui::SetCursorPosX(available_width - (field_size) + spacing);
             ImGui::PushItemWidth(field_size - spacing);
+
+            const auto input_pos = ImGui::GetCursorScreenPos();
+            const auto input_size = ImVec2(field_size - spacing, ImGui::GetFrameHeight());
+
+            const auto prev_index = context->filter_idx;
+
             if (ImGui::BeginCombo("##filters", internal_::filters[context->filter_idx],
                  ImGuiComboFlags_HeightSmall)) {
                 for (int n = 0; internal_::filters[n] != nullptr; n++) {
@@ -760,7 +767,12 @@ namespace simpfp {
             }
             ImGui::PopItemWidth();
 
-            return false;
+            ImGui::GetWindowDrawList()->AddRect(
+                input_pos,
+                ImVec2(input_pos.x + input_size.x, input_pos.y + input_size.y),
+                IM_COL32(0, 0, 0, 90 * alpha));
+
+            return context->filter_idx != prev_index;
         }
 
     }
