@@ -40,6 +40,7 @@ namespace simpfp {
         const char   *default_path = nullptr,
         bool          accept_empty = false,
         bool          dir_only     = false,
+        const char  **filters      = nullptr,
         const Labels *labels       = nullptr
     );
 
@@ -574,10 +575,12 @@ namespace simpfp {
         inline bool        accept_empty = false;
         inline bool        dir_only     = false;
 
-        inline Labels labels;
+        inline const char **filters = nullptr;
+        inline Labels       labels;
 
         inline void reset_vars() {
             internal_::open_ptr     = nullptr;
+            internal_::filters      = nullptr;
             internal_::label        = nullptr;
             internal_::reset        = false;
             internal_::closed       = true;
@@ -726,10 +729,11 @@ namespace simpfp {
     inline internal_::FileContext *context = nullptr;
 
     inline void OpenFileDialog(
-        const char *label,
-        const char *default_path,
-        const bool accept_empty,
-        const bool dir_only,
+        const char   *label,
+        const char   *default_path,
+        const bool    accept_empty,
+        const bool    dir_only,
+        const char  **filters,
         const Labels *labels
     ) {
         internal_::open_ptr     = nullptr;
@@ -737,6 +741,7 @@ namespace simpfp {
         internal_::single       = true;
         internal_::reset        = true;
         internal_::label        = label;
+        internal_::filters      = filters;
         internal_::dir_only     = dir_only;
         internal_::file_path    = default_path;
         internal_::accept_empty = accept_empty || dir_only;
