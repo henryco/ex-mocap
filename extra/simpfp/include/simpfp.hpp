@@ -262,7 +262,6 @@ namespace simpfp {
             static constexpr std::size_t buffer_size = 256;
             char                        *buffer      = new char[buffer_size]{};
 
-            const char     *filter   = nullptr;
             const fs::path *path     = nullptr;
             FileInfo       *dirs     = nullptr;
             FileInfo       *files    = nullptr;
@@ -271,6 +270,7 @@ namespace simpfp {
             int selected_num = 0;
             int files_num    = 0;
             int dirs_num     = 0;
+            int filter_idx   = 0;
 
             char sort_by   = SORT_NONE;
             char sort_type = SORT_NONE;
@@ -309,10 +309,10 @@ namespace simpfp {
                 char sort_by   = SORT_NONE;
                 char sort_type = SORT_NONE;
 
-                const char *filter = nullptr;
+                int filter = -1;
 
                 if (*context != nullptr) {
-                    filter    = (*context)->filter;
+                    filter    = (*context)->filter_idx;
                     sort_by   = (*context)->sort_by;
                     sort_type = (*context)->sort_type;
                     delete *context;
@@ -405,11 +405,11 @@ namespace simpfp {
                     }
                 }
 
-                new_context->files_num = files_num;
-                new_context->files     = files;
-                new_context->dirs_num  = dirs_num;
-                new_context->dirs      = dirs;
-                new_context->filter    = filter;
+                new_context->files_num  = files_num;
+                new_context->files      = files;
+                new_context->dirs_num   = dirs_num;
+                new_context->dirs       = dirs;
+                new_context->filter_idx = filter;
 
                 *context = new_context;
 
@@ -738,6 +738,31 @@ namespace simpfp {
                 ImGui::PopStyleVar();
             }
         }
+
+        inline bool select_filter(FileContext *context) {
+            ImGui::SameLine();
+            constexpr float field_size      = 100.f;
+            const float     available_width = ImGui::GetContentRegionMax().x;
+            const float     spacing         = ImGui::GetStyle().ItemSpacing.x;
+
+            ImGui::SetCursorPosX(available_width - (field_size) + spacing);
+            ImGui::PushItemWidth(field_size - spacing);
+            if (ImGui::BeginCombo("##filters", internal_::filters[context->filter_idx],
+                 ImGuiComboFlags_HeightSmall)) {
+                for (int n = 0; internal_::filters[n] != nullptr; n++) {
+                    const bool is_selected = (context->filter_idx == n);
+                    if (ImGui::Selectable(internal_::filters[n], is_selected))
+                        context->filter_idx = n;
+                    if (is_selected)
+                        ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+            ImGui::PopItemWidth();
+
+            return false;
+        }
+
     }
 
     inline internal_::FileContext *context = nullptr;
@@ -808,8 +833,9 @@ namespace simpfp {
 
         if (context == nullptr) {
             internal_::FileContext::load(&context, internal_::file_path);
-            if (internal_::filters != nullptr)
-                context->filter = internal_::filters[0];
+            if (internal_::filters != nullptr) {
+                context->filter_idx = 0;
+            }
         }
 
         const auto center = ImGui::GetMainViewport()->GetCenter();
@@ -1003,8 +1029,10 @@ namespace simpfp {
                 context->peeked = false;
             }
 
-            if (has_filters) {
-                // TODO filters
+            if (has_filters && internal_::select_filter(context)) {
+                std::memset(context->buffer, 0, internal_::FileContext::buffer_size);
+                internal_::FileContext::reload(&context);
+                context->peeked = false;
             }
 
             if (internal_::dir_only || context->selected_num > 1) {
