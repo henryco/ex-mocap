@@ -651,7 +651,7 @@ namespace simpfp {
             return true;
         }
 
-        inline bool full_width_input(char *buffer, const std::size_t buffer_size, const float alpha = 1.0f) {
+        inline bool full_width_input(char *buffer, const std::size_t buffer_size, const float alpha = 1.0f, const float padding_right = 0.f) {
             static bool updated = false;
             static auto callback = [](ImGuiInputTextCallbackData *data) -> int {
                 if (data->EventFlag == ImGuiInputTextFlags_CallbackEdit)
@@ -660,7 +660,7 @@ namespace simpfp {
             };
 
             const auto input_pos = ImGui::GetCursorScreenPos();
-            const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
+            const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x - padding_right, ImGui::GetFrameHeight());
 
             ImGui::SetNextItemWidth(input_size.x);
             ImGui::InputText("##bordered_input", buffer, buffer_size,
@@ -808,6 +808,8 @@ namespace simpfp {
 
         if (context == nullptr) {
             internal_::FileContext::load(&context, internal_::file_path);
+            if (internal_::filters != nullptr)
+                context->filter = internal_::filters[0];
         }
 
         const auto center = ImGui::GetMainViewport()->GetCenter();
@@ -994,11 +996,16 @@ namespace simpfp {
                 alpha = 0.5f;
             }
 
-            if (internal_::full_width_input(buffer, max_len, alpha)) {
+            const bool      has_filters  = internal_::filters != nullptr;
+            constexpr float filters_size = 100.f;
+
+            if (internal_::full_width_input(buffer, max_len, alpha, has_filters ? filters_size : 0.f)) {
                 context->peeked = false;
             }
 
-            // TODO filters
+            if (has_filters) {
+                // TODO filters
+            }
 
             if (internal_::dir_only || context->selected_num > 1) {
                 ImGui::EndDisabled();
