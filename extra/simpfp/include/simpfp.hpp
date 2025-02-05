@@ -39,13 +39,17 @@ namespace simpfp {
 
     void EndFileDialog();
 
+    /**
+     * @param filters array of strings, ie: *.cpp / *.txt / *.md / etc.
+     * <br/><b>Must be terminated with nullptr!</b>
+     */
     void OpenFileDialog(
         const char   *label,
         const char   *default_path = nullptr,
-        bool          accept_empty = false,
-        bool          dir_only     = false,
         const char  **filters      = nullptr,
-        const Labels *labels       = nullptr
+        const Labels *labels       = nullptr,
+        bool          accept_empty = false,
+        bool          dir_only     = false
     );
 
     const char *CurrentPath();
@@ -258,6 +262,7 @@ namespace simpfp {
             static constexpr std::size_t buffer_size = 256;
             char                        *buffer      = new char[buffer_size]{};
 
+            const char     *filter   = nullptr;
             const fs::path *path     = nullptr;
             FileInfo       *dirs     = nullptr;
             FileInfo       *files    = nullptr;
@@ -304,7 +309,10 @@ namespace simpfp {
                 char sort_by   = SORT_NONE;
                 char sort_type = SORT_NONE;
 
+                const char *filter = nullptr;
+
                 if (*context != nullptr) {
+                    filter    = (*context)->filter;
                     sort_by   = (*context)->sort_by;
                     sort_type = (*context)->sort_type;
                     delete *context;
@@ -401,6 +409,7 @@ namespace simpfp {
                 new_context->files     = files;
                 new_context->dirs_num  = dirs_num;
                 new_context->dirs      = dirs;
+                new_context->filter    = filter;
 
                 *context = new_context;
 
@@ -736,10 +745,10 @@ namespace simpfp {
     inline void OpenFileDialog(
         const char   *label,
         const char   *default_path,
-        const bool    accept_empty,
-        const bool    dir_only,
         const char  **filters,
-        const Labels *labels
+        const Labels *labels,
+        const bool    accept_empty,
+        const bool    dir_only
     ) {
         internal_::open_ptr     = nullptr;
         internal_::closed       = false;
@@ -988,6 +997,8 @@ namespace simpfp {
             if (internal_::full_width_input(buffer, max_len, alpha)) {
                 context->peeked = false;
             }
+
+            // TODO filters
 
             if (internal_::dir_only || context->selected_num > 1) {
                 ImGui::EndDisabled();
