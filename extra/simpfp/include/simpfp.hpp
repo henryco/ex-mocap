@@ -116,9 +116,7 @@ namespace simpfp {
             if (file == nullptr)
                 return fs::current_path();
             const auto path = fs::path(file);
-            if (fs::exists(path))
-                return fs::is_directory(path) ? path : path.parent_path();
-            return fs::current_path();
+            return fs::exists(path) ? path : fs::current_path();
         }
 
         inline char* format_time(const fs::file_time_type& ftime) {
@@ -304,7 +302,9 @@ namespace simpfp {
                     delete *context;
                 }
 
-                const auto file = new fs::path(load_path(path));
+                const auto og_f = load_path(path);
+
+                const auto file = new fs::path(fs::is_directory(og_f) ? og_f : og_f.parent_path());
 
                 const auto new_context = new FileContext;
                 new_context->path      = file;
@@ -312,6 +312,11 @@ namespace simpfp {
                 new_context->sort_type = sort_type;
                 new_context->read      = can_read(*file);
                 new_context->write     = can_write(*file);
+
+                if (fs::is_regular_file(og_f) && og_f.has_filename()) {
+                    std::memset(new_context->buffer, 0, FileContext::buffer_size);
+                    std::strncpy(new_context->buffer, og_f.filename().c_str(), FileContext::buffer_size - 1);
+                }
 
                 const int     init_dirs  = file->has_parent_path() ? 1 : 0;
                 constexpr int init_files = 0;
