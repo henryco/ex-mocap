@@ -6,6 +6,7 @@
 #define SIMPFP_HPP
 
 #include <algorithm>
+#include <regex>
 #include <chrono>
 #include <cstring>
 #include <filesystem>
@@ -35,8 +36,10 @@ namespace simpfp {
 
     bool FileDialogOpen();
 
+    void UnselectAll();
+    void ResetBuffer();
+    void Reload();
     void CloseFileDialog();
-
     void EndFileDialog();
 
     /**
@@ -68,6 +71,45 @@ namespace simpfp {
 
         #define SORT_ASC 1
         #define SORT_DSC 2
+
+        inline const char *label        = nullptr;
+        inline const char *file_path    = nullptr;
+        inline bool       *open_ptr     = nullptr;
+        inline bool        reset        = false;
+        inline bool        closed       = true;
+        inline bool        resizable    = true;
+        inline bool        single       = true;
+        inline bool        accept_empty = false;
+        inline bool        dir_only     = false;
+
+        inline const char **filters = nullptr;
+        inline Labels       labels;
+
+        inline void reset_vars() {
+            internal_::open_ptr     = nullptr;
+            internal_::filters      = nullptr;
+            internal_::label        = nullptr;
+            internal_::reset        = false;
+            internal_::closed       = true;
+            internal_::resizable    = true;
+            internal_::single       = true;
+            internal_::accept_empty = false;
+            internal_::dir_only     = false;
+            internal_::labels       = Labels();
+        }
+
+        inline std::string glob_to_regex(const char* glob) {
+            std::string regex_pattern = glob;
+            for (size_t pos = 0; (pos = regex_pattern.find('.', pos)) != std::string::npos; ++pos) {
+                regex_pattern.replace(pos, 1, "\\.");
+                pos++;
+            }
+            for (size_t pos = 0; (pos = regex_pattern.find('*', pos)) != std::string::npos; ++pos) {
+                regex_pattern.replace(pos, 1, ".*");
+                pos += 1;
+            }
+            return regex_pattern;
+        }
 
         inline fs::path generate_temp_file(const fs::path& directory) {
             char temp_filename[L_tmpnam];
@@ -306,10 +348,13 @@ namespace simpfp {
             }
 
             static void load(FileContext **context, const char *path) {
+                const auto og_f = load_path(path);
+                const auto file = new fs::path(fs::is_directory(og_f) ? og_f : og_f.parent_path());
+
                 char sort_by   = SORT_NONE;
                 char sort_type = SORT_NONE;
 
-                int filter = -1;
+                int filter = 0;
 
                 if (*context != nullptr) {
                     filter    = (*context)->filter_idx;
@@ -317,10 +362,6 @@ namespace simpfp {
                     sort_type = (*context)->sort_type;
                     delete *context;
                 }
-
-                const auto og_f = load_path(path);
-
-                const auto file = new fs::path(fs::is_directory(og_f) ? og_f : og_f.parent_path());
 
                 const auto new_context = new FileContext;
                 new_context->path      = file;
@@ -370,6 +411,18 @@ namespace simpfp {
 
                 int d_ = init_dirs, f_ = init_files;
 
+                std::regex pattern;
+                bool should_filter =
+                        (internal_::filters != nullptr) && (filter >= 0) && (internal_::filters[filter] != nullptr);
+                if (should_filter && internal_::filters != nullptr && internal_::filters[filter] != nullptr) {
+                    const auto curr = internal_::filters[filter];
+                    if (curr[0] == '*' && curr[1] == '.' && curr[2] == '*' && curr[3] == '\0') {
+                        should_filter = false;
+                    }
+                    const auto regex_str = glob_to_regex(internal_::filters[filter]);
+                    pattern = std::regex(regex_str);
+                }
+
                 for (fs::directory_iterator it(*file, ec); it != fs::directory_iterator(); it.increment(ec)) {
                     if (ec) continue;
 
@@ -390,23 +443,24 @@ namespace simpfp {
                         d_++;
                     }
                     else if (fs::is_regular_file(status)) {
-                        // TODO: FILTER
                         const auto ep = new fs::path(it->path());
-                        const auto time_entry = fs::last_write_time(*ep);
-                        permissions(status, files[f_]);
-                        files[f_].path     = ep;
-                        files[f_].type     = cpy_str(ep->has_extension() ? ep->extension().c_str() : new char[]{""});
-                        files[f_].name     = cpy_str(ep->filename().c_str());
-                        files[f_].date     = get_unix_timestamp_ms(time_entry);
-                        files[f_].time     = format_time(time_entry);
-                        files[f_].size     = it->file_size(ec);
-                        files[f_].selected = false;
-                        files[f_].index    = f_;
-                        f_++;
+                        if (!should_filter || std::regex_match(ep->filename().string(), pattern)) {
+                            const auto time_entry = fs::last_write_time(*ep);
+                            permissions(status, files[f_]);
+                            files[f_].path     = ep;
+                            files[f_].type     = cpy_str(ep->has_extension() ? ep->extension().c_str() : new char[]{""});
+                            files[f_].name     = cpy_str(ep->filename().c_str());
+                            files[f_].date     = get_unix_timestamp_ms(time_entry);
+                            files[f_].time     = format_time(time_entry);
+                            files[f_].size     = it->file_size(ec);
+                            files[f_].selected = false;
+                            files[f_].index    = f_;
+                            f_++;
+                        }
                     }
                 }
 
-                new_context->files_num  = files_num;
+                new_context->files_num  = f_;
                 new_context->files      = files;
                 new_context->dirs_num   = dirs_num;
                 new_context->dirs       = dirs;
@@ -576,35 +630,8 @@ namespace simpfp {
                         });
                     }
                 }
-
             }
         };
-
-        inline const char *label        = nullptr;
-        inline const char *file_path    = nullptr;
-        inline bool       *open_ptr     = nullptr;
-        inline bool        reset        = false;
-        inline bool        closed       = true;
-        inline bool        resizable    = true;
-        inline bool        single       = true;
-        inline bool        accept_empty = false;
-        inline bool        dir_only     = false;
-
-        inline const char **filters = nullptr;
-        inline Labels       labels;
-
-        inline void reset_vars() {
-            internal_::open_ptr     = nullptr;
-            internal_::filters      = nullptr;
-            internal_::label        = nullptr;
-            internal_::reset        = false;
-            internal_::closed       = true;
-            internal_::resizable    = true;
-            internal_::single       = true;
-            internal_::accept_empty = false;
-            internal_::dir_only     = false;
-            internal_::labels       = Labels();
-        }
 
         inline bool show_dialog(const char *label, bool *open = nullptr, const ImVec2 *size = nullptr, const bool resizable = true) {
             if (open != nullptr && !*open) {
@@ -1041,15 +1068,15 @@ namespace simpfp {
                 context->peeked = false;
             }
 
+            if (internal_::dir_only || context->selected_num > 1) {
+                ImGui::EndDisabled();
+                ImGui::PopStyleVar();
+            }
+
             if (has_filters && internal_::select_filter(context)) {
                 std::memset(context->buffer, 0, internal_::FileContext::buffer_size);
                 internal_::FileContext::reload(&context);
                 context->peeked = false;
-            }
-
-            if (internal_::dir_only || context->selected_num > 1) {
-                ImGui::EndDisabled();
-                ImGui::PopStyleVar();
             }
 
             ImGui::Spacing();
@@ -1163,6 +1190,33 @@ namespace simpfp {
         }
     }
 
+    inline void UnselectAll() {
+        if (context == nullptr)
+            return;
+        if (context->selected != nullptr)
+            delete[] context->selected;
+        context->selected = nullptr;
+        context->accepted = false;
+        context->peeked   = true;
+    }
+
+    inline void ResetBuffer() {
+        if (context == nullptr)
+            return;
+        std::memset(context->buffer, 0, internal_::FileContext::buffer_size);
+        context->accepted = false;
+        context->peeked   = true;
+    }
+
+    inline void Reload() {
+        if (context == nullptr)
+            return;
+        std::memset(context->buffer, 0, internal_::FileContext::buffer_size);
+        internal_::FileContext::reload(&context);
+        context->accepted = false;
+        context->peeked   = true;
+    }
+
     inline int CountSelected() {
         if (context == nullptr || context->selected == nullptr)
             return 0;
@@ -1223,6 +1277,7 @@ namespace simpfp {
             return false;
         }
 
+        last_index = index;
         if (context->selected == nullptr ||
             context->selected_num <= 0 ||
             context->selected_num <= index)
@@ -1282,6 +1337,8 @@ namespace simpfp {
             last_index = 0;
             return false;
         }
+
+        last_index = index;
 
         if (context->selected == nullptr ||
             context->selected_num <= 0 ||
