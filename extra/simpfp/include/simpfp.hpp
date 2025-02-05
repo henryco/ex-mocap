@@ -1106,7 +1106,6 @@ namespace simpfp {
 
     inline bool PeekSelected(char *buffer_out, const std::size_t size, const std::size_t index) {
         static std::size_t last_index = 0;
-        internal_::single = false;
 
         if (index < last_index || context == nullptr || context->peeked) {
             if (context != nullptr)
