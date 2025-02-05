@@ -851,6 +851,7 @@ namespace simpfp {
                     if (!dir.read)
                         continue;
                     internal_::FileContext::load(&context, internal_::fs::absolute(*dir.path).c_str());
+                    context->peeked = false;
                 }
             }
 
@@ -1059,6 +1060,7 @@ namespace simpfp {
                         std::memset(new_name_buffer, 0, sizeof(new_name_buffer));
                         ImGui::CloseCurrentPopup();
                         internal_::FileContext::reload(&context);
+                        context->peeked = false;
                     }
                 }
                 if (!allowed) {
