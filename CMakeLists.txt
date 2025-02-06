@@ -52,7 +52,7 @@ add_library(lucide INTERFACE)
 target_include_directories(lucide INTERFACE external/lucide)
 
 add_library(simpfp INTERFACE)
-target_include_directories(simpfp INTERFACE extra/simpfp)
+target_include_directories(simpfp INTERFACE extra/simpfp/include/simpfp)
 
 add_library(imgui
         external/imgui/imgui.cpp
