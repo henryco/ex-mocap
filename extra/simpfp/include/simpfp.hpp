@@ -116,11 +116,9 @@ namespace simpfp {
             return regex_pattern;
         }
 
-        inline fs::path generate_temp_file(const fs::path& directory) {
-            char temp_filename[L_tmpnam];
-            if (std::tmpnam(temp_filename))
-                return directory / fs::path(temp_filename).filename();
-            return directory / ".perm_check_tmp";
+        inline bool can_write(const fs::path& path) {
+            std::ofstream file(path, std::ios::app);
+            return file.is_open();
         }
 
         inline bool can_read(const fs::path& path) {
@@ -131,27 +129,13 @@ namespace simpfp {
 
             if ((perms & std::filesystem::perms::owner_read) != std::filesystem::perms::none ||
                 (perms & std::filesystem::perms::group_read) != std::filesystem::perms::none ||
-                (perms & std::filesystem::perms::others_read) != std::filesystem::perms::none) {
+                (perms & std::filesystem::perms::others_read) != std::filesystem::perms::none)
+            {
                 const std::ifstream file(path);
                 return file.good();
             }
 
             return false;
-        }
-
-        inline bool can_write(const fs::path& path) {
-            if (fs::is_directory(path)) {
-                std::error_code ec;
-                fs::path        temp_file = generate_temp_file(path);
-                std::ofstream   file(temp_file);
-                if (!file.is_open())
-                    return false;
-                file.close();
-                fs::remove(temp_file, ec);
-                return true;
-            }
-            std::ofstream file(path, std::ios::app);
-            return file.is_open();
         }
 
         inline char *cpy_str(const char *str) {

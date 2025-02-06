@@ -51,6 +51,9 @@ target_include_directories(ifcpph INTERFACE external/iconfontcppheaders)
 add_library(lucide INTERFACE)
 target_include_directories(lucide INTERFACE external/lucide)
 
+add_library(simpfp INTERFACE)
+target_include_directories(simpfp INTERFACE extra/simpfp)
+
 add_library(imgui
         external/imgui/imgui.cpp
         external/imgui/imgui_draw.cpp
@@ -69,7 +72,7 @@ target_link_libraries(imgui PUBLIC
         OpenGL::GL glfw)
 
 set(EXTRA_FILES
-        extra/simpfp/include/simpfp.hpp
+#        extra/simpfp/include/simpfp.hpp
 )
 
 set(PLATFORM_FILES
@@ -214,7 +217,7 @@ if (UNIX AND NOT APPLE)
             PRIVATE lucide
             PRIVATE ifcpph
             PRIVATE imgui
-#            PRIVATE simpfp
+            PRIVATE simpfp
             PRIVATE glm)
     target_compile_options(${PROJECT_NAME}
             PRIVATE ${V4L2_CFLAGS_OTHER})
