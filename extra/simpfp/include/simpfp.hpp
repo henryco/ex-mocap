@@ -7,11 +7,11 @@
 #define SIMPFP_HPP
 
 #include <algorithm>
-#include <regex>
 #include <chrono>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
-#include <cstring>
+#include <regex>
 #include <string.h>
 
 namespace simpfp {
@@ -35,14 +35,8 @@ namespace simpfp {
      * @param accept_empty accept empty selection
      * @param dir_only show/accept only directories
      */
-    void OpenFileDialog(
-        const char   *title,
-        const char   *default_path = nullptr,
-        const char  **filters      = nullptr,
-        const Labels *labels       = nullptr,
-        bool          accept_empty = false,
-        bool          dir_only     = false
-    );
+    void OpenFileDialog(const char *title, const char *default_path = nullptr, const char **filters = nullptr,
+                        const Labels *labels = nullptr, bool accept_empty = false, bool dir_only = false);
 
     const char *CurrentPath();
 
@@ -67,15 +61,15 @@ namespace simpfp {
     namespace internal_ {
         namespace fs = std::filesystem;
 
-        #define SORT_NONE 0
+#define SORT_NONE 0
 
-        #define SORT_NAME 1
-        #define SORT_SIZE 2
-        #define SORT_TYPE 3
-        #define SORT_TIME 4
+#define SORT_NAME 1
+#define SORT_SIZE 2
+#define SORT_TYPE 3
+#define SORT_TIME 4
 
-        #define SORT_ASC 1
-        #define SORT_DSC 2
+#define SORT_ASC 1
+#define SORT_DSC 2
 
         inline const char *title        = nullptr;
         inline const char *file_path    = nullptr;
@@ -103,7 +97,7 @@ namespace simpfp {
             internal_::labels       = Labels();
         }
 
-        inline std::string glob_to_regex(const char* glob) {
+        inline std::string glob_to_regex(const char *glob) {
             std::string regex_pattern = glob;
             for (size_t pos = 0; (pos = regex_pattern.find('.', pos)) != std::string::npos; ++pos) {
                 regex_pattern.replace(pos, 1, "\\.");
@@ -116,21 +110,21 @@ namespace simpfp {
             return regex_pattern;
         }
 
-        inline bool can_write(const fs::path& path) {
+        inline bool can_write(const fs::path &path) {
             std::ofstream file(path, std::ios::app);
             return file.is_open();
         }
 
-        inline bool can_read(const fs::path& path) {
+        inline bool can_read(const fs::path &path) {
             std::error_code ec;
             const auto      perms = std::filesystem::status(path, ec).permissions();
 
-            if (ec) return false;
+            if (ec)
+                return false;
 
             if ((perms & std::filesystem::perms::owner_read) != std::filesystem::perms::none ||
                 (perms & std::filesystem::perms::group_read) != std::filesystem::perms::none ||
-                (perms & std::filesystem::perms::others_read) != std::filesystem::perms::none)
-            {
+                (perms & std::filesystem::perms::others_read) != std::filesystem::perms::none) {
                 const std::ifstream file(path);
                 return file.good();
             }
@@ -142,7 +136,7 @@ namespace simpfp {
             if (str == nullptr)
                 return nullptr;
             const auto len  = std::strlen(str);
-            auto *buff = new char[len + 1];
+            auto      *buff = new char[len + 1];
             std::strcpy(buff, str);
             return buff;
         }
@@ -161,19 +155,19 @@ namespace simpfp {
             return fs::exists(path) ? path : fs::current_path();
         }
 
-        inline char* format_time(const fs::file_time_type& ftime) {
+        inline char *format_time(const fs::file_time_type &ftime) {
             const auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
                     ftime - fs::file_time_type::clock::now() + std::chrono::system_clock::now());
-            const auto tt = std::chrono::system_clock::to_time_t(sctp);
+            const auto tt  = std::chrono::system_clock::to_time_t(sctp);
             const auto gmt = std::localtime(&tt);
-            char buffer[20];
+            char       buffer[20];
             std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", gmt);
             return cpy_str(buffer);
         }
 
-        inline std::size_t get_unix_timestamp_ms(const fs::file_time_type& ftime) {
+        inline std::size_t get_unix_timestamp_ms(const fs::file_time_type &ftime) {
             const auto sctp = std::chrono::time_point_cast<std::chrono::milliseconds>(
-                ftime - fs::file_time_type::clock::now() + std::chrono::system_clock::now());
+                    ftime - fs::file_time_type::clock::now() + std::chrono::system_clock::now());
             return static_cast<std::size_t>(sctp.time_since_epoch().count());
         }
 
@@ -220,7 +214,7 @@ namespace simpfp {
                 other.time = nullptr;
             }
 
-            FileInfo &operator = (FileInfo &&other) noexcept {
+            FileInfo &operator=(FileInfo &&other) noexcept {
                 if (&other == this)
                     return *this;
 
@@ -251,7 +245,7 @@ namespace simpfp {
                 return *this;
             }
 
-            FileInfo &operator = (const FileInfo &other) {
+            FileInfo &operator=(const FileInfo &other) {
                 if (&other == this)
                     return *this;
 
@@ -327,7 +321,7 @@ namespace simpfp {
 
             static void permissions(const fs::file_status &status, FileInfo &file) {
                 const auto perms = status.permissions();
-                file.read = (perms & fs::perms::owner_read) != fs::perms::none ||
+                file.read        = (perms & fs::perms::owner_read) != fs::perms::none ||
                             (perms & fs::perms::group_read) != fs::perms::none ||
                             (perms & fs::perms::others_read) != fs::perms::none;
 
@@ -372,10 +366,12 @@ namespace simpfp {
 
                 std::error_code ec;
                 for (fs::directory_iterator it(*file, ec); it != fs::directory_iterator(); it.increment(ec)) {
-                    if (ec) continue;
+                    if (ec)
+                        continue;
 
                     const auto &status = it->status(ec);
-                    if (ec) continue;
+                    if (ec)
+                        continue;
 
                     if (fs::is_directory(status))
                         dirs_num++;
@@ -393,40 +389,42 @@ namespace simpfp {
                     dirs[0].index    = 0;
                     dirs[0].size     = 0;
                     dirs[0].date     = 0;
-                    dirs[0].name     = new char[]{".."};
-                    dirs[0].type     = new char[]{".."};
-                    dirs[0].time     = new char[]{".."};
+                    dirs[0].name     = new char[]{ ".." };
+                    dirs[0].type     = new char[]{ ".." };
+                    dirs[0].time     = new char[]{ ".." };
                 }
 
                 int d_ = init_dirs, f_ = init_files;
 
                 std::regex pattern;
-                bool should_filter = (filter >= 0) &&
-                        (internal_::filters != nullptr) &&
-                        (internal_::filters[filter] != nullptr);
+                bool       should_filter =
+                        (filter >= 0) && (internal_::filters != nullptr) && (internal_::filters[filter] != nullptr);
                 if (should_filter) {
                     const auto curr = internal_::filters[filter];
                     if (std::strlen(curr) == 0 || std::strcmp(curr, "*") == 0 || std::strcmp(curr, " ") == 0) {
                         should_filter = false;
-                    } else {
+                    }
+                    else {
                         const auto regex_str = glob_to_regex(internal_::filters[filter]);
-                        pattern = std::regex(regex_str);
+                        pattern              = std::regex(regex_str);
                     }
                 }
 
                 for (fs::directory_iterator it(*file, ec); it != fs::directory_iterator(); it.increment(ec)) {
-                    if (ec) continue;
+                    if (ec)
+                        continue;
 
                     const auto &status = it->status(ec);
-                    if (ec) continue;
+                    if (ec)
+                        continue;
 
                     if (fs::is_directory(status)) {
                         const auto ep = new fs::path(it->path());
                         permissions(status, dirs[d_]);
                         dirs[d_].path     = ep;
                         dirs[d_].name     = cpy_str(ep->filename().c_str());
-                        dirs[d_].type     = new char[]{""};
-                        dirs[d_].time     = new char[]{""};
+                        dirs[d_].type     = new char[]{ "" };
+                        dirs[d_].time     = new char[]{ "" };
                         dirs[d_].selected = false;
                         dirs[d_].size     = 0;
                         dirs[d_].date     = 0;
@@ -438,12 +436,12 @@ namespace simpfp {
                         if (!should_filter || std::regex_match(ep->filename().string(), pattern)) {
                             const auto time_entry = fs::last_write_time(*ep);
                             permissions(status, files[f_]);
-                            files[f_].path     = ep;
-                            files[f_].type     = cpy_str(ep->has_extension() ? ep->extension().c_str() : new char[]{""});
-                            files[f_].name     = cpy_str(ep->filename().c_str());
-                            files[f_].date     = get_unix_timestamp_ms(time_entry);
-                            files[f_].time     = format_time(time_entry);
-                            files[f_].size     = it->file_size(ec);
+                            files[f_].path = ep;
+                            files[f_].type = cpy_str(ep->has_extension() ? ep->extension().c_str() : new char[]{ "" });
+                            files[f_].name = cpy_str(ep->filename().c_str());
+                            files[f_].date = get_unix_timestamp_ms(time_entry);
+                            files[f_].time = format_time(time_entry);
+                            files[f_].size = it->file_size(ec);
                             files[f_].selected = false;
                             files[f_].index    = f_;
                             f_++;
@@ -463,9 +461,7 @@ namespace simpfp {
                     FileContext::sort(*context, sort_by, sort_type);
             }
 
-            static void reload(FileContext **context) {
-                FileContext::load(context, (*context)->path->c_str());
-            }
+            static void reload(FileContext **context) { FileContext::load(context, (*context)->path->c_str()); }
 
             static void select_single(FileContext *context, const int index) {
                 if (context->selected_num == 1 && context->files[index].selected)
@@ -569,62 +565,51 @@ namespace simpfp {
                 if (by == SORT_NAME) {
                     if (order == SORT_ASC) {
                         std::sort(context->files, context->files + context->files_num,
-                        [] (const FileInfo &a, const FileInfo &b) {
-                            return std::strcmp(a.name, b.name) < 0;
-                        });
-                    } else {
+                                  [](const FileInfo &a, const FileInfo &b) { return std::strcmp(a.name, b.name) < 0; });
+                    }
+                    else {
                         std::sort(context->files, context->files + context->files_num,
-                        [] (const FileInfo &a, const FileInfo &b) {
-                            return std::strcmp(a.name, b.name) > 0;
-                        });
+                                  [](const FileInfo &a, const FileInfo &b) { return std::strcmp(a.name, b.name) > 0; });
                     }
                 }
 
                 else if (by == SORT_TYPE) {
                     if (order == SORT_ASC) {
                         std::sort(context->files, context->files + context->files_num,
-                        [] (const FileInfo &a, const FileInfo &b) {
-                            return std::strcmp(a.type, b.type) < 0;
-                        });
-                    } else {
+                                  [](const FileInfo &a, const FileInfo &b) { return std::strcmp(a.type, b.type) < 0; });
+                    }
+                    else {
                         std::sort(context->files, context->files + context->files_num,
-                        [] (const FileInfo &a, const FileInfo &b) {
-                            return std::strcmp(a.type, b.type) > 0;
-                        });
+                                  [](const FileInfo &a, const FileInfo &b) { return std::strcmp(a.type, b.type) > 0; });
                     }
                 }
 
                 else if (by == SORT_SIZE) {
                     if (order == SORT_ASC) {
                         std::sort(context->files, context->files + context->files_num,
-                        [] (const FileInfo &a, const FileInfo &b) {
-                            return a.size < b.size;
-                        });
-                    } else {
+                                  [](const FileInfo &a, const FileInfo &b) { return a.size < b.size; });
+                    }
+                    else {
                         std::sort(context->files, context->files + context->files_num,
-                        [] (const FileInfo &a, const FileInfo &b) {
-                            return a.size > b.size;
-                        });
+                                  [](const FileInfo &a, const FileInfo &b) { return a.size > b.size; });
                     }
                 }
 
                 else if (by == SORT_TIME) {
                     if (order == SORT_ASC) {
                         std::sort(context->files, context->files + context->files_num,
-                        [] (const FileInfo &a, const FileInfo &b) {
-                            return a.date < b.date;
-                        });
-                    } else {
+                                  [](const FileInfo &a, const FileInfo &b) { return a.date < b.date; });
+                    }
+                    else {
                         std::sort(context->files, context->files + context->files_num,
-                        [] (const FileInfo &a, const FileInfo &b) {
-                            return a.date > b.date;
-                        });
+                                  [](const FileInfo &a, const FileInfo &b) { return a.date > b.date; });
                     }
                 }
             }
         };
 
-        inline bool show_dialog(const char *title, bool *open = nullptr, const ImVec2 *size = nullptr, const bool resizable = true) {
+        inline bool show_dialog(const char *title, bool *open = nullptr, const ImVec2 *size = nullptr,
+                                const bool resizable = true) {
             if (open != nullptr && !*open) {
                 internal_::reset_vars();
                 return false;
@@ -648,7 +633,7 @@ namespace simpfp {
                         ImGui::SetNextWindowSize(*size, ImGuiCond_Appearing);
                     }
                     internal_::resizable = resizable;
-                    internal_::reset = false;
+                    internal_::reset     = false;
                     ImGui::OpenPopup(internal_::title, ImGuiPopupFlags_NoReopen);
                 }
 
@@ -670,25 +655,24 @@ namespace simpfp {
             return true;
         }
 
-        inline bool full_width_input(char *buffer, const std::size_t buffer_size, const float alpha = 1.0f, const float padding_right = 0.f) {
-            static bool updated = false;
+        inline bool full_width_input(char *buffer, const std::size_t buffer_size, const float alpha = 1.0f,
+                                     const float padding_right = 0.f) {
+            static bool updated  = false;
             static auto callback = [](ImGuiInputTextCallbackData *data) -> int {
                 if (data->EventFlag == ImGuiInputTextFlags_CallbackEdit)
                     updated = true;
                 return 0;
             };
 
-            const auto input_pos = ImGui::GetCursorScreenPos();
+            const auto input_pos  = ImGui::GetCursorScreenPos();
             const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x - padding_right, ImGui::GetFrameHeight());
 
             ImGui::SetNextItemWidth(input_size.x);
-            ImGui::InputText("##bordered_input", buffer, buffer_size,
-                ImGuiInputTextFlags_CallbackEdit, callback);
+            ImGui::InputText("##bordered_input", buffer, buffer_size, ImGuiInputTextFlags_CallbackEdit, callback);
 
-            ImGui::GetWindowDrawList()->AddRect(
-                input_pos,
-                ImVec2(input_pos.x + input_size.x, input_pos.y + input_size.y),
-                IM_COL32(0, 0, 0, 90 * alpha));
+            ImGui::GetWindowDrawList()->AddRect(input_pos,
+                                                ImVec2(input_pos.x + input_size.x, input_pos.y + input_size.y),
+                                                IM_COL32(0, 0, 0, 90 * alpha));
 
             if (updated) {
                 updated = false;
@@ -767,13 +751,13 @@ namespace simpfp {
             ImGui::SetCursorPosX(available_width - (field_size) + spacing);
             ImGui::PushItemWidth(field_size - spacing);
 
-            const auto input_pos = ImGui::GetCursorScreenPos();
+            const auto input_pos  = ImGui::GetCursorScreenPos();
             const auto input_size = ImVec2(field_size - spacing, ImGui::GetFrameHeight());
 
             const auto prev_index = context->filter_idx;
 
             if (ImGui::BeginCombo("##filters", internal_::filters[context->filter_idx],
-                 ImGuiComboFlags_HeightRegular)) {
+                                  ImGuiComboFlags_HeightRegular)) {
                 for (int n = 0; internal_::filters[n] != nullptr; n++) {
                     const bool is_selected = (context->filter_idx == n);
                     ImGui::PushID(n);
@@ -787,26 +771,19 @@ namespace simpfp {
             }
             ImGui::PopItemWidth();
 
-            ImGui::GetWindowDrawList()->AddRect(
-                input_pos,
-                ImVec2(input_pos.x + input_size.x, input_pos.y + input_size.y),
-                IM_COL32(0, 0, 0, 90 * alpha));
+            ImGui::GetWindowDrawList()->AddRect(input_pos,
+                                                ImVec2(input_pos.x + input_size.x, input_pos.y + input_size.y),
+                                                IM_COL32(0, 0, 0, 90 * alpha));
 
             return context->filter_idx != prev_index;
         }
 
-    }
+    } // namespace internal_
 
     inline internal_::FileContext *context = nullptr;
 
-    inline void OpenFileDialog(
-        const char   *title,
-        const char   *default_path,
-        const char  **filters,
-        const Labels *labels,
-        const bool    accept_empty,
-        const bool    dir_only
-    ) {
+    inline void OpenFileDialog(const char *title, const char *default_path, const char **filters, const Labels *labels,
+                               const bool accept_empty, const bool dir_only) {
         internal_::open_ptr     = nullptr;
         internal_::closed       = false;
         internal_::single       = true;
@@ -822,9 +799,7 @@ namespace simpfp {
         }
     }
 
-    inline bool FileDialogOpen() {
-        return !internal_::closed;
-    }
+    inline bool FileDialogOpen() { return !internal_::closed; }
 
     inline void CloseFileDialog() {
         *internal_::open_ptr = false;
@@ -835,9 +810,7 @@ namespace simpfp {
         }
     }
 
-    inline bool ShowFileDialog(const char *label, bool *open) {
-        return internal_::show_dialog(label, open);
-    }
+    inline bool ShowFileDialog(const char *label, bool *open) { return internal_::show_dialog(label, open); }
 
     inline bool ShowFileDialog(const char *label, bool *open, const ImVec2 &size, const bool resize) {
         return internal_::show_dialog(label, open, &size, resize);
@@ -875,7 +848,7 @@ namespace simpfp {
 
         if (ImGui::BeginPopupModal(internal_::title, internal_::open_ptr,
                                    ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking |
-                                   (internal_::resizable ? 0 : ImGuiWindowFlags_NoResize))) {
+                                           (internal_::resizable ? 0 : ImGuiWindowFlags_NoResize))) {
 
             static const float reserve_y = (ImGui::GetFrameHeight() * 4) + ImGui::GetStyle().ItemSpacing.y;
 
@@ -903,15 +876,15 @@ namespace simpfp {
 
             ImGui::Spacing();
             ImGui::Text("%s", context->path->c_str());
-            ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize("*").x
-                - ImGui::GetStyle().FramePadding.x - ImGui::GetStyle().ItemSpacing.x);
+            ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize("*").x - ImGui::GetStyle().FramePadding.x -
+                            ImGui::GetStyle().ItemSpacing.x);
             ImGui::TextDisabled("%s", (key_shift || key_ctrl) ? "*" : "");
 
             ImGui::BeginChild("##region_dirs", ImVec2(free_x_uno, -reserve_y), ImGuiChildFlags_Borders);
 
             for (int i = 0; i < context->dirs_num; i++) {
-                auto &dir = context->dirs[i];
-                bool selected = false;
+                auto &dir      = context->dirs[i];
+                bool  selected = false;
 
                 ImGui::PushID(i);
                 if (!dir.read) {
@@ -945,8 +918,9 @@ namespace simpfp {
 
             ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(10.0f, 3.0f));
             if (ImGui::BeginTable("##files_table", 4,
-                ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_Sortable |
-                ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit)) {
+                                  ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_BordersInnerV |
+                                          ImGuiTableFlags_Sortable | ImGuiTableFlags_Resizable |
+                                          ImGuiTableFlags_SizingFixedFit)) {
 
                 ImGui::TableSetupColumn(" File", ImGuiTableColumnFlags_WidthStretch, 0.35f);
                 ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoHide);
@@ -963,8 +937,8 @@ namespace simpfp {
                 }
 
                 for (int i = 0; i < context->files_num; i++) {
-                    const auto &file = context->files[i];
-                    bool selected = file.selected;
+                    const auto &file     = context->files[i];
+                    bool        selected = file.selected;
 
                     ImGui::PushID(i);
                     if (internal_::dir_only || !file.read || !file.write) {
@@ -976,9 +950,11 @@ namespace simpfp {
 
                     ImGui::TableNextColumn();
                     ImGui::SameLine(0, 5);
-                    ImGui::Selectable(file.name, &selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
+                    ImGui::Selectable(file.name, &selected,
+                                      ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
 
-                    if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && ImGui::GetIO().MouseClickedCount[ImGuiMouseButton_Left] == 2){
+                    if (ImGui::IsItemClicked(ImGuiMouseButton_Left) &&
+                        ImGui::GetIO().MouseClickedCount[ImGuiMouseButton_Left] == 2) {
                         double_click = true;
                     }
 
@@ -1124,7 +1100,7 @@ namespace simpfp {
 
                 if (internal_::full_width_input(new_name_buffer, sizeof(new_name_buffer))) {
                     allowed = std::strlen(new_name_buffer) > 0 &&
-                        !internal_::fs::exists(internal_::fs::absolute(*context->path / new_name_buffer));
+                              !internal_::fs::exists(internal_::fs::absolute(*context->path / new_name_buffer));
                 }
 
                 ImGui::Spacing();
@@ -1142,7 +1118,7 @@ namespace simpfp {
                     ImGui::BeginDisabled(true);
                 }
                 if (ImGui::Button(internal_::labels.dir_accept, ImVec2(ok_size, 0)) && allowed) {
-                    allowed = false;
+                    allowed            = false;
                     const auto new_dir = internal_::fs::absolute(*context->path / new_name_buffer);
                     if (!internal_::fs::exists(new_dir) && internal_::fs::create_directory(new_dir)) {
                         std::memset(new_name_buffer, 0, sizeof(new_name_buffer));
@@ -1261,7 +1237,7 @@ namespace simpfp {
 
     inline bool PeekSelected(char *buffer_out, const std::size_t size, const std::size_t index) {
         static std::size_t last_index = 0;
-        internal_::single = false;
+        internal_::single             = false;
 
         if (index < last_index || context == nullptr || context->peeked) {
             if (context != nullptr)
@@ -1271,12 +1247,9 @@ namespace simpfp {
         }
 
         last_index = index;
-        if (context->selected == nullptr ||
-            context->selected_num <= 0 ||
-            context->selected_num <= index)
-        {
+        if (context->selected == nullptr || context->selected_num <= 0 || context->selected_num <= index) {
             context->peeked = true;
-            last_index = 0;
+            last_index      = 0;
 
             if (index == 0) {
 
@@ -1289,7 +1262,6 @@ namespace simpfp {
                 std::memset(buffer_out, 0, size);
                 std::strncpy(buffer_out, internal_::fs::absolute(*context->path / context->buffer).c_str(), size);
                 return true;
-
             }
             return false;
         }
@@ -1297,18 +1269,18 @@ namespace simpfp {
         const auto &selected = context->selected[index];
         if (selected == nullptr) {
             context->peeked = true;
-            last_index = 0;
+            last_index      = 0;
             return false;
         }
 
         if (index >= context->selected_num - 1) {
             context->peeked = true;
-            last_index = 0;
+            last_index      = 0;
         }
 
         if (context->selected_num == 1) {
             context->peeked = true;
-            last_index = 0;
+            last_index      = 0;
             std::memset(buffer_out, 0, size);
             std::strncpy(buffer_out, internal_::fs::absolute(selected->path->parent_path() / context->buffer).c_str(),
                          size);
@@ -1322,7 +1294,7 @@ namespace simpfp {
 
     inline bool FileAccepted(char *buffer_out, const std::size_t size, const std::size_t index) {
         static std::size_t last_index = 0;
-        internal_::single = false;
+        internal_::single             = false;
 
         if (index < last_index || context == nullptr || !context->accepted) {
             if (context != nullptr)
@@ -1333,12 +1305,9 @@ namespace simpfp {
 
         last_index = index;
 
-        if (context->selected == nullptr ||
-            context->selected_num <= 0 ||
-            context->selected_num <= index)
-        {
+        if (context->selected == nullptr || context->selected_num <= 0 || context->selected_num <= index) {
             context->accepted = false;
-            last_index = 0;
+            last_index        = 0;
 
             if (index == 0) {
 
@@ -1354,7 +1323,6 @@ namespace simpfp {
                 std::memset(buffer_out, 0, size);
                 std::strncpy(buffer_out, internal_::fs::absolute(*context->path / context->buffer).c_str(), size);
                 return true;
-
             }
             return false;
         }
@@ -1381,7 +1349,7 @@ namespace simpfp {
 
         if (index >= context->selected_num - 1) {
             context->accepted = false;
-            last_index = 0;
+            last_index        = 0;
         }
 
         return true;
@@ -1415,6 +1383,6 @@ namespace simpfp {
         return true;
     }
 
-}
+} // namespace simpfp
 
-#endif //SIMPFP_HPP
+#endif // SIMPFP_HPP
