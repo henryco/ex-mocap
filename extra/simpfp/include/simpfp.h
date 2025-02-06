@@ -33,12 +33,12 @@ namespace simpfp {
      * @param filters array of glob-style strings, ie: *.cpp / *.txt / *.md / etc.
      * <br/><b>Must be terminated with nullptr!</b>
      * @param labels custom labels
+     * @param read_only require only read permission
      * @param accept_empty allow empty selection
      * @param dir_only show/accept only directories
-     * @param read_only require only read permission
      */
     void OpenFileDialog(const char *title, const char *default_path = nullptr, const char **filters = nullptr,
-                        const Labels *labels = nullptr, bool accept_empty = false, bool dir_only = false, bool read_only = false);
+                        const Labels *labels = nullptr, bool read_only = false, bool accept_empty = false, bool dir_only = false);
 
     bool ShowFileDialog(const char *label, bool *open, const ImVec2 &size, bool resize = true);
     bool ShowFileDialog(const char *label, bool *open = nullptr);
@@ -818,7 +818,7 @@ namespace simpfp {
     inline internal_::FileContext *context = nullptr;
 
     inline void OpenFileDialog(const char *title, const char *default_path, const char **filters, const Labels *labels,
-                               const bool accept_empty, const bool dir_only, const bool read_only) {
+                               const bool read_only, const bool accept_empty, const bool dir_only) {
         internal_::open_ptr     = nullptr;
         internal_::closed       = false;
         internal_::single       = true;
