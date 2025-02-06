@@ -13,6 +13,7 @@
 - [IconFontCppHeaders](https://github.com/juliettef/IconFontCppHeaders) (external/iconfontcppheaders)
 - [OnnxRuntime](https://github.com/microsoft/onnxruntime) (external/onnxruntime)
 - [Argparse](https://github.com/p-ranav/argparse#positional-arguments) (external/argparse)
+- [SimpFp](https://github.com/henryco/simpfp) (external/simpfp)
 - [ImGui](https://github.com/ocornut/imgui) (external/imgui)
 - [JSON](https://github.com/nlohmann/json) (external/json)
 - [Glm](https://github.com/g-truc/glm) (external/glm)

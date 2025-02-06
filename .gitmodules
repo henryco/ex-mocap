@@ -16,3 +16,6 @@
 [submodule "external/iconfontcppheaders"]
 	path = external/iconfontcppheaders
 	url = git@github.com:juliettef/IconFontCppHeaders.git
+[submodule "external/simpfp"]
+	path = external/simpfp
+	url = git@github.com:henryco/simpfp.git
