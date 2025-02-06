@@ -120,11 +120,11 @@ namespace simpfp {
             if ((perms & std::filesystem::perms::owner_write) != std::filesystem::perms::none ||
                   (perms & std::filesystem::perms::group_write) != std::filesystem::perms::none ||
                   (perms & std::filesystem::perms::others_write) != std::filesystem::perms::none) {
-                std::ofstream file(path, std::ios::app);
-                return file.is_open();
+                return true;
             }
 
-            return false;
+            std::ofstream file(path, std::ios::app);
+            return file.is_open();
         }
 
         inline bool can_read(const fs::path &path) {

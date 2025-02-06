@@ -23,7 +23,6 @@ link_directories(${ONNXRUNTIME_ROOT}/lib)
 add_subdirectory(external/argparse)
 add_subdirectory(external/json)
 add_subdirectory(external/glm)
-#add_subdirectory(extra/simpfp)
 
 set(CMAKE_C_COMPILER "clang-18")
 set(CMAKE_CXX_COMPILER "clang++-18")
@@ -52,7 +51,7 @@ add_library(lucide INTERFACE)
 target_include_directories(lucide INTERFACE external/lucide)
 
 add_library(simpfp INTERFACE)
-target_include_directories(simpfp INTERFACE extra/simpfp/include/simpfp)
+target_include_directories(simpfp INTERFACE extra/simpfp/include)
 
 add_library(imgui
         external/imgui/imgui.cpp
@@ -72,7 +71,7 @@ target_link_libraries(imgui PUBLIC
         OpenGL::GL glfw)
 
 set(EXTRA_FILES
-#        extra/simpfp/include/simpfp.hpp
+        # extra files if needed (not really)
 )
 
 set(PLATFORM_FILES
