@@ -38,7 +38,8 @@ namespace simpfp {
     void OpenFileDialog(const char *title, const char *default_path = nullptr, const char **filters = nullptr,
                         const Labels *labels = nullptr, bool accept_empty = false, bool dir_only = false);
 
-    const char *CurrentPath();
+    bool ShowFileDialog(const char *label, bool *open, const ImVec2 &size, bool resize = true);
+    bool ShowFileDialog(const char *label, bool *open = nullptr);
 
     bool FileAccepted(char *buffer_out, std::size_t size);
     bool FileAccepted(char *buffer_out, std::size_t size, std::size_t index);
@@ -46,17 +47,16 @@ namespace simpfp {
     bool PeekSelected(char *buffer_out, std::size_t size);
     bool PeekSelected(char *buffer_out, std::size_t size, std::size_t index);
 
-    bool ShowFileDialog(const char *label, bool *open, const ImVec2 &size, bool resize = true);
-    bool ShowFileDialog(const char *label, bool *open = nullptr);
+    const char *CurrentPath();
+
+    bool FileDialogOpen();
+    void CloseFileDialog();
+    void EndFileDialog();
 
     long CountSelected();
     void UnselectAll();
     void ResetBuffer();
     void Reload();
-
-    bool FileDialogOpen();
-    void CloseFileDialog();
-    void EndFileDialog();
 
     namespace internal_ {
         namespace fs = std::filesystem;
@@ -111,8 +111,20 @@ namespace simpfp {
         }
 
         inline bool can_write(const fs::path &path) {
-            std::ofstream file(path, std::ios::app);
-            return file.is_open();
+            std::error_code ec;
+            const auto      perms = std::filesystem::status(path, ec).permissions();
+
+            if (ec)
+                return false;
+
+            if ((perms & std::filesystem::perms::owner_write) != std::filesystem::perms::none ||
+                  (perms & std::filesystem::perms::group_write) != std::filesystem::perms::none ||
+                  (perms & std::filesystem::perms::others_write) != std::filesystem::perms::none) {
+                std::ofstream file(path, std::ios::app);
+                return file.is_open();
+            }
+
+            return false;
         }
 
         inline bool can_read(const fs::path &path) {
