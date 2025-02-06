@@ -12,6 +12,7 @@
 #include <filesystem>
 #include <fstream>
 #include <regex>
+#include <random>
 #include <string.h>
 
 namespace simpfp {
@@ -110,12 +111,31 @@ namespace simpfp {
             return regex_pattern;
         }
 
+        inline fs::path generate_temp_file(const fs::path& directory) {
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<uint64_t> dist(100000, 999999);
+            const auto timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+            const auto filename = ".perm_check_" + std::to_string(timestamp) + "_" + std::to_string(dist(gen)) + ".tmp";
+            return directory / filename;
+        }
+
         inline bool can_write(const fs::path &path) {
             std::error_code ec;
             const auto      perms = std::filesystem::status(path, ec).permissions();
 
             if (ec)
                 return false;
+
+            if (fs::is_directory(path)) {
+                fs::path temp_file = generate_temp_file(path);
+                std::ofstream file(temp_file);
+                if (!file.is_open())
+                    return false;
+                file.close();
+                fs::remove(temp_file, ec);
+                return true;
+            }
 
             if ((perms & std::filesystem::perms::owner_write) != std::filesystem::perms::none ||
                   (perms & std::filesystem::perms::group_write) != std::filesystem::perms::none ||
