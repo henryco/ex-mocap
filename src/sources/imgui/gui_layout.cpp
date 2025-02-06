@@ -9,7 +9,7 @@
 #include <iostream>
 //#include <simpfp.hpp>
 
-#include "../../../extra/simpfp/include/simpfp.hpp"
+#include "../../../extra/simpfp/include/simpfp.h"
 // TODO REMOVE
 
 namespace ex::gui {
