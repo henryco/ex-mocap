@@ -496,7 +496,9 @@ namespace simpfp {
                     FileContext::sort(*context, sort_by, sort_type);
             }
 
-            static void reload(FileContext **context) { FileContext::load(context, (*context)->path->c_str()); }
+            static void reload(FileContext **context) {
+                FileContext::load(context, (*context)->path->c_str());
+            }
 
             static void select_single(FileContext *context, const int index) {
                 if (context->selected_num == 1 && context->files[index].selected)
@@ -835,7 +837,9 @@ namespace simpfp {
         }
     }
 
-    inline bool FileDialogOpen() { return !internal_::closed; }
+    inline bool FileDialogOpen() {
+        return !internal_::closed;
+    }
 
     inline void CloseFileDialog() {
         *internal_::open_ptr = false;
@@ -846,7 +850,9 @@ namespace simpfp {
         }
     }
 
-    inline bool ShowFileDialog(const char *label, bool *open) { return internal_::show_dialog(label, open); }
+    inline bool ShowFileDialog(const char *label, bool *open) {
+        return internal_::show_dialog(label, open);
+    }
 
     inline bool ShowFileDialog(const char *label, bool *open, const ImVec2 &size, const bool resize) {
         return internal_::show_dialog(label, open, &size, resize);
