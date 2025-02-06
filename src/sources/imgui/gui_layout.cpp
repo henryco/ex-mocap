@@ -92,22 +92,22 @@ namespace ex::gui {
 
             static const char *filters[] = { "*", "*.cmake", "*.txt", "*.md", nullptr};
 
-            if (!simpfp::FileDialogOpen())
-                simpfp::OpenFileDialog("Select a file", nullptr, filters, nullptr, false, false, false);
-
-            if (simpfp::ShowFileDialog("Select a file", &fp_open, min_size, true)) {
-
-                if (char file[256]; simpfp::PeekSelected(file, sizeof(file))) {
-                    std::cout << "peek: " << file << '\n';
-                }
-
-                if (char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
-                    std::cout << "accepted: " << file << '\n';
-                    simpfp::CloseFileDialog();
-                }
-
-                simpfp::EndFileDialog();
-            }
+//            if (!simpfp::FileDialogOpen())
+//                simpfp::OpenFileDialog("Select a file", nullptr, filters, nullptr, false, false, false);
+//
+//            if (simpfp::ShowFileDialog("Select a file", &fp_open, min_size, true)) {
+//
+//                if (char file[256]; simpfp::PeekSelected(file, sizeof(file))) {
+//                    std::cout << "peek: " << file << '\n';
+//                }
+//
+//                if (char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
+//                    std::cout << "accepted: " << file << '\n';
+//                    simpfp::CloseFileDialog();
+//                }
+//
+//                simpfp::EndFileDialog();
+//            }
             // TODO REMOVE
 
             if (gui.view.show_debug)
