@@ -92,7 +92,7 @@ namespace ex::gui {
             static bool fp_open = true;
             static constexpr auto min_size = ImVec2(900, 500);
 
-            static const char *filters[] = { "*.*", "*.cpp", "*.txt", "*.md", nullptr};
+            static const char *filters[] = { "*", "*.cpp", "*.txt", "*.md", nullptr};
 
             if (!simpfp::FileDialogOpen())
                 simpfp::OpenFileDialog("Select a file", nullptr, filters);

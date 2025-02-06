@@ -1,6 +1,7 @@
 //
 // Created by xd on 02/02/25.
 //
+// ReSharper disable CppDFANullDereference
 
 #ifndef SIMPFP_HPP
 #define SIMPFP_HPP
@@ -8,9 +9,9 @@
 #include <algorithm>
 #include <regex>
 #include <chrono>
-#include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <cstring>
 #include <string.h>
 
 namespace simpfp {
@@ -25,6 +26,26 @@ namespace simpfp {
         const char *dir_cancel  = "Cancel";
     };
 
+    /**
+     * @param title title of the file picker window
+     * @param default_path can be path to a directory or a file
+     * @param filters array of glob-style strings, ie: *.cpp / *.txt / *.md / etc.
+     * <br/><b>Must be terminated with nullptr!</b>
+     * @param labels custom labels
+     * @param accept_empty accept empty selection
+     * @param dir_only show/accept only directories
+     */
+    void OpenFileDialog(
+        const char   *title,
+        const char   *default_path = nullptr,
+        const char  **filters      = nullptr,
+        const Labels *labels       = nullptr,
+        bool          accept_empty = false,
+        bool          dir_only     = false
+    );
+
+    const char *CurrentPath();
+
     bool FileAccepted(char *buffer_out, std::size_t size);
     bool FileAccepted(char *buffer_out, std::size_t size, std::size_t index);
 
@@ -35,29 +56,12 @@ namespace simpfp {
     bool ShowFileDialog(const char *label, bool *open = nullptr);
 
     bool FileDialogOpen();
-
+    long CountSelected();
     void UnselectAll();
     void ResetBuffer();
     void Reload();
     void CloseFileDialog();
     void EndFileDialog();
-
-    /**
-     * @param filters array of strings, ie: *.cpp / *.txt / *.md / etc.
-     * <br/><b>Must be terminated with nullptr!</b>
-     */
-    void OpenFileDialog(
-        const char   *label,
-        const char   *default_path = nullptr,
-        const char  **filters      = nullptr,
-        const Labels *labels       = nullptr,
-        bool          accept_empty = false,
-        bool          dir_only     = false
-    );
-
-    const char *CurrentPath();
-
-    int CountSelected();
 
     namespace internal_ {
         namespace fs = std::filesystem;
@@ -72,7 +76,7 @@ namespace simpfp {
         #define SORT_ASC 1
         #define SORT_DSC 2
 
-        inline const char *label        = nullptr;
+        inline const char *title        = nullptr;
         inline const char *file_path    = nullptr;
         inline bool       *open_ptr     = nullptr;
         inline bool        reset        = false;
@@ -88,7 +92,7 @@ namespace simpfp {
         inline void reset_vars() {
             internal_::open_ptr     = nullptr;
             internal_::filters      = nullptr;
-            internal_::label        = nullptr;
+            internal_::title        = nullptr;
             internal_::reset        = false;
             internal_::closed       = true;
             internal_::resizable    = true;
@@ -412,15 +416,17 @@ namespace simpfp {
                 int d_ = init_dirs, f_ = init_files;
 
                 std::regex pattern;
-                bool should_filter =
-                        (internal_::filters != nullptr) && (filter >= 0) && (internal_::filters[filter] != nullptr);
-                if (should_filter && internal_::filters != nullptr && internal_::filters[filter] != nullptr) {
+                bool should_filter = (filter >= 0) &&
+                        (internal_::filters != nullptr) &&
+                        (internal_::filters[filter] != nullptr);
+                if (should_filter) {
                     const auto curr = internal_::filters[filter];
-                    if (curr[0] == '*' && curr[1] == '.' && curr[2] == '*' && curr[3] == '\0') {
+                    if (std::strlen(curr) == 0 || std::strcmp(curr, "*") == 0 || std::strcmp(curr, " ") == 0) {
                         should_filter = false;
+                    } else {
+                        const auto regex_str = glob_to_regex(internal_::filters[filter]);
+                        pattern = std::regex(regex_str);
                     }
-                    const auto regex_str = glob_to_regex(internal_::filters[filter]);
-                    pattern = std::regex(regex_str);
                 }
 
                 for (fs::directory_iterator it(*file, ec); it != fs::directory_iterator(); it.increment(ec)) {
@@ -633,18 +639,18 @@ namespace simpfp {
             }
         };
 
-        inline bool show_dialog(const char *label, bool *open = nullptr, const ImVec2 *size = nullptr, const bool resizable = true) {
+        inline bool show_dialog(const char *title, bool *open = nullptr, const ImVec2 *size = nullptr, const bool resizable = true) {
             if (open != nullptr && !*open) {
                 internal_::reset_vars();
                 return false;
             }
 
-            if (label == nullptr) {
+            if (title == nullptr) {
                 internal_::reset_vars();
                 return false;
             }
 
-            if (internal_::label == label) {
+            if (internal_::title == title) {
                 if (internal_::closed) {
                     if (open != nullptr)
                         *open = false;
@@ -658,7 +664,7 @@ namespace simpfp {
                     }
                     internal_::resizable = resizable;
                     internal_::reset = false;
-                    ImGui::OpenPopup(internal_::label, ImGuiPopupFlags_NoReopen);
+                    ImGui::OpenPopup(internal_::title, ImGuiPopupFlags_NoReopen);
                 }
 
                 internal_::open_ptr = open;
@@ -666,7 +672,7 @@ namespace simpfp {
             }
 
             internal_::open_ptr  = open;
-            internal_::label     = label;
+            internal_::title     = title;
             internal_::reset     = false;
             internal_::closed    = false;
             internal_::resizable = resizable;
@@ -675,7 +681,7 @@ namespace simpfp {
                 ImGui::SetNextWindowSizeConstraints(*size, ImVec2(-1, -1));
                 ImGui::SetNextWindowSize(*size, ImGuiCond_Appearing);
             }
-            ImGui::OpenPopup(internal_::label, ImGuiPopupFlags_NoReopen);
+            ImGui::OpenPopup(internal_::title, ImGuiPopupFlags_NoReopen);
             return true;
         }
 
@@ -782,13 +788,15 @@ namespace simpfp {
             const auto prev_index = context->filter_idx;
 
             if (ImGui::BeginCombo("##filters", internal_::filters[context->filter_idx],
-                 ImGuiComboFlags_HeightSmall)) {
+                 ImGuiComboFlags_HeightRegular)) {
                 for (int n = 0; internal_::filters[n] != nullptr; n++) {
                     const bool is_selected = (context->filter_idx == n);
+                    ImGui::PushID(n);
                     if (ImGui::Selectable(internal_::filters[n], is_selected))
                         context->filter_idx = n;
                     if (is_selected)
                         ImGui::SetItemDefaultFocus();
+                    ImGui::PopID();
                 }
                 ImGui::EndCombo();
             }
@@ -807,7 +815,7 @@ namespace simpfp {
     inline internal_::FileContext *context = nullptr;
 
     inline void OpenFileDialog(
-        const char   *label,
+        const char   *title,
         const char   *default_path,
         const char  **filters,
         const Labels *labels,
@@ -818,7 +826,7 @@ namespace simpfp {
         internal_::closed       = false;
         internal_::single       = true;
         internal_::reset        = true;
-        internal_::label        = label;
+        internal_::title        = title;
         internal_::filters      = filters;
         internal_::dir_only     = dir_only;
         internal_::file_path    = default_path;
@@ -880,7 +888,7 @@ namespace simpfp {
         const auto center = ImGui::GetMainViewport()->GetCenter();
         ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-        if (ImGui::BeginPopupModal(internal_::label, internal_::open_ptr,
+        if (ImGui::BeginPopupModal(internal_::title, internal_::open_ptr,
                                    ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking |
                                    (internal_::resizable ? 0 : ImGuiWindowFlags_NoResize))) {
 
@@ -1217,7 +1225,7 @@ namespace simpfp {
         context->peeked   = true;
     }
 
-    inline int CountSelected() {
+    inline long CountSelected() {
         if (context == nullptr || context->selected == nullptr)
             return 0;
         return context->selected_num;
