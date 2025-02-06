@@ -55,11 +55,12 @@ namespace simpfp {
     bool ShowFileDialog(const char *label, bool *open, const ImVec2 &size, bool resize = true);
     bool ShowFileDialog(const char *label, bool *open = nullptr);
 
-    bool FileDialogOpen();
     long CountSelected();
     void UnselectAll();
     void ResetBuffer();
     void Reload();
+
+    bool FileDialogOpen();
     void CloseFileDialog();
     void EndFileDialog();
 
