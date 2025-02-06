@@ -93,7 +93,7 @@ namespace ex::gui {
             static const char *filters[] = { "*", "*.cmake", "*.txt", "*.md", nullptr};
 
             if (!simpfp::FileDialogOpen())
-                simpfp::OpenFileDialog("Select a file", nullptr, filters);
+                simpfp::OpenFileDialog("Select a file", nullptr, filters, nullptr, false, false, false);
 
             if (simpfp::ShowFileDialog("Select a file", &fp_open, min_size, true)) {
 

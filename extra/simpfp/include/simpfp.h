@@ -33,11 +33,12 @@ namespace simpfp {
      * @param filters array of glob-style strings, ie: *.cpp / *.txt / *.md / etc.
      * <br/><b>Must be terminated with nullptr!</b>
      * @param labels custom labels
-     * @param accept_empty accept empty selection
+     * @param accept_empty allow empty selection
      * @param dir_only show/accept only directories
+     * @param read_only require only read permission
      */
     void OpenFileDialog(const char *title, const char *default_path = nullptr, const char **filters = nullptr,
-                        const Labels *labels = nullptr, bool accept_empty = false, bool dir_only = false);
+                        const Labels *labels = nullptr, bool accept_empty = false, bool dir_only = false, bool read_only = false);
 
     bool ShowFileDialog(const char *label, bool *open, const ImVec2 &size, bool resize = true);
     bool ShowFileDialog(const char *label, bool *open = nullptr);
@@ -81,6 +82,7 @@ namespace simpfp {
         inline bool        single       = true;
         inline bool        accept_empty = false;
         inline bool        dir_only     = false;
+        inline bool        read_only    = false;
 
         inline const char **filters = nullptr;
         inline Labels       labels;
@@ -95,6 +97,7 @@ namespace simpfp {
             internal_::single       = true;
             internal_::accept_empty = false;
             internal_::dir_only     = false;
+            internal_::read_only    = false;
             internal_::labels       = Labels();
         }
 
@@ -815,7 +818,7 @@ namespace simpfp {
     inline internal_::FileContext *context = nullptr;
 
     inline void OpenFileDialog(const char *title, const char *default_path, const char **filters, const Labels *labels,
-                               const bool accept_empty, const bool dir_only) {
+                               const bool accept_empty, const bool dir_only, const bool read_only) {
         internal_::open_ptr     = nullptr;
         internal_::closed       = false;
         internal_::single       = true;
@@ -823,6 +826,7 @@ namespace simpfp {
         internal_::title        = title;
         internal_::filters      = filters;
         internal_::dir_only     = dir_only;
+        internal_::read_only    = read_only;
         internal_::file_path    = default_path;
         internal_::accept_empty = accept_empty || dir_only;
 
@@ -972,8 +976,11 @@ namespace simpfp {
                     const auto &file     = context->files[i];
                     bool        selected = file.selected;
 
+                    const bool disable_select =
+                            internal_::dir_only || !file.read || (!file.write && !internal_::read_only);
+
                     ImGui::PushID(i);
-                    if (internal_::dir_only || !file.read || !file.write) {
+                    if (disable_select) {
                         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
                         ImGui::BeginDisabled(true);
                     }
@@ -1001,7 +1008,7 @@ namespace simpfp {
                     ImGui::SameLine(0, 5);
                     ImGui::TextDisabled(" ");
 
-                    if (internal_::dir_only || !file.read || !file.write) {
+                    if (disable_select) {
                         ImGui::EndDisabled();
                         ImGui::PopStyleVar();
                     }
@@ -1082,19 +1089,24 @@ namespace simpfp {
 
             ImGui::Spacing();
 
-            const bool can_save =
-                    context->read && context->write && (internal_::accept_empty || std::strlen(buffer) > 0);
+            const bool can_save = context->read && (context->write || internal_::read_only) &&
+                                  (internal_::accept_empty || std::strlen(buffer) > 0);
 
             bool create = false;
             bool cancel = false;
             bool accept = false;
 
-            if (context->read && context->write)
-                internal_::buttons_dir(&create);
-            else
-                internal_::buttons_dir(nullptr);
+            if (!internal_::read_only) {
+                if (context->read && context->write)
+                    internal_::buttons_dir(&create);
+                else
+                  internal_::buttons_dir(nullptr);
+            } else {
+                ImGui::Dummy(ImVec2(1.0f, ImGui::GetFrameHeight()));
+            }
 
             ImGui::Spacing();
+
             internal_::buttons_action(&cancel, can_save ? &accept : nullptr);
 
             if (cancel) {
@@ -1111,7 +1123,7 @@ namespace simpfp {
 
             static char new_name_buffer[128];
             static bool allowed = false;
-            if (create) {
+            if (!internal_::read_only && create) {
                 allowed = false;
                 std::memset(new_name_buffer, 0, sizeof(new_name_buffer));
                 ImGui::OpenPopup(internal_::labels.dir_title);
@@ -1123,7 +1135,9 @@ namespace simpfp {
             ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
             ImGui::SetNextWindowSize(ImVec2(title_size, 0));
 
-            if (ImGui::BeginPopupModal(internal_::labels.dir_title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            if (!internal_::read_only &&
+                ImGui::BeginPopupModal(internal_::labels.dir_title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+
                 ImGui::Spacing();
                 ImGui::Spacing();
 
