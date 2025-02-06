@@ -3,8 +3,8 @@
 //
 // ReSharper disable CppDFANullDereference
 
-#ifndef SIMPFP_HPP
-#define SIMPFP_HPP
+#ifndef SIMPFP_H
+#define SIMPFP_H
 
 #include <algorithm>
 #include <chrono>
@@ -1397,4 +1397,4 @@ namespace simpfp {
 
 } // namespace simpfp
 
-#endif // SIMPFP_HPP
+#endif // SIMPFP_H
