@@ -58,12 +58,13 @@ namespace ex::io::box {
     };
 
     struct element {
-        header header;
-        void  *data;
+        header      header;
+        const void *data;
     };
 
     struct buffer {
-        stack<stack<element>> stack;
+        stack<element> items;
+        stack<buffer>  stack;
     };
 
     buffer create_buffer();
