@@ -22,7 +22,7 @@ namespace ex::io::box {
     void begin_array(buffer &buff) {
         buffer _buff;
         _buff.items.push(element_array());
-
+        // TODO FIXME
         buff.stack.push(_buff);
     }
 
