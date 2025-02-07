@@ -32,7 +32,7 @@ namespace ex::io::box {
             this->data     = static_cast<T *>(malloc(capacity * sizeof(T)));
         }
 
-        T &operator[](const std::uint32_t index) {
+        T &operator [] (const std::uint32_t index) {
             return data[index];
         }
 
@@ -45,13 +45,15 @@ namespace ex::io::box {
         }
 
         void pop() {
-            if (size <= 0)
+            if (size <= 0) {
+                size = 0;
                 return;
+            }
             size--;
         }
 
         bool empty() const {
-            return size > 0;
+            return size <= 0;
         }
     };
 
@@ -67,8 +69,8 @@ namespace ex::io::box {
     };
 
     struct buffer {
-        stack<element> items;
-        stack<buffer>  stack;
+        stack<element>       items;
+        stack<std::uint32_t> stack;
     };
 
     buffer create_buffer();
