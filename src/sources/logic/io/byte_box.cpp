@@ -27,7 +27,12 @@ namespace ex::io::box {
     }
 
     void end_array(buffer &buff) {
-        // TODO
+        const auto &head = array_head(buff);
+        buff.stack.pop();
+
+        auto &curr = array_head(buff);
+        curr.header.size_b += head.header.size_b;
+        curr.header.size_n += head.header.size_n;
     }
 
     void object(buffer &buff, const std::uint64_t type, const std::uint32_t size, const void *data) {

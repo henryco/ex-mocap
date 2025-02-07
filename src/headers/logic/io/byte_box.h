@@ -45,11 +45,7 @@ namespace ex::io::box {
         }
 
         void pop() {
-            if (size <= 0) {
-                size = 0;
-                return;
-            }
-            size--;
+            size = (size > 0) ? (size - 1) : 0;
         }
 
         bool empty() const {
