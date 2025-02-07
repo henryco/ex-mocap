@@ -15,17 +15,14 @@ namespace ex::io::box {
 
     buffer create_buffer() {
         buffer buff;
-
-        buffer _buff;
-        _buff.items.push(element_array());
-        buff.stack.push(_buff);
-
+        buff.items.push(element_array());
         return buff;
     }
 
     void begin_array(buffer &buff) {
         buffer _buff;
         _buff.items.push(element_array());
+
         buff.stack.push(_buff);
     }
 
@@ -36,7 +33,7 @@ namespace ex::io::box {
     void object(buffer &buff, const std::uint64_t type, const std::uint32_t size, const void *data) {
         const std::uint32_t b_size = static_cast<std::uint32_t>(sizeof(header)) + size;
 
-        auto &[items, array] = buff.stack[buff.stack.size - 1];
+        auto &[items, stack] = buff.stack.empty() ? buff : buff.stack[buff.stack.size - 1];
         buff.items.push({ .header = { .size_b = b_size, .size_n = 1, .type = type }, .data = data });
 
         items[0].header.size_b += b_size;

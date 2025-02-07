@@ -49,6 +49,10 @@ namespace ex::io::box {
                 return;
             size--;
         }
+
+        bool empty() const {
+            return size > 0;
+        }
     };
 
     struct alignas(16) header {
