@@ -40,7 +40,7 @@ namespace ex::io::box {
         items[0].header.size_n += 1;
     }
 
-    const unsigned char *read_buffer(buffer &buff, const std::size_t &size) {
+    const unsigned char *read_buffer(buffer &buff, std::size_t &size) {
         // TODO
         return nullptr;
     }
