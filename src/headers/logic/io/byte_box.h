@@ -11,6 +11,8 @@
 
 namespace ex::io::box {
 
+    #define TYPE_ARRAY 0
+
     template<typename T>
     struct stack {
         T            *data     = nullptr;
@@ -61,18 +63,18 @@ namespace ex::io::box {
     };
 
     struct buffer {
-        stack<element> stack;
+        stack<stack<element>> stack;
     };
 
     buffer create_buffer();
 
-    void begin_array(buffer &buffer);
+    void begin_array(buffer &buff);
 
-    void end_array(buffer &buffer);
+    void end_array(buffer &buff);
 
-    void object(buffer &buffer, std::uint64_t type, std::uint32_t size, const void *data);
+    void object(buffer &buff, std::uint64_t type, std::uint32_t size, const void *data);
 
-    const unsigned char *read_buffer(buffer &buffer, std::size_t &size);
+    const unsigned char *read_buffer(buffer &buff, std::size_t &size);
 
 }
 
