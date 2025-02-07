@@ -123,6 +123,7 @@ set(HEADER_FILES
         src/headers/imgui/gui_globals.h
         src/headers/logic/logic_globals.h
         src/headers/logic/io/json_serializer.h
+        src/headers/logic/io/byte_box.h
 )
 
 set(SOURCE_FILES
@@ -158,6 +159,7 @@ set(SOURCE_FILES
         src/sources/imgui/gui_tree_ops.cpp
         src/sources/logic/logic_globals.cpp
         src/sources/logic/io/json_serializer.cpp
+        src/sources/logic/io/byte_box.cpp
 )
 
 # =================== OpenCL kernels generation =====================

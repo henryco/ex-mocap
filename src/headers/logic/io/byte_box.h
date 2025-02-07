@@ -1,0 +1,79 @@
+//
+// Created by xd on 07/02/25.
+//
+// ReSharper disable CppNonExplicitConvertingConstructor
+
+#ifndef BYTE_BOX_H
+#define BYTE_BOX_H
+
+#include <cstdint>
+#include <cstdlib>
+
+namespace ex::io::box {
+
+    template<typename T>
+    struct stack {
+        T            *data     = nullptr;
+        std::uint32_t size     = 0;
+        std::uint32_t capacity = 0;
+
+        stack() = default;
+
+        ~stack() {
+            if (data == nullptr)
+                return;
+            free(data);
+        }
+
+        stack(const std::uint32_t capacity) {
+            this->capacity = capacity;
+            this->data     = static_cast<T *>(malloc(capacity * sizeof(T)));
+        }
+
+        T &operator[](const std::uint32_t index) {
+            return data[index];
+        }
+
+        void push(const T& value) {
+            if (size >= capacity) {
+                capacity = capacity > 0 ? (2 * capacity) : 2;
+                data     = static_cast<T *>(realloc(data, capacity * sizeof(T)));
+            }
+            data[size++] = value;
+        }
+
+        void pop() {
+            if (size <= 0)
+                return;
+            size--;
+        }
+    };
+
+    struct alignas(16) header {
+        std::uint32_t size_b;
+        std::uint32_t size_n;
+        std::uint64_t type;
+    };
+
+    struct element {
+        header header;
+        void  *data;
+    };
+
+    struct buffer {
+        stack<element> stack;
+    };
+
+    buffer create_buffer();
+
+    void begin_array(buffer &buffer);
+
+    void end_array(buffer &buffer);
+
+    void object(buffer &buffer, std::uint64_t type, std::uint32_t size, const void *data);
+
+    const unsigned char *read_buffer(buffer &buffer, std::size_t &size);
+
+}
+
+#endif //BYTE_BOX_H
