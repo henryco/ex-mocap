@@ -101,6 +101,32 @@ namespace ex::io::box {
             index_t        index;
         };
 
+        buffer create_buffer();
+
+        buffer create_buffer(std::size_t init_cap);
+
+        std::size_t next_chunk(buffer &buff, const unsigned char *data);
+
+        bool begin_array(const buffer &buff);
+
+        bool end_array(const buffer &buff);
+
+        inline type__t item_type(const buffer &buff) {
+            return buff.front.type;
+        }
+
+        inline index_t item_size(const buffer &buff) {
+            return buff.front.size_b;
+        }
+
+        inline index_t item_count(const buffer &buff) {
+            return buff.front.size_n;
+        }
+
+        inline index_t item_index(const buffer &buff) {
+            return buff.index;
+        }
+
     }
 
 }
