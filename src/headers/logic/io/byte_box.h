@@ -77,6 +77,8 @@ namespace ex::io::box {
 
     void begin_array(buffer &buff);
 
+    void begin_array(buffer &buff, std::uint64_t type);
+
     void end_array(buffer &buff);
 
     void object(buffer &buff, std::uint64_t type, std::uint32_t size, const void *data);

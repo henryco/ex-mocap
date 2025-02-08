@@ -7,8 +7,8 @@
 
 namespace ex::io::box {
 
-    inline element element_array() {
-        return { .header = { .size_b = sizeof(header), .size_n = 0, .type = TYPE_ARRAY }, .data = nullptr };
+    inline element element_array(const std::uint64_t type = TYPE_ARRAY) {
+        return { .header = { .size_b = sizeof(header), .size_n = 0, .type = type }, .data = nullptr };
     }
 
     inline element& array_head(buffer &buff) {
@@ -25,6 +25,11 @@ namespace ex::io::box {
     void begin_array(buffer &buff) {
         buff.stack.push(buff.items.size);
         buff.items.push(element_array());
+    }
+
+    void begin_array(buffer &buff, const std::uint64_t type) {
+        buff.stack.push(buff.items.size);
+        buff.items.push(element_array(type));
     }
 
     void end_array(buffer &buff) {
