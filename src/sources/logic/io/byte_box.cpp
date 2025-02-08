@@ -15,6 +15,13 @@ namespace ex::io::box::out {
         return buff.items[buff.stack[buff.stack.size - 1]];
     }
 
+    buffer create_buffer(const std::size_t init_cap) {
+        buffer buff = { .items = array<element>(init_cap), .stack = array<index_t>(init_cap) };
+        buff.items.push(element_array());
+        buff.stack.push(0);
+        return buff;
+    }
+
     buffer create_buffer() {
         buffer buff;
         buff.items.push(element_array());

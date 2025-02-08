@@ -76,6 +76,8 @@ namespace ex::io::box {
 
         buffer create_buffer();
 
+        buffer create_buffer(std::size_t init_cap);
+
         void begin_array(buffer &buff);
 
         void begin_array(buffer &buff, type__t type);
