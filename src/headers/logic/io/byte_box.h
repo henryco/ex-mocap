@@ -121,6 +121,10 @@ namespace ex::io::box {
 
         bool end_array(const buffer &buff);
 
+        inline std::int64_t next_object(const buffer &buff) {
+            return buff.next_skip ? (buff.front.size_b - sizeof(header)) : 0;
+        }
+
         inline type__t item_type(const buffer &buff) {
             return buff.front.type;
         }
