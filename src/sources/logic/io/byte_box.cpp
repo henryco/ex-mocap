@@ -93,17 +93,18 @@ namespace ex::io::box::out {
 namespace ex::io::box::in {
 
     buffer create_buffer() {
-        return { .front = {}, .total = 0, .bread = 0, .next_bytes = 0 };
+        return { .front = {}, .total = 0, .bread = 0, .next_bytes = 0, .next_skip = false };
     }
 
     buffer create_buffer(const std::size_t init_cap) {
         return {
-            .stack = array<index_t>(init_cap),
-            .items = array<header>(init_cap),
-            .front = {},
-            .total = 0,
-            .bread = 0,
-            .next_bytes  = 0
+            .stack      = array<index_t>(init_cap),
+            .items      = array<header>(init_cap),
+            .front      = {},
+            .total      = 0,
+            .bread      = 0,
+            .next_bytes = 0,
+            .next_skip  = false
         };
     }
 
@@ -113,7 +114,6 @@ namespace ex::io::box::in {
     // [h: 6] {                                                        }
     //          [h: 5] { [h: 0] (d)                                  }
     //                              [h: 3] { [h: 0] (d) [h: 0] (d) }
-
 
     std::int64_t next_chunk(buffer &buff, const unsigned char *data) {
 
@@ -127,7 +127,13 @@ namespace ex::io::box::in {
 
         // all bytes read, finish
         if ((buff.total - buff.bread) <= 0)
-            return (-1);
+            return EOF;
+
+        if (buff.next_skip) {
+            buff.next_skip  = false;
+            buff.next_bytes = sizeof(header);
+            return sizeof(header);
+        }
 
         if (!buff.stack.empty() && !buff.items.empty()) {
             // end of an array
@@ -161,8 +167,9 @@ namespace ex::io::box::in {
         }
 
         buff.stack[buff.stack.size - 1] += 1;
-        buff.next_bytes = head->size_b - sizeof(header);
-        return sizeof(header);
+        buff.next_skip  = true;
+        buff.next_bytes = static_cast<std::uint32_t>(head->size_b - sizeof(header));
+        return buff.next_bytes;
     }
 
     bool begin_array(const buffer &buff) {
