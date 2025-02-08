@@ -142,6 +142,8 @@ namespace ex::io::box::in {
             }
         }
 
+        // TODO
+
         const auto head   = reinterpret_cast<const header *>(data);
         buff.front.size_b = head->size_b;
         buff.front.size_n = head->size_n;
@@ -158,9 +160,9 @@ namespace ex::io::box::in {
             return sizeof(header);
         }
 
-        // TODO
-
-        return 0;
+        buff.stack[buff.stack.size - 1] += 1;
+        buff.next_bytes = head->size_b - sizeof(header);
+        return sizeof(header);
     }
 
     bool begin_array(const buffer &buff) {
