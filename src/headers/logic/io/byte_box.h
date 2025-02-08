@@ -114,7 +114,7 @@ namespace ex::io::box {
 
         buffer create_buffer(std::size_t init_cap);
 
-        std::size_t next_chunk(buffer &buff, const unsigned char *data);
+        std::int64_t next_chunk(buffer &buff, const unsigned char *data);
 
         bool begin_array(const buffer &buff);
 

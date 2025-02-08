@@ -108,8 +108,14 @@ namespace ex::io::box::in {
     }
 
     // [ (header[16] arr) (header[16] el) (el[N] data) (header[16] el) (el[N] data) ... ]
+    // [h: 4] [h: 2] [h: 0] (d) [h: 0] (d)
 
-    std::size_t next_chunk(buffer &buff, const unsigned char *data) {
+    // [h: 6] {                                                        }
+    //          [h: 5] { [h: 0] (d)                                  }
+    //                              [h: 3] { [h: 0] (d) [h: 0] (d) }
+
+
+    std::int64_t next_chunk(buffer &buff, const unsigned char *data) {
 
         // initial state, return size of the header
         if (buff.total == 0 && buff.next_bytes == 0 && buff.bread == 0) {
@@ -120,8 +126,8 @@ namespace ex::io::box::in {
         buff.bread += buff.next_bytes;
 
         // all bytes read, finish
-        if ((buff.total - buff.bread) == 0)
-            return 0;
+        if ((buff.total - buff.bread) <= 0)
+            return (-1);
 
         if (!buff.stack.empty() && !buff.items.empty()) {
             // end of an array
@@ -130,17 +136,26 @@ namespace ex::io::box::in {
                 buff.stack.pop();
                 buff.items.pop();
                 buff.stack[buff.stack.size - 1] += total;
+
+                buff.next_bytes = 0;
+                return 0;
             }
         }
 
         const auto head   = reinterpret_cast<const header *>(data);
-        buff.front.type   = head->type;
         buff.front.size_b = head->size_b;
         buff.front.size_n = head->size_n;
+        buff.front.type   = head->type;
+
+        if (buff.total == 0) {
+            buff.total = buff.front.size_b;
+        }
 
         if (buff.front.size_n > 0) {
             buff.items.push(buff.front);
             buff.stack.push(0);
+            buff.next_bytes = sizeof(header);
+            return sizeof(header);
         }
 
         // TODO
