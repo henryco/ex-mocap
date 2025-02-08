@@ -88,7 +88,7 @@ namespace ex::io::box::out {
         delete[] data;
     }
 
-}
+} // namespace ex::io::box::out
 
 namespace ex::io::box::in {
 
@@ -97,16 +97,14 @@ namespace ex::io::box::in {
     }
 
     buffer create_buffer(const std::size_t init_cap) {
-        return {
-            .stack      = array<index_t>(init_cap),
-            .items      = array<header>(init_cap),
-            .front      = {},
-            .total      = 0,
-            .bread      = 0,
-            .next_bytes = 0,
-            .next_skip  = false,
-            .array_end  = false
-        };
+        return { .stack      = array<index_t>(init_cap),
+                 .items      = array<header>(init_cap),
+                 .front      = {},
+                 .total      = 0,
+                 .bread      = 0,
+                 .next_bytes = 0,
+                 .next_skip  = false,
+                 .array_end  = false };
     }
 
     // [ (header[16] arr) (header[16] el) (el[N] data) (header[16] el) (el[N] data) ... ]
@@ -173,4 +171,4 @@ namespace ex::io::box::in {
         return buff.next_bytes;
     }
 
-}
+} // namespace ex::io::box::in
