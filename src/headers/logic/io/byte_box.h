@@ -110,6 +110,7 @@ namespace ex::io::box {
 
             index_t next_bytes;
             bool    next_skip;
+            bool    array_end;
         };
 
         buffer create_buffer();
@@ -118,9 +119,13 @@ namespace ex::io::box {
 
         std::int64_t next_chunk(buffer &buff, const unsigned char *data);
 
-        bool begin_array(const buffer &buff);
+        inline bool begin_array(const buffer &buff) {
+            return buff.bread > 0 && buff.stack[buff.stack.size - 1] == 0;
+        }
 
-        bool end_array(const buffer &buff);
+        inline bool end_array(const buffer &buff) {
+            return buff.array_end;
+        }
 
         inline std::int64_t next_object(const buffer &buff) {
             return buff.next_skip ? (buff.front.size_b - sizeof(header)) : 0;

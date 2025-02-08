@@ -93,7 +93,7 @@ namespace ex::io::box::out {
 namespace ex::io::box::in {
 
     buffer create_buffer() {
-        return { .front = {}, .total = 0, .bread = 0, .next_bytes = 0, .next_skip = false };
+        return { .front = {}, .total = 0, .bread = 0, .next_bytes = 0, .next_skip = false, .array_end = false };
     }
 
     buffer create_buffer(const std::size_t init_cap) {
@@ -104,7 +104,8 @@ namespace ex::io::box::in {
             .total      = 0,
             .bread      = 0,
             .next_bytes = 0,
-            .next_skip  = false
+            .next_skip  = false,
+            .array_end  = false
         };
     }
 
@@ -123,6 +124,7 @@ namespace ex::io::box::in {
             return sizeof(header);
         }
 
+        buff.array_end = false;
         buff.bread += buff.next_bytes;
 
         if (!buff.stack.empty() && !buff.items.empty()) {
@@ -134,6 +136,7 @@ namespace ex::io::box::in {
                 buff.stack[buff.stack.size - 1] += total;
 
                 buff.next_bytes = 0;
+                buff.array_end  = true;
                 return SKIP;
             }
         }
@@ -168,18 +171,6 @@ namespace ex::io::box::in {
         buff.next_skip  = true;
         buff.next_bytes = static_cast<std::uint32_t>(head->size_b - sizeof(header));
         return buff.next_bytes;
-    }
-
-    bool begin_array(const buffer &buff) {
-        if (buff.bread == 0)
-            return false;
-        return item_index(buff) == 0;
-    }
-
-    bool end_array(const buffer &buff) {
-        if (buff.bread == 0)
-            return false;
-        return item_index(buff) == (array_count(buff) - 1);
     }
 
 }
