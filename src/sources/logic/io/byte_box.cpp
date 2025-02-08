@@ -8,7 +8,7 @@
 namespace ex::io::box::out {
 
     inline element element_array(const std::uint64_t type = TYPE_ARRAY) {
-        return { .header = { .size_b = sizeof(header), .size_n = 0, .type = type }, .data = nullptr };
+        return { .header = { .size_b = sizeof(header), .size_n = 1, .type = type }, .data = nullptr };
     }
 
     inline element &array_head(buffer &buff) {
@@ -66,6 +66,7 @@ namespace ex::io::box::out {
         const auto data = new unsigned char[*size];
         for (std::size_t i = 0, k = 0; i < head.header.size_n; ++i) {
             const auto &item = buff.items[i];
+            // todo fixme
             std::memcpy(data + k, &item.header, sizeof(header));
             std::memcpy(data + k + sizeof(header), &item.data, item.header.size_b - sizeof(header));
             k += item.header.size_b;
