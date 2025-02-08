@@ -84,6 +84,7 @@ namespace ex::io::box {
     const unsigned char *read_buffer_data(buffer &buff, std::size_t *size);
 
     void free_buffer_data(const unsigned char *data);
+
 }
 
 #endif //BYTE_BOX_H
