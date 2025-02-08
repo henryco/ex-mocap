@@ -36,6 +36,10 @@ namespace ex::io::box {
             return data[index];
         }
 
+        T &operator [] (const std::size_t index) {
+            return data[index];
+        }
+
         void push(const T& value) {
             if (size >= capacity) {
                 capacity = capacity > 0 ? (2 * capacity) : 2;
@@ -77,8 +81,9 @@ namespace ex::io::box {
 
     void object(buffer &buff, std::uint64_t type, std::uint32_t size, const void *data);
 
-    const unsigned char *read_buffer(buffer &buff, std::size_t &size);
+    const unsigned char *read_buffer_data(buffer &buff, std::size_t *size);
 
+    void free_buffer_data(const unsigned char *data);
 }
 
 #endif //BYTE_BOX_H

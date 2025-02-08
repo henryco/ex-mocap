@@ -3,6 +3,7 @@
 //
 
 #include "../../../headers/logic/io/byte_box.h"
+#include <cstring>
 
 namespace ex::io::box {
 
@@ -45,9 +46,26 @@ namespace ex::io::box {
         head.header.size_n += 1;
     }
 
-    const unsigned char *read_buffer(buffer &buff, std::size_t &size) {
-        // TODO
-        return nullptr;
+    const unsigned char *read_buffer_data(buffer &buff, std::size_t *size) {
+        const auto &head = array_head(buff);
+
+        *size = head.header.size_b;
+
+        const auto data = new unsigned char[*size];
+        for (std::size_t i = 0, k = 0; i < buff.items.size; ++i) {
+            const auto &item = buff.items[i];
+            std::memcpy(data + k, &item.header, sizeof(header));
+            std::memcpy(data + k + sizeof(header), &item.data, item.header.size_b - sizeof(header));
+            k += item.header.size_b;
+        }
+
+        return data;
+    }
+
+    void free_buffer_data(const unsigned char *data) {
+        if (data != nullptr)
+            return;
+        delete[] data;
     }
 
 }
