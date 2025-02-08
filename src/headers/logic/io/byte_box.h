@@ -22,33 +22,33 @@ namespace ex::io::box {
 
     #define TYPE_ARRAY 0
 
-    template<typename T>
-    struct stack {
-        T      *data     = nullptr;
-        index_t size     = 0;
-        index_t capacity = 0;
+    template<typename element>
+    struct array {
+        element *data     = nullptr;
+        index_t  size     = 0;
+        index_t  capacity = 0;
 
-        stack() = default;
+        array() = default;
 
-        ~stack() {
+        ~array() {
             if (data == nullptr)
                 return;
             free(data);
         }
 
-        stack(const index_t capacity) {
+        array(const index_t capacity) {
             this->capacity = capacity;
-            this->data     = static_cast<T *>(malloc(capacity * sizeof(T)));
+            this->data     = static_cast<element *>(malloc(capacity * sizeof(element)));
         }
 
-        T &operator [] (const index_t index) {
+        element &operator [] (const index_t index) {
             return data[index];
         }
 
-        void push(const T& value) {
+        void push(const element& value) {
             if (size >= capacity) {
                 capacity = capacity > 0 ? (2 * capacity) : 2;
-                data     = static_cast<T *>(realloc(data, capacity * sizeof(T)));
+                data     = static_cast<element *>(realloc(data, capacity * sizeof(element)));
             }
             data[size++] = value;
         }
@@ -70,8 +70,8 @@ namespace ex::io::box {
         };
 
         struct buffer {
-            stack<element> items;
-            stack<index_t> stack;
+            array<element> items;
+            array<index_t> stack;
         };
 
         buffer create_buffer();
@@ -93,8 +93,10 @@ namespace ex::io::box {
     namespace in {
 
         struct buffer {
-            stack<std::uint32_t> stack;
-            index_t              index;
+            array<index_t> stack;
+            array<header>  items;
+            header         front;
+            index_t        index;
         };
 
     }
