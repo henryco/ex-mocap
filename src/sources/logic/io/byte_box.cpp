@@ -125,16 +125,6 @@ namespace ex::io::box::in {
 
         buff.bread += buff.next_bytes;
 
-        // all bytes read, finish
-        if ((buff.total - buff.bread) <= 0)
-            return EOF;
-
-        if (buff.next_skip) {
-            buff.next_skip  = false;
-            buff.next_bytes = sizeof(header);
-            return sizeof(header);
-        }
-
         if (!buff.stack.empty() && !buff.items.empty()) {
             // end of an array
             if (item_index(buff) >= (array_count(buff) - 1)) {
@@ -144,11 +134,19 @@ namespace ex::io::box::in {
                 buff.stack[buff.stack.size - 1] += total;
 
                 buff.next_bytes = 0;
-                return 0;
+                return SKIP;
             }
         }
 
-        // TODO
+        // all bytes read, finish
+        if ((buff.total - buff.bread) <= 0)
+            return EOF;
+
+        if (buff.next_skip) {
+            buff.next_skip  = false;
+            buff.next_bytes = sizeof(header);
+            return sizeof(header);
+        }
 
         const auto head   = reinterpret_cast<const header *>(data);
         buff.front.size_b = head->size_b;

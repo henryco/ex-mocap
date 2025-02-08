@@ -13,6 +13,7 @@ namespace ex::io::box {
 
 #define TYPE_ARRAY 0
 #define EOF (-1)
+#define SKIP 0
 
     using index_t = std::uint32_t;
     using type__t = std::uint64_t;
