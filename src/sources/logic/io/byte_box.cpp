@@ -11,7 +11,7 @@ namespace ex::io::box::out {
         return { .header = { .size_b = sizeof(header), .size_n = 0, .type = type }, .data = nullptr };
     }
 
-    inline element& array_head(buffer &buff) {
+    inline element &array_head(buffer &buff) {
         return buff.items[buff.stack[buff.stack.size - 1]];
     }
 
@@ -78,6 +78,35 @@ namespace ex::io::box::out {
         if (data != nullptr)
             return;
         delete[] data;
+    }
+
+}
+
+namespace ex::io::box::in {
+
+    buffer create_buffer() {
+        return {};
+    }
+
+    buffer create_buffer(const std::size_t init_cap) {
+        return { .stack = array<index_t>(init_cap), .items = array<header>(init_cap), .front = {}, .index = 0 };
+    }
+
+    std::size_t next_chunk(buffer &buff, const unsigned char *data) {
+        if (data == nullptr)
+            return sizeof(header);
+        // TODO
+        return 0;
+    }
+
+    bool begin_array(const buffer &buff) {
+        // TODO
+        return false;
+    }
+
+    bool end_array(const buffer &buff) {
+        // TODO
+        return false;
     }
 
 }
