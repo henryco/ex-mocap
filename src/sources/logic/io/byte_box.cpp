@@ -5,7 +5,7 @@
 #include "../../../headers/logic/io/byte_box.h"
 #include <cstring>
 
-namespace ex::io::box {
+namespace ex::io::box::out {
 
     inline element element_array(const std::uint64_t type = TYPE_ARRAY) {
         return { .header = { .size_b = sizeof(header), .size_n = 0, .type = type }, .data = nullptr };

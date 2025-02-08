@@ -63,29 +63,33 @@ namespace ex::io::box {
         std::uint64_t type;
     };
 
-    struct element {
-        header      header;
-        const void *data;
-    };
+    namespace out {
 
-    struct buffer {
-        stack<element>       items;
-        stack<std::uint32_t> stack;
-    };
+        struct element {
+            header      header;
+            const void *data;
+        };
 
-    buffer create_buffer();
+        struct buffer {
+            stack<element>       items;
+            stack<std::uint32_t> stack;
+        };
 
-    void begin_array(buffer &buff);
+        buffer create_buffer();
 
-    void begin_array(buffer &buff, std::uint64_t type);
+        void begin_array(buffer &buff);
 
-    void end_array(buffer &buff);
+        void begin_array(buffer &buff, std::uint64_t type);
 
-    void object(buffer &buff, std::uint64_t type, std::uint32_t size, const void *data);
+        void end_array(buffer &buff);
 
-    const unsigned char *read_buffer_data(buffer &buff, std::size_t *size);
+        void object(buffer &buff, std::uint64_t type, std::uint32_t size, const void *data);
 
-    void free_buffer_data(const unsigned char *data);
+        const unsigned char *read_buffer_data(buffer &buff, std::size_t *size);
+
+        void free_buffer_data(const unsigned char *data);
+
+    }
 
 }
 
