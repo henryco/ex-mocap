@@ -11,13 +11,22 @@
 
 namespace ex::io::box {
 
+    using index_t = std::uint32_t;
+    using type__t = std::uint64_t;
+
+    struct alignas(16) header {
+        std::uint32_t size_b;
+        std::uint32_t size_n;
+        std::uint64_t type;
+    };
+
     #define TYPE_ARRAY 0
 
     template<typename T>
     struct stack {
-        T            *data     = nullptr;
-        std::uint32_t size     = 0;
-        std::uint32_t capacity = 0;
+        T      *data     = nullptr;
+        index_t size     = 0;
+        index_t capacity = 0;
 
         stack() = default;
 
@@ -27,16 +36,12 @@ namespace ex::io::box {
             free(data);
         }
 
-        stack(const std::uint32_t capacity) {
+        stack(const index_t capacity) {
             this->capacity = capacity;
             this->data     = static_cast<T *>(malloc(capacity * sizeof(T)));
         }
 
-        T &operator [] (const std::uint32_t index) {
-            return data[index];
-        }
-
-        T &operator [] (const std::size_t index) {
+        T &operator [] (const index_t index) {
             return data[index];
         }
 
@@ -57,12 +62,6 @@ namespace ex::io::box {
         }
     };
 
-    struct alignas(16) header {
-        std::uint32_t size_b;
-        std::uint32_t size_n;
-        std::uint64_t type;
-    };
-
     namespace out {
 
         struct element {
@@ -71,23 +70,32 @@ namespace ex::io::box {
         };
 
         struct buffer {
-            stack<element>       items;
-            stack<std::uint32_t> stack;
+            stack<element> items;
+            stack<index_t> stack;
         };
 
         buffer create_buffer();
 
         void begin_array(buffer &buff);
 
-        void begin_array(buffer &buff, std::uint64_t type);
+        void begin_array(buffer &buff, type__t type);
 
         void end_array(buffer &buff);
 
-        void object(buffer &buff, std::uint64_t type, std::uint32_t size, const void *data);
+        void object(buffer &buff, type__t type, std::size_t size, const void *data);
 
         const unsigned char *read_buffer_data(buffer &buff, std::size_t *size);
 
         void free_buffer_data(const unsigned char *data);
+
+    }
+
+    namespace in {
+
+        struct buffer {
+            stack<std::uint32_t> stack;
+            index_t              index;
+        };
 
     }
 

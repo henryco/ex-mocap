@@ -41,8 +41,8 @@ namespace ex::io::box::out {
         curr.header.size_n += head.header.size_n;
     }
 
-    void object(buffer &buff, const std::uint64_t type, const std::uint32_t size, const void *data) {
-        const std::uint32_t b_size = static_cast<std::uint32_t>(sizeof(header)) + size;
+    void object(buffer &buff, const std::uint64_t type, const std::size_t size, const void *data) {
+        const std::uint32_t b_size = static_cast<std::uint32_t>(sizeof(header)) + static_cast<std::uint32_t>(size);
 
         buff.items.push({ .header = { .size_b = b_size, .size_n = 1, .type = type }, .data = data });
 
