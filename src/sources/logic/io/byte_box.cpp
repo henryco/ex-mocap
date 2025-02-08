@@ -109,14 +109,14 @@ namespace ex::io::box::in {
     }
 
     bool begin_array(const buffer &buff) {
-        if (buff.total == 0 || buff.bread == 0)
+        if (buff.bread == 0)
             return false;
         // TODO
         return false;
     }
 
     bool end_array(const buffer &buff) {
-        if (buff.total == 0 || buff.bread == 0)
+        if (buff.bread == 0)
             return false;
         // TODO
         return false;
