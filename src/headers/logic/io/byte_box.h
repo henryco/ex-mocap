@@ -11,6 +11,8 @@
 
 namespace ex::io::box {
 
+#define TYPE_ARRAY 0
+
     using index_t = std::uint32_t;
     using type__t = std::uint64_t;
 
@@ -19,8 +21,6 @@ namespace ex::io::box {
         std::uint32_t size_n;
         std::uint64_t type;
     };
-
-    #define TYPE_ARRAY 0
 
     template<typename element>
     struct array {
@@ -45,7 +45,11 @@ namespace ex::io::box {
             return data[index];
         }
 
-        void push(const element& value) {
+        const element &operator [] (const index_t index) const {
+            return data[index];
+        }
+
+        void push(const element &value) {
             if (size >= capacity) {
                 capacity = capacity > 0 ? (2 * capacity) : 2;
                 data     = static_cast<element *>(realloc(data, capacity * sizeof(element)));
@@ -90,17 +94,20 @@ namespace ex::io::box {
 
         void free_buffer_data(const unsigned char *data);
 
-    }
+    } // namespace out
 
     namespace in {
 
         struct buffer {
             array<index_t> stack;
             array<header>  items;
-            header         front;
-            index_t        index;
-            index_t        total;
-            index_t        bread;
+
+            header  front;
+            index_t total;
+            index_t bread;
+
+            index_t next_bytes;
+            bool    next_header;
         };
 
         buffer create_buffer();
@@ -126,11 +133,23 @@ namespace ex::io::box {
         }
 
         inline index_t item_index(const buffer &buff) {
-            return buff.index;
+            return buff.stack[buff.stack.size - 1];
         }
 
-    }
+        inline type__t array_type(const buffer &buff) {
+            return buff.items[buff.items.size - 1].type;
+        }
 
-}
+        inline index_t array_size(const buffer &buff) {
+            return buff.items[buff.items.size - 1].size_b;
+        }
 
-#endif //BYTE_BOX_H
+        inline index_t array_count(const buffer &buff) {
+            return buff.items[buff.items.size - 1].size_n;
+        }
+
+    } // namespace in
+
+} // namespace ex::io::box
+
+#endif // BYTE_BOX_H

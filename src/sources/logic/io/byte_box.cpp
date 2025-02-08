@@ -51,7 +51,7 @@ namespace ex::io::box::out {
     void object(buffer &buff, const std::uint64_t type, const std::size_t size, const void *data) {
         const std::uint32_t b_size = static_cast<std::uint32_t>(sizeof(header)) + static_cast<std::uint32_t>(size);
 
-        buff.items.push({ .header = { .size_b = b_size, .size_n = 1, .type = type }, .data = data });
+        buff.items.push({ .header = { .size_b = b_size, .size_n = 0, .type = type }, .data = data });
 
         auto &head = array_head(buff);
         head.header.size_b += b_size;
@@ -85,7 +85,7 @@ namespace ex::io::box::out {
 namespace ex::io::box::in {
 
     buffer create_buffer() {
-        return { .front = {}, .index = 0, .total = 0, .bread = 0 };
+        return { .front = {}, .total = 0, .bread = 0, .next_bytes = 0 };
     }
 
     buffer create_buffer(const std::size_t init_cap) {
@@ -93,33 +93,63 @@ namespace ex::io::box::in {
             .stack = array<index_t>(init_cap),
             .items = array<header>(init_cap),
             .front = {},
-            .index = 0,
             .total = 0,
-            .bread = 0
+            .bread = 0,
+            .next_bytes  = 0
         };
     }
 
+    // [ (header[16] arr) (header[16] el) (el[N] data) (header[16] el) (el[N] data) ... ]
+
     std::size_t next_chunk(buffer &buff, const unsigned char *data) {
-        if (data == nullptr || buff.bread == 0)
+
+        // initial state, return size of the header
+        if (buff.total == 0 && buff.next_bytes == 0 && buff.bread == 0) {
+            buff.next_bytes = sizeof(header);
             return sizeof(header);
-        if (buff.total == 0)
+        }
+
+        buff.bread += buff.next_bytes;
+
+        // all bytes read, finish
+        if ((buff.total - buff.bread) == 0)
             return 0;
+
+        if (!buff.stack.empty() && !buff.items.empty()) {
+            // end of an array
+            if (item_index(buff) >= (array_count(buff) - 1)) {
+                const auto total = array_count(buff);
+                buff.stack.pop();
+                buff.items.pop();
+                buff.stack[buff.stack.size - 1] += total;
+            }
+        }
+
+        const auto head   = reinterpret_cast<const header *>(data);
+        buff.front.type   = head->type;
+        buff.front.size_b = head->size_b;
+        buff.front.size_n = head->size_n;
+
+        if (buff.front.size_n > 0) {
+            buff.items.push(buff.front);
+            buff.stack.push(0);
+        }
+
         // TODO
+
         return 0;
     }
 
     bool begin_array(const buffer &buff) {
         if (buff.bread == 0)
             return false;
-        // TODO
-        return false;
+        return item_index(buff) == 0;
     }
 
     bool end_array(const buffer &buff) {
         if (buff.bread == 0)
             return false;
-        // TODO
-        return false;
+        return item_index(buff) == (array_count(buff) - 1);
     }
 
 }

@@ -30,6 +30,7 @@ BreakConstructorInitializers: AfterColon
 BreakConstructorInitializersBeforeComma: false
 ColumnLimit: 120
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
+AllowShortFunctionsOnASingleLine: None
 ContinuationIndentWidth: 8
 Cpp11BracedListStyle: false
 IncludeCategories: 
