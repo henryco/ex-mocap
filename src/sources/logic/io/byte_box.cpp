@@ -52,7 +52,7 @@ namespace ex::io::box {
         *size = head.header.size_b;
 
         const auto data = new unsigned char[*size];
-        for (std::size_t i = 0, k = 0; i < buff.items.size; ++i) {
+        for (std::size_t i = 0, k = 0; i < head.header.size_n; ++i) {
             const auto &item = buff.items[i];
             std::memcpy(data + k, &item.header, sizeof(header));
             std::memcpy(data + k + sizeof(header), &item.data, item.header.size_b - sizeof(header));
