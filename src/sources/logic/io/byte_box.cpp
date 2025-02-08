@@ -100,7 +100,7 @@ namespace ex::io::box::in {
     }
 
     std::size_t next_chunk(buffer &buff, const unsigned char *data) {
-        if (data == nullptr)
+        if (data == nullptr || buff.bread == 0)
             return sizeof(header);
         if (buff.total == 0)
             return 0;
