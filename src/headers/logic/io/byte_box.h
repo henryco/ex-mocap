@@ -99,6 +99,8 @@ namespace ex::io::box {
             array<header>  items;
             header         front;
             index_t        index;
+            index_t        total;
+            index_t        bread;
         };
 
         buffer create_buffer();

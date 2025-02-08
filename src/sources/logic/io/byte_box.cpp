@@ -85,26 +85,39 @@ namespace ex::io::box::out {
 namespace ex::io::box::in {
 
     buffer create_buffer() {
-        return {};
+        return { .front = {}, .index = 0, .total = 0, .bread = 0 };
     }
 
     buffer create_buffer(const std::size_t init_cap) {
-        return { .stack = array<index_t>(init_cap), .items = array<header>(init_cap), .front = {}, .index = 0 };
+        return {
+            .stack = array<index_t>(init_cap),
+            .items = array<header>(init_cap),
+            .front = {},
+            .index = 0,
+            .total = 0,
+            .bread = 0
+        };
     }
 
     std::size_t next_chunk(buffer &buff, const unsigned char *data) {
         if (data == nullptr)
             return sizeof(header);
+        if (buff.total == 0)
+            return 0;
         // TODO
         return 0;
     }
 
     bool begin_array(const buffer &buff) {
+        if (buff.total == 0 || buff.bread == 0)
+            return false;
         // TODO
         return false;
     }
 
     bool end_array(const buffer &buff) {
+        if (buff.total == 0 || buff.bread == 0)
+            return false;
         // TODO
         return false;
     }
