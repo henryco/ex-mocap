@@ -18,7 +18,7 @@ TEST_CASE("byte_box simple write 1") {
     auto buff_out = out::create_buffer(10);
 
     out::object(buff_out, 123123, str_size, test_str);
-    out::begin_array(buff_out);
+    out::begin_array(buff_out, 42);
     out::object(buff_out, 321321, str_size, test_str);
     out::object(buff_out, 123321, str_size, test_str);
     out::end_array(buff_out);
@@ -32,10 +32,10 @@ TEST_CASE("byte_box simple write 1") {
     const int type_must[7][2] = {
         { arr_begin, 0 },
         { is_obj,    123123 },
-        { arr_begin, 0 },
+        { arr_begin, 42 },
         { is_obj,    321321 },
         { is_obj,    123321 },
-        { arr_end,   0 },
+        { arr_end,   42 },
         { arr_end,   0 },
     };
 
