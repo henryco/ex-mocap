@@ -7,16 +7,16 @@
 
 namespace ex::io::box::out {
 
-    inline element element_array(const std::uint64_t type = TYPE_ARRAY) {
+    inline internal_::element element_array(const std::uint64_t type = TYPE_ARRAY) {
         return { .header = { .size_b = sizeof(header), .size_n = 1, .type = type }, .data = nullptr };
     }
 
-    inline element &array_head(buffer &buff) {
+    inline internal_::element &array_head(buffer &buff) {
         return buff.items[buff.stack[buff.stack.size - 1]];
     }
 
     buffer create_buffer(const std::size_t init_cap) {
-        buffer buff = { .items = array<element>(init_cap), .stack = array<index_t>(init_cap) };
+        buffer buff = { .items = array<internal_::element>(init_cap), .stack = array<index_t>(init_cap) };
         buff.items.push(element_array());
         buff.stack.push(0);
         return buff;

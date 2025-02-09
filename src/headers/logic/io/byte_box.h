@@ -68,16 +68,18 @@ namespace ex::io::box {
         }
     };
 
-    namespace out {
-
+    namespace internal_ {
         struct element {
             header      header;
             const void *data;
         };
+    }
+
+    namespace out {
 
         struct buffer {
-            array<element> items;
-            array<index_t> stack;
+            array<internal_::element> items;
+            array<index_t>            stack;
         };
 
         buffer create_buffer();
