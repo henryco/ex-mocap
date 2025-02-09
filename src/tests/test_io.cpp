@@ -50,7 +50,6 @@ TEST_CASE("byte_box simple write 1") {
 
         std::cout << "-> " << i << '\n';
 
-        // TODO FIXME ARRAY
         if (in::begin_array(buff_in)) {
             const auto size_b = in::array_size(buff_in);
             const auto size_n = in::array_count(buff_in);
