@@ -75,7 +75,7 @@ namespace ex::io::box::out {
                 continue;
             }
 
-            std::memcpy(data + k + sizeof(header), &item.data, item.header.size_b - sizeof(header));
+            std::memcpy(data + k + sizeof(header), item.data, item.header.size_b - sizeof(header));
             k += item.header.size_b;
         }
 
