@@ -7,9 +7,6 @@
 #include <doctest/doctest.h>
 #include "../headers/logic/io/byte_box.h"
 
-int add(const int a, const int b) { return a + b; }
-
-
 namespace box = ex::io::box;
 namespace out = box::out;
 namespace in = box::in;
