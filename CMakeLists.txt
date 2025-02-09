@@ -189,8 +189,38 @@ add_custom_target(generate_cl_sources
         ALL DEPENDS ${GENERATED_CL_SOURCES})
 # ===================================================================
 
+set(LINK_TARGET)
+set(COMP_TARGET)
+set(INCL_TARGET)
+set(DEFN_TARGET)
+
+if (UNIX AND NOT APPLE)
+    list(APPEND LINK_TARGET ${CUDA_LIBRARIES})
+    list(APPEND LINK_TARGET ${V4L2_LIBRARIES})
+    list(APPEND LINK_TARGET ${OpenCV_LIBS})
+    list(APPEND LINK_TARGET onnxruntime)
+    list(APPEND LINK_TARGET OpenGL::GL)
+    list(APPEND LINK_TARGET OpenCL::OpenCL)
+    list(APPEND LINK_TARGET OpenCL::Headers)
+    list(APPEND LINK_TARGET spdlog::spdlog)
+    list(APPEND LINK_TARGET nlohmann_json::nlohmann_json)
+    list(APPEND LINK_TARGET argparse)
+    list(APPEND LINK_TARGET lucide)
+    list(APPEND LINK_TARGET ifcpph)
+    list(APPEND LINK_TARGET imgui)
+    list(APPEND LINK_TARGET simpfp)
+    list(APPEND LINK_TARGET glm)
+
+    list(APPEND INCL_TARGET ${OpenCV_INCLUDE_DIRS})
+    list(APPEND INCL_TARGET ${V4L2_INCLUDE_DIRS})
+
+    list(APPEND COMP_TARGET ${V4L2_CFLAGS_OTHER})
+
+    list(APPEND DEFN_TARGET CL_TARGET_OPENCL_VERSION=300)
+    list(APPEND DEFN_TARGET CL_HPP_TARGET_OPENCL_VERSION=300)
+endif ()
+
 set(RESULT_SOURCES
-        src/main.cpp
         ${KERNEL_FILES}
         ${GENERATED_CL_SOURCES}
         ${PLATFORM_FILES}
@@ -200,86 +230,49 @@ set(RESULT_SOURCES
 )
 
 add_executable(ex_motion
+        src/main.cpp
         ${RESULT_SOURCES})
 
 add_dependencies(${PROJECT_NAME}
         generate_cl_sources)
 
-if (UNIX AND NOT APPLE)
-    target_include_directories(${PROJECT_NAME}
-            PRIVATE ${OpenCV_INCLUDE_DIRS}
-            PRIVATE ${V4L2_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME}
-            PRIVATE onnxruntime
-            PRIVATE ${CUDA_LIBRARIES}
-            PRIVATE ${OpenCV_LIBS}
-            PRIVATE OpenGL::GL
-            PRIVATE OpenCL::OpenCL
-            PRIVATE OpenCL::Headers
-            PRIVATE spdlog::spdlog
-            PRIVATE ${V4L2_LIBRARIES}
-            PRIVATE nlohmann_json::nlohmann_json
-            PRIVATE argparse
-            PRIVATE lucide
-            PRIVATE ifcpph
-            PRIVATE imgui
-            PRIVATE simpfp
-            PRIVATE glm)
-    target_compile_options(${PROJECT_NAME}
-            PRIVATE ${V4L2_CFLAGS_OTHER})
-endif ()
+target_include_directories(${PROJECT_NAME}
+        PRIVATE ${INCL_TARGET})
+
+target_link_libraries(${PROJECT_NAME}
+        PRIVATE ${LINK_TARGET})
+
+target_compile_options(${PROJECT_NAME}
+        PRIVATE ${COMP_TARGET})
 
 target_compile_definitions(${PROJECT_NAME}
-        PRIVATE CL_TARGET_OPENCL_VERSION=300
-        PRIVATE CL_HPP_TARGET_OPENCL_VERSION=300)
-
+        PRIVATE ${DEFN_TARGET})
 
 # ====================== TESTS (OPTIONAL) ===========================
 if (ENABLE_TESTS)
     set(TEST_SOURCES
-            ${KERNEL_FILES}
-            ${GENERATED_CL_SOURCES}
-            ${PLATFORM_FILES}
-            ${HEADER_FILES}
-            ${SOURCE_FILES}
-            ${EXTRA_FILES}
-            src/tests/main.cpp
             src/tests/test_io.cpp)
 
     add_executable(tests
+            src/tests/main.cpp
+            ${RESULT_SOURCES}
             ${TEST_SOURCES})
 
     add_dependencies(tests
             generate_cl_sources)
 
-    if (UNIX AND NOT APPLE)
-        target_include_directories(tests
-                PRIVATE ${OpenCV_INCLUDE_DIRS}
-                PRIVATE ${V4L2_INCLUDE_DIRS})
-        target_link_libraries(tests
-                PRIVATE onnxruntime
-                PRIVATE ${CUDA_LIBRARIES}
-                PRIVATE ${OpenCV_LIBS}
-                PRIVATE OpenGL::GL
-                PRIVATE OpenCL::OpenCL
-                PRIVATE OpenCL::Headers
-                PRIVATE spdlog::spdlog
-                PRIVATE ${V4L2_LIBRARIES}
-                PRIVATE nlohmann_json::nlohmann_json
-                PRIVATE argparse
-                PRIVATE doctest
-                PRIVATE lucide
-                PRIVATE ifcpph
-                PRIVATE imgui
-                PRIVATE simpfp
-                PRIVATE glm)
-        target_compile_options(tests
-                PRIVATE ${V4L2_CFLAGS_OTHER})
-    endif ()
+    target_include_directories(tests
+            PRIVATE ${INCL_TARGET})
+
+    target_link_libraries(tests
+            PRIVATE ${LINK_TARGET}
+            PRIVATE doctest)
+
+    target_compile_options(tests
+            PRIVATE ${COMP_TARGET})
 
     target_compile_definitions(tests
-            PRIVATE CL_TARGET_OPENCL_VERSION=300
-            PRIVATE CL_HPP_TARGET_OPENCL_VERSION=300)
+            PRIVATE ${DEFN_TARGET})
 
     enable_testing()
     add_test(NAME Tests COMMAND tests)
