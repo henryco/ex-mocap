@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.30)
 project(ex_motion VERSION 0.1 LANGUAGES CXX)
 
+option(ENABLE_TESTS "Build with unit tests" OFF)
+if (ENABLE_TESTS)
+    add_subdirectory(external/doctest)
+endif ()
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
 
@@ -182,7 +187,7 @@ endforeach ()
 
 add_custom_target(generate_cl_sources
         ALL DEPENDS ${GENERATED_CL_SOURCES})
-# =================== OpenCL kernels generation =====================
+# ===================================================================
 
 set(RESULT_SOURCES
         src/main.cpp
@@ -227,3 +232,56 @@ endif ()
 target_compile_definitions(${PROJECT_NAME}
         PRIVATE CL_TARGET_OPENCL_VERSION=300
         PRIVATE CL_HPP_TARGET_OPENCL_VERSION=300)
+
+
+# ====================== TESTS (OPTIONAL) ===========================
+if (ENABLE_TESTS)
+    set(TEST_SOURCES
+            ${KERNEL_FILES}
+            ${GENERATED_CL_SOURCES}
+            ${PLATFORM_FILES}
+            ${HEADER_FILES}
+            ${SOURCE_FILES}
+            ${EXTRA_FILES}
+            src/tests/main.cpp
+            src/tests/test_io.cpp)
+
+    add_executable(tests
+            ${TEST_SOURCES})
+
+    add_dependencies(tests
+            generate_cl_sources)
+
+    if (UNIX AND NOT APPLE)
+        target_include_directories(tests
+                PRIVATE ${OpenCV_INCLUDE_DIRS}
+                PRIVATE ${V4L2_INCLUDE_DIRS})
+        target_link_libraries(tests
+                PRIVATE onnxruntime
+                PRIVATE ${CUDA_LIBRARIES}
+                PRIVATE ${OpenCV_LIBS}
+                PRIVATE OpenGL::GL
+                PRIVATE OpenCL::OpenCL
+                PRIVATE OpenCL::Headers
+                PRIVATE spdlog::spdlog
+                PRIVATE ${V4L2_LIBRARIES}
+                PRIVATE nlohmann_json::nlohmann_json
+                PRIVATE argparse
+                PRIVATE doctest
+                PRIVATE lucide
+                PRIVATE ifcpph
+                PRIVATE imgui
+                PRIVATE simpfp
+                PRIVATE glm)
+        target_compile_options(tests
+                PRIVATE ${V4L2_CFLAGS_OTHER})
+    endif ()
+
+    target_compile_definitions(tests
+            PRIVATE CL_TARGET_OPENCL_VERSION=300
+            PRIVATE CL_HPP_TARGET_OPENCL_VERSION=300)
+
+    enable_testing()
+    add_test(NAME Tests COMMAND tests)
+endif ()
+# ===================================================================

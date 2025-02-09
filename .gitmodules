@@ -19,3 +19,6 @@
 [submodule "external/simpfp"]
 	path = external/simpfp
 	url = git@github.com:henryco/simpfp.git
+[submodule "external/doctest"]
+	path = external/doctest
+	url = https://github.com/doctest/doctest.git
