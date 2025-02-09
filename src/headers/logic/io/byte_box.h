@@ -114,11 +114,12 @@ namespace ex::io::box {
             bool    next_skip;
             bool    array_end;
             bool    array_start;
+            bool    skip_first;
         };
 
-        buffer create_buffer();
+        buffer create_buffer(bool skip_first = false);
 
-        buffer create_buffer(std::size_t init_cap);
+        buffer create_buffer(int init_cap, bool skip_first = false);
 
         std::int64_t next_chunk(buffer &buff, const unsigned char *data);
 
@@ -128,6 +129,18 @@ namespace ex::io::box {
 
         inline bool end_array(const buffer &buff) {
             return buff.array_end;
+        }
+
+        inline type__t array_type(const buffer &buff) {
+            return buff.items[buff.items.size - 1].type;
+        }
+
+        inline index_t array_size(const buffer &buff) {
+            return buff.items[buff.items.size - 1].size_b;
+        }
+
+        inline index_t array_count(const buffer &buff) {
+            return buff.items[buff.items.size - 1].size_n;
         }
 
         inline std::int64_t next_object(const buffer &buff) {
@@ -142,24 +155,12 @@ namespace ex::io::box {
             return buff.front.size_b;
         }
 
-        inline index_t item_count(const buffer &buff) {
-            return buff.front.size_n;
-        }
-
         inline index_t item_index(const buffer &buff) {
             return buff.stack[buff.stack.size - 1];
         }
 
-        inline type__t array_type(const buffer &buff) {
-            return buff.items[buff.items.size - 1].type;
-        }
-
-        inline index_t array_size(const buffer &buff) {
-            return buff.items[buff.items.size - 1].size_b;
-        }
-
-        inline index_t array_count(const buffer &buff) {
-            return buff.items[buff.items.size - 1].size_n;
+        inline std::size_t offset(const buffer &buff) {
+            return buff.bread;
         }
 
     } // namespace in
