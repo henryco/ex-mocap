@@ -126,6 +126,11 @@ namespace ex::io::box {
 
         buffer create_buffer(int init_cap, mode mode = CHUNKS);
 
+        /**
+         * @param buff buffer instance
+         * @param data binary data to read
+         * @return size of the next chunk or total offset
+         */
         std::int64_t next(buffer &buff, const unsigned char *data);
 
         inline bool begin_array(const buffer &buff) {
