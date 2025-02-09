@@ -26,7 +26,12 @@ TEST_CASE("byte_box simple write 1") {
     std::size_t size_have;
     const auto data = out::read_buffer_data(buff_out, &size_have);
 
+    auto buff_in = in::create_buffer();
+    for (std::size_t i = 0; (i = in::next_chunk(buff_in, data + i)) != -1;) {
+        std::cout << "i: " << i << '\n';
+    }
 
+    // TODO FIXME
 
     out::free_buffer_data(data);
 
