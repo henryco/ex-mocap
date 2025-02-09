@@ -126,7 +126,7 @@ namespace ex::io::box {
 
         buffer create_buffer(int init_cap, mode mode = CHUNKS);
 
-        std::int64_t next_chunk(buffer &buff, const unsigned char *data);
+        std::int64_t next(buffer &buff, const unsigned char *data);
 
         inline bool begin_array(const buffer &buff) {
             return buff.array_start;

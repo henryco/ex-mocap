@@ -125,7 +125,7 @@ namespace ex::io::box::in {
     //          [h: 5] { [h: 0] (d)                                  }
     //                              [h: 3] { [h: 0] (d) [h: 0] (d) }
 
-    std::int64_t next_chunk(buffer &buff, const unsigned char *data) {
+    std::int64_t next(buffer &buff, const unsigned char *data) {
 
         if (buff.array_end) {
             const auto total = array_count(buff);
