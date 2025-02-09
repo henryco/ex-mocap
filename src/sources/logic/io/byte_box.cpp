@@ -93,18 +93,25 @@ namespace ex::io::box::out {
 namespace ex::io::box::in {
 
     buffer create_buffer() {
-        return { .front = {}, .total = 0, .bread = 0, .next_bytes = 0, .next_skip = false, .array_end = false };
+        return { .front       = {},
+                 .total       = 0,
+                 .bread       = 0,
+                 .next_bytes  = 0,
+                 .next_skip   = false,
+                 .array_end   = false,
+                 .array_start = false };
     }
 
     buffer create_buffer(const std::size_t init_cap) {
-        return { .stack      = array<index_t>(init_cap),
-                 .items      = array<header>(init_cap),
-                 .front      = {},
-                 .total      = 0,
-                 .bread      = 0,
-                 .next_bytes = 0,
-                 .next_skip  = false,
-                 .array_end  = false };
+        return { .stack       = array<index_t>(init_cap),
+                 .items       = array<header>(init_cap),
+                 .front       = {},
+                 .total       = 0,
+                 .bread       = 0,
+                 .next_bytes  = 0,
+                 .next_skip   = false,
+                 .array_end   = false,
+                 .array_start = false };
     }
 
     // [ (header[16] arr) (header[16] el) (el[N] data) (header[16] el) (el[N] data) ... ]
@@ -116,13 +123,15 @@ namespace ex::io::box::in {
 
     std::int64_t next_chunk(buffer &buff, const unsigned char *data) {
 
+        buff.array_start = false;
+        buff.array_end   = false;
+
         // initial state, return size of the header
         if (buff.total == 0 && buff.next_bytes == 0 && buff.bread == 0) {
             buff.next_bytes = sizeof(header);
             return sizeof(header);
         }
 
-        buff.array_end = false;
         buff.bread += buff.next_bytes;
 
         if (!buff.stack.empty() && !buff.items.empty()) {
@@ -161,7 +170,8 @@ namespace ex::io::box::in {
         if (buff.front.size_n > 0) {
             buff.items.push(buff.front);
             buff.stack.push(0);
-            buff.next_bytes = sizeof(header);
+            buff.array_start = true;
+            buff.next_bytes  = sizeof(header);
             return sizeof(header);
         }
 

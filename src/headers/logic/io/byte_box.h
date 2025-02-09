@@ -113,6 +113,7 @@ namespace ex::io::box {
             index_t next_bytes;
             bool    next_skip;
             bool    array_end;
+            bool    array_start;
         };
 
         buffer create_buffer();
@@ -122,7 +123,7 @@ namespace ex::io::box {
         std::int64_t next_chunk(buffer &buff, const unsigned char *data);
 
         inline bool begin_array(const buffer &buff) {
-            return buff.bread > 0 && buff.stack[buff.stack.size - 1] == 0;
+            return buff.array_start;
         }
 
         inline bool end_array(const buffer &buff) {
