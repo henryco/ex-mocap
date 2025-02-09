@@ -33,6 +33,7 @@ TEST_CASE("byte_box simple write 1") {
 
         std::cout << "-> " << i << '\n';
 
+        // TODO FIXME ARRAY
         if (in::begin_array(buff_in)) {
             const auto size_b = in::array_size(buff_in);
             const auto size_n = in::array_count(buff_in);
@@ -51,13 +52,9 @@ TEST_CASE("byte_box simple write 1") {
             const auto item_idx    = in::item_index(buff_in);
             const auto item_size_b = in::item_size(buff_in);
             const auto item_type   = in::item_type(buff_in);
+            const auto offset      = in::offset(buff_in);
 
-//            const auto n_d = data + in::offset(buff_in);
-
-//            const auto obj = new unsigned char[obj_size_b];
-//            std::memcpy(obj, n_d, obj_size_b);
-
-            std::cout << "is object: [" << item_idx << "], "
+            std::cout << "is object: [" << item_idx << "][" << offset << "], "
             << item_type << ", ("
             << obj_size_b << ", "
             << item_size_b << "): "
