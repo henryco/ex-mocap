@@ -153,7 +153,7 @@ namespace ex::io::box::in {
         }
 
         // all bytes read, finish
-        if ((buff.total - buff.bread) <= 0)
+        if ((static_cast<std::int64_t>(buff.total) - static_cast<std::int64_t>(buff.bread)) <= 0)
             return EOF;
 
         if (buff.next_skip) {
