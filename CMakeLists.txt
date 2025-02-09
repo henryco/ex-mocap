@@ -189,35 +189,35 @@ add_custom_target(generate_cl_sources
         ALL DEPENDS ${GENERATED_CL_SOURCES})
 # ===================================================================
 
-set(INCL_TARGET)
-set(LINK_TARGET)
 set(COMP_TARGET)
-set(DEFN_TARGET)
+
+set(INCL_TARGET
+        ${OpenCV_INCLUDE_DIRS})
+
+set(LINK_TARGET
+        ${OpenCV_LIBS}
+        ${CUDA_LIBRARIES}
+        nlohmann_json::nlohmann_json
+        spdlog::spdlog
+        OpenCL::Headers
+        OpenCL::OpenCL
+        onnxruntime
+        OpenGL::GL
+        argparse
+        simpfp
+        lucide
+        ifcpph
+        imgui
+        glm)
+
+set(DEFN_TARGET
+        CL_TARGET_OPENCL_VERSION=300
+        CL_HPP_TARGET_OPENCL_VERSION=300)
 
 if (UNIX AND NOT APPLE)
-    list(APPEND INCL_TARGET ${OpenCV_INCLUDE_DIRS})
     list(APPEND INCL_TARGET ${V4L2_INCLUDE_DIRS})
-
-    list(APPEND LINK_TARGET ${CUDA_LIBRARIES})
     list(APPEND LINK_TARGET ${V4L2_LIBRARIES})
-    list(APPEND LINK_TARGET ${OpenCV_LIBS})
-    list(APPEND LINK_TARGET onnxruntime)
-    list(APPEND LINK_TARGET OpenGL::GL)
-    list(APPEND LINK_TARGET OpenCL::OpenCL)
-    list(APPEND LINK_TARGET OpenCL::Headers)
-    list(APPEND LINK_TARGET spdlog::spdlog)
-    list(APPEND LINK_TARGET nlohmann_json::nlohmann_json)
-    list(APPEND LINK_TARGET argparse)
-    list(APPEND LINK_TARGET lucide)
-    list(APPEND LINK_TARGET ifcpph)
-    list(APPEND LINK_TARGET imgui)
-    list(APPEND LINK_TARGET simpfp)
-    list(APPEND LINK_TARGET glm)
-
     list(APPEND COMP_TARGET ${V4L2_CFLAGS_OTHER})
-
-    list(APPEND DEFN_TARGET CL_TARGET_OPENCL_VERSION=300)
-    list(APPEND DEFN_TARGET CL_HPP_TARGET_OPENCL_VERSION=300)
 endif ()
 
 set(RESULT_SOURCES
