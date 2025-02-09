@@ -54,14 +54,19 @@ TEST_CASE("byte_box simple write 1") {
             const auto item_type   = in::item_type(buff_in);
             const auto offset      = in::offset(buff_in);
 
+            const auto dst = new unsigned char[obj_size_b];
+            std::memcpy(dst, data + offset, obj_size_b);
+            const auto str = reinterpret_cast<const char *>(dst);
+
             std::cout << "is object: [" << item_idx << "][" << offset << "], "
             << item_type << ", ("
             << obj_size_b << ", "
             << item_size_b << "): "
-//            << n_d
+            << str
             << '\n'
             << std::endl;
 
+            delete[] dst;
         }
 
 
