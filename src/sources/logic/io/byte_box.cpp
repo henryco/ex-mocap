@@ -127,6 +127,20 @@ namespace ex::io::box::in {
 
     std::int64_t next_chunk(buffer &buff, const unsigned char *data) {
 
+        if (buff.array_end) {
+            const auto total = array_count(buff);
+            buff.stack.pop();
+            buff.items.pop();
+
+            if (buff.stack.empty() && buff.items.empty()) {
+                buff.array_start = false;
+                buff.array_end   = true;
+                return EOF;
+            }
+
+            buff.stack[buff.stack.size - 1] += total;
+        }
+
         buff.array_start = false;
         buff.array_end   = false;
 
@@ -141,11 +155,6 @@ namespace ex::io::box::in {
         if (!buff.stack.empty() && !buff.items.empty()) {
             // end of an array
             if (item_index(buff) >= (array_count(buff) - 1)) {
-                const auto total = array_count(buff);
-                buff.stack.pop();
-                buff.items.pop();
-                buff.stack[buff.stack.size - 1] += total;
-
                 buff.next_bytes = 0;
                 buff.array_end  = true;
                 return SKIP;
