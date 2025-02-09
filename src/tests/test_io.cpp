@@ -100,12 +100,12 @@ TEST_CASE("byte_box simple write 1") {
     }
 
     for (int i = 0; i < 7; i++) {
-        INFO("Content type mismatch: " << i << ", have: " << type_have[i][0] << ", must: " << type_must[i][0]);
+        INFO("Content type mismatch [" << i << "], have: " << type_have[i][0] << " <-> must: " << type_must[i][0]);
         CHECK(type_must[i][0] == type_have[i][0]);
     }
 
     for (int i = 0; i < 7; i++) {
-        INFO("Content id   mismatch: " << i << ", have: " << type_have[i][1] << ", must: " << type_must[i][1]);
+        INFO("Content id   mismatch [" << i << "], have: " << type_have[i][1] << " <-> must: " << type_must[i][1]);
         CHECK(type_must[i][1] == type_have[i][1]);
     }
     out::free_buffer_data(data);
