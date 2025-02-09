@@ -157,6 +157,7 @@ namespace ex::io::box::in {
             if (item_index(buff) >= (array_count(buff) - 1)) {
                 buff.next_bytes = 0;
                 buff.array_end  = true;
+                buff.next_skip  = false;
                 return SKIP;
             }
         }
