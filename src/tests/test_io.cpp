@@ -45,7 +45,7 @@ TEST_CASE("byte_box simple write 1") {
 
     CHECK(size_have == size_must);
 
-    auto buff_in = in::create_buffer(10, true);
+    auto buff_in = in::create_buffer(10, in::mode::OFFSET);
     for (std::size_t i = 0; (i = in::next_chunk(buff_in, data + i)) != -1;) {
 
         std::cout << "-> " << i << '\n';

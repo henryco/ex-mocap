@@ -102,6 +102,11 @@ namespace ex::io::box {
 
     namespace in {
 
+        enum mode: bool {
+            CHUNKS = 0,
+            OFFSET = 1
+        };
+
         struct buffer {
             array<index_t> stack;
             array<header>  items;
@@ -114,12 +119,12 @@ namespace ex::io::box {
             bool    next_skip;
             bool    array_end;
             bool    array_start;
-            bool    skip_first;
+            mode    read_mode;
         };
 
-        buffer create_buffer(bool skip_first = false);
+        buffer create_buffer(mode mode = CHUNKS);
 
-        buffer create_buffer(int init_cap, bool skip_first = false);
+        buffer create_buffer(int init_cap, mode mode = CHUNKS);
 
         std::int64_t next_chunk(buffer &buff, const unsigned char *data);
 

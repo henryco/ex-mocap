@@ -92,7 +92,7 @@ namespace ex::io::box::out {
 
 namespace ex::io::box::in {
 
-    buffer create_buffer(const bool skip_first) {
+    buffer create_buffer(const mode mode) {
         return {
             .front       = {},
             .total       = 0,
@@ -101,11 +101,11 @@ namespace ex::io::box::in {
             .next_skip   = false,
             .array_end   = false,
             .array_start = false,
-            .skip_first  = skip_first,
+            .read_mode   = mode,
         };
     }
 
-    buffer create_buffer(const int init_cap, const bool skip_first) {
+    buffer create_buffer(const int init_cap, const mode mode) {
         return { .stack       = array<index_t>(init_cap),
                  .items       = array<header>(init_cap),
                  .front       = {},
@@ -115,7 +115,7 @@ namespace ex::io::box::in {
                  .next_skip   = false,
                  .array_end   = false,
                  .array_start = false,
-                 .skip_first  = skip_first };
+                 .read_mode   = mode };
     }
 
     // [ (header[16] arr) (header[16] el) (el[N] data) (header[16] el) (el[N] data) ... ]
@@ -133,7 +133,7 @@ namespace ex::io::box::in {
         // initial state, return size of the header
         if (buff.total == 0 && buff.next_bytes == 0 && buff.bread == 0) {
             buff.next_bytes = sizeof(header);
-            return buff.skip_first ? 0 : sizeof(header);
+            return (buff.read_mode == CHUNKS) ? sizeof(header) : 0;
         }
 
         buff.bread += buff.next_bytes;
@@ -159,8 +159,7 @@ namespace ex::io::box::in {
         if (buff.next_skip) {
             buff.next_skip  = false;
             buff.next_bytes = sizeof(header);
-            // TODO FIXME
-            return sizeof(header);
+            return (buff.read_mode == CHUNKS) ? sizeof(header) : 0;
         }
 
         const auto head   = reinterpret_cast<const header *>(data);
