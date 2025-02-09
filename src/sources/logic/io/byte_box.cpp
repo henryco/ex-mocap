@@ -158,7 +158,7 @@ namespace ex::io::box::in {
                 buff.next_bytes = 0;
                 buff.array_end  = true;
                 buff.next_skip  = false;
-                return SKIP;
+                return (buff.read_mode == CHUNKS) ? SKIP : buff.bread;
             }
         }
 
@@ -169,7 +169,7 @@ namespace ex::io::box::in {
         if (buff.next_skip) {
             buff.next_skip  = false;
             buff.next_bytes = sizeof(header);
-            return (buff.read_mode == CHUNKS) ? sizeof(header) : 0;
+            return (buff.read_mode == CHUNKS) ? sizeof(header) : buff.bread;
         }
 
         const auto head   = reinterpret_cast<const header *>(data);
@@ -186,13 +186,13 @@ namespace ex::io::box::in {
             buff.stack.push(0);
             buff.array_start = true;
             buff.next_bytes  = sizeof(header);
-            return sizeof(header);
+            return (buff.read_mode == CHUNKS) ? sizeof(header) : buff.bread;
         }
 
         buff.stack[buff.stack.size - 1] += 1;
         buff.next_skip  = true;
         buff.next_bytes = static_cast<std::uint32_t>(head->size_b - sizeof(header));
-        return buff.next_bytes;
+        return (buff.read_mode == CHUNKS) ? buff.next_bytes : buff.bread;
     }
 
 } // namespace ex::io::box::in
