@@ -20,13 +20,25 @@ TEST_CASE("byte_box simple write 1") {
     out::object(buff_out, 123123, str_size, test_str);
     out::begin_array(buff_out);
     out::object(buff_out, 321321, str_size, test_str);
-    out::object(buff_out, 123123, str_size, test_str);
+    out::object(buff_out, 123321, str_size, test_str);
     out::end_array(buff_out);
 
-    const auto size_must = (5 * sizeof(box::header)) + (3 * str_size);
+    int       type_have_i     = 0;
+    int       type_have[6][2] = {};
+    const int type_must[6][2] = {
+        { 1, 0 },
+        { 0, 123123 },
+        { 1, 0 },
+        { 0, 321321 },
+        { 0, 123321 },
+        { 2, 0 },
+    };
 
     std::size_t size_have;
+    const auto size_must = (5 * sizeof(box::header)) + (3 * str_size);
     const auto data = out::read_buffer_data(buff_out, &size_have);
+
+    CHECK(size_have == size_must);
 
     auto buff_in = in::create_buffer(10, true);
     for (std::size_t i = 0; (i = in::next_chunk(buff_in, data + i)) != -1;) {
@@ -54,25 +66,23 @@ TEST_CASE("byte_box simple write 1") {
             const auto item_type   = in::item_type(buff_in);
             const auto offset      = in::offset(buff_in);
 
-            const auto dst = new unsigned char[obj_size_b];
-            std::memcpy(dst, data + offset, obj_size_b);
-            const auto str = reinterpret_cast<const char *>(dst);
+//            const auto dst = new unsigned char[obj_size_b];
+//            std::memcpy(dst, data + offset, obj_size_b);
+//            const auto str = reinterpret_cast<const char *>(dst);
 
             std::cout << "is object: [" << item_idx << "][" << offset << "], "
             << item_type << ", ("
             << obj_size_b << ", "
             << item_size_b << "): "
-            << str
+//            << str
             << '\n'
             << std::endl;
 
-            delete[] dst;
+//            delete[] dst;
         }
 
 
     }
 
     out::free_buffer_data(data);
-
-    CHECK(size_have == size_must);
 }
