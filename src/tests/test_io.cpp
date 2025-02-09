@@ -11,7 +11,7 @@ namespace box = ex::io::box;
 namespace out = box::out;
 namespace in = box::in;
 
-TEST_CASE("byte_box simple write 1") {
+TEST_CASE("byte_box simple read write [offset]") {
     const auto test_str = "test string";
     const auto str_size = std::strlen(test_str) + 1;
 
