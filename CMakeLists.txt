@@ -189,12 +189,15 @@ add_custom_target(generate_cl_sources
         ALL DEPENDS ${GENERATED_CL_SOURCES})
 # ===================================================================
 
+set(INCL_TARGET)
 set(LINK_TARGET)
 set(COMP_TARGET)
-set(INCL_TARGET)
 set(DEFN_TARGET)
 
 if (UNIX AND NOT APPLE)
+    list(APPEND INCL_TARGET ${OpenCV_INCLUDE_DIRS})
+    list(APPEND INCL_TARGET ${V4L2_INCLUDE_DIRS})
+
     list(APPEND LINK_TARGET ${CUDA_LIBRARIES})
     list(APPEND LINK_TARGET ${V4L2_LIBRARIES})
     list(APPEND LINK_TARGET ${OpenCV_LIBS})
@@ -210,9 +213,6 @@ if (UNIX AND NOT APPLE)
     list(APPEND LINK_TARGET imgui)
     list(APPEND LINK_TARGET simpfp)
     list(APPEND LINK_TARGET glm)
-
-    list(APPEND INCL_TARGET ${OpenCV_INCLUDE_DIRS})
-    list(APPEND INCL_TARGET ${V4L2_INCLUDE_DIRS})
 
     list(APPEND COMP_TARGET ${V4L2_CFLAGS_OTHER})
 
