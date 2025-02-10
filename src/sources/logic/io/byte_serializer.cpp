@@ -8,14 +8,14 @@
 
 namespace ex::io::bytes {
 
-    std::uint8_t *ByteSerializer::serialize(const void *in) const {
+    byte_array ByteSerializer::serialize(const void *in) const {
         const auto state = static_cast<const ex::State *>(in);
 
         // todo
-        return nullptr;
+        return {};
     }
 
-    void *ByteSerializer::deserialize(std::uint8_t *const &in) const {
+    void *ByteSerializer::deserialize(const byte_array &in) const {
         // todo
         return nullptr;
     }

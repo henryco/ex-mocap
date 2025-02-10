@@ -8,18 +8,21 @@
 #include "../../../extra/nodes/nodes.h"
 #include <cstdint>
 
-namespace ex::io::bytes {
-
+namespace ex::io {
     struct byte_array {
         const std::uint8_t *data;
+        const size_t        size;
     };
+}
 
-    struct ByteSerializer: limbo::nodes::Serializer<std::uint8_t *> {
+namespace ex::io::bytes {
+
+    struct ByteSerializer: limbo::nodes::Serializer<byte_array> {
         ~ByteSerializer() override = default;
 
-        std::uint8_t *serialize(const void *) const override;
+        byte_array serialize(const void *) const override;
 
-        void *deserialize(std::uint8_t *const &) const override;
+        void *deserialize(const byte_array &) const override;
     };
 
 }
