@@ -15,7 +15,7 @@
 #include "gui_component.h"
 
 namespace ex::gui {
-    undo::history<ex::State> &undo_history();
+    limbo::undo::history<ex::State> &undo_history();
 
     logs::logger &logger();
 

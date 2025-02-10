@@ -7,7 +7,7 @@
 
 #include <functional>
 
-namespace ex::undo {
+namespace limbo::undo {
 
     template<typename T>
     struct record {

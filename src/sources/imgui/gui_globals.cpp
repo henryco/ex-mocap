@@ -12,8 +12,8 @@ namespace ex::gui {
         return log;
     }
 
-    ex::undo::history<ex::State> &undo_history() {
-        static ex::undo::history<ex::State> undo_history("Blank");
+    limbo::undo::history<ex::State> &undo_history() {
+        static limbo::undo::history<ex::State> undo_history("Blank");
         return undo_history;
     }
 
