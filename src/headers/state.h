@@ -8,13 +8,15 @@
 #include <CL/cl.h>
 #include <GLFW/glfw3.h>
 
+#include <cstdint>
+
 namespace ex {
 
     namespace state::uuid {
-        std::size_t generate_id_inc();
-        std::size_t get_last_id();
-        void        set_last_id(std::size_t id);
-        void        reset_last_id(std::size_t id = 0);
+        std::uint32_t generate_id_inc();
+        std::uint32_t get_last_id();
+        void          set_last_id(std::uint32_t id);
+        void          reset_last_id(std::uint32_t id = 0);
     }
 
     struct TreeNode {
@@ -34,12 +36,12 @@ namespace ex {
         TreeNode   *parent     = nullptr;
         TreeNode  **children   = nullptr;
 
-        std::size_t children_n = 0;
-        std::size_t data_size  = 0;
-        std::size_t id_local   = 0;
-        std::size_t id_link    = 0;
-        std::size_t id_node    = 0;
-        std::size_t index      = 0;
+        std::uint64_t id_node    = 0;
+        std::uint32_t children_n = 0;
+        std::uint32_t data_size  = 0;
+        std::uint32_t id_local   = 0;
+        std::uint32_t id_link    = 0;
+        std::uint32_t index      = 0;
 
         bool        is_group   = false;
         bool        is_link    = false;
@@ -60,16 +62,16 @@ namespace ex {
         void remove_node(TreeNode *node);
         bool is_parent(TreeNode *node) const;
 
-        TreeNode *find_node(std::size_t id);
+        TreeNode *find_node(std::uint32_t id);
         TreeNode *find_node(TreeNode *node);
         TreeNode *shallow_copy() const;
         TreeNode *deep_copy(bool generated_id = false) const;
 
-        static TreeNode *find_node(TreeNode *tree, std::size_t id);
+        static TreeNode *find_node(TreeNode *tree, std::uint32_t id);
         static TreeNode *shallow_copy(TreeNode *node);
         static TreeNode *deep_copy(TreeNode *node, bool generated_id = false);
 
-        static TreeNode *create(std::size_t id = 0);
+        static TreeNode *create(std::uint32_t id = 0);
         static TreeNode *link(TreeNode *node);
 
         static bool is_parent(TreeNode *test, TreeNode *node);

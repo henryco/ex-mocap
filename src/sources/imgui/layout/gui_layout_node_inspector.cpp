@@ -21,7 +21,7 @@ namespace ex::gui::tree {
 
         const auto rf = ex::gui::window_reset_flags(gui.view.reset, true);
         ImGui::Begin("Node inspector", &inspection_open, rf);
-        ImGui::Text("%s: [%lu] [%s]", inspected_node->name, inspected_node->id_local, base_node->get_node_name());
+        ImGui::Text("%s: [%u] [%s]", inspected_node->name, inspected_node->id_local, base_node->get_node_name());
 
         ImGui::TextDisabled("");
 

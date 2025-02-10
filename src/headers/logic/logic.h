@@ -26,13 +26,13 @@ namespace ex::main {
         }
     };
 
-    using local_id_ = std::size_t;
-    using type_id_  = std::size_t;
+    using local_id_ = std::uint32_t;
+    using type_id_  = std::uint64_t;
 
     class Logic {
     private:
         std::map<local_id_, limbo::nodes::BaseNode *> nodes_       = {};
-        std::map<local_id_, int>               ptr_counter_ = {};
+        std::map<local_id_, int>                      ptr_counter_ = {};
 
         long timestamp = 0;
 

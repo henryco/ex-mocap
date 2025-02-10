@@ -8,22 +8,22 @@
 namespace ex {
 
     namespace state::uuid {
-        static std::size_t id_counter_ = 0;
+        static std::uint32_t id_counter_ = 0;
 
-        std::size_t generate_id_inc() {
+        std::uint32_t generate_id_inc() {
             return ++id_counter_;
         }
 
-        std::size_t get_last_id() {
+        std::uint32_t get_last_id() {
             return id_counter_;
         }
 
-        void set_last_id(const std::size_t id) {
+        void set_last_id(const std::uint32_t id) {
             if (id > id_counter_)
                 id_counter_ = id;
         }
 
-        void reset_last_id(const std::size_t id) {
+        void reset_last_id(const std::uint32_t id) {
             id_counter_ = id;
         }
     }
@@ -230,7 +230,7 @@ namespace ex {
         this->children   = children;
     }
 
-    TreeNode *TreeNode::find_node(const std::size_t id) {
+    TreeNode *TreeNode::find_node(const std::uint32_t id) {
         if (this->id_local == id)
             return this;
         for (int i = 0; i < this->children_n; i++) {
@@ -256,7 +256,7 @@ namespace ex {
         return nullptr;
     }
 
-    TreeNode *TreeNode::find_node(TreeNode *const tree, const std::size_t id) {
+    TreeNode *TreeNode::find_node(TreeNode *const tree, const std::uint32_t id) {
         if (tree == nullptr)
             return nullptr;
         return tree->find_node(id);
@@ -274,7 +274,7 @@ namespace ex {
         return node->deep_copy(generated_id);
     }
 
-    TreeNode *TreeNode::create(const std::size_t id) {
+    TreeNode *TreeNode::create(const std::uint32_t id) {
         const auto node = new TreeNode;
         if (id > 0) {
             state::uuid::set_last_id(id);
