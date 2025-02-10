@@ -13,6 +13,7 @@ namespace ex::io {
         const std::uint8_t *data;
         const size_t        size;
         const std::uint8_t &operator[](const size_t &index) const;
+        static byte_array from(const std::uint8_t *data, const size_t &size);
     };
 }
 

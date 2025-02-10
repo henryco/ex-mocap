@@ -6,8 +6,11 @@
 #include "../../../extra/bytebox/byte_box.h"
 #include "../../../headers/state.h"
 
-const std::uint8_t &ex::io::byte_array::operator [] (const size_t &index) const {
+const std::uint8_t &ex::io::byte_array::operator[](const size_t &index) const {
     return data[index];
+}
+ex::io::byte_array ex::io::byte_array::from(const std::uint8_t *data, const size_t &size) {
+    return ex::io::byte_array(data, size);
 }
 
 namespace ex::io::bytes {
