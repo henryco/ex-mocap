@@ -8,7 +8,7 @@
 
 namespace ex::io::json {
 
-    class JsonSerializer : public ex::nodes::Serializer<std::string> {
+    class JsonSerializer : public limbo::nodes::Serializer<std::string> {
     public:
         JsonSerializer()           = default;
         ~JsonSerializer() override = default;

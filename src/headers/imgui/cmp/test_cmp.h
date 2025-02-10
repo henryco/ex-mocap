@@ -11,20 +11,20 @@
 
 namespace ex::gui::test {
 
-    class NodeOne: public nodes::Node<NodeOne>,
-                   public nodes::id::name<"node_one">,
+    class NodeOne: public limbo::nodes::Node<NodeOne>,
+                   public limbo::nodes::id::name<"node_one">,
 
-                   public nodes::io::out<short, 1, "out 1 s">,
-                   public nodes::io::out<short, 2, "out 2 s">,
-                   public nodes::io::out<float, 3, "out 3 f">,
-                   public nodes::io::out<short, 4, "out 4 s">,
+                   public limbo::nodes::io::out<short, 1, "out 1 s">,
+                   public limbo::nodes::io::out<short, 2, "out 2 s">,
+                   public limbo::nodes::io::out<float, 3, "out 3 f">,
+                   public limbo::nodes::io::out<short, 4, "out 4 s">,
 
-                   public nodes::io::in<bool, 1, "in 1 b">,
-                   public nodes::io::in<char, 2, "in 2 c">,
-                   public nodes::io::in<float, 3, "in 3 f">,
+                   public limbo::nodes::io::in<bool, 1, "in 1 b">,
+                   public limbo::nodes::io::in<char, 2, "in 2 c">,
+                   public limbo::nodes::io::in<float, 3, "in 3 f">,
 
-                   public nodes::ReactiveOut<short, float>,
-                   public nodes::ReactiveIn<bool, char, float>
+                   public limbo::nodes::ReactiveOut<short, float>,
+                   public limbo::nodes::ReactiveIn<bool, char, float>
     {
     private:
         float stored_float = 0.f;
@@ -62,20 +62,20 @@ namespace ex::gui::test {
         }
     };
 
-    class NodeTwo: public nodes::Node<NodeTwo>,
-                   public nodes::id::name<"node_two">,
+    class NodeTwo: public limbo::nodes::Node<NodeTwo>,
+                   public limbo::nodes::id::name<"node_two">,
 
-                   public nodes::io::out<short, 1, "out 1 s">,
-                   public nodes::io::out<short, 2, "out 2 s">,
-                   public nodes::io::out<float, 3, "out 3 f">,
-                   public nodes::io::out<short, 4, "out 4 s">,
+                   public limbo::nodes::io::out<short, 1, "out 1 s">,
+                   public limbo::nodes::io::out<short, 2, "out 2 s">,
+                   public limbo::nodes::io::out<float, 3, "out 3 f">,
+                   public limbo::nodes::io::out<short, 4, "out 4 s">,
 
-                   public nodes::io::in<bool, 1, "in 1 b">,
-                   public nodes::io::in<char, 2, "in 2 c">,
-                   public nodes::io::in<float, 3, "in 3 f">,
+                   public limbo::nodes::io::in<bool, 1, "in 1 b">,
+                   public limbo::nodes::io::in<char, 2, "in 2 c">,
+                   public limbo::nodes::io::in<float, 3, "in 3 f">,
 
-                   public nodes::ReactiveOut<short, float>,
-                   public nodes::ReactiveIn<bool, char, float>
+                   public limbo::nodes::ReactiveOut<short, float>,
+                   public limbo::nodes::ReactiveIn<bool, char, float>
     {
     private:
         float stored_float = 0.f;
@@ -112,20 +112,20 @@ namespace ex::gui::test {
         }
     };
 
-    class NodeTri: public nodes::Node<NodeTri>,
-                   public nodes::id::name<"node_tri">,
+    class NodeTri: public limbo::nodes::Node<NodeTri>,
+                   public limbo::nodes::id::name<"node_tri">,
 
-                   public nodes::io::out<short, 1, "out 1 s">,
-                   public nodes::io::out<short, 2, "out 2 s">,
-                   public nodes::io::out<float, 3, "out 3 f">,
-                   public nodes::io::out<short, 4, "out 4 s">,
+                   public limbo::nodes::io::out<short, 1, "out 1 s">,
+                   public limbo::nodes::io::out<short, 2, "out 2 s">,
+                   public limbo::nodes::io::out<float, 3, "out 3 f">,
+                   public limbo::nodes::io::out<short, 4, "out 4 s">,
 
-                   public nodes::io::in<bool, 1, "in 1 b">,
-                   public nodes::io::in<char, 2, "in 2 c">,
-                   public nodes::io::in<float, 3, "in 3 f">,
+                   public limbo::nodes::io::in<bool, 1, "in 1 b">,
+                   public limbo::nodes::io::in<char, 2, "in 2 c">,
+                   public limbo::nodes::io::in<float, 3, "in 3 f">,
 
-                   public nodes::ReactiveOut<short, float>,
-                   public nodes::ReactiveIn<bool, char, float>
+                   public limbo::nodes::ReactiveOut<short, float>,
+                   public limbo::nodes::ReactiveIn<bool, char, float>
     {
     private:
         float stored_float = 0.f;
@@ -169,10 +169,10 @@ namespace ex::gui::test {
         const char *get_node_name(GuiState &gui, ex::State &state);
         static constexpr GuiNodeComponent gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
 
-        void from_base(State &state, nodes::BaseNode *from, TreeNode *to);
-        void from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
-        nodes::BaseNode *instance(const State &state, TreeNode *from);
-        nodes::BaseNode *relocate(const State &state, TreeNode *tree, nodes::BaseNode *node);
+        void from_base(State &state, limbo::nodes::BaseNode *from, TreeNode *to);
+        void from_tree(State &state, TreeNode *from, limbo::nodes::BaseNode *to);
+        limbo::nodes::BaseNode *instance(const State &state, TreeNode *from);
+        limbo::nodes::BaseNode *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *node);
         static constexpr BaseNodeComponent data_mappers = { from_base, from_tree, instance, relocate };
     }
 
@@ -183,10 +183,10 @@ namespace ex::gui::test {
         const char *get_node_name(GuiState &gui, ex::State &state);
         static constexpr GuiNodeComponent gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
 
-        void from_base(State &state, nodes::BaseNode *from, TreeNode *to);
-        void from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
-        nodes::BaseNode *instance(const State &state, TreeNode *from);
-        nodes::BaseNode *relocate(const State &state, TreeNode *tree, nodes::BaseNode *node);
+        void from_base(State &state, limbo::nodes::BaseNode *from, TreeNode *to);
+        void from_tree(State &state, TreeNode *from, limbo::nodes::BaseNode *to);
+        limbo::nodes::BaseNode *instance(const State &state, TreeNode *from);
+        limbo::nodes::BaseNode *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *node);
         static constexpr BaseNodeComponent data_mappers = { from_base, from_tree, instance, relocate };
     }
 
@@ -197,10 +197,10 @@ namespace ex::gui::test {
         const char *get_node_name(GuiState &gui, ex::State &state);
         static constexpr GuiNodeComponent gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
 
-        void from_base(State &state, nodes::BaseNode *from, TreeNode *to);
-        void from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
-        nodes::BaseNode *instance(const State &state, TreeNode *from);
-        nodes::BaseNode *relocate(const State &state, TreeNode *tree, nodes::BaseNode *node);
+        void from_base(State &state, limbo::nodes::BaseNode *from, TreeNode *to);
+        void from_tree(State &state, TreeNode *from, limbo::nodes::BaseNode *to);
+        limbo::nodes::BaseNode *instance(const State &state, TreeNode *from);
+        limbo::nodes::BaseNode *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *node);
         static constexpr BaseNodeComponent data_mappers = { from_base, from_tree, instance, relocate };
     }
 

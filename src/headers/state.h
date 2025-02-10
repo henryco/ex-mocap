@@ -26,7 +26,7 @@ namespace ex {
         void       *data       = nullptr;
 
         /**
-         * Underlying node instance (ie: ex::nodes::BaseNode *)
+         * Underlying node instance (ie: limbo::nodes::BaseNode *)
          */
         void       *node       = nullptr;
 

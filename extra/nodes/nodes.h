@@ -14,7 +14,7 @@
 
 #define EX_MAX_PORT_CONNECTIONS 256
 
-namespace ex::nodes {
+namespace limbo::nodes {
 
     template<typename I>
     class InIndex {

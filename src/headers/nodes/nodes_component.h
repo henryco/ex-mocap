@@ -11,10 +11,10 @@
 namespace ex {
 
     struct BaseNodeComponent {
-        void (*from_base)(ex::State &state, nodes::BaseNode *from, ex::TreeNode *to)                    = nullptr;
-        void (*from_tree)(ex::State &state, ex::TreeNode *from, nodes::BaseNode *to)                    = nullptr;
-        nodes::BaseNode *(*instance)(const ex::State &state, ex::TreeNode *from)                        = nullptr;
-        nodes::BaseNode *(*relocate)(const ex::State &state, ex::TreeNode *tree, nodes::BaseNode *node) = nullptr;
+        void (*from_base)(ex::State &state, limbo::nodes::BaseNode *from, ex::TreeNode *to)                    = nullptr;
+        void (*from_tree)(ex::State &state, ex::TreeNode *from, limbo::nodes::BaseNode *to)                    = nullptr;
+        limbo::nodes::BaseNode *(*instance)(const ex::State &state, ex::TreeNode *from)                        = nullptr;
+        limbo::nodes::BaseNode *(*relocate)(const ex::State &state, ex::TreeNode *tree, limbo::nodes::BaseNode *node) = nullptr;
     };
 
 }

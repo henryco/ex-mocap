@@ -11,10 +11,10 @@
 #include "../../nodes/nodes_component.h"
 
 namespace ex::map::camera {
-    void             from_base(State &state, nodes::BaseNode *from, TreeNode *to);
-    void             from_tree(State &state, TreeNode *from, nodes::BaseNode *to);
-    nodes::BaseNode *instance(const State &state, TreeNode *from);
-    nodes::BaseNode *relocate(const State &state, TreeNode *tree, nodes::BaseNode *node);
+    void                               from_base(State &state, limbo::nodes::BaseNode *from, TreeNode *to);
+    void                               from_tree(State &state, TreeNode *from, limbo::nodes::BaseNode *to);
+    limbo::nodes::BaseNode            *instance(const State &state, TreeNode *from);
+    limbo::nodes::BaseNode            *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *node);
     static constexpr BaseNodeComponent mappers = { from_base, from_tree, instance };
 }
 
@@ -23,15 +23,15 @@ namespace ex::cmp {
     #define CAM_          0
     #define CAM_OUT_FRAME 1
 
-    class CameraNode : public nodes::Node<CameraNode>,
-                       public nodes::State<camera::Camera>,
+    class CameraNode : public limbo::nodes::Node<CameraNode>,
+                       public limbo::nodes::State<camera::Camera>,
 
-                       public nodes::id::name<"camera_node">,
+                       public limbo::nodes::id::name<"camera_node">,
 
-                       public nodes::io::out<proto::image, CAM_OUT_FRAME, "Captured frame">,
+                       public limbo::nodes::io::out<proto::image, CAM_OUT_FRAME, "Captured frame">,
 
-                       public nodes::ReactiveOut<proto::image>,
-                       public nodes::NoInputs
+                       public limbo::nodes::ReactiveOut<proto::image>,
+                       public limbo::nodes::NoInputs
     {
     private:
         static inline const auto log = logs::get_logger("camera_node");
@@ -50,7 +50,7 @@ namespace ex::cmp {
 
         camera::Camera *get() override;
 
-        proto::image on_output(proto::image *, int, int clock_i, nodes::Input<proto::image> *io) override;
+        proto::image on_output(proto::image *, int, int clock_i, limbo::nodes::Input<proto::image> *io) override;
 
     protected:
         void capture_frame(int clock_i);

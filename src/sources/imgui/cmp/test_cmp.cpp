@@ -57,21 +57,21 @@ namespace ex::gui::test::one {
         return show;
     }
 
-    void from_base(State &state, nodes::BaseNode *from, TreeNode *to) {
+    void from_base(State &state, limbo::nodes::BaseNode *from, TreeNode *to) {
 
     }
 
-    void from_tree(State &state, TreeNode *from, nodes::BaseNode *to) {
+    void from_tree(State &state, TreeNode *from, limbo::nodes::BaseNode *to) {
 
     }
 
-    nodes::BaseNode *instance(const State &state, TreeNode *from) {
+    limbo::nodes::BaseNode *instance(const State &state, TreeNode *from) {
         const auto node = new NodeOne();
         node->set_id(from->id_local);
         return node;
     }
 
-    nodes::BaseNode *relocate(const State &state, TreeNode *tree, nodes::BaseNode *node) {
+    limbo::nodes::BaseNode *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *node) {
         std::cout << "relocate: " << tree->id_local << '\n';
         return node;
     }
@@ -115,21 +115,21 @@ namespace ex::gui::test::two {
         return show;
     }
 
-    void from_base(State &state, nodes::BaseNode *from, TreeNode *to) {
+    void from_base(State &state, limbo::nodes::BaseNode *from, TreeNode *to) {
 
     }
 
-    void from_tree(State &state, TreeNode *from, nodes::BaseNode *to) {
+    void from_tree(State &state, TreeNode *from, limbo::nodes::BaseNode *to) {
 
     }
 
-    nodes::BaseNode *instance(const State &state, TreeNode *from) {
+    limbo::nodes::BaseNode *instance(const State &state, TreeNode *from) {
         const auto node = new NodeTwo();
         node->set_id(from->id_local);
         return node;
     }
 
-    nodes::BaseNode *relocate(const State &state, TreeNode *tree, nodes::BaseNode *node) {
+    limbo::nodes::BaseNode *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *node) {
         std::cout << "relocate: " << tree->id_local << '\n';
         return node;
     }
@@ -175,21 +175,21 @@ namespace ex::gui::test::tri {
         return show;
     }
 
-    void from_base(State &state, nodes::BaseNode *from, TreeNode *to) {
+    void from_base(State &state, limbo::nodes::BaseNode *from, TreeNode *to) {
 
     }
 
-    void from_tree(State &state, TreeNode *from, nodes::BaseNode *to) {
+    void from_tree(State &state, TreeNode *from, limbo::nodes::BaseNode *to) {
 
     }
 
-    nodes::BaseNode *instance(const State &state, TreeNode *from) {
+    limbo::nodes::BaseNode *instance(const State &state, TreeNode *from) {
         const auto node = new NodeTri();
         node->set_id(from->id_local);
         return node;
     }
 
-    nodes::BaseNode *relocate(const State &state, TreeNode *tree, nodes::BaseNode *node) {
+    limbo::nodes::BaseNode *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *node) {
         std::cout << "relocate: " << tree->id_local << '\n';
         return node;
     }

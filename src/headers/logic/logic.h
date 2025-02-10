@@ -31,12 +31,12 @@ namespace ex::main {
 
     class Logic {
     private:
-        std::map<local_id_, nodes::BaseNode *> nodes_       = {};
+        std::map<local_id_, limbo::nodes::BaseNode *> nodes_       = {};
         std::map<local_id_, int>               ptr_counter_ = {};
 
         long timestamp = 0;
 
-        nodes::clock clock_;
+        limbo::nodes::clock clock_;
 
     public:
         static inline const auto log = logs::get_logger("logic");

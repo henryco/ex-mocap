@@ -21,7 +21,7 @@ namespace ex::cmp {
         return &camera_;
     }
 
-    proto::image CameraNode::on_output(proto::image *_, const int __, const int clock_i, nodes::Input<proto::image> *io) {
+    proto::image CameraNode::on_output(proto::image *_, const int __, const int clock_i, limbo::nodes::Input<proto::image> *io) {
         capture_frame(clock_i);
         return last_frame_;
     }
@@ -45,7 +45,7 @@ namespace ex::cmp {
 
 namespace ex::map::camera {
 
-    void from_base(State &state, nodes::BaseNode *from, TreeNode *to) {
+    void from_base(State &state, limbo::nodes::BaseNode *from, TreeNode *to) {
         if (to->data == nullptr) {
             // TODO
         }
@@ -54,7 +54,7 @@ namespace ex::map::camera {
         // TODO
     }
 
-    void from_tree(State &state, TreeNode *from, nodes::BaseNode *to) {
+    void from_tree(State &state, TreeNode *from, limbo::nodes::BaseNode *to) {
         if (from == nullptr || to == nullptr)
             return;
 
@@ -64,16 +64,16 @@ namespace ex::map::camera {
         // TODO
     }
 
-    nodes::BaseNode *instance(const State &state, TreeNode *from) {
+    limbo::nodes::BaseNode *instance(const State &state, TreeNode *from) {
         if (from->data != nullptr)
             delete static_cast<state::camera *>(from->data);
 
-        nodes::BaseNode *node = new cmp::CameraNode(state.ocl_context, state.ocl_device);
+        limbo::nodes::BaseNode *node = new cmp::CameraNode(state.ocl_context, state.ocl_device);
         node->set_id(from->id_local);
         return node;
     }
 
-    nodes::BaseNode *relocate(const State &state, TreeNode *tree, nodes::BaseNode *self) {
+    limbo::nodes::BaseNode *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *self) {
         return self;
     }
 

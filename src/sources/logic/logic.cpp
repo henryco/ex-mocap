@@ -324,7 +324,7 @@ namespace ex::main {
         if (node->disabled)
             return;
 
-        nodes::BaseNode *node_ptr = nodes_.at(node->id_local);
+        limbo::nodes::BaseNode *node_ptr = nodes_.at(node->id_local);
 
         node->node = static_cast<void *>(node_ptr);
 
@@ -365,7 +365,7 @@ namespace ex::main {
             return;
         }
 
-        nodes::BaseNode *base_node = nodes_.at(node->id_local);
+        limbo::nodes::BaseNode *base_node = nodes_.at(node->id_local);
         if (base_node == nullptr) {
             log->error("Node is nullptr: {}", node->id_local);
             return;
@@ -493,8 +493,8 @@ namespace ex::main {
             return false;
         }
 
-        nodes::BaseNode *node_src = nodes_.at(from_id_local);
-        nodes::BaseNode *node_dst = nodes_.at(to->id_local);
+        limbo::nodes::BaseNode *node_src = nodes_.at(from_id_local);
+        limbo::nodes::BaseNode *node_dst = nodes_.at(to->id_local);
 
         if (node_dst == nullptr || node_src == nullptr) {
             log->error("One of nodes does not exist: {}, {}", to->id_local, from_id_local);

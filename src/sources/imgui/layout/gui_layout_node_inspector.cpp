@@ -17,7 +17,7 @@ namespace ex::gui::tree {
             return;
         }
 
-        const auto base_node = static_cast<ex::nodes::BaseNode *>(inspected_node->node);
+        const auto base_node = static_cast<limbo::nodes::BaseNode *>(inspected_node->node);
 
         const auto rf = ex::gui::window_reset_flags(gui.view.reset, true);
         ImGui::Begin("Node inspector", &inspection_open, rf);
@@ -48,7 +48,7 @@ namespace ex::gui::tree {
         const auto connections = base_node->list_connections();
         auto head = connections;
         while (head != nullptr) {
-            const auto io = dynamic_cast<ex::nodes::NodeDescriptor *>(head->io_ptr);
+            const auto io = dynamic_cast<limbo::nodes::NodeDescriptor *>(head->io_ptr);
             if (io != nullptr) {
                 ImGui::Text("* %d -> %d [%lu] [%s]", head->index_in, head->index_out, head->io_ptr->get_id(), io->get_node_name());
             } else {
