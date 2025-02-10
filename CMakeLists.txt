@@ -255,7 +255,6 @@ if (ENABLE_TESTS)
             src/tests/test_io.cpp)
 
     add_executable(tests
-            src/tests/main.cpp
             ${RESULT_SOURCES}
             ${TEST_SOURCES})
 
