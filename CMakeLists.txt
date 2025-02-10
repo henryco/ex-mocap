@@ -168,6 +168,7 @@ set(SOURCE_FILES
         src/sources/imgui/gui_globals.cpp
         src/sources/imgui/gui_tree_ops.cpp
         src/sources/logic/logic_globals.cpp
+        src/sources/logic/io/byte_serializer.cpp
 )
 
 # =================== OpenCL kernels generation =====================
