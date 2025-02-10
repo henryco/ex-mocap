@@ -6,15 +6,15 @@
 #include "../../../extra/bytebox/byte_box.h"
 #include "../../../headers/state.h"
 
-inline const std::uint8_t &ex::io::byte_array::operator[](const size_t &index) const {
+const std::uint8_t &ex::io::byte_array::operator[](const size_t &index) const {
     return data[index];
 }
 
-inline bool ex::io::byte_array::empty() const {
+bool ex::io::byte_array::empty() const {
     return data != nullptr && size != 0;
 }
 
-inline ex::io::byte_array ex::io::byte_array::from(const std::uint8_t *data, const size_t &size) {
+ex::io::byte_array ex::io::byte_array::from(const std::uint8_t *data, const size_t &size) {
     return ex::io::byte_array(data, static_cast<std::uint64_t>(size));
 }
 
