@@ -6,6 +6,10 @@
 #include "../../../extra/bytebox/byte_box.h"
 #include "../../../headers/state.h"
 
+const std::uint8_t &ex::io::byte_array::operator [] (const size_t &index) const {
+    return data[index];
+}
+
 namespace ex::io::bytes {
 
     byte_array ByteSerializer::serialize(const void *in) const {
