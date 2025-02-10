@@ -4,32 +4,41 @@
 
 #include "../../../headers/imgui/gui_layout.h"
 #include "../../../headers/imgui/gui_tree_ops.h"
-#include "../../../../extra/nodes/nodes.h"
+#include "../../../headers/logic/logic_globals.h"
 
 namespace ex::gui::tree {
 
-    static TreeNode *inspected_node  = nullptr;
-    static bool      inspection_open = false;
+    static limbo::nodes::BaseNode *inspected_base  = nullptr;
+    static TreeNode               *inspected_node  = nullptr;
+    static bool                    inspection_open = false;
 
     void show_inspected_node(State &, GuiState &gui) {
-        if (inspected_node == nullptr || inspected_node->node == nullptr || inspected_node->deleted || !inspection_open) {
+        if (inspected_node == nullptr || inspected_node->deleted || !inspection_open) {
             inspection_open = false;
+            inspected_base  = nullptr;
             return;
         }
 
-        const auto base_node = static_cast<limbo::nodes::BaseNode *>(inspected_node->node);
+        if (inspected_base == nullptr) {
+            if (!ex::logic::globals::node_store().contains(inspected_node->id_local)) {
+                inspection_open = false;
+                return;
+            }
+
+            inspected_base = ex::logic::globals::node_store().at(inspected_node->id_local);
+        }
 
         const auto rf = ex::gui::window_reset_flags(gui.view.reset, true);
         ImGui::Begin("Node inspector", &inspection_open, rf);
-        ImGui::Text("%s: [%u] [%s]", inspected_node->name, inspected_node->id_local, base_node->get_node_name());
+        ImGui::Text("%s: [%u] [%s]", inspected_node->name, inspected_node->id_local, inspected_base->get_node_name());
 
         ImGui::TextDisabled("");
 
         int inputs_size;
-        const auto inputs = base_node->describe_inputs(&inputs_size);
+        const auto inputs = inspected_base->describe_inputs(&inputs_size);
 
         int outputs_size;
-        const auto outputs = base_node->describe_outputs(&outputs_size);
+        const auto outputs = inspected_base->describe_outputs(&outputs_size);
 
         for (int i = 0; i < inputs_size; i++) {
             ImGui::Text("input  [%d]: %s (%s)", inputs[i].index, inputs[i].name, inputs[i].aux ? "aux" : "reg");
@@ -45,7 +54,7 @@ namespace ex::gui::tree {
         ImGui::TextDisabled("---");
         ImGui::TextDisabled("");
 
-        const auto connections = base_node->list_connections();
+        const auto connections = inspected_base->list_connections();
         auto head = connections;
         while (head != nullptr) {
             const auto io = dynamic_cast<limbo::nodes::NodeDescriptor *>(head->io_ptr);
@@ -63,6 +72,7 @@ namespace ex::gui::tree {
     void pick_inspected_node(State &, GuiState &, TreeNode *node) {
         inspection_open = true;
         inspected_node  = node;
+        inspected_base  = nullptr;
     }
 
 }

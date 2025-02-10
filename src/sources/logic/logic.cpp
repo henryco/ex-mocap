@@ -323,8 +323,6 @@ namespace ex::main {
 
         limbo::nodes::BaseNode *node_ptr = gg::nodes_.at(node->id_local);
 
-        node->node = static_cast<void *>(node_ptr);
-
         if (node->updated) {
             gg::mappers_.at(node->id_node).from_tree(state, node, node_ptr);
             node->updated = false;

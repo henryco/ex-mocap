@@ -27,11 +27,6 @@ namespace ex {
          */
         void       *data       = nullptr;
 
-        /**
-         * Underlying node instance (ie: limbo::nodes::BaseNode *)
-         */
-        void       *node       = nullptr;
-
         const char *name       = nullptr;
         TreeNode   *parent     = nullptr;
         TreeNode  **children   = nullptr;

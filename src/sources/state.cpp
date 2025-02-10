@@ -52,7 +52,6 @@ namespace ex {
         new_node->parent     = this->parent;
         new_node->children   = nullptr;
         new_node->data       = nullptr;
-        new_node->node       = this->node;
         new_node->name       = this->name;
         new_node->index      = this->index;
         new_node->dimmed     = this->dimmed;
@@ -70,7 +69,6 @@ namespace ex {
     TreeNode *TreeNode::deep_copy(const bool generated_id) const {
         const auto new_node  = new TreeNode;
         new_node->id_local   = generated_id ? state::uuid::generate_id_inc() : id_local;
-        new_node->node       = generated_id ? nullptr : node;
         new_node->created    = generated_id ? true : created;
         new_node->connected  = generated_id ? false : connected;
         new_node->selected   = generated_id ? false : selected;
