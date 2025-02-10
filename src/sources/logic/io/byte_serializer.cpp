@@ -10,7 +10,7 @@ const std::uint8_t &ex::io::byte_array::operator[](const size_t &index) const {
     return data[index];
 }
 ex::io::byte_array ex::io::byte_array::from(const std::uint8_t *data, const size_t &size) {
-    return ex::io::byte_array(data, size);
+    return ex::io::byte_array(data, static_cast<std::uint64_t>(size));
 }
 
 namespace ex::io::bytes {
