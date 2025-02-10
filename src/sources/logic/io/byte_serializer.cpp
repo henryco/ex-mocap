@@ -31,22 +31,21 @@ namespace ex::io::bytes {
     namespace out = box::out;
     namespace in = box::in;
 
+    void write_tree(out::buffer &buffer, const TreeNode *node) {
+        // TODO
+    }
+
     byte_array ByteSerializer::serialize(const void *in) const {
         const auto state = static_cast<const ex::State *>(in);
         const auto root  = state->work_tree;
 
         auto buff_out = out::create_buffer(10);
 
-        if (root == nullptr) {
-            std::size_t size = 0;
-            const auto data = out::read_buffer_data(buff_out, &size);
-            return byte_array::from(data, size);
-        }
+        write_tree(buff_out, root);
 
-
-
-        // todo
-        return {};
+        std::size_t size = 0;
+        const auto data = out::read_buffer_data(buff_out, &size);
+        return byte_array::from(data, size);
     }
 
     void *ByteSerializer::deserialize(const byte_array &in) const {
