@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <cstdlib>
 
-namespace bytebox {
+namespace limbo::bytebox {
 
     #define TYPE_ARRAY   0
     #define SKIP         0

@@ -5,7 +5,7 @@
 #include "byte_box.h"
 #include <cstring>
 
-namespace bytebox::out {
+namespace limbo::bytebox::out {
 
     inline internal_::element element_array(const std::uint64_t type = TYPE_ARRAY) {
         return { .header = { .size_b = sizeof(header), .size_n = 1, .type = type }, .data = nullptr };
@@ -90,7 +90,7 @@ namespace bytebox::out {
 
 } // namespace ex::io::box::out
 
-namespace bytebox::in {
+namespace limbo::bytebox::in {
 
     buffer create_buffer(const mode mode) {
         return {

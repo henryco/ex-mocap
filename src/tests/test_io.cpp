@@ -9,7 +9,7 @@
 #include <doctest/doctest.h>
 #include "../../extra/bytebox/byte_box.h"
 
-namespace box = bytebox;
+namespace box = limbo::bytebox;
 namespace out = box::out;
 namespace in = box::in;
 
