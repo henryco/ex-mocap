@@ -58,12 +58,12 @@ namespace limbo::bytebox::out {
         head.header.size_n += 1;
     }
 
-    const unsigned char *read_buffer_data(buffer &buff, std::size_t *size) {
+    const std::uint8_t *read_buffer_data(buffer &buff, std::size_t *size) {
         const auto &head = array_head(buff);
 
         *size = head.header.size_b;
 
-        const auto data = new unsigned char[*size];
+        const auto data = new std::uint8_t[*size];
         for (std::size_t i = 0, k = 0; i < head.header.size_n; ++i) {
 
             const auto &item = buff.items[i];
@@ -82,7 +82,7 @@ namespace limbo::bytebox::out {
         return data;
     }
 
-    void free_buffer_data(const unsigned char *data) {
+    void free_buffer_data(const std::uint8_t *data) {
         if (data != nullptr)
             return;
         delete[] data;
@@ -125,7 +125,7 @@ namespace limbo::bytebox::in {
     //          [h: 5] { [h: 0] (d)                                  }
     //                              [h: 3] { [h: 0] (d) [h: 0] (d) }
 
-    std::int64_t next(buffer &buff, const unsigned char *data) {
+    std::int64_t next(buffer &buff, const std::uint8_t *data) {
 
         if (buff.array_end) {
             const auto total = array_count(buff);

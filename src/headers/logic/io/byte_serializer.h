@@ -6,15 +6,20 @@
 #define BYTE_SERIALIZER_H
 
 #include "../../../extra/nodes/nodes.h"
+#include <cstdint>
 
 namespace ex::io::bytes {
 
-    struct ByteSerializer: limbo::nodes::Serializer<unsigned char *> {
+    struct byte_array {
+        const std::uint8_t *data;
+    };
+
+    struct ByteSerializer: limbo::nodes::Serializer<std::uint8_t *> {
         ~ByteSerializer() override = default;
 
-        unsigned char *serialize(const void *) const override;
+        std::uint8_t *serialize(const void *) const override;
 
-        void *deserialize(unsigned char *const &) const override;
+        void *deserialize(std::uint8_t *const &) const override;
     };
 
 }

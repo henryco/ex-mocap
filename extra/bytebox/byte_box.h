@@ -94,9 +94,9 @@ namespace limbo::bytebox {
 
         void object(buffer &buff, type__t type, std::size_t size, const void *data);
 
-        const unsigned char *read_buffer_data(buffer &buff, std::size_t *size);
+        const std::uint8_t *read_buffer_data(buffer &buff, std::size_t *size);
 
-        void free_buffer_data(const unsigned char *data);
+        void free_buffer_data(const std::uint8_t *data);
 
     } // namespace out
 
@@ -131,7 +131,7 @@ namespace limbo::bytebox {
          * @param data binary data to read
          * @return size of the next chunk or total offset
          */
-        std::int64_t next(buffer &buff, const unsigned char *data);
+        std::int64_t next(buffer &buff, const std::uint8_t *data);
 
         inline bool begin_array(const buffer &buff) {
             return buff.array_start;
