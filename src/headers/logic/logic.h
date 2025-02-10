@@ -8,9 +8,8 @@
 #include <map>
 
 #include "../../../extra/nodes/nodes.h"
-#include "../state.h"
 #include "../utils/log_utils.h"
-#include "logic_globals.h"
+#include "../state.h"
 
 namespace ex::main {
 
@@ -32,12 +31,10 @@ namespace ex::main {
 
     class Logic {
     private:
-
-        std::map<local_id_, int>                       ptr_counter_ = {};
+        std::map<local_id_, int> ptr_counter_ = {};
+        limbo::nodes::clock      clock_;
 
         long timestamp = 0;
-
-        limbo::nodes::clock clock_;
 
     public:
         static inline const auto log = logs::get_logger("logic");
