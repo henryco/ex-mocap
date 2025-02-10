@@ -76,9 +76,12 @@ target_link_libraries(imgui PUBLIC
         OpenGL::GL glfw)
 
 set(EXTRA_FILES
-        # extra files if needed (not really)
+        # byte box
         extra/bytebox/byte_box.h
         extra/bytebox/byte_box.cpp
+
+        # nodes
+        extra/nodes/nodes.h
 )
 
 set(PLATFORM_FILES
@@ -115,7 +118,6 @@ set(HEADER_FILES
         src/headers/cl/ocl_interop.h
         src/headers/cl/ocl_interop_ext.h
         src/headers/imgui/gui_layout.h
-        src/headers/nodes/nodes.h
         src/headers/core/camera.h
         src/headers/logic/components/c_camera.h
         src/headers/logic/logic.h

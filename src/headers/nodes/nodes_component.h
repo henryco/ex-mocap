@@ -6,7 +6,7 @@
 #define MAPPERS_H
 
 #include "../state.h"
-#include "nodes.h"
+#include "../../../extra/nodes/nodes.h"
 
 namespace ex {
 

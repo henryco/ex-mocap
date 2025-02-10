@@ -4,7 +4,7 @@
 
 #ifndef JSON_SERIALIZER_H
 #define JSON_SERIALIZER_H
-#include "../../nodes/nodes.h"
+#include "../../../extra/nodes/nodes.h"
 
 namespace ex::io::json {
 

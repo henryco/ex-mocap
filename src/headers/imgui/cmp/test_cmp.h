@@ -5,7 +5,7 @@
 #ifndef TEST_CMP_H
 #define TEST_CMP_H
 
-#include "../../nodes/nodes.h"
+#include "../../../extra/nodes/nodes.h"
 #include "../../nodes/nodes_component.h"
 #include "../gui_component.h"
 
