@@ -29,7 +29,7 @@ namespace ex::io::bytes {
 
     namespace box = limbo::bytebox;
     namespace out = box::out;
-    namespace in = box::in;
+    namespace in  = box::in;
 
     void write_tree(out::buffer &buffer, const TreeNode *node) {
         // TODO
