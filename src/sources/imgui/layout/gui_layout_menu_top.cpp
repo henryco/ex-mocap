@@ -31,16 +31,25 @@ namespace ex::gui {
                 if (ImGui::MenuItem("New")) {
                     // TODO
                 }
+
                 if (ImGui::MenuItem("Open")) {
                     // TODO
                 }
+
                 if (ImGui::MenuItem("Save")) {
                     // TODO
                 }
+
+                if (ImGui::MenuItem("Save As")) {
+                    // TODO
+                }
+
                 ImGui::Separator();
+
                 if (ImGui::MenuItem("Exit")) {
                     gui.window.exit = true;
                 }
+
                 ImGui::EndMenu();
             }
 
