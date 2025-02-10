@@ -2,10 +2,12 @@
 // Created by xd on 10/02/25.
 //
 
-#include "../../../headers/logic/io/byte_serializer.h"
 #include "../../../extra/bytebox/byte_box.h"
-#include "../../../headers/state.h"
 #include <cstring>
+
+#include "../../../headers/logic/io/byte_serializer.h"
+#include "../../../headers/logic/logic_globals.h"
+#include "../../../headers/state.h"
 
 const std::uint8_t &ex::io::byte_array::operator[](const size_t &index) const {
     return data[index];
@@ -52,13 +54,13 @@ namespace ex::io::bytes {
         std::uint32_t flags = 0;
 
         flags |= (node->is_group << 1);
-        flags |= (node->is_link << 2);
+        flags |= (node->is_link  << 2);
         flags |= (node->disabled << 3);
         flags |= (0 << 4);  // ignore updated
-        flags |= (node->deleted << 5);
-        flags |= (node->moved << 6);
-        flags |= (node->dimmed << 7);
-        flags |= (node->warning << 8);
+        flags |= (node->deleted  << 5);
+        flags |= (node->moved    << 6);
+        flags |= (node->dimmed   << 7);
+        flags |= (node->warning  << 8);
         flags |= (1 << 9);  // always created
         flags |= (0 << 10); // ignore selected
         flags |= (0 << 11); // ignore connected
@@ -78,23 +80,45 @@ namespace ex::io::bytes {
         );
     }
 
-    void write_tree(out::buffer &buffer, const TreeNode *node, box::array<tree_node_1 *> &tmp) {
+    struct gc {
+        box::array<tree_node_1 *> tmp_1 = (10);
+        box::array<byte_array>    tmp_2 = (10);
+
+        ~gc() {
+            for (std::uint32_t i = 0; i < tmp_1.size; i++)
+                delete tmp_1[i];
+
+            for (std::uint32_t i = 0; i < tmp_2.size; i++)
+                byte_array::free(&(tmp_2[i]));
+        }
+    };
+
+    void write_tree(out::buffer &buffer, const TreeNode *node, gc &collector) {
         if (node == nullptr)
             return;
 
         const auto serial = from_node(node);
-        tmp.push(serial);
+        collector.tmp_1.push(serial);
 
         out::object(buffer, TYPE_NODE_NAM, std::strlen(node->name) + 1, node->name);
         out::object(buffer, TYPE_NODE_OBJ, sizeof(tree_node_1), serial);
-        out::object(buffer, TYPE_NODE_DAT, node->data_size, node->data);
+
+        const auto instance = ex::logic::globals::node_store().at(node->id_local);
+        if (const auto serializable = dynamic_cast<limbo::nodes::Serialization<ByteSerializer> *>(instance);
+            serializable != nullptr) {
+            if (const auto serialized = serializable->serialize(); !serialized.empty()) {
+                collector.tmp_2.push(serialized);
+
+                out::object(buffer, TYPE_NODE_DAT, serialized.size, serialized.data);
+            }
+        }
 
         if (node->children_n <= 0 || node->children == nullptr)
             return;
 
         out::begin_array(buffer, TYPE_NODE_ARR);
         for (auto i = 0; i < node->children_n; i++)
-            write_tree(buffer, node->children[i], tmp);
+            write_tree(buffer, node->children[i], collector);
         out::end_array(buffer);
     }
 
@@ -104,8 +128,8 @@ namespace ex::io::bytes {
 
         auto buff_out = out::create_buffer(10);
 
-        box::array<tree_node_1 *> tmp(10);
-        write_tree(buff_out, root, tmp);
+        gc collector;
+        write_tree(buff_out, root, collector);
 
         std::size_t size = 0;
         const auto data = out::read_buffer_data(buff_out, &size);

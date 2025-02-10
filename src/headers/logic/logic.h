@@ -7,9 +7,10 @@
 
 #include <map>
 
-#include "../state.h"
 #include "../../../extra/nodes/nodes.h"
+#include "../state.h"
 #include "../utils/log_utils.h"
+#include "logic_globals.h"
 
 namespace ex::main {
 
@@ -31,8 +32,8 @@ namespace ex::main {
 
     class Logic {
     private:
-        std::map<local_id_, limbo::nodes::BaseNode *> nodes_       = {};
-        std::map<local_id_, int>                      ptr_counter_ = {};
+
+        std::map<local_id_, int>                       ptr_counter_ = {};
 
         long timestamp = 0;
 

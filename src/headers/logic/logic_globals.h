@@ -10,7 +10,9 @@
 
 namespace ex::logic::globals {
 
-    const std::map<std::size_t, ex::LogicNodeComponent> &node_components();
+    const std::map<std::uint64_t, ex::LogicNodeComponent> &node_components();
+
+    std::map<std::uint32_t, limbo::nodes::BaseNode *> &node_store();
 
 }
 

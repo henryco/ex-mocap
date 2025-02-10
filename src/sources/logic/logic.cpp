@@ -12,7 +12,8 @@
 namespace ex::main {
 
     namespace gg {
-        const auto &mappers_  = ex::logic::globals::node_components();
+        const auto &mappers_ = ex::logic::globals::node_components();
+        auto       &nodes_   = ex::logic::globals::node_store();
     }
 
     #define update_threshold 1000
@@ -223,9 +224,9 @@ namespace ex::main {
         node->deleted = !moved;
         node->moved   = moved;
 
-        if (!moved && !node->is_link && !node->is_group && nodes_.contains(node->id_local)) {
-            const auto base = nodes_.at(node->id_local);
-            nodes_.erase(node->id_local);
+        if (!moved && !node->is_link && !node->is_group && gg::nodes_.contains(node->id_local)) {
+            const auto base = gg::nodes_.at(node->id_local);
+            gg::nodes_.erase(node->id_local);
             base->detach_all_any();
 
             if (ptr_counter_.contains(node->id_local))
@@ -235,13 +236,13 @@ namespace ex::main {
         }
 
         if (moved && !node->is_link && !node->is_group) {
-            const auto base = nodes_.at(node->id_local);
+            const auto base = gg::nodes_.at(node->id_local);
             const auto r_func = gg::mappers_.at(node->id_node).relocate;
             if (r_func != nullptr) {
                 const auto new_one = r_func(state, node, base);
                 if (base != new_one) {
-                    nodes_.erase(node->id_local);
-                    nodes_.emplace(node->id_local, new_one);
+                    gg::nodes_.erase(node->id_local);
+                    gg::nodes_.emplace(node->id_local, new_one);
                 }
             }
         }
@@ -299,15 +300,15 @@ namespace ex::main {
 
             if (!node->is_group && !node->is_link) {
                 const LogicNodeComponent &mappers = gg::mappers_.at(node->id_node);
-                if (!nodes_.contains(node->id_local))
-                    nodes_.emplace(node->id_local, mappers.instance(state, node));
+                if (!gg::nodes_.contains(node->id_local))
+                    gg::nodes_.emplace(node->id_local, mappers.instance(state, node));
             }
 
             node->created = false;
             *rewire = true;
         }
 
-        if (node->is_group || node->is_link || !nodes_.contains(node->id_local))
+        if (node->is_group || node->is_link || !gg::nodes_.contains(node->id_local))
             return;
 
         if (ptr_counter_.contains(node->id_local)) {
@@ -320,7 +321,7 @@ namespace ex::main {
         if (node->disabled)
             return;
 
-        limbo::nodes::BaseNode *node_ptr = nodes_.at(node->id_local);
+        limbo::nodes::BaseNode *node_ptr = gg::nodes_.at(node->id_local);
 
         node->node = static_cast<void *>(node_ptr);
 
@@ -337,7 +338,7 @@ namespace ex::main {
         log->debug("rewire");
 
         clock_.detach_all();
-        for (const auto &node: nodes_ | std::views::values) {
+        for (const auto &node: gg::nodes_ | std::views::values) {
             node->detach_all_any();
         }
 
@@ -356,12 +357,12 @@ namespace ex::main {
             return;
         }
 
-        if (!nodes_.contains(node->id_local)) {
+        if (!gg::nodes_.contains(node->id_local)) {
             log->error("Node does not exist: {}", node->id_local);
             return;
         }
 
-        limbo::nodes::BaseNode *base_node = nodes_.at(node->id_local);
+        limbo::nodes::BaseNode *base_node = gg::nodes_.at(node->id_local);
         if (base_node == nullptr) {
             log->error("Node is nullptr: {}", node->id_local);
             return;
@@ -404,9 +405,9 @@ namespace ex::main {
             const auto id_local = it->first;
             if (it->second <= 0) {
 
-                if (nodes_.contains(id_local)) {
-                    delete nodes_.at(id_local);
-                    nodes_.erase(id_local);
+                if (gg::nodes_.contains(id_local)) {
+                    delete gg::nodes_.at(id_local);
+                    gg::nodes_.erase(id_local);
                 }
 
                 it = ptr_counter_.erase(it);
@@ -483,14 +484,14 @@ namespace ex::main {
 
         const std::size_t from_id_local = from->is_link ? from->id_link : from->id_local;
 
-        if (from->is_link && !nodes_.contains(from_id_local)) {
+        if (from->is_link && !gg::nodes_.contains(from_id_local)) {
             log->warn("Cannot connect shared node, reference deleted: {}", from_id_local);
             from->connected = false;
             return false;
         }
 
-        limbo::nodes::BaseNode *node_src = nodes_.at(from_id_local);
-        limbo::nodes::BaseNode *node_dst = nodes_.at(to->id_local);
+        limbo::nodes::BaseNode *node_src = gg::nodes_.at(from_id_local);
+        limbo::nodes::BaseNode *node_dst = gg::nodes_.at(to->id_local);
 
         if (node_dst == nullptr || node_src == nullptr) {
             log->error("One of nodes does not exist: {}, {}", to->id_local, from_id_local);
