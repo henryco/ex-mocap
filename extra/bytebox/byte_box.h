@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <cstdlib>
 
-namespace ex::io::box {
+namespace bytebox {
 
     #define TYPE_ARRAY   0
     #define SKIP         0

@@ -2,10 +2,10 @@
 // Created by xd on 07/02/25.
 //
 
-#include "../../../headers/logic/io/byte_box.h"
+#include "byte_box.h"
 #include <cstring>
 
-namespace ex::io::box::out {
+namespace bytebox::out {
 
     inline internal_::element element_array(const std::uint64_t type = TYPE_ARRAY) {
         return { .header = { .size_b = sizeof(header), .size_n = 1, .type = type }, .data = nullptr };
@@ -90,7 +90,7 @@ namespace ex::io::box::out {
 
 } // namespace ex::io::box::out
 
-namespace ex::io::box::in {
+namespace bytebox::in {
 
     buffer create_buffer(const mode mode) {
         return {

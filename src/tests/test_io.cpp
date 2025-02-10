@@ -7,9 +7,9 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 
 #include <doctest/doctest.h>
-#include "../headers/logic/io/byte_box.h"
+#include "../../extra/bytebox/byte_box.h"
 
-namespace box = ex::io::box;
+namespace box = bytebox;
 namespace out = box::out;
 namespace in = box::in;
 
