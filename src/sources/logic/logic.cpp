@@ -298,7 +298,7 @@ namespace ex::main {
         if (node->created || fresh) {
 
             if (!node->is_group && !node->is_link) {
-                const BaseNodeComponent &mappers = gg::mappers_.at(node->id_node);
+                const LogicNodeComponent &mappers = gg::mappers_.at(node->id_node);
                 if (!nodes_.contains(node->id_local))
                     nodes_.emplace(node->id_local, mappers.instance(state, node));
             }

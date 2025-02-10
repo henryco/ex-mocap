@@ -3,7 +3,7 @@
 //
 
 #include "../../../headers/logic/components/c_camera.h"
-#include "../../../headers/nodes/nodes_component.h"
+#include "../../../headers/logic/logic_component.h"
 
 namespace ex::cmp {
 

@@ -7,9 +7,9 @@
 
 namespace ex::logic::globals {
 
-    const std::map<std::size_t, ex::BaseNodeComponent> &node_components() {
+    const std::map<std::size_t, ex::LogicNodeComponent> &node_components() {
         // TODO REPLACE WITH REAL COMPONENTS
-        static const std::map<std::size_t, ex::BaseNodeComponent> instance = {
+        static const std::map<std::size_t, ex::LogicNodeComponent> instance = {
             // { cmp::CameraNode::get_node_id(), map::camera::mappers },
             { ex::gui::test::NodeOne::get_node_id(), ex::gui::test::one::data_mappers },
             { ex::gui::test::NodeTwo::get_node_id(), ex::gui::test::two::data_mappers },

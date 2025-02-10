@@ -6,7 +6,7 @@
 #define TEST_CMP_H
 
 #include "../../../extra/nodes/nodes.h"
-#include "../../nodes/nodes_component.h"
+#include "../../logic/logic_component.h"
 #include "../gui_component.h"
 
 namespace ex::gui::test {
@@ -173,7 +173,7 @@ namespace ex::gui::test {
         void from_tree(State &state, TreeNode *from, limbo::nodes::BaseNode *to);
         limbo::nodes::BaseNode *instance(const State &state, TreeNode *from);
         limbo::nodes::BaseNode *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *node);
-        static constexpr BaseNodeComponent data_mappers = { from_base, from_tree, instance, relocate };
+        static constexpr LogicNodeComponent data_mappers = { from_base, from_tree, instance, relocate };
     }
 
     namespace two {
@@ -187,7 +187,7 @@ namespace ex::gui::test {
         void from_tree(State &state, TreeNode *from, limbo::nodes::BaseNode *to);
         limbo::nodes::BaseNode *instance(const State &state, TreeNode *from);
         limbo::nodes::BaseNode *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *node);
-        static constexpr BaseNodeComponent data_mappers = { from_base, from_tree, instance, relocate };
+        static constexpr LogicNodeComponent data_mappers = { from_base, from_tree, instance, relocate };
     }
 
     namespace tri {
@@ -201,7 +201,7 @@ namespace ex::gui::test {
         void from_tree(State &state, TreeNode *from, limbo::nodes::BaseNode *to);
         limbo::nodes::BaseNode *instance(const State &state, TreeNode *from);
         limbo::nodes::BaseNode *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *node);
-        static constexpr BaseNodeComponent data_mappers = { from_base, from_tree, instance, relocate };
+        static constexpr LogicNodeComponent data_mappers = { from_base, from_tree, instance, relocate };
     }
 
 }
