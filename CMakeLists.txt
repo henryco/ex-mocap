@@ -82,6 +82,9 @@ set(EXTRA_FILES
 
         # nodes
         extra/nodes/nodes.h
+
+        # undo history
+        extra/undo/undo_history.h
 )
 
 set(PLATFORM_FILES
@@ -126,7 +129,6 @@ set(HEADER_FILES
         src/headers/imgui/gui_component.h
         src/headers/imgui/gui_state.h
         src/headers/imgui/cmp/test_cmp.h
-        src/headers/undo/undo_history.h
         src/headers/imgui/gui_tree_ops.h
         src/headers/imgui/gui_keymap.h
         src/headers/imgui/gui_globals.h

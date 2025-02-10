@@ -8,7 +8,7 @@
 #include <map>
 
 #include "../state.h"
-#include "../undo/undo_history.h"
+#include "../../../extra/undo/undo_history.h"
 #include "../utils/log_utils.h"
 
 #include "gui_keymap.h"
