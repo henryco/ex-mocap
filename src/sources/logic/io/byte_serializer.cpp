@@ -93,23 +93,27 @@ namespace ex::io::bytes {
         }
     };
 
-    void write_tree(out::buffer &buffer, const TreeNode *node, gc &collector) {
+    void write_tree(out::buffer &buffer, const TreeNode *node, gc &garbage_collector) {
         if (node == nullptr)
             return;
 
         const auto serial = from_node(node);
-        collector.tmp_1.push(serial);
+        garbage_collector.tmp_1.push(serial);
 
+        // write name
         out::object(buffer, TYPE_NODE_NAM, std::strlen(node->name) + 1, node->name);
+
+        // write tree node data
         out::object(buffer, TYPE_NODE_OBJ, sizeof(tree_node_1), serial);
 
-        const auto instance = ex::logic::globals::node_store().at(node->id_local);
-        if (const auto serializable = dynamic_cast<limbo::nodes::Serialization<ByteSerializer> *>(instance);
-            serializable != nullptr) {
+        if (const auto serializable = dynamic_cast<limbo::nodes::Serialization<ByteSerializer> *>(
+                    ex::logic::globals::node_store().at(node->id_local));
+            serializable != nullptr)
+        {
             if (const auto serialized = serializable->serialize(); !serialized.empty()) {
-                collector.tmp_2.push(serialized);
-
+                // write base node data
                 out::object(buffer, TYPE_NODE_DAT, serialized.size, serialized.data);
+                garbage_collector.tmp_2.push(serialized);
             }
         }
 
@@ -118,7 +122,7 @@ namespace ex::io::bytes {
 
         out::begin_array(buffer, TYPE_NODE_ARR);
         for (auto i = 0; i < node->children_n; i++)
-            write_tree(buffer, node->children[i], collector);
+            write_tree(buffer, node->children[i], garbage_collector);
         out::end_array(buffer);
     }
 
@@ -128,8 +132,8 @@ namespace ex::io::bytes {
 
         auto buff_out = out::create_buffer(10);
 
-        gc collector;
-        write_tree(buff_out, root, collector);
+        gc garbage_collector;
+        write_tree(buff_out, root, garbage_collector);
 
         std::size_t size = 0;
         const auto data = out::read_buffer_data(buff_out, &size);
