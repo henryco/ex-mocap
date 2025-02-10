@@ -6,7 +6,6 @@
 #include <ranges>
 
 #include "../../headers/logic/components/c_camera.h"
-#include "../../headers/logic/io/json_serializer.h"
 #include "../../headers/logic/logic_globals.h"
 #include "../../headers/logic/logic.h"
 
@@ -177,13 +176,10 @@ namespace ex::main {
     }
 
     void Logic::serialize(State &state) {
-        const auto serialized = (ex::io::json::JsonSerializer()).serialize(&state);
         // TODO write to json from clock
     }
 
     void Logic::deserialize_(State &state) {
-        const std::string todo;
-        state = *(static_cast<State *>((ex::io::json::JsonSerializer()).deserialize(todo)));
         // TODO read from json to clock
     }
 
