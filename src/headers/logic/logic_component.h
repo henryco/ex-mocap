@@ -9,11 +9,11 @@
 #include "../state.h"
 
 namespace ex {
+    namespace ln = limbo::nodes;
 
     struct LogicNodeComponent {
-        limbo::nodes::BaseNode *(*instance)(const ex::State &state, ex::TreeNode *from) = nullptr;
-        limbo::nodes::BaseNode *(*relocate)(const ex::State &state, ex::TreeNode *tree,
-                                            limbo::nodes::BaseNode *node)               = nullptr;
+        ln::BaseNode *(*instance)(const ex::State &state, ex::TreeNode *from)                     = nullptr;
+        ln::BaseNode *(*relocate)(const ex::State &state, ex::TreeNode *tree, ln::BaseNode *node) = nullptr;
     };
 
 }

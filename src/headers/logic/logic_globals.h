@@ -10,9 +10,11 @@
 
 namespace ex::logic::globals {
 
-    const std::map<std::uint64_t, ex::LogicNodeComponent> &node_components();
+    using id_type = std::uint64_t;
+    using id_node = std::uint32_t;
 
-    std::map<std::uint32_t, limbo::nodes::BaseNode *> &node_store();
+    const std::map<id_type, ex::LogicNodeComponent> &node_components();
+    std::map<id_node, limbo::nodes::BaseNode *>     &node_store();
 
 }
 

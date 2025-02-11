@@ -7,9 +7,9 @@
 
 namespace ex::logic::globals {
 
-    const std::map<std::uint64_t, ex::LogicNodeComponent> &node_components() {
+    const std::map<id_type, ex::LogicNodeComponent> &node_components() {
         // TODO REPLACE WITH REAL COMPONENTS
-        static const std::map<std::uint64_t, ex::LogicNodeComponent> instance = {
+        static const std::map<id_type, ex::LogicNodeComponent> instance = {
             // { cmp::CameraNode::get_node_id(), map::camera::mappers },
             { ex::gui::test::NodeOne::get_node_id(), ex::gui::test::one::data_mappers },
             { ex::gui::test::NodeTwo::get_node_id(), ex::gui::test::two::data_mappers },
@@ -25,8 +25,8 @@ namespace ex::logic::globals {
         return instance;
     }
 
-    std::map<std::uint32_t, limbo::nodes::BaseNode *> &node_store() {
-        static std::map<std::uint32_t, limbo::nodes::BaseNode *> instance;
+    std::map<id_node, limbo::nodes::BaseNode *> &node_store() {
+        static std::map<id_node, limbo::nodes::BaseNode *> instance;
         return instance;
     }
 
