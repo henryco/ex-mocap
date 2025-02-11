@@ -202,9 +202,9 @@ namespace ex::io::bytes {
         auto dst_size = 1;
         auto dst_buff = static_cast<unsigned char *>(malloc(dst_size));
 
-        TreeNode  dummy = TreeNode::dummy();
-        TreeNode *head  = &dummy;
-        TreeNode *node  = head;
+        TreeNode  base = TreeNode::dummy();
+        TreeNode *head = &base;
+        TreeNode *node = head;
 
         auto buffer = in::create_buffer(10, in::mode::OFFSET);
         for (std::int64_t i = 0; (i = in::next(buffer, data + i)) != -1;) {
