@@ -115,8 +115,8 @@ namespace ex::io::bytes {
      *     - [header(16): b(4), n(4), t(8)]    (optional) children array header
      *       - ...                             (optional) children array content
      *       - ...
-     *   -----------------------------------
-     *   - [header(16): b(4), n(4), t(8)]      node structure header
+     *     -----------------------------------
+     *     - [header(16): b(4), n(4), t(8)]    node structure header
      *     - ...
      *     - ...
      */
