@@ -123,11 +123,6 @@ namespace ex {
         bool            force_rewire   = false;
     };
 
-    /** NOT */
-    constexpr node_state operator ~ (const node_state &lhs) {
-        return static_cast<node_state>(~static_cast<uint16_t>(lhs));
-    }
-
     /** OR */
     constexpr node_state operator | (const node_state &lhs, const node_state &rhs) {
         return static_cast<node_state>(static_cast<uint16_t>(lhs) | static_cast<uint16_t>(rhs));
@@ -136,11 +131,6 @@ namespace ex {
     /** AND */
     constexpr node_state operator & (const node_state &lhs, const node_state &rhs) {
         return static_cast<node_state>(static_cast<uint16_t>(lhs) & static_cast<uint16_t>(rhs));
-    }
-
-    /** XOR */
-    constexpr node_state operator ^ (node_state &lhs, const node_state &rhs) {
-        return static_cast<node_state>(static_cast<uint16_t>(lhs) ^ static_cast<uint16_t>(rhs));
     }
 
     /** Assign XOR */
@@ -153,12 +143,17 @@ namespace ex {
         return lhs = static_cast<node_state>(static_cast<uint16_t>(lhs) | static_cast<uint16_t>(rhs));
     }
 
-    constexpr node_state operator && (const node_state &lhs, const bool &rhs) {
-        return static_cast<node_state>(rhs ? static_cast<uint16_t>(lhs) : 0);
+    /** Assign OR */
+    constexpr node_state operator += (node_state &lhs, const node_state &rhs) {
+        return lhs = static_cast<node_state>(static_cast<uint16_t>(lhs) | static_cast<uint16_t>(rhs));
     }
 
     constexpr node_state operator -= (node_state &lhs, const node_state &rhs) {
         return lhs = static_cast<node_state>((~(static_cast<uint16_t>(rhs))) & static_cast<uint16_t>(lhs));
+    }
+
+    constexpr node_state operator && (const node_state &lhs, const bool &rhs) {
+        return static_cast<node_state>(rhs ? static_cast<uint16_t>(lhs) : 0);
     }
 
     constexpr bool operator >>= (const node_state &lhs, const node_state &rhs) {

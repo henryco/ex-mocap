@@ -53,7 +53,7 @@ namespace ex::io::bytes {
 
     std::uint32_t flags_node(const TreeNode *node) {
         node_state state = node->state;
-        state |= node_state::created;   // always created
+        state += node_state::created;   // always created
         state -= node_state::updated;   // ignore updated
         state -= node_state::selected;  // ignore selected
         state -= node_state::connected; // ignore connected
