@@ -35,11 +35,12 @@ void ex::io::byte_array::free(byte_array &array) {
 
 namespace ex::io::bytes {
 
-    #define TYPE_NODE_ARR 1
-    #define TYPE_NODE_NAM 2
-    #define TYPE_NODE_OBJ 3
-    #define TYPE_NODE_DAT 4
-    #define TYPE_NODE_NOD 5
+    #define TYPE_NODE_BGN 1
+    #define TYPE_NODE_ARR 2
+    #define TYPE_NODE_NAM 3
+    #define TYPE_NODE_OBJ 4
+    #define TYPE_NODE_DAT 5
+    #define TYPE_NODE_NOD 6
 
     namespace box = limbo::bytebox;
     namespace out = box::out;
@@ -90,6 +91,28 @@ namespace ex::io::bytes {
         }
     };
 
+    /*
+     * [ [header(16): b(4), n(4), t(8)]      main container header
+     *   -----------------------------------
+     *   - [header(16): b(4), n(4), t(8)]    node structure header
+     *     - [header(16): b(4), n(4), t(8)]  node name header
+     *     - [string(N):               ...]  node name content
+     *
+     *     - [header(16): b(4), n(4), t(8)]  node structure header
+     *     - [tree_node_1(16):         ...]  node structure content
+     *
+     *     - [header(16): b(4), n(4), t(8)]  (optional) node data header
+     *     - [data(N):                 ...]  (optional) node data content
+     *
+     *     - [header(16): b(4), n(4), t(8)]  (optional) children array header
+     *       - ...                           (optional) children array content
+     *       - ...
+     *   -----------------------------------
+     *   - [header(16): b(4), n(4), t(8)]    node structure header
+     *     - ...
+     *     - ...
+     */
+
     void write_tree(out::buffer &buffer, const TreeNode *node, gc &garbage_collector) {
         if (node == nullptr)
             return;
@@ -97,31 +120,38 @@ namespace ex::io::bytes {
         const auto serial = from_node(node);
         garbage_collector.tmp_1.push(serial);
 
-        // write name
-        out::object(buffer, TYPE_NODE_NAM, std::strlen(node->name) + 1, node->name);
+        // begin tree node structure
+        out::begin_array(buffer, TYPE_NODE_BGN);
+        {
+            // write name
+            out::object(buffer, TYPE_NODE_NAM, std::strlen(node->name) + 1, node->name);
 
-        // write tree node data
-        out::object(buffer, TYPE_NODE_OBJ, sizeof(tree_node_1), serial);
+            // write tree node data
+            out::object(buffer, TYPE_NODE_OBJ, sizeof(tree_node_1), serial);
 
-        if (ex::logic::globals::node_store().contains(node->id_local)) {
-            if (const auto serializable = dynamic_cast<limbo::nodes::Serialization<ByteSerializer> *>(
-                    ex::logic::globals::node_store().at(node->id_local));
-            serializable != nullptr)
-            {
-                if (const auto serialized = serializable->serialize(); !serialized.empty()) {
-                    // write base node data
-                    out::object(buffer, TYPE_NODE_DAT, serialized.size, serialized.data);
-                    garbage_collector.tmp_2.push(serialized);
+            if (ex::logic::globals::node_store().contains(node->id_local)) {
+                if (const auto serializable = dynamic_cast<limbo::nodes::Serialization<ByteSerializer> *>(
+                        ex::logic::globals::node_store().at(node->id_local));
+                serializable != nullptr)
+                {
+                    if (const auto serialized = serializable->serialize(); !serialized.empty()) {
+                        // write base node data
+                        out::object(buffer, TYPE_NODE_DAT, serialized.size, serialized.data);
+                        garbage_collector.tmp_2.push(serialized);
+                    }
                 }
             }
+
+            if (node->children_n <= 0 || node->children == nullptr)
+                return;
+
+            out::begin_array(buffer, TYPE_NODE_ARR);
+            {
+                for (auto i = 0; i < node->children_n; i++)
+                    write_tree(buffer, node->children[i], garbage_collector);
+            }
+            out::end_array(buffer);
         }
-
-        if (node->children_n <= 0 || node->children == nullptr)
-            return;
-
-        out::begin_array(buffer, TYPE_NODE_ARR);
-        for (auto i = 0; i < node->children_n; i++)
-            write_tree(buffer, node->children[i], garbage_collector);
         out::end_array(buffer);
     }
 

@@ -175,10 +175,11 @@ namespace ex::main {
     }
 
     void Logic::serialize_(State &state) {
-        std::cout << "serialize: " << state.project_path << '\n';
+        log->info("serialization start: {}", state.project_path);
         auto bytes = io::bytes::ByteSerializer().serialize(&state);
         ex::files::write_binary_file(state.project_path, bytes.data, bytes.size);
         io::byte_array::free(bytes);
+        log->info("serialization complete: {}", state.project_path);
     }
 
     void Logic::deserialize_(State &state) {
