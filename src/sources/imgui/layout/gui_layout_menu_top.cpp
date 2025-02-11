@@ -5,6 +5,7 @@
 #include "../../../headers/imgui/gui_layout.h"
 #include "../../../headers/imgui/gui_globals.h"
 #include <IconsLucide.h>
+#include <simpfp.h>
 
 namespace ex::gui {
 
