@@ -121,6 +121,7 @@ namespace ex {
         bool            gl_sharing     = false;
         bool            force_sync     = false;
         bool            force_rewire   = false;
+        bool            should_save    = false;
     };
 
     /** OR */

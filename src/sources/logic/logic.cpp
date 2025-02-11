@@ -162,12 +162,19 @@ namespace ex::main {
     void Logic::run(State &state) {
         if (state.work_tree == nullptr)
             throw std::runtime_error("Logic::run: work tree is null");
+
+        if (state.should_save) {
+            state.should_save = false;
+            serialize_(state);
+        }
+
         synchronize_(state);
         process_(state);
     }
 
-    void Logic::serialize(State &state) {
+    void Logic::serialize_(State &state) {
         // TODO write to json from clock
+
     }
 
     void Logic::deserialize_(State &state) {

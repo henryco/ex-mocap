@@ -47,8 +47,6 @@ namespace ex::main {
 
         void run(State &state);
 
-        void serialize(State &state);
-
     protected:
         void traverse_(State &state, TreeNode *node, bool *rewire, bool fresh);
 
@@ -61,6 +59,8 @@ namespace ex::main {
         void build_tree_(State &state, TreeNode *node, TreeNode *previous, simple_list *group_list);
 
         void deserialize_(State &state);
+
+        void serialize_(State &state);
 
         void gc_(State &state);
 
