@@ -16,6 +16,7 @@ namespace ex::files {
             exit(EXIT_FAILURE);
         }
         file.write(reinterpret_cast<const char *>(data), size);
+        file.flush();
         file.close();
     }
 

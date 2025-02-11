@@ -142,8 +142,10 @@ namespace ex::io::bytes {
                 }
             }
 
-            if (node->children_n <= 0 || node->children == nullptr)
+            if (node->children_n <= 0 || node->children == nullptr) {
+                out::end_array(buffer);
                 return;
+            }
 
             out::begin_array(buffer, TYPE_NODE_ARR);
             {
@@ -151,6 +153,7 @@ namespace ex::io::bytes {
                     write_tree(buffer, node->children[i], garbage_collector);
             }
             out::end_array(buffer);
+
         }
         out::end_array(buffer);
     }
