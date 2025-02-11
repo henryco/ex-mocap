@@ -30,7 +30,7 @@ namespace ex::gui {
         if (node == nullptr)
             return nullptr;
 
-        if (node->is_link) {
+        if (node->state >>= node_state::is_link) {
             TreeNode             *source  = TreeNode::find_node(state.work_tree, node->id_link);
             GuiNodeWindow<TreeNode> *new_win = new GuiNodeWindow{ .node = (source == nullptr) ? node : source };
             new_win->name                 = new_win->node->name;
@@ -45,7 +45,10 @@ namespace ex::gui {
             return;
         }
 
-        if (active_node == nullptr || active_node->deleted || active_node->moved) {
+        if (active_node == nullptr ||
+            (active_node->state >>= node_state::deleted) ||
+            (active_node->state >>= node_state::moved))
+        {
             if (active_window__ != nullptr && !active_window__->pinned)
                 delete active_window__;
             active_window__ = nullptr;
@@ -74,8 +77,12 @@ namespace ex::gui {
     }
 
     bool render_window(ex::State &state, GuiState &gui, GuiNodeWindow<TreeNode> *window) {
-        if (window == nullptr || window->node == nullptr || window->node->deleted || window->node->moved)
+        if (window == nullptr || window->node == nullptr ||
+            (window->node->state >>= node_state::deleted) ||
+            (window->node->state >>= node_state::moved))
+        {
             return false;
+        }
         const auto n_type = window->node->id_node;
         if (!ww::node_mappers_.contains(n_type))
             return false;

@@ -43,21 +43,12 @@ namespace ex {
 
     TreeNode *TreeNode::shallow_copy() const {
         const auto new_node  = new TreeNode;
-        new_node->connected  = this->connected;
-        new_node->selected   = this->selected;
-        new_node->deleted    = this->deleted;
-        new_node->created    = this->created;
-        new_node->updated    = this->updated;
-        new_node->warning    = this->warning;
+        new_node->state      = this->state;
         new_node->parent     = this->parent;
         new_node->children   = nullptr;
         new_node->data       = nullptr;
         new_node->name       = this->name;
         new_node->index      = this->index;
-        new_node->dimmed     = this->dimmed;
-        new_node->is_group   = this->is_group;
-        new_node->is_link    = this->is_link;
-        new_node->disabled   = this->disabled;
         new_node->id_local   = this->id_local;
         new_node->id_node    = this->id_node;
         new_node->id_link    = this->id_link;
@@ -69,23 +60,17 @@ namespace ex {
     TreeNode *TreeNode::deep_copy(const bool generated_id) const {
         const auto new_node  = new TreeNode;
         new_node->id_local   = generated_id ? state::uuid::generate_id_inc() : id_local;
-        new_node->created    = generated_id ? true : created;
-        new_node->connected  = generated_id ? false : connected;
-        new_node->selected   = generated_id ? false : selected;
-        new_node->warning    = generated_id ? false : warning;
-        new_node->deleted    = generated_id ? false : deleted;
-        new_node->dimmed     = generated_id ? false : dimmed;
-        new_node->disabled   = generated_id ? false : disabled;
-        new_node->updated    = generated_id ? false : updated;
+        new_node->state      = generated_id ? node_state::created : state;
         new_node->id_link    = id_link;
         new_node->parent     = parent;
         new_node->name       = name;
         new_node->index      = index;
-        new_node->is_group   = is_group;
-        new_node->is_link    = is_link;
         new_node->id_node    = id_node;
         new_node->data_size  = data_size;
         new_node->children_n = children_n;
+
+        new_node->state |= (state & node_state::is_group);
+        new_node->state |= (state & node_state::is_link);
 
         if (data != nullptr && data_size > 0) {
             void *new_data = malloc(data_size);
@@ -277,11 +262,11 @@ namespace ex {
         if (id > 0) {
             state::uuid::set_last_id(id);
             node->id_local = id;
-            node->disabled = false;
+            node->state -= node_state::disabled;
         }
         else {
             node->id_local = state::uuid::generate_id_inc();
-            node->disabled = false;
+            node->state -= node_state::disabled;
         }
         return node;
     }
@@ -290,11 +275,10 @@ namespace ex {
         if (node == nullptr)
             return nullptr;
         TreeNode *new_one = TreeNode::create();
+        new_one->state    = node_state::created | node_state::is_link;
         new_one->name     = node->name;
         new_one->id_link  = node->id_local;
         new_one->id_node  = node->id_node;
-        new_one->created  = true;
-        new_one->is_link  = true;
         return new_one;
     }
 
@@ -399,13 +383,13 @@ namespace ex {
             const auto next = head->next;
             if (head != node) {
                 if (unselect && head->selected != nullptr)
-                    head->selected->selected = false;
+                    head->selected->state -= node_state::selected;
                 delete head;
             }
             head = next;
         }
         if (unselect && node->selected != nullptr)
-            node->selected->selected = false;
+            node->selected->state -= node_state::selected;
         delete node;
     }
 
@@ -446,8 +430,8 @@ namespace ex {
             auto head = selection->root;
             while (head != nullptr) {
                 if (head->selected != nullptr) {
-                    head->selected->selected = false;
-                    head->selected->dimmed   = false;
+                    head->selected->state -= node_state::selected;
+                    head->selected->state -= node_state::dimmed;
                 }
                 head = head->next;
             }

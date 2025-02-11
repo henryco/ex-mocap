@@ -13,7 +13,7 @@ namespace ex::gui::tree {
     static bool                    inspection_open = false;
 
     void show_inspected_node(State &, GuiState &gui) {
-        if (inspected_node == nullptr || inspected_node->deleted || !inspection_open) {
+        if (inspected_node == nullptr || (inspected_node->state >>= node_state::deleted) || !inspection_open) {
             inspection_open = false;
             inspected_base  = nullptr;
             return;

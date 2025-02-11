@@ -18,7 +18,7 @@ namespace ex::gui {
             if (ImGui::MenuItem(mapper.get_node_name(gui, state) )) {
                 ImGui::PopID();
                 TreeNode *new_node = TreeNode::create();
-                new_node->created    = true;
+                new_node->state      = node_state::created;
                 new_node->children_n = 0;
                 new_node->id_node    = type_id;
                 new_node->name       = "New node";
@@ -46,8 +46,8 @@ namespace ex::gui {
         auto head = selection->root;
         bool enabled = false, disabled = false, same_root = true;
         while (head != nullptr) {
-            enabled |= !head->selected->disabled;
-            disabled |= head->selected->disabled;
+            enabled |= !(head->selected->state >>= node_state::disabled);
+            disabled |= (head->selected->state >>= node_state::disabled);
             if (head->selected->parent != selection->root->selected->parent)
                 same_root = false;
             head = head->next;
@@ -55,7 +55,7 @@ namespace ex::gui {
 
         const bool is_grouped = selection->selected->parent != nullptr &&
                                 selection->selected->parent->parent != nullptr &&
-                                selection->selected->parent->parent->is_group;
+                                (selection->selected->parent->parent->state >>= node_state::is_group);
 
         if (ImGui::BeginPopup(menu_id)) {
 
@@ -126,7 +126,9 @@ namespace ex::gui {
 
         const auto parent = node->parent;
         // ReSharper disable once CppDFANullDereference
-        const bool is_grouped = (parent != nullptr) && (parent->parent != nullptr) && (parent->parent->is_group);
+        const bool is_grouped =
+                (parent != nullptr) && (parent->parent != nullptr) && (parent->parent->state >>= node_state::is_group);
+
 
         if (ImGui::BeginPopup(menu_id)) {
 
@@ -152,7 +154,7 @@ namespace ex::gui {
                 rename_popup = true;
             }
 
-            const bool enabled = !node->disabled;
+            const bool enabled = !(node->state >>= node_state::disabled);
             if (ImGui::MenuItem(enabled ? "Disable" : "Enable")) {
                 if (enabled) tree::disable_node(state, gui, node);
                 else tree::enable_node(state, gui, node);
@@ -178,7 +180,7 @@ namespace ex::gui {
                 }
             }
 
-            if (!node->is_link) {
+            if (!(node->state >>= node_state::is_link)) {
                 if (ImGui::MenuItem("Inspect")) {
                     tree::pick_inspected_node(state, gui, node);
                 }

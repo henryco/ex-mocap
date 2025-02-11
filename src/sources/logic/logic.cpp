@@ -50,51 +50,46 @@ namespace ex::main {
         state::uuid::reset_last_id();
 
         state.work_tree             = TreeNode::create();
+        state.work_tree->state      = node_state::is_group;
         state.work_tree->name       = "root";
-        state.work_tree->is_group   = true;
         state.work_tree->children_n = 0;
 
         for (int i = 0; i < 5; i++) {
             const auto node  = TreeNode::create();
-            node->created    = true;
+            node->state      = node_state::created | (node_state::is_group && (i > 2));
             node->children_n = 0;
             node->name       = (new std::string("Node " + std::to_string(node->id_local)))->c_str();
-            node->is_group   = i > 2;
             node->id_node    = 0;
 
             if (i > 2) { // inside a group
                 for (int k = 0; k < 3; k++) {
                     const auto sub  = TreeNode::create();
-                    sub->created    = true;
+                    sub->state      = node_state::created | (node_state::is_group && (k == 1));
                     sub->children_n = 0;
                     sub->name       = "Sub one";
-                    sub->is_group   = k == 1;
                     sub->id_node    = 1;
 
                     if (k == 1) { // inside a group
                         for (int z = 0; z < 5; z++) {
                             const auto sub_2  = TreeNode::create();
-                            sub_2->created    = true;
+                            sub_2->state      = node_state::created;
                             sub_2->children_n = 0;
                             sub_2->name       = "Sub zero";
-                            sub_2->is_group   = false;
                             sub_2->id_node    = 2;
 
                             sub->add_node(sub_2);
                         }
                     } else {
                         const auto inputs  = TreeNode::create();
-                        inputs->created    = true;
+                        inputs->state      = node_state::created | node_state::is_group;
                         inputs->children_n = 0;
                         inputs->name       = "inputs";
-                        inputs->is_group   = true;
 
                         for (int z = 0; z < 3; z++) {
                             const auto in  = TreeNode::create();
-                            in->created    = true;
+                            in->state      = node_state::created;
                             in->children_n = 0;
                             in->name       = "Input!";
-                            in->is_group   = false;
                             in->id_node    = 3;
 
                             inputs->add_node(in);
@@ -109,43 +104,38 @@ namespace ex::main {
 
             else { // inside a regular element
                 const auto inputs  = TreeNode::create();
-                inputs->created    = true;
+                inputs->state      = node_state::created | node_state::is_group;
                 inputs->children_n = 0;
                 inputs->name       = (new std::string("Inputs. " + std::to_string(inputs->id_local)))->c_str();
-                inputs->is_group   = true;
 
                 for (int k = 0; k < 4; k++) { // inside inputs group
                     const auto sub  = TreeNode::create();
-                    sub->created    = true;
+                    sub->state      = node_state::created | (node_state::is_group && (k == 1 || k == 2));
                     sub->children_n = 0;
                     sub->name       = (new std::string("Sub in " + std::to_string(sub->id_local)))->c_str();
-                    sub->is_group   = k == 1 || k == 2;
                     sub->id_node    = 4;
 
                     if (k == 1 || k == 2) { // inside a group
                         for (int z = 0; z < 6; z++) {
                             const auto in  = TreeNode::create();
-                            in->created    = true;
+                            in->state      = node_state::created;
                             in->children_n = 0;
                             in->name       = (new std::string("in in " + std::to_string(in->id_local)))->c_str();
-                            in->is_group   = false;
                             in->id_node    = 5;
 
                             sub->add_node(in);
                         }
                     } else {
                         const auto another_in = TreeNode::create();
-                        another_in->created    = true;
+                        another_in->state      = node_state::created | node_state::is_group;
                         another_in->children_n = 0;
                         another_in->name       = (new std::string("another_in " + std::to_string(another_in->id_local)))->c_str();
-                        another_in->is_group   = true;
 
                         for (int p = 0; p < 2; p++) {
                             const auto sub_3  = TreeNode::create();
-                            sub_3->created    = true;
+                            sub_3->state      = node_state::created;
                             sub_3->children_n = 0;
                             sub_3->name       = (new std::string("another in " + std::to_string(sub_3->id_local)))->c_str();
-                            sub_3->is_group   = false;
                             sub_3->id_node    = 6;
 
                             another_in->add_node(sub_3);
@@ -221,10 +211,17 @@ namespace ex::main {
         if (node == nullptr)
             return;
 
-        node->deleted = !moved;
-        node->moved   = moved;
+        node->state -= node_state::deleted;
+        node->state -= node_state::moved;
 
-        if (!moved && !node->is_link && !node->is_group && gg::nodes_.contains(node->id_local)) {
+        node->state |= (node_state::deleted && !moved);
+        node->state |= (node_state::moved && moved);
+
+        if (!moved &&
+            !(node->state >>= node_state::is_link) &&
+            !(node->state >>= node_state::is_group) &&
+            gg::nodes_.contains(node->id_local))
+        {
             const auto base = gg::nodes_.at(node->id_local);
             gg::nodes_.erase(node->id_local);
             base->detach_all_any();
@@ -235,7 +232,7 @@ namespace ex::main {
             delete base;
         }
 
-        if (moved && !node->is_link && !node->is_group) {
+        if (moved && !(node->state >>= node_state::is_link) && !(node->state >>= node_state::is_group)) {
             const auto base = gg::nodes_.at(node->id_local);
             const auto r_func = gg::mappers_.at(node->id_node).relocate;
             if (r_func != nullptr) {
@@ -260,7 +257,8 @@ namespace ex::main {
         if (node == nullptr)
             return;
 
-        if (node->deleted || node->moved) {
+
+        if ((node->state >>= node_state::deleted) || (node->state >>= node_state::moved)) {
             *rewire = true;
             return;
         }
@@ -268,14 +266,14 @@ namespace ex::main {
         for (std::size_t i = 0; i < node->children_n; i++) {
             const auto child = node->children[i];
 
-            if (child->deleted || child->moved) {
+            if ((child->state >>= node_state::deleted) || (child->state >>= node_state::moved)) {
                 *rewire = true;
             }
 
             else {
-                traverse_(state, child, rewire, fresh || node->created);
-                if (child->is_group && (child->children_n <= 0 || child->children == nullptr)) {
-                    child->deleted = true;
+                traverse_(state, child, rewire, fresh || (node->state >>= node_state::created));
+                if ((child->state >>= node_state::is_group) && (child->children_n <= 0 || child->children == nullptr)) {
+                    child->state |= node_state::deleted;
                     *rewire = true;
                 }
             }
@@ -286,29 +284,29 @@ namespace ex::main {
             if (o >= node->children_n)
                 break;
             const auto child = node->children[o];
-            if (!child->deleted && !child->moved) {
+            if (!(child->state >>= node_state::deleted) && !(child->state >>= node_state::moved)) {
                 o += 1;
                 continue;
             }
-            mark_node_deleted_(state, child, child->moved);
+            mark_node_deleted_(state, child, child->state >>= node_state::moved);
             node->remove_node(child);
             delete child;
             o = 0;
         }
 
-        if (node->created || fresh) {
+        if ((node->state >>= node_state::created) || fresh) {
 
-            if (!node->is_group && !node->is_link) {
+            if (!(node->state >>= node_state::is_group) && !(node->state >>= node_state::is_link)) {
                 const LogicNodeComponent &mappers = gg::mappers_.at(node->id_node);
                 if (!gg::nodes_.contains(node->id_local))
                     gg::nodes_.emplace(node->id_local, mappers.instance(state, node));
             }
 
-            node->created = false;
+            node->state -= node_state::created;
             *rewire = true;
         }
 
-        if (node->is_group || node->is_link || !gg::nodes_.contains(node->id_local))
+        if ((node->state >>= node_state::is_group) || (node->state >>= node_state::is_link) || !gg::nodes_.contains(node->id_local))
             return;
 
         if (ptr_counter_.contains(node->id_local)) {
@@ -318,14 +316,14 @@ namespace ex::main {
         else
             ptr_counter_.emplace(node->id_local, 1);
 
-        if (node->disabled)
+        if (node->state >>= node_state::disabled)
             return;
 
         limbo::nodes::BaseNode *node_ptr = gg::nodes_.at(node->id_local);
 
-        if (node->updated) {
+        if (node->state >>= node_state::updated) {
             gg::mappers_.at(node->id_node).from_tree(state, node, node_ptr);
-            node->updated = false;
+            node->state -= node_state::updated;
         }
 
         if (node_ptr->updated())
@@ -421,33 +419,33 @@ namespace ex::main {
     }
 
     void Logic::build_tree_(State &state, TreeNode *node, TreeNode *previous, simple_list *group_list) {
-        if (node == nullptr || group_list == nullptr || node->deleted)
+        if (node == nullptr || group_list == nullptr || (node->state >>= node_state::deleted))
             return;
 
-        if (!node->is_link && !node->is_group) {
-            node->connected = false;
+        if (!(node->state >>= node_state::is_link) && !(node->state >>= node_state::is_group)) {
+            node->state -= node_state::connected;
         }
 
-        if (node->is_group) {
+        if (node->state >>= node_state::is_group) {
             TreeNode *prev_node = previous;
             TreeNode *curr_node = nullptr;
 
             for (std::size_t i = 0; i < node->children_n; i++) {
                 const auto child_node = node->children[i];
 
-                if (child_node->disabled)
+                if (child_node->state >>= node_state::disabled)
                     continue;
 
                 curr_node = child_node;
 
                 build_tree_(state, curr_node, prev_node, group_list);
 
-                if (!curr_node->is_group) {
+                if (!(curr_node->state >>= node_state::is_group)) {
                     prev_node = curr_node;
                 }
             }
 
-            if (curr_node != nullptr && !curr_node->is_group) {
+            if (curr_node != nullptr && !(curr_node->state >>= node_state::is_group)) {
                 // add last non-group element within group to list
                 get_head_(group_list)->next = new simple_list(curr_node);
             }
@@ -459,7 +457,7 @@ namespace ex::main {
             TreeNode *curr_node = node->children[i];
 
             // non-group element can contain only groups as children
-            if (!curr_node->is_group || curr_node->disabled)
+            if (!(curr_node->state >>= node_state::is_group) || (curr_node->state >>= node_state::disabled))
                 continue;
 
             simple_list list = {};
@@ -475,16 +473,16 @@ namespace ex::main {
     }
 
     bool Logic::connect_nodes_(TreeNode *from, TreeNode *to) {
-        if (from == nullptr || to == nullptr || to->is_link)
+        if (from == nullptr || to == nullptr || (to->state >>= node_state::is_link))
             return false;
 
-        to->connected = false;
+        to->state -= node_state::connected;
 
-        const std::size_t from_id_local = from->is_link ? from->id_link : from->id_local;
+        const std::size_t from_id_local = (from->state >>= node_state::is_link) ? from->id_link : from->id_local;
 
-        if (from->is_link && !gg::nodes_.contains(from_id_local)) {
+        if ((from->state >>= node_state::is_link) && !gg::nodes_.contains(from_id_local)) {
             log->warn("Cannot connect shared node, reference deleted: {}", from_id_local);
-            from->connected = false;
+            from->state -= node_state::connected;
             return false;
         }
 
@@ -541,10 +539,11 @@ namespace ex::main {
             k++;
         }
 
-        to->connected = (connects_num > 0);
-        log->debug("CONNECTION STATUS: {} -> {} [{}]", from_id_local, to->id_local, to->connected);
+        to->state -= node_state::connected;
+        to->state |= (node_state::connected && (connects_num > 0));
+        log->debug("CONNECTION STATUS: {} -> {} [{}]", from_id_local, to->id_local, to->state >>= node_state::connected);
 
-        return to->connected;
+        return to->state >>= node_state::connected;
     }
 
 }

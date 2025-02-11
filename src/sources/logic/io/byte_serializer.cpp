@@ -47,25 +47,17 @@ namespace ex::io::bytes {
         std::uint32_t id_local   = 0;
         std::uint32_t id_link    = 0;
         std::uint32_t index      = 0;
-        std::uint32_t flags      = 0;
+        std::uint16_t flags      = 0;
+        std::uint16_t _____      = 0;
     };
 
     std::uint32_t flags_node(const TreeNode *node) {
-        std::uint32_t flags = 0;
-
-        flags |= (node->is_group << 1);
-        flags |= (node->is_link  << 2);
-        flags |= (node->disabled << 3);
-        flags |= (0 << 4);  // ignore updated
-        flags |= (node->deleted  << 5);
-        flags |= (node->moved    << 6);
-        flags |= (node->dimmed   << 7);
-        flags |= (node->warning  << 8);
-        flags |= (1 << 9);  // always created
-        flags |= (0 << 10); // ignore selected
-        flags |= (0 << 11); // ignore connected
-
-        return flags;
+        node_state state = node->state;
+        state |= node_state::created;   // always created
+        state -= node_state::updated;   // ignore updated
+        state -= node_state::selected;  // ignore selected
+        state -= node_state::connected; // ignore connected
+        return static_cast<uint16_t>(state);
     }
 
     tree_node_1 *from_node(const TreeNode *node) {

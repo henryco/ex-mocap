@@ -19,6 +19,21 @@ namespace ex {
         void          reset_last_id(std::uint32_t id = 0);
     }
 
+    enum class node_state : std::uint16_t {
+        blank     = 0,
+        is_group  = 1 << 1,
+        is_link   = 1 << 2,
+        disabled  = 1 << 3,
+        updated   = 1 << 4,
+        deleted   = 1 << 5,
+        moved     = 1 << 6,
+        dimmed    = 1 << 7,
+        warning   = 1 << 8,
+        created   = 1 << 9,
+        selected  = 1 << 10,
+        connected = 1 << 11
+    };
+
     struct TreeNode {
 
         /**
@@ -37,18 +52,7 @@ namespace ex {
         std::uint32_t id_local   = 0;
         std::uint32_t id_link    = 0;
         std::uint32_t index      = 0;
-
-        bool        is_group   = false;
-        bool        is_link    = false;
-        bool        disabled   = false;
-        bool        updated    = false;
-        bool        deleted    = false;
-        bool        moved      = false;
-        bool        dimmed     = false;
-        bool        warning    = false;
-        bool        created    = false;
-        bool        selected   = false;
-        bool        connected  = false;
+        node_state    state      = node_state::blank;
 
         ~TreeNode();
 
@@ -118,6 +122,48 @@ namespace ex {
         bool            force_sync     = false;
         bool            force_rewire   = false;
     };
+
+    /** NOT */
+    constexpr node_state operator ~ (const node_state &lhs) {
+        return static_cast<node_state>(~static_cast<uint16_t>(lhs));
+    }
+
+    /** OR */
+    constexpr node_state operator | (const node_state &lhs, const node_state &rhs) {
+        return static_cast<node_state>(static_cast<uint16_t>(lhs) | static_cast<uint16_t>(rhs));
+    }
+
+    /** AND */
+    constexpr node_state operator & (const node_state &lhs, const node_state &rhs) {
+        return static_cast<node_state>(static_cast<uint16_t>(lhs) & static_cast<uint16_t>(rhs));
+    }
+
+    /** XOR */
+    constexpr node_state operator ^ (node_state &lhs, const node_state &rhs) {
+        return static_cast<node_state>(static_cast<uint16_t>(lhs) ^ static_cast<uint16_t>(rhs));
+    }
+
+    /** Assign XOR */
+    constexpr node_state operator ^= (node_state &lhs, const node_state &rhs) {
+        return lhs = static_cast<node_state>(static_cast<uint16_t>(lhs) ^ static_cast<uint16_t>(rhs));
+    }
+
+    /** Assign OR */
+    constexpr node_state operator |= (node_state &lhs, const node_state &rhs) {
+        return lhs = static_cast<node_state>(static_cast<uint16_t>(lhs) | static_cast<uint16_t>(rhs));
+    }
+
+    constexpr node_state operator && (const node_state &lhs, const bool &rhs) {
+        return static_cast<node_state>(rhs ? static_cast<uint16_t>(lhs) : 0);
+    }
+
+    constexpr node_state operator -= (node_state &lhs, const node_state &rhs) {
+        return lhs = static_cast<node_state>((~(static_cast<uint16_t>(rhs))) & static_cast<uint16_t>(lhs));
+    }
+
+    constexpr bool operator >>= (const node_state &lhs, const node_state &rhs) {
+        return (static_cast<uint16_t>(lhs) & static_cast<uint16_t>(rhs)) != 0;
+    }
 
     namespace state {
         struct camera {
