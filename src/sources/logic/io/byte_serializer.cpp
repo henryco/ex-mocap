@@ -9,8 +9,16 @@
 #include "../../../headers/logic/logic_globals.h"
 #include "../../../headers/state.h"
 
-const std::uint8_t &ex::io::byte_array::operator[](const size_t &index) const {
+const std::uint8_t &ex::io::byte_array::operator [] (const size_t &index) const {
     return data[index];
+}
+
+const std::uint8_t *ex::io::byte_array::operator >> (const std::size_t &index) const {
+    if (index >= size) {
+        std::cerr << "Fatal Error: Attempt to read byte array data out of bound" << std::endl;
+        std::abort();
+    }
+    return data + index;
 }
 
 bool ex::io::byte_array::empty() const {
@@ -172,9 +180,27 @@ namespace ex::io::bytes {
         return byte_array::from(data, size);
     }
 
-    void *ByteSerializer::deserialize(const byte_array &in) const {
-        // todo
-        return nullptr;
+    void *ByteSerializer::deserialize(const byte_array &data) const {
+        const auto state = new ex::State;
+
+        auto buffer = in::create_buffer(10, in::mode::OFFSET);
+        for (std::int64_t i = 0; (i = in::next(buffer, data >> i)) != -1;) {
+
+            if (in::begin_array(buffer)) {
+                // todo
+            }
+
+            if (in::end_array(buffer)) {
+                // todo
+            }
+
+            if (const auto obj_size_b = in::next_object(buffer)) {
+                // todo
+            }
+
+        }
+
+        return state;
     }
 
 } // namespace ex::io::bytes

@@ -96,6 +96,8 @@ namespace limbo::bytebox {
 
         const std::uint8_t *read_buffer_data(buffer &buff, std::size_t *size);
 
+        // TODO add sequential data reading
+
         void free_buffer_data(const std::uint8_t *data);
 
     } // namespace out
