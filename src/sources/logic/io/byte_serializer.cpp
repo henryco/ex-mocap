@@ -9,11 +9,11 @@
 #include "../../../headers/logic/logic_globals.h"
 #include "../../../headers/state.h"
 
-const std::uint8_t &ex::io::byte_array::operator [] (const size_t &index) const {
+const std::uint8_t &ex::io::byte_array::operator [] (const std::size_t &index) const {
     return data[index];
 }
 
-const std::uint8_t *ex::io::byte_array::operator >> (const std::size_t &index) const {
+const std::uint8_t *ex::io::byte_array::operator + (const std::size_t &index) const {
     if (index >= size) {
         std::cerr << "Fatal Error: Attempt to read byte array data out of bound" << std::endl;
         std::abort();
@@ -185,7 +185,7 @@ namespace ex::io::bytes {
         const auto state = new ex::State;
 
         auto buffer = in::create_buffer(10, in::mode::OFFSET);
-        for (std::int64_t i = 0; (i = in::next(buffer, data >> i)) != -1;) {
+        for (std::int64_t i = 0; (i = in::next(buffer, data + i)) != -1;) {
 
             if (in::begin_array(buffer)) {
 
