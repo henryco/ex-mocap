@@ -95,20 +95,20 @@ namespace ex::io::bytes {
      * 0:  [header(16): b(4), n(4), t(8)]      main container header
      *     -----------------------------------
      * 16: - [header(16): b(4), n(4), t(8)]    node structure header
-     * 32: - [header(16): b(4), n(4), t(8)]  node name header
-     * 48: - [string(N):               ...]  node name content
+     * 32: - [header(16): b(4), n(4), t(8)]    node name header
+     * 48: - [string(N):               ...]    node name content
      *
-     *     - [header(16): b(4), n(4), t(8)]  node structure header
-     *     - [tree_node_1(16):         ...]  node structure content
+     *     - [header(16): b(4), n(4), t(8)]    node structure header
+     *     - [tree_node_1(16):         ...]    node structure content
      *
-     *     - [header(16): b(4), n(4), t(8)]  (optional) node data header
-     *     - [data(N):                 ...]  (optional) node data content
+     *     - [header(16): b(4), n(4), t(8)]    (optional) node data header
+     *     - [data(N):                 ...]    (optional) node data content
      *
-     *     - [header(16): b(4), n(4), t(8)]  (optional) children array header
-     *       - ...                           (optional) children array content
+     *     - [header(16): b(4), n(4), t(8)]    (optional) children array header
+     *       - ...                             (optional) children array content
      *       - ...
      *   -----------------------------------
-     *   - [header(16): b(4), n(4), t(8)]    node structure header
+     *   - [header(16): b(4), n(4), t(8)]      node structure header
      *     - ...
      *     - ...
      */
