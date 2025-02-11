@@ -65,7 +65,7 @@ namespace ex::io::bytes {
         std::uint16_t _____      = 0;
     };
 
-    std::uint32_t flags_node(const TreeNode *node) {
+    std::uint16_t flags_node(const TreeNode *node) {
         node_state state = node->state;
         state += node_state::created;   // always created
         state -= node_state::dimmed;    // ignore dimmed
@@ -85,6 +85,20 @@ namespace ex::io::bytes {
             node->index,
             flags_node(node)
         );
+    }
+
+    void to_node(const tree_node_1 *from, TreeNode *to) {
+        if (from == nullptr) {
+            std::cerr << "Fatal Error: tree_node_1 is NULL" << std::endl;
+            std::abort();
+        }
+        to->id_node    = from->id_node;
+        to->children_n = from->children_n;
+        to->data_size  = from->data_size;
+        to->id_local   = from->id_local;
+        to->id_link    = from->id_link;
+        to->index      = from->index;
+        to->state      = static_cast<node_state>(from->flags);
     }
 
     struct gc {
@@ -184,13 +198,20 @@ namespace ex::io::bytes {
     void *ByteSerializer::deserialize(const byte_array &data) const {
         const auto state = new ex::State;
 
+        auto dst_size = 1;
+        auto dst_buff = static_cast<unsigned char *>(malloc(dst_size));
+
+        TreeNode  dummy = TreeNode::dummy();
+        TreeNode *root  = &dummy;
+        TreeNode *head  = root;
+
         auto buffer = in::create_buffer(10, in::mode::OFFSET);
         for (std::int64_t i = 0; (i = in::next(buffer, data + i)) != -1;) {
 
             if (in::begin_array(buffer)) {
 
                 if (in::array_type(buffer) == TYPE_NODE_BGN) {
-                    // TODO create new node
+                    head = TreeNode::create();
                 }
 
                 if (in::array_type(buffer) == TYPE_NODE_ARR) {
@@ -217,20 +238,32 @@ namespace ex::io::bytes {
 
             if (const auto obj_size_b = in::next_object(buffer)) {
 
+                if (obj_size_b > dst_size) {
+                    dst_size = obj_size_b;
+                    dst_buff = static_cast<unsigned char *>(realloc(dst_buff, dst_size));
+                }
+
+                std::memcpy(dst_buff, data + i, obj_size_b);
+
                 if (in::item_type(buffer) == TYPE_NODE_NAM) {
-                    // TODO node name
+                    const auto new_name = new unsigned char[obj_size_b];
+                    std::memcpy(new_name, dst_buff, obj_size_b);
+                    head->name = reinterpret_cast<const char *>(new_name);
+                    continue;
                 }
 
                 if (in::item_type(buffer) == TYPE_NODE_OBJ) {
-                    // TODO node structure
+                    to_node(reinterpret_cast<const tree_node_1 *>(dst_buff), head);
+                    continue;
                 }
 
                 if (in::item_type(buffer) == TYPE_NODE_DAT) {
                     // TODO node data
                 }
             }
-
         }
+
+        free(dst_buff);
 
         return state;
     }

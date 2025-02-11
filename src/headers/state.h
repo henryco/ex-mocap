@@ -72,6 +72,7 @@ namespace ex {
 
         static TreeNode *create(std::uint32_t id = 0);
         static TreeNode *link(TreeNode *node);
+        static TreeNode dummy();
 
         static bool is_parent(TreeNode *test, TreeNode *node);
 

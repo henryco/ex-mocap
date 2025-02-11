@@ -257,6 +257,10 @@ namespace ex {
         return node->deep_copy(generated_id);
     }
 
+    TreeNode TreeNode::dummy() {
+        return TreeNode();
+    }
+
     TreeNode *TreeNode::create(const std::uint32_t id) {
         const auto node = new TreeNode;
         if (id > 0) {
