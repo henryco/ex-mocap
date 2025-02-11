@@ -796,7 +796,6 @@ namespace ex::gui::tree {
                 throw std::runtime_error("Cannot find original node");
             f_node->state -= node_state::disabled;
             f_node->state |= (og_state & node_state::disabled);
-            f_node->state |= node_state::updated;
         }),
         new std::function([id_l = node->id_local] (ex::State *s) {
             reset_state_(*s);
@@ -805,7 +804,6 @@ namespace ex::gui::tree {
             if (f_node == nullptr)
                 throw std::runtime_error("Cannot find original node");
             f_node->state -= node_state::disabled;
-            f_node->state |= node_state::updated;
         }));
     }
 
@@ -825,7 +823,6 @@ namespace ex::gui::tree {
                 throw std::runtime_error("Cannot find original node");
             f_node->state -= node_state::disabled;
             f_node->state |= (og_state & node_state::disabled);
-            f_node->state |= node_state::updated;
         }),
         new std::function([id_l = node->id_local] (ex::State *s) {
             reset_state_(*s);
@@ -834,7 +831,6 @@ namespace ex::gui::tree {
             if (f_node == nullptr)
                 throw std::runtime_error("Cannot find original node");
             f_node->state |= node_state::disabled;
-            f_node->state |= node_state::updated;
         }));
     }
 
@@ -863,7 +859,6 @@ namespace ex::gui::tree {
                     throw std::runtime_error("Cannot find original node");
                 f_node->state -= node_state::disabled;
                 f_node->state |= (v & node_state::disabled);
-                f_node->state |= node_state::updated;
             }
         }),
         new std::function([og_state = og_map](ex::State *s) {
@@ -874,7 +869,6 @@ namespace ex::gui::tree {
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
                 f_node->state -= node_state::disabled;
-                f_node->state |= node_state::updated;
             }
         }));
     }
@@ -903,7 +897,6 @@ namespace ex::gui::tree {
                     throw std::runtime_error("Cannot find original node");
                 f_node->state -= node_state::disabled;
                 f_node->state |= (v & node_state::disabled);
-                f_node->state |= node_state::updated;
             }
             reset_state_(*s);
         }),
@@ -914,7 +907,6 @@ namespace ex::gui::tree {
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
                 f_node->state |= node_state::disabled;
-                f_node->state |= node_state::updated;
             }
             reset_state_(*s);
         }));

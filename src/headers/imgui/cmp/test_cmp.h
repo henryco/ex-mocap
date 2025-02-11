@@ -169,11 +169,9 @@ namespace ex::gui::test {
         const char *get_node_name(GuiState &gui, ex::State &state);
         static constexpr GuiNodeComponent gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
 
-        void from_base(State &state, limbo::nodes::BaseNode *from, TreeNode *to);
-        void from_tree(State &state, TreeNode *from, limbo::nodes::BaseNode *to);
         limbo::nodes::BaseNode *instance(const State &state, TreeNode *from);
         limbo::nodes::BaseNode *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *node);
-        static constexpr LogicNodeComponent data_mappers = { from_base, from_tree, instance, relocate };
+        static constexpr LogicNodeComponent data_mappers = { instance, relocate };
     }
 
     namespace two {
@@ -183,11 +181,9 @@ namespace ex::gui::test {
         const char *get_node_name(GuiState &gui, ex::State &state);
         static constexpr GuiNodeComponent gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
 
-        void from_base(State &state, limbo::nodes::BaseNode *from, TreeNode *to);
-        void from_tree(State &state, TreeNode *from, limbo::nodes::BaseNode *to);
         limbo::nodes::BaseNode *instance(const State &state, TreeNode *from);
         limbo::nodes::BaseNode *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *node);
-        static constexpr LogicNodeComponent data_mappers = { from_base, from_tree, instance, relocate };
+        static constexpr LogicNodeComponent data_mappers = { instance, relocate };
     }
 
     namespace tri {
@@ -197,11 +193,9 @@ namespace ex::gui::test {
         const char *get_node_name(GuiState &gui, ex::State &state);
         static constexpr GuiNodeComponent gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
 
-        void from_base(State &state, limbo::nodes::BaseNode *from, TreeNode *to);
-        void from_tree(State &state, TreeNode *from, limbo::nodes::BaseNode *to);
         limbo::nodes::BaseNode *instance(const State &state, TreeNode *from);
         limbo::nodes::BaseNode *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *node);
-        static constexpr LogicNodeComponent data_mappers = { from_base, from_tree, instance, relocate };
+        static constexpr LogicNodeComponent data_mappers = { instance, relocate };
     }
 
 }

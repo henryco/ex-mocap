@@ -1173,10 +1173,6 @@ namespace limbo::nodes {
         void set_id(const std::size_t id) {
             local_id = id;
         }
-
-        virtual bool updated() {
-            return true;
-        }
     };
 
     template<typename T>

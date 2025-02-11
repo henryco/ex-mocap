@@ -24,23 +24,16 @@ namespace ex {
         is_group  = 1 << 1,
         is_link   = 1 << 2,
         disabled  = 1 << 3,
-        updated   = 1 << 4,
-        deleted   = 1 << 5,
-        moved     = 1 << 6,
-        dimmed    = 1 << 7,
-        warning   = 1 << 8,
-        created   = 1 << 9,
-        selected  = 1 << 10,
-        connected = 1 << 11
+        deleted   = 1 << 4,
+        moved     = 1 << 5,
+        dimmed    = 1 << 6,
+        warning   = 1 << 7,
+        created   = 1 << 8,
+        selected  = 1 << 9,
+        connected = 1 << 10
     };
 
     struct TreeNode {
-
-        /**
-         * Data should be allocated using MALLOC,
-         * and should be trivially copyable !!!
-         */
-        void       *data       = nullptr;
 
         const char *name       = nullptr;
         TreeNode   *parent     = nullptr;
@@ -160,12 +153,6 @@ namespace ex {
 
     constexpr bool operator >>= (const node_state &lhs, const node_state &rhs) {
         return (static_cast<uint16_t>(lhs) & static_cast<uint16_t>(rhs)) != 0;
-    }
-
-    namespace state {
-        struct camera {
-            // TODO
-        };
     }
 
 }

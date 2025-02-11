@@ -36,9 +36,6 @@ namespace ex {
             }
             delete[] children;
         }
-
-        if (data != nullptr && data_size > 0)
-            free(data);
     }
 
     TreeNode *TreeNode::shallow_copy() const {
@@ -46,7 +43,6 @@ namespace ex {
         new_node->state      = this->state;
         new_node->parent     = this->parent;
         new_node->children   = nullptr;
-        new_node->data       = nullptr;
         new_node->name       = this->name;
         new_node->index      = this->index;
         new_node->id_local   = this->id_local;
@@ -71,15 +67,6 @@ namespace ex {
 
         new_node->state |= (state & node_state::is_group);
         new_node->state |= (state & node_state::is_link);
-
-        if (data != nullptr && data_size > 0) {
-            void *new_data = malloc(data_size);
-            std::memcpy(new_data, data, data_size);
-            new_node->data = new_data;
-        }
-        else {
-            new_node->data = nullptr;
-        }
 
         if (children_n <= 0 || children == nullptr) {
             new_node->children = nullptr;

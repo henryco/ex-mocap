@@ -57,14 +57,6 @@ namespace ex::gui::test::one {
         return show;
     }
 
-    void from_base(State &state, limbo::nodes::BaseNode *from, TreeNode *to) {
-
-    }
-
-    void from_tree(State &state, TreeNode *from, limbo::nodes::BaseNode *to) {
-
-    }
-
     limbo::nodes::BaseNode *instance(const State &state, TreeNode *from) {
         const auto node = new NodeOne();
         node->set_id(from->id_local);
@@ -113,14 +105,6 @@ namespace ex::gui::test::two {
         ImGui::End();
 
         return show;
-    }
-
-    void from_base(State &state, limbo::nodes::BaseNode *from, TreeNode *to) {
-
-    }
-
-    void from_tree(State &state, TreeNode *from, limbo::nodes::BaseNode *to) {
-
     }
 
     limbo::nodes::BaseNode *instance(const State &state, TreeNode *from) {
@@ -173,14 +157,6 @@ namespace ex::gui::test::tri {
         ImGui::End();
 
         return show;
-    }
-
-    void from_base(State &state, limbo::nodes::BaseNode *from, TreeNode *to) {
-
-    }
-
-    void from_tree(State &state, TreeNode *from, limbo::nodes::BaseNode *to) {
-
     }
 
     limbo::nodes::BaseNode *instance(const State &state, TreeNode *from) {

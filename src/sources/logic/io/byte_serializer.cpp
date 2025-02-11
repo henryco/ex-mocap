@@ -67,9 +67,8 @@ namespace ex::io::bytes {
 
     std::uint16_t flags_node(const TreeNode *node) {
         node_state state = node->state;
-        state += node_state::created;   // always created
+        state -= node_state::created;   // ignore created
         state -= node_state::dimmed;    // ignore dimmed
-        state -= node_state::updated;   // ignore updated
         state -= node_state::selected;  // ignore selected
         state -= node_state::connected; // ignore connected
         return static_cast<uint16_t>(state);

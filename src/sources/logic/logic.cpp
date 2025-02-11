@@ -327,19 +327,6 @@ namespace ex::main {
         }
         else
             ptr_counter_.emplace(node->id_local, 1);
-
-        if (node->state >>= node_state::disabled)
-            return;
-
-        limbo::nodes::BaseNode *node_ptr = gg::nodes_.at(node->id_local);
-
-        if (node->state >>= node_state::updated) {
-            gg::mappers_.at(node->id_node).from_tree(state, node, node_ptr);
-            node->state -= node_state::updated;
-        }
-
-        if (node_ptr->updated())
-            gg::mappers_.at(node->id_node).from_base(state, node_ptr, node);
     }
 
     void Logic::rewire_(State &state) {

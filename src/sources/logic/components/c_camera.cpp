@@ -45,29 +45,7 @@ namespace ex::cmp {
 
 namespace ex::map::camera {
 
-    void from_base(State &state, limbo::nodes::BaseNode *from, TreeNode *to) {
-        if (to->data == nullptr) {
-            // TODO
-        }
-
-        const auto cam = static_cast<ex::camera::Camera *>(from->get_generic_data_ptr());
-        // TODO
-    }
-
-    void from_tree(State &state, TreeNode *from, limbo::nodes::BaseNode *to) {
-        if (from == nullptr || to == nullptr)
-            return;
-
-        const auto camera = static_cast<ex::camera::Camera *>(to->get_generic_data_ptr());
-        if (camera == nullptr)
-            return;
-        // TODO
-    }
-
     limbo::nodes::BaseNode *instance(const State &state, TreeNode *from) {
-        if (from->data != nullptr)
-            delete static_cast<state::camera *>(from->data);
-
         limbo::nodes::BaseNode *node = new cmp::CameraNode(state.ocl_context, state.ocl_device);
         node->set_id(from->id_local);
         return node;
