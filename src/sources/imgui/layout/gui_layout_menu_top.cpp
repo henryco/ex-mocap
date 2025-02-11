@@ -21,7 +21,29 @@ namespace ex::gui {
         ex::gui::plain_tooltip("Unpin windows");
     }
 
+    void show_file_picker(bool *open, ex::State &state, GuiState &gui) {
+        if (!open) return;
+
+        constexpr auto min_size  = ImVec2(900, 500);
+
+        if (!simpfp::FileDialogOpen())
+            simpfp::OpenFileDialog("Select a file", state.project_path);
+
+        if (simpfp::ShowFileDialog("Select a file", open, min_size, true)) {
+            if (static char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
+                state.project_path = file;
+                state.should_save  = true;
+                *open              = false;
+                simpfp::CloseFileDialog();
+            }
+            simpfp::EndFileDialog();
+        }
+    }
+
     void show_menu_top_bar(ex::State &state, GuiState &gui) {
+        static bool file_picker = false;
+        show_file_picker(&file_picker, state, gui);
+
         if (!gui.view.show_menu)
             return;
 
@@ -38,11 +60,12 @@ namespace ex::gui {
                 }
 
                 if (ImGui::MenuItem("Save")) {
+                    //  state.should_save = true;
                     // TODO
                 }
 
                 if (ImGui::MenuItem("Save As")) {
-                    // TODO
+                    file_picker = true;
                 }
 
                 ImGui::Separator();
