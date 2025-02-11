@@ -16,6 +16,7 @@ namespace ex::io {
         bool                empty() const;
         static byte_array   from(const std::uint8_t *data, const std::size_t &size);
         static void         free(byte_array *array);
+        static void         free(byte_array &array);
     };
 }
 

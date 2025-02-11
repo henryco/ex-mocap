@@ -5,7 +5,9 @@
 #include <map>
 #include <ranges>
 
+#include "../../headers/utils/file_utils.h"
 #include "../../headers/logic/components/c_camera.h"
+#include "../../headers/logic/io/byte_serializer.h"
 #include "../../headers/logic/logic_globals.h"
 #include "../../headers/logic/logic.h"
 
@@ -173,8 +175,10 @@ namespace ex::main {
     }
 
     void Logic::serialize_(State &state) {
-        // TODO write to json from clock
-
+        std::cout << "serialize: " << state.project_path << '\n';
+        auto bytes = io::bytes::ByteSerializer().serialize(&state);
+        ex::files::write_binary_file(state.project_path, bytes.data, bytes.size);
+        io::byte_array::free(bytes);
     }
 
     void Logic::deserialize_(State &state) {

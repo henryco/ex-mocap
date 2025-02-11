@@ -28,6 +28,11 @@ void ex::io::byte_array::free(byte_array *array) {
     array->data = nullptr;
 }
 
+void ex::io::byte_array::free(byte_array &array) {
+    limbo::bytebox::out::free_buffer_data(array.data);
+    array.data = nullptr;
+}
+
 namespace ex::io::bytes {
 
     #define TYPE_NODE_ARR 1
@@ -98,14 +103,16 @@ namespace ex::io::bytes {
         // write tree node data
         out::object(buffer, TYPE_NODE_OBJ, sizeof(tree_node_1), serial);
 
-        if (const auto serializable = dynamic_cast<limbo::nodes::Serialization<ByteSerializer> *>(
+        if (ex::logic::globals::node_store().contains(node->id_local)) {
+            if (const auto serializable = dynamic_cast<limbo::nodes::Serialization<ByteSerializer> *>(
                     ex::logic::globals::node_store().at(node->id_local));
             serializable != nullptr)
-        {
-            if (const auto serialized = serializable->serialize(); !serialized.empty()) {
-                // write base node data
-                out::object(buffer, TYPE_NODE_DAT, serialized.size, serialized.data);
-                garbage_collector.tmp_2.push(serialized);
+            {
+                if (const auto serialized = serializable->serialize(); !serialized.empty()) {
+                    // write base node data
+                    out::object(buffer, TYPE_NODE_DAT, serialized.size, serialized.data);
+                    garbage_collector.tmp_2.push(serialized);
+                }
             }
         }
 
