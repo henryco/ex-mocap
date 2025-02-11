@@ -210,7 +210,6 @@ namespace ex::io::bytes {
         for (std::int64_t i = 0; (i = in::next(buffer, data + i)) != -1;) {
 
             if (in::begin_array(buffer)) {
-
                 if (in::array_type(buffer) == TYPE_NODE_BGN) {
                     head = TreeNode::create();
                 }
@@ -224,7 +223,6 @@ namespace ex::io::bytes {
             }
 
             if (in::end_array(buffer)) {
-
                 if (in::array_type(buffer) == TYPE_NODE_BGN) {
                     // TODO finalize new node
                 }
@@ -238,7 +236,6 @@ namespace ex::io::bytes {
             }
 
             if (const auto obj_size_b = in::next_object(buffer)) {
-
                 if (obj_size_b > dst_size) {
                     dst_size = obj_size_b;
                     dst_buff = static_cast<unsigned char *>(realloc(dst_buff, dst_size));
@@ -255,6 +252,7 @@ namespace ex::io::bytes {
 
                 if (in::item_type(buffer) == TYPE_NODE_OBJ) {
                     to_node(reinterpret_cast<const tree_node_1 *>(dst_buff), head);
+                    ex::state::uuid::reset_last_id(head->id_local);
                     continue;
                 }
 
