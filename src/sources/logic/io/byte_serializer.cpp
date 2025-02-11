@@ -118,6 +118,7 @@ namespace ex::io::bytes {
      * 0:  [header(16): b(4), n(4), t(8)]      main container header
      *     -----------------------------------
      * 16: - [header(16): b(4), n(4), t(8)]    node structure header
+     *
      * 32: - [header(16): b(4), n(4), t(8)]    node name header
      * 48: - [string(N):               ...]    node name content
      *
