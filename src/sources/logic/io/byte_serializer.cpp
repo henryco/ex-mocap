@@ -203,15 +203,15 @@ namespace ex::io::bytes {
         auto dst_buff = static_cast<unsigned char *>(malloc(dst_size));
 
         TreeNode  dummy = TreeNode::dummy();
-        TreeNode *root  = &dummy;
-        TreeNode *head  = root;
+        TreeNode *head  = &dummy;
+        TreeNode *node  = head;
 
         auto buffer = in::create_buffer(10, in::mode::OFFSET);
         for (std::int64_t i = 0; (i = in::next(buffer, data + i)) != -1;) {
 
             if (in::begin_array(buffer)) {
                 if (in::array_type(buffer) == TYPE_NODE_BGN) {
-                    head = TreeNode::create();
+                    node = TreeNode::create();
                 }
 
                 if (in::array_type(buffer) == TYPE_NODE_ARR) {
@@ -246,13 +246,13 @@ namespace ex::io::bytes {
                 if (in::item_type(buffer) == TYPE_NODE_NAM) {
                     const auto new_name = new unsigned char[obj_size_b];
                     std::memcpy(new_name, dst_buff, obj_size_b);
-                    head->name = reinterpret_cast<const char *>(new_name);
+                    node->name = reinterpret_cast<const char *>(new_name);
                     continue;
                 }
 
                 if (in::item_type(buffer) == TYPE_NODE_OBJ) {
-                    to_node(reinterpret_cast<const tree_node_1 *>(dst_buff), head);
-                    ex::state::uuid::reset_last_id(head->id_local);
+                    to_node(reinterpret_cast<const tree_node_1 *>(dst_buff), node);
+                    ex::state::uuid::reset_last_id(node->id_local);
                     continue;
                 }
 
