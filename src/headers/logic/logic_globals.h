@@ -15,6 +15,7 @@ namespace ex::logic::globals {
 
     const std::map<id_type, ex::LogicNodeComponent> &node_components();
     std::map<id_node, limbo::nodes::BaseNode *>     &node_store();
+    std::map<id_node, int>                          &node_counter();
 
 }
 

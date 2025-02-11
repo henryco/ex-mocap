@@ -30,4 +30,9 @@ namespace ex::logic::globals {
         return instance;
     }
 
+    std::map<id_node, int> &node_counter() {
+        static std::map<id_node, int> instance;
+        return instance;
+    }
+
 } // namespace ex::logic::globals

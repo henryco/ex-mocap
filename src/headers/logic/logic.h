@@ -5,8 +5,6 @@
 #ifndef LOGIC_H
 #define LOGIC_H
 
-#include <map>
-
 #include "../../../extra/nodes/nodes.h"
 #include "../utils/log_utils.h"
 #include "../state.h"
@@ -31,7 +29,6 @@ namespace ex::main {
 
     class Logic {
     private:
-        std::map<local_id_, int> ptr_counter_ = {};
         limbo::nodes::clock      clock_;
 
         long timestamp = 0;

@@ -14,8 +14,9 @@
 namespace ex::main {
 
     namespace gg {
-        const auto &mappers_ = ex::logic::globals::node_components();
-        auto       &nodes_   = ex::logic::globals::node_store();
+        const auto &mappers_     = ex::logic::globals::node_components();
+        auto       &nodes_       = ex::logic::globals::node_store();
+        auto       &ptr_counter_ = ex::logic::globals::node_counter();
     }
 
     #define update_threshold 1000
@@ -238,8 +239,8 @@ namespace ex::main {
             gg::nodes_.erase(node->id_local);
             base->detach_all_any();
 
-            if (ptr_counter_.contains(node->id_local))
-                ptr_counter_.erase(node->id_local);
+            if (gg::ptr_counter_.contains(node->id_local))
+                gg::ptr_counter_.erase(node->id_local);
 
             delete base;
         }
@@ -321,12 +322,12 @@ namespace ex::main {
         if ((node->state >>= node_state::is_group) || (node->state >>= node_state::is_link) || !gg::nodes_.contains(node->id_local))
             return;
 
-        if (ptr_counter_.contains(node->id_local)) {
-            const auto v = ptr_counter_.at(node->id_local);
-            ptr_counter_.at(node->id_local) = std::min(v + 1, 10000000);
+        if (gg::ptr_counter_.contains(node->id_local)) {
+            const auto v = gg::ptr_counter_.at(node->id_local);
+            gg::ptr_counter_.at(node->id_local) = std::min(v + 1, 10000000);
         }
         else
-            ptr_counter_.emplace(node->id_local, 1);
+            gg::ptr_counter_.emplace(node->id_local, 1);
     }
 
     void Logic::rewire_(State &state) {
@@ -396,7 +397,7 @@ namespace ex::main {
     void Logic::gc_(State &_) {
         log->debug("start node gc");
 
-        for (auto it = ptr_counter_.begin(); it != ptr_counter_.end(); /*nop*/) {
+        for (auto it = gg::ptr_counter_.begin(); it != gg::ptr_counter_.end(); /*nop*/) {
             const auto id_local = it->first;
             if (it->second <= 0) {
 
@@ -405,7 +406,7 @@ namespace ex::main {
                     gg::nodes_.erase(id_local);
                 }
 
-                it = ptr_counter_.erase(it);
+                it = gg::ptr_counter_.erase(it);
 
                 log->debug("node gc remove: {}", id_local);
             } else {
