@@ -187,15 +187,46 @@ namespace ex::io::bytes {
         for (std::int64_t i = 0; (i = in::next(buffer, data >> i)) != -1;) {
 
             if (in::begin_array(buffer)) {
-                // todo
+
+                if (in::array_type(buffer) == TYPE_NODE_BGN) {
+                    // TODO create new node
+                }
+
+                if (in::array_type(buffer) == TYPE_NODE_ARR) {
+                    // TODO create node children
+                }
+
+                if (in::array_type(buffer) == TYPE_ARRAY)
+                    ; // very beginning
             }
 
             if (in::end_array(buffer)) {
-                // todo
+
+                if (in::array_type(buffer) == TYPE_NODE_BGN) {
+                    // TODO finalize new node
+                }
+
+                if (in::array_type(buffer) == TYPE_NODE_ARR) {
+                    // TODO finalize node children
+                }
+
+                if (in::array_type(buffer) == TYPE_ARRAY)
+                    ; // should be very end
             }
 
             if (const auto obj_size_b = in::next_object(buffer)) {
-                // todo
+
+                if (in::item_type(buffer) == TYPE_NODE_NAM) {
+                    // TODO node name
+                }
+
+                if (in::item_type(buffer) == TYPE_NODE_OBJ) {
+                    // TODO node structure
+                }
+
+                if (in::item_type(buffer) == TYPE_NODE_DAT) {
+                    // TODO node data
+                }
             }
 
         }
