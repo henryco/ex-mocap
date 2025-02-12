@@ -15,11 +15,11 @@ namespace ex::logic::globals {
 
     State &get_global_state();
 
-    const std::map<id_type, ex::LogicNodeComponent>    &node_components();
+    const std::map<id_type, ex::LogicNodeComponent> &node_components();
 
     const std::map<id_local, limbo::nodes::BaseNode *> &node_store();
 
-    limbo::nodes::BaseNode *get_node(const id_local&);
+    limbo::nodes::BaseNode *get_node(const id_local &);
 
     void store_node(const id_local &, limbo::nodes::BaseNode *);
 
