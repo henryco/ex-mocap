@@ -20,12 +20,11 @@ namespace ex::gui::tree {
         }
 
         if (inspected_base == nullptr) {
-            if (!ex::logic::globals::node_store().contains(inspected_node->id_local)) {
+            inspected_base = ex::logic::globals::get_node(inspected_node->id_local);
+            if (inspected_base == nullptr) {
                 inspection_open = false;
                 return;
             }
-
-            inspected_base = ex::logic::globals::node_store().at(inspected_node->id_local);
         }
 
         const auto rf = ex::gui::window_reset_flags(gui.view.reset, true);
