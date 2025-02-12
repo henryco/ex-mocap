@@ -244,6 +244,8 @@ namespace ex::io::bytes {
                 else if (in::item_type(buffer) == TYPE_NODE_OBJ) {
                     to_node(reinterpret_cast<const tree_node_1 *>(bb.data), node);
                     ex::state::uuid::set_last_id(node->id_local);
+
+                    // TODO instance
                 }
 
                 else if (in::item_type(buffer) == TYPE_NODE_DAT) {

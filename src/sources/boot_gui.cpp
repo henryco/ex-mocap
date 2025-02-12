@@ -7,6 +7,7 @@
 #include "../headers/logic/logic.h"
 #include "../headers/cl/cl_gl_interop.h"
 #include "../headers/utils/gl_utils.h"
+#include "../headers/logic/logic_globals.h"
 
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -107,7 +108,9 @@ namespace ex::boot {
 
     int gui(int, char **, const char *project_path) {
 
-        State state{ .project_path = project_path };
+        State &state = ex::logic::globals::get_global_state();
+        state.project_path = project_path;
+
         gui_set_target_fps(state, 60);
 
         log->info("Application context created");

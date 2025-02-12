@@ -17,6 +17,11 @@ namespace ex::logic::globals {
         return instance;
     }
 
+    State &get_global_state() {
+        static State instance;
+        return instance;
+    }
+
     const std::map<id_type, ex::LogicNodeComponent> &node_components() {
         // TODO REPLACE WITH REAL COMPONENTS
         static const std::map<id_type, ex::LogicNodeComponent> instance = {

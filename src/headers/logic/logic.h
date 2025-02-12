@@ -24,14 +24,9 @@ namespace ex::main {
         }
     };
 
-    using local_id_ = std::uint32_t;
-    using type_id_  = std::uint64_t;
-
     class Logic {
     private:
-        limbo::nodes::clock      clock_;
-
-        long timestamp = 0;
+        limbo::nodes::clock clock_;
 
     public:
         static inline const auto log = logs::get_logger("logic");
