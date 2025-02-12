@@ -16,7 +16,7 @@ const std::uint8_t &ex::io::byte_array::operator [] (const std::size_t &index) c
 
 const std::uint8_t *ex::io::byte_array::operator + (const std::size_t &index) const {
     if (index >= size) {
-        std::cerr << "Fatal Error: Attempt to read byte array data out of bound" << std::endl;
+        std::cerr << "Fatal Error: Attempt to read byte array data out of bound, size: " << size << ", index: " << index << std::endl;
         std::abort();
     }
     return data + index;
@@ -221,8 +221,11 @@ namespace ex::io::bytes {
         std::int64_t i = in::offset(buffer);
         while ((i = in::next(buffer, data + i)) != -1) {
 
-            if (in::begin_array(buffer)) {
+            if (i == data.size) {
+                i = 0; // last element
+            }
 
+            if (in::begin_array(buffer)) {
                 if (in::array_type(buffer) == TYPE_NODE_BGN) {
                     node = TreeNode::create();
                 }
@@ -232,12 +235,12 @@ namespace ex::io::bytes {
                     i = in::offset(buffer);
                 }
 
-                else if (in::array_type(buffer) == TYPE_ARRAY)
-                    ; // very beginning
+                else if (in::array_type(buffer) == TYPE_ARRAY) {
+                    // very beginning
+                }
             }
 
-            else if (const auto obj_size_b = in::next_object(buffer)) {
-
+            if (const auto obj_size_b = in::next_object(buffer)) {
                 if (node == nullptr) {
                     std::cerr << "Fatal Error: TreeNode is NULL" << std::endl;
                     std::abort();
@@ -273,8 +276,7 @@ namespace ex::io::bytes {
                 }
             }
 
-            else if (in::end_array(buffer)) {
-
+            if (in::end_array(buffer)) {
                 if (in::array_type(buffer) == TYPE_NODE_BGN) {
                     if (node == nullptr) {
                         std::cerr << "Fatal Error: TreeNode is NULL" << std::endl;
@@ -286,11 +288,14 @@ namespace ex::io::bytes {
                     node = nullptr;
                 }
 
-                else if (in::array_type(buffer) == TYPE_NODE_ARR)
+                else if (in::array_type(buffer) == TYPE_NODE_ARR) {
+                    // TODO FIXME
                     return; // back to parent
+                }
 
-                else if (in::array_type(buffer) == TYPE_ARRAY)
-                    ; // should be very end
+                else if (in::array_type(buffer) == TYPE_ARRAY) {
+                    // should be very end
+                }
             }
 
         }
@@ -317,6 +322,8 @@ namespace ex::io::bytes {
         byte_buffer bb;
 
         TreeNode base   = TreeNode::dummy();
+        base.name       = "base";
+        base.id_local   = 141006542;
         base.children   = new TreeNode *[1];
         base.children_n = 1;
 

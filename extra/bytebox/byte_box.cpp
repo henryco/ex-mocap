@@ -139,6 +139,15 @@ namespace limbo::bytebox::in {
             }
 
             buff.stack[buff.stack.size - 1] += total;
+
+            // all bytes read, finish
+            if ((buff.total) > 0 && (static_cast<std::int64_t>(buff.total) - static_cast<std::int64_t>(buff.bread)) <= 0)
+                return EOF;
+
+            buff.next_skip  = false;
+            buff.array_end  = false;
+            buff.next_bytes = sizeof(header);
+            return (buff.read_mode == CHUNKS) ? sizeof(header) : buff.bread;
         }
 
         buff.array_start = false;
