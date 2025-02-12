@@ -15,11 +15,12 @@
 #include "gui_component.h"
 
 namespace ex::gui {
-    limbo::undo::history<ex::State> &undo_history();
 
     logs::logger &logger();
 
     keys::KeyMapping &key_mappings();
+
+    limbo::undo::history<ex::State> &undo_history();
 
     const std::map<std::size_t, ex::gui::GuiNodeComponent> &node_components();
 
