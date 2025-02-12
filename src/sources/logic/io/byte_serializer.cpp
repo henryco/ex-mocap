@@ -103,12 +103,12 @@ namespace ex::io::bytes {
         if (to->state >>= node_state::is_link)
             return;
 
-        if (!ex::logic::globals::node_components().contains(to->id_node))
+        if (!ex::logic::state::node_components().contains(to->id_node))
             return;
 
-        const auto mappers = ex::logic::globals::node_components().at(to->id_node);
-        const auto instance = mappers.instance(ex::logic::globals::get_global_state(), to);
-        ex::logic::globals::store_node(to->id_local, instance);
+        const auto mappers = ex::logic::state::node_components().at(to->id_node);
+        const auto instance = mappers.instance(ex::logic::state::get_global_state(), to);
+        ex::logic::state::store_node(to->id_local, instance);
     }
 
     struct gc {
@@ -188,7 +188,7 @@ namespace ex::io::bytes {
             out::object(buffer, TYPE_NODE_OBJ, sizeof(tree_node_1), serial);
 
             if (const auto serializable = dynamic_cast<limbo::nodes::Serialization<ByteSerializer> *>(
-                        ex::logic::globals::get_node(node->id_local));
+                        ex::logic::state::get_node(node->id_local));
                 serializable != nullptr)
             {
                 if (const auto serialized = serializable->serialize(); !serialized.empty()) {
@@ -260,7 +260,7 @@ namespace ex::io::bytes {
                     if (node->state >>= node_state::is_link)
                         continue;
 
-                    const auto base_node = ex::logic::globals::get_node(node->id_local);
+                    const auto base_node = ex::logic::state::get_node(node->id_local);
                     if (base_node == nullptr)
                         continue;
 

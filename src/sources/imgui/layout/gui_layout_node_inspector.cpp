@@ -20,7 +20,7 @@ namespace ex::gui::tree {
         }
 
         if (inspected_base == nullptr) {
-            inspected_base = ex::logic::globals::get_node(inspected_node->id_local);
+            inspected_base = ex::logic::state::get_node(inspected_node->id_local);
             if (inspected_base == nullptr) {
                 inspection_open = false;
                 return;

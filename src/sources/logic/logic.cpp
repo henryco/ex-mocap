@@ -244,16 +244,16 @@ namespace ex::main {
         if (!moved &&
             !(node->state >>= node_state::is_link) &&
             !(node->state >>= node_state::is_group)) {
-            ex::logic::globals::remove_node(node->id_local);
+            ex::logic::state::remove_node(node->id_local);
         }
 
         if (moved && !(node->state >>= node_state::is_link) && !(node->state >>= node_state::is_group)) {
-            const auto base = ex::logic::globals::get_node(node->id_local);
-            const auto r_func = ex::logic::globals::node_components().at(node->id_node).relocate;
+            const auto base = ex::logic::state::get_node(node->id_local);
+            const auto r_func = ex::logic::state::node_components().at(node->id_node).relocate;
             if (r_func != nullptr) {
                 const auto new_one = r_func(state, node, base);
                 if (base != new_one) {
-                    ex::logic::globals::replace_node(node->id_local, new_one);
+                    ex::logic::state::replace_node(node->id_local, new_one);
                 }
             }
         }
@@ -311,8 +311,8 @@ namespace ex::main {
         if ((node->state >>= node_state::created) || fresh) {
 
             if (!(node->state >>= node_state::is_group) && !(node->state >>= node_state::is_link)) {
-                const LogicNodeComponent &mappers = ex::logic::globals::node_components().at(node->id_node);
-                ex::logic::globals::store_node(node->id_local, mappers.instance(state, node));
+                const LogicNodeComponent &mappers = ex::logic::state::node_components().at(node->id_node);
+                ex::logic::state::store_node(node->id_local, mappers.instance(state, node));
             }
 
             node->state -= node_state::created;
@@ -322,14 +322,14 @@ namespace ex::main {
         if ((node->state >>= node_state::is_group) || (node->state >>= node_state::is_link))
             return;
 
-        ex::logic::globals::update_counter(node->id_local);
+        ex::logic::state::update_counter(node->id_local);
     }
 
     void Logic::rewire_(State &state) {
         log->debug("rewire");
 
         clock_.detach_all();
-        for (const auto &node: ex::logic::globals::node_store() | std::views::values) {
+        for (const auto &node: ex::logic::state::node_storage() | std::views::values) {
             node->detach_all_any();
         }
 
@@ -348,7 +348,7 @@ namespace ex::main {
             return;
         }
 
-        const auto base_node = ex::logic::globals::get_node(node->id_local);
+        const auto base_node = ex::logic::state::get_node(node->id_local);
         if (base_node == nullptr) {
             log->error("Node is nullptr: {}", node->id_local);
             return;
@@ -386,7 +386,7 @@ namespace ex::main {
 
     void Logic::gc_(State &_) {
         log->debug("start node gc");
-        ex::logic::globals::cleanup_nodes();
+        ex::logic::state::cleanup_nodes();
         log->debug("complete node gc");
     }
 
@@ -451,7 +451,7 @@ namespace ex::main {
         to->state -= node_state::connected;
 
         const std::size_t from_id_local = (from->state >>= node_state::is_link) ? from->id_link : from->id_local;
-        const auto node_src = ex::logic::globals::get_node(from_id_local);
+        const auto node_src = ex::logic::state::get_node(from_id_local);
 
         if ((from->state >>= node_state::is_link) && node_src == nullptr) {
             log->warn("Cannot connect shared node, reference deleted: {}", from_id_local);
@@ -459,7 +459,7 @@ namespace ex::main {
             return false;
         }
 
-        const auto node_dst = ex::logic::globals::get_node(to->id_local);
+        const auto node_dst = ex::logic::state::get_node(to->id_local);
         if (node_dst == nullptr || node_src == nullptr) {
             log->error("One of nodes does not exist: {}, {}", to->id_local, from_id_local);
             return false;

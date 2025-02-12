@@ -5,7 +5,7 @@
 #include "../../headers/logic/logic_globals.h"
 #include "../../headers/imgui/cmp/test_cmp.h"
 
-namespace ex::logic::globals {
+namespace ex::logic::state {
 
     std::map<id_local, int> &node_counter_() {
         static std::map<id_local, int> instance;
@@ -40,7 +40,7 @@ namespace ex::logic::globals {
         return instance;
     }
 
-    const std::map<id_local, limbo::nodes::BaseNode *> &node_store() {
+    const std::map<id_local, limbo::nodes::BaseNode *> &node_storage() {
         return node_store_();
     }
 
