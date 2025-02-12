@@ -315,12 +315,13 @@ namespace ex::io::bytes {
         in::buffer  buffer = in::create_buffer(10, in::mode::OFFSET);
         byte_buffer bb;
 
-        TreeNode  base = TreeNode::dummy();
+        TreeNode base   = TreeNode::dummy();
         base.children   = new TreeNode *[1];
         base.children_n = 1;
 
         read_tree(buffer, data, bb, &base);
-        state->work_tree = base.children[0];
+        state->work_tree         = base.children[0];
+        state->work_tree->parent = nullptr;
 
         base.children[0] = nullptr;
         base.children_n  = 0;

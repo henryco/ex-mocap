@@ -116,6 +116,7 @@ namespace ex {
         bool            force_sync     = false;
         bool            force_rewire   = false;
         bool            should_save    = false;
+        bool            should_open    = false;
     };
 
     /** OR */

@@ -165,6 +165,11 @@ namespace ex::main {
             serialize_(state);
         }
 
+        if (state.should_open) {
+            state.should_open = false;
+            deserialize_(state);
+        }
+
         synchronize_(state);
         process_(state);
     }
@@ -178,7 +183,24 @@ namespace ex::main {
     }
 
     void Logic::deserialize_(State &state) {
-        // TODO read from json to clock
+        log->info("deserialization start: {}", state.project_path);
+
+        std::size_t size;
+        const auto data = ex::files::read_binary_file(state.project_path, &size);
+
+        const auto new_state =
+                static_cast<State *>(io::bytes::ByteSerializer().deserialize(io::byte_array::from(data, size)));
+
+        if (state.work_tree != nullptr)
+            delete state.work_tree;
+
+        state.work_tree    = new_state->work_tree;
+        state.force_sync   = true;
+        state.force_rewire = true;
+
+        delete new_state;
+        delete[] data;
+        log->info("deserialization complete: {}", state.project_path);
     }
 
     void Logic::process_(State &_) {
@@ -189,7 +211,7 @@ namespace ex::main {
         const auto now = std::chrono::high_resolution_clock::now().time_since_epoch().count();
         static long timestamp = 0;
 
-        if (!state.force_sync) {
+        if (!state.force_sync && !state.force_rewire) {
             if (const auto elapsed = now - timestamp; elapsed < update_threshold)
                 return;
         }

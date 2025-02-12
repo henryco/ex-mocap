@@ -7,7 +7,9 @@
 
 namespace ex::files {
 
-    void write_binary_file(const char *path, const unsigned char *data, unsigned long long size);
+    void write_binary_file(const char *path, const unsigned char *data, long unsigned int size);
+
+    unsigned char *read_binary_file(const char *path, long unsigned int *size);
 
 }
 
