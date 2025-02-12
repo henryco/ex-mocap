@@ -218,11 +218,18 @@ namespace ex::io::bytes {
 
     void read_tree(in::buffer &buffer, const byte_array &data, byte_buffer &bb, TreeNode *head) {
         bool prev_arr_end = false;
+        bool should_stop  = false;
 
         std::int64_t i = in::offset(buffer);
         TreeNode    *node = nullptr;
 
         while ((i = in::next(buffer, data + i)) != -1) {
+
+            if (should_stop) {
+                std::cerr << "Fatal Error(0): EOF" << std::endl;
+                std::abort();
+                // TODO ERROR HANDLER
+            }
 
             if (in::begin_array(buffer)) {
                 if (in::array_type(buffer) == TYPE_NODE_BGN) {
@@ -298,7 +305,7 @@ namespace ex::io::bytes {
                 }
 
                 else if (in::array_type(buffer) == TYPE_ARRAY) {
-                    // should be very end
+                    should_stop = true;
                 }
             }
         }
