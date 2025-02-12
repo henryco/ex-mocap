@@ -375,8 +375,9 @@ namespace ex::io::bytes {
     void *ByteSerializer::deserialize(const byte_array &data) const {
         const auto state = new ex::State;
 
-        in::buffer  buffer = in::create_buffer(10, in::mode::OFFSET);
+        in::buffer  buffer = in::create_buffer(50, in::mode::OFFSET);
         byte_buffer bb;
+        bb.allocate(64);
 
         TreeNode base   = TreeNode::dummy();
         base.name       = "base";
@@ -386,12 +387,19 @@ namespace ex::io::bytes {
 
         state::uuid::reset_last_id();
 
+        const auto t0 = std::chrono::high_resolution_clock::now();
+
         read_tree(buffer, data, bb, &base);
+
+        const auto t1 = std::chrono::high_resolution_clock::now();
+
         state->work_tree         = base.children[0];
         state->work_tree->parent = nullptr;
 
         base.children[0] = nullptr;
         base.children_n  = 0;
+
+        ex::logic::globals::logger()->debug("deserialization time: {} ns", (t1 - t0).count());
 
         return state;
     }

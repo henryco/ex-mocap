@@ -12,6 +12,11 @@ namespace ex::logic::globals {
         return instance;
     }
 
+    logs::logger &logger() {
+        static ex::logs::logger log = ex::logs::get_logger("logic_global");
+        return log;
+    }
+
     const std::map<id_type, ex::LogicNodeComponent> &node_components() {
         // TODO REPLACE WITH REAL COMPONENTS
         static const std::map<id_type, ex::LogicNodeComponent> instance = {

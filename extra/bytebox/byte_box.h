@@ -177,6 +177,6 @@ namespace limbo::bytebox {
 
     } // namespace in
 
-} // namespace ex::io::box
+}
 
 #endif // BYTE_BOX_H

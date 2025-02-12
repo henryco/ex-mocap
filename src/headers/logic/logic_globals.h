@@ -7,6 +7,7 @@
 
 #include <map>
 #include "logic_component.h"
+#include "../utils/log_utils.h"
 #include "../state.h"
 
 namespace ex::logic::globals {
@@ -15,6 +16,8 @@ namespace ex::logic::globals {
     using id_local = std::uint32_t;
 
     State &get_state();
+
+    logs::logger &logger();
 
     const std::map<id_type, ex::LogicNodeComponent> &node_components();
 
