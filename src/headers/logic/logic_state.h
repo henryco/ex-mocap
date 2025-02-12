@@ -13,7 +13,7 @@ namespace ex::logic::state {
     using id_type  = std::uint64_t;
     using id_local = std::uint32_t;
 
-    State &get_global_state();
+    State &get_state();
 
     const std::map<id_type, ex::LogicNodeComponent> &node_components();
 
