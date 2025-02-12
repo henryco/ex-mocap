@@ -99,6 +99,16 @@ namespace ex::io::bytes {
         to->index      = from->index;
         to->state      = static_cast<node_state>(from->flags);
         to->children   = new TreeNode *[to->children_n];
+
+        if (to->state >>= node_state::is_link)
+            return;
+
+        if (!ex::logic::globals::node_components().contains(to->id_node))
+            return;
+
+        const auto mappers = ex::logic::globals::node_components().at(to->id_node);
+        const auto instance = mappers.instance(ex::logic::globals::get_global_state(), to);
+        ex::logic::globals::store_node(to->id_local, instance);
     }
 
     struct gc {
@@ -232,24 +242,33 @@ namespace ex::io::bytes {
                     std::abort();
                 }
 
-                bb.allocate(obj_size_b);
-                std::memcpy(bb.data, data + i, obj_size_b);
-
                 if (in::item_type(buffer) == TYPE_NODE_NAM) {
+                    bb.allocate(obj_size_b);
+                    std::memcpy(bb.data, data + i, obj_size_b);
+
                     const auto new_name = new unsigned char[obj_size_b];
                     std::memcpy(new_name, bb.data, obj_size_b);
                     node->name = reinterpret_cast<const char *>(new_name);
                 }
 
                 else if (in::item_type(buffer) == TYPE_NODE_OBJ) {
-                    to_node(reinterpret_cast<const tree_node_1 *>(bb.data), node);
+                    to_node(reinterpret_cast<const tree_node_1 *>(data + i), node);
                     ex::state::uuid::set_last_id(node->id_local);
-
-                    // TODO instance
                 }
 
                 else if (in::item_type(buffer) == TYPE_NODE_DAT) {
-                    // TODO node data
+                    if (node->state >>= node_state::is_link)
+                        continue;
+
+                    const auto base_node = ex::logic::globals::get_node(node->id_local);
+                    if (base_node == nullptr)
+                        continue;
+
+                    const auto serializable = dynamic_cast<limbo::nodes::Serialization<ByteSerializer> *>(base_node);
+                    if (serializable == nullptr)
+                        continue;
+
+                    serializable->deserialize(byte_array::from(data + i, obj_size_b));
                 }
             }
 
@@ -309,4 +328,4 @@ namespace ex::io::bytes {
         return state;
     }
 
-} // namespace ex::io::bytes
+}
