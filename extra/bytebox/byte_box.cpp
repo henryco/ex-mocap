@@ -142,7 +142,17 @@ namespace limbo::bytebox::in {
 
             // all bytes read, finish
             if ((buff.total) > 0 && (static_cast<std::int64_t>(buff.total) - static_cast<std::int64_t>(buff.bread)) <= 0)
-                return (buff.read_mode == CHUNKS) ? 0 : buff.bread;
+                return (buff.read_mode == CHUNKS) ? SKIP : buff.bread;
+
+            if (!buff.stack.empty() && !buff.items.empty()) {
+                // end of an array
+                if (item_index(buff) >= (array_count(buff) - 1)) {
+                    buff.next_bytes = 0;
+                    buff.array_end  = true;
+                    buff.next_skip  = false;
+                    return (buff.read_mode == CHUNKS) ? SKIP : buff.bread;
+                }
+            }
 
             buff.next_skip  = false;
             buff.array_end  = false;
