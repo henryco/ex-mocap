@@ -74,6 +74,7 @@ namespace ex {
     };
 
     struct selection_node {
+        // probably should move the fuck out there
         selection_node *root     = nullptr;
         selection_node *next     = nullptr;
         selection_node *prev     = nullptr;
@@ -90,6 +91,7 @@ namespace ex {
     };
 
     struct node_buffer {
+        // probably should move the fuck out there
         selection_node *selection = nullptr;
         bool            move      = false;
         bool            ref       = false;
