@@ -9,7 +9,7 @@
 
 namespace ex::gui {
 
-    void end_pin_button(ex::State &state, GuiState &gui) {
+    void end_pin_button(ex::State &, GuiState &gui) {
         const auto icon = gui.view.docking ? ICON_LC_PIN_OFF : ICON_LC_PIN;
         ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(icon).x
                 - ImGui::GetStyle().FramePadding.x * 3 - ImGui::GetStyle().ItemSpacing.x * 1);
@@ -21,15 +21,18 @@ namespace ex::gui {
         ex::gui::plain_tooltip("Unpin windows");
     }
 
-    void show_file_picker(bool *open, ex::State &state, GuiState &gui) {
+    void show_save_file_picker(bool *open, ex::State &state, GuiState &) {
         if (!open) return;
 
         constexpr auto min_size  = ImVec2(900, 500);
+        static constexpr simpfp::Labels labels {
+            .main_accept = "Save"
+        };
 
         if (!simpfp::FileDialogOpen())
-            simpfp::OpenFileDialog("Select a file", state.project_path);
+            simpfp::OpenFileDialog("Save a file", state.project_path, nullptr, &labels);
 
-        if (simpfp::ShowFileDialog("Select a file", open, min_size, true)) {
+        if (simpfp::ShowFileDialog("Save a file", open, min_size, true)) {
             if (static char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
                 state.project_path = file;
                 state.should_save  = true;
@@ -40,9 +43,34 @@ namespace ex::gui {
         }
     }
 
+    void show_open_file_picker(bool *open, ex::State &state, GuiState &) {
+        if (!open) return;
+
+        constexpr auto min_size  = ImVec2(900, 500);
+        static constexpr simpfp::Labels labels {
+            .main_accept = "Open"
+        };
+
+        if (!simpfp::FileDialogOpen())
+            simpfp::OpenFileDialog("Open a file", state.project_path, nullptr, &labels);
+
+        if (simpfp::ShowFileDialog("Open a file", open, min_size, true)) {
+            if (static char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
+                state.project_path = file;
+                state.should_open  = true;
+                *open              = false;
+                simpfp::CloseFileDialog();
+            }
+            simpfp::EndFileDialog();
+        }
+    }
+
     void show_menu_top_bar(ex::State &state, GuiState &gui) {
-        static bool file_picker = false;
-        show_file_picker(&file_picker, state, gui);
+        static bool file_picker_save = false;
+        static bool file_picker_open = false;
+
+        show_open_file_picker(&file_picker_open, state, gui);
+        show_save_file_picker(&file_picker_save, state, gui);
 
         if (!gui.view.show_menu)
             return;
@@ -56,16 +84,16 @@ namespace ex::gui {
                 }
 
                 if (ImGui::MenuItem("Open")) {
-                    // TODO
+                    file_picker_open = true;
                 }
 
                 if (ImGui::MenuItem("Save")) {
-                    //  state.should_save = true;
+                    file_picker_save = true;
                     // TODO
                 }
 
                 if (ImGui::MenuItem("Save As")) {
-                    file_picker = true;
+                    file_picker_save = true;
                 }
 
                 ImGui::Separator();
