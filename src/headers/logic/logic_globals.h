@@ -27,7 +27,7 @@ namespace ex::logic::state {
 
     void remove_node(const id_local &);
 
-    void update_counter(const id_local &);
+    void inc_node_counter(const id_local &);
 
     void cleanup_nodes();
 

@@ -322,7 +322,7 @@ namespace ex::main {
         if ((node->state >>= node_state::is_group) || (node->state >>= node_state::is_link))
             return;
 
-        ex::logic::state::update_counter(node->id_local);
+        ex::logic::state::inc_node_counter(node->id_local);
     }
 
     void Logic::rewire_(State &state) {

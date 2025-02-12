@@ -53,7 +53,7 @@ namespace ex::logic::state {
     void store_node(const id_local &id, limbo::nodes::BaseNode *node) {
         if (!node_store_().contains(id))
             node_store_().emplace(id, node);
-        update_counter(id);
+        inc_node_counter(id);
     }
 
     void replace_node(const id_local &id, limbo::nodes::BaseNode *node) {
@@ -78,7 +78,7 @@ namespace ex::logic::state {
             node_counter_().erase(id);
     }
 
-    void update_counter(const id_local &id) {
+    void inc_node_counter(const id_local &id) {
         if (node_counter_().contains(id)) {
             const auto v          = node_counter_().at(id);
             node_counter_().at(id) = std::min(v + 1, 10000000);
