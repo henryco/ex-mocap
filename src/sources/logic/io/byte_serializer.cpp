@@ -6,7 +6,7 @@
 #include <cstring>
 
 #include "../../../headers/logic/io/byte_serializer.h"
-#include "../../../headers/logic/logic_globals.h"
+#include "../../../headers/logic/logic_state.h"
 #include "../../../headers/state.h"
 
 const std::uint8_t &ex::io::byte_array::operator [] (const std::size_t &index) const {

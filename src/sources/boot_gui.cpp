@@ -7,7 +7,7 @@
 #include "../headers/logic/logic.h"
 #include "../headers/cl/cl_gl_interop.h"
 #include "../headers/utils/gl_utils.h"
-#include "../headers/logic/logic_globals.h"
+#include "../headers/logic/logic_state.h"
 
 #include <GLFW/glfw3.h>
 #include <iostream>

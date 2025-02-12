@@ -2,8 +2,8 @@
 // Created by xd on 31/01/25.
 //
 
-#ifndef LOGIC_GLOBALS_H
-#define LOGIC_GLOBALS_H
+#ifndef LOGIC_STATE_H
+#define LOGIC_STATE_H
 
 #include <map>
 #include "logic_component.h"
@@ -33,4 +33,4 @@ namespace ex::logic::state {
 
 }
 
-#endif //LOGIC_GLOBALS_H
+#endif //LOGIC_STATE_H
