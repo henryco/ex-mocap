@@ -135,6 +135,7 @@ set(HEADER_FILES
         src/headers/logic/logic_state.h
         src/headers/logic/io/byte_serializer.h
         src/headers/utils/file_utils.h
+        src/headers/logic/logic_globals.h
 )
 
 set(SOURCE_FILES
@@ -171,6 +172,7 @@ set(SOURCE_FILES
         src/sources/logic/logic_state.cpp
         src/sources/logic/io/byte_serializer.cpp
         src/sources/utils/file_utils.cpp
+        src/sources/logic/logic_globals.cpp
 )
 
 # =================== OpenCL kernels generation =====================

@@ -6,6 +6,7 @@
 #include <cstring>
 
 #include "../../../headers/logic/io/byte_serializer.h"
+#include "../../../headers/logic/logic_globals.h"
 #include "../../../headers/logic/logic_state.h"
 #include "../../../headers/state.h"
 
@@ -103,11 +104,11 @@ namespace ex::io::bytes {
         if (to->state >>= node_state::is_link)
             return;
 
-        if (!ex::logic::state::node_components().contains(to->id_node))
+        if (!ex::logic::globals::node_components().contains(to->id_node))
             return;
 
-        const auto mappers = ex::logic::state::node_components().at(to->id_node);
-        const auto instance = mappers.instance(ex::logic::state::get_state(), to);
+        const auto mappers = ex::logic::globals::node_components().at(to->id_node);
+        const auto instance = mappers.instance(ex::logic::globals::get_state(), to);
         ex::logic::state::store_node(to->id_local, instance);
     }
 

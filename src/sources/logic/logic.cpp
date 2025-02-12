@@ -8,6 +8,7 @@
 #include "../../headers/utils/file_utils.h"
 #include "../../headers/logic/components/c_camera.h"
 #include "../../headers/logic/io/byte_serializer.h"
+#include "../../headers/logic/logic_globals.h"
 #include "../../headers/logic/logic_state.h"
 #include "../../headers/logic/logic.h"
 
@@ -249,7 +250,7 @@ namespace ex::main {
 
         if (moved && !(node->state >>= node_state::is_link) && !(node->state >>= node_state::is_group)) {
             const auto base = ex::logic::state::get_node(node->id_local);
-            const auto r_func = ex::logic::state::node_components().at(node->id_node).relocate;
+            const auto r_func = ex::logic::globals::node_components().at(node->id_node).relocate;
             if (r_func != nullptr) {
                 const auto new_one = r_func(state, node, base);
                 if (base != new_one) {
@@ -311,7 +312,7 @@ namespace ex::main {
         if ((node->state >>= node_state::created) || fresh) {
 
             if (!(node->state >>= node_state::is_group) && !(node->state >>= node_state::is_link)) {
-                const LogicNodeComponent &mappers = ex::logic::state::node_components().at(node->id_node);
+                const LogicNodeComponent &mappers = ex::logic::globals::node_components().at(node->id_node);
                 ex::logic::state::store_node(node->id_local, mappers.instance(state, node));
             }
 

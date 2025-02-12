@@ -8,6 +8,7 @@
 #include "../headers/cl/cl_gl_interop.h"
 #include "../headers/utils/gl_utils.h"
 #include "../headers/logic/logic_state.h"
+#include "../headers/logic/logic_globals.h"
 
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -108,7 +109,7 @@ namespace ex::boot {
 
     int gui(int, char **, const char *project_path) {
 
-        State &state = ex::logic::state::get_state();
+        State &state = ex::logic::globals::get_state();
         state.project_path = project_path;
 
         gui_set_target_fps(state, 60);

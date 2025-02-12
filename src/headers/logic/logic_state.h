@@ -13,10 +13,6 @@ namespace ex::logic::state {
     using id_type  = std::uint64_t;
     using id_local = std::uint32_t;
 
-    State &get_state();
-
-    const std::map<id_type, ex::LogicNodeComponent> &node_components();
-
     const std::map<id_local, limbo::nodes::BaseNode *> &node_storage();
 
     limbo::nodes::BaseNode *get_node(const id_local &);
