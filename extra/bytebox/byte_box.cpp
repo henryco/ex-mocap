@@ -142,7 +142,7 @@ namespace limbo::bytebox::in {
 
             // all bytes read, finish
             if ((buff.total) > 0 && (static_cast<std::int64_t>(buff.total) - static_cast<std::int64_t>(buff.bread)) <= 0)
-                return EOF;
+                return (buff.read_mode == CHUNKS) ? 0 : buff.bread;
 
             buff.next_skip  = false;
             buff.array_end  = false;

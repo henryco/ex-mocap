@@ -11,14 +11,14 @@
 #include "../../../headers/state.h"
 
 const std::uint8_t &ex::io::byte_array::operator [] (const std::size_t &index) const {
-    return data[index];
-}
-
-const std::uint8_t *ex::io::byte_array::operator + (const std::size_t &index) const {
     if (index >= size) {
         std::cerr << "Fatal Error: Attempt to read byte array data out of bound, size: " << size << ", index: " << index << std::endl;
         std::abort();
     }
+    return data[index];
+}
+
+const std::uint8_t *ex::io::byte_array::operator + (const std::size_t &index) const {
     return data + index;
 }
 
@@ -91,6 +91,7 @@ namespace ex::io::bytes {
         if (from == nullptr) {
             std::cerr << "Fatal Error: tree_node_1 is NULL" << std::endl;
             std::abort();
+            // TODO ERROR HANDLER
         }
         to->id_node    = from->id_node;
         to->children_n = from->children_n;
@@ -216,14 +217,12 @@ namespace ex::io::bytes {
     }
 
     void read_tree(in::buffer &buffer, const byte_array &data, byte_buffer &bb, TreeNode *head) {
-        TreeNode *node = nullptr;
+        bool prev_arr_end = false;
 
         std::int64_t i = in::offset(buffer);
-        while ((i = in::next(buffer, data + i)) != -1) {
+        TreeNode    *node = nullptr;
 
-            if (i == data.size) {
-                i = 0; // last element
-            }
+        while ((i = in::next(buffer, data + i)) != -1) {
 
             if (in::begin_array(buffer)) {
                 if (in::array_type(buffer) == TYPE_NODE_BGN) {
@@ -244,6 +243,7 @@ namespace ex::io::bytes {
                 if (node == nullptr) {
                     std::cerr << "Fatal Error: TreeNode is NULL" << std::endl;
                     std::abort();
+                    // TODO ERROR HANDLER
                 }
 
                 if (in::item_type(buffer) == TYPE_NODE_NAM) {
@@ -278,9 +278,14 @@ namespace ex::io::bytes {
 
             if (in::end_array(buffer)) {
                 if (in::array_type(buffer) == TYPE_NODE_BGN) {
+
+                    if (prev_arr_end)
+                        return;
+
                     if (node == nullptr) {
-                        std::cerr << "Fatal Error: TreeNode is NULL" << std::endl;
+                        std::cerr << "Fatal Error (1): TreeNode is NULL" << std::endl;
                         std::abort();
+                        // TODO ERROR HANDLER
                     }
 
                     head->children[node->index] = node;
@@ -289,15 +294,13 @@ namespace ex::io::bytes {
                 }
 
                 else if (in::array_type(buffer) == TYPE_NODE_ARR) {
-                    // TODO FIXME
-                    return; // back to parent
+                    prev_arr_end = true;
                 }
 
                 else if (in::array_type(buffer) == TYPE_ARRAY) {
                     // should be very end
                 }
             }
-
         }
     }
 
