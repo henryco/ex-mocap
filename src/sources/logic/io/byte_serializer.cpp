@@ -319,6 +319,8 @@ namespace ex::io::bytes {
         base.children   = new TreeNode *[1];
         base.children_n = 1;
 
+        state::uuid::reset_last_id();
+
         read_tree(buffer, data, bb, &base);
         state->work_tree         = base.children[0];
         state->work_tree->parent = nullptr;
