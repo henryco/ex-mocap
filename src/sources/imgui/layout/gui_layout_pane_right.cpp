@@ -3,12 +3,16 @@
 //
 
 #include "../../../headers/imgui/gui_layout.h"
+#include "../../../headers/imgui/gui_globals.h"
+#include "../../../headers/logic/logic_globals.h"
 
 namespace ex::gui {
 
-    void show_right_pane_header(ex::State &state, ReSize &re_size, GuiState &gui) {
+    void show_right_pane_header() {
+        State &state = ex::logic::globals::state();
+        GuiState &gui = ex::gui::state();
         ImGui::BeginChild("InnerRightHeader",
-                ImVec2((re_size.inc_x || gui.window.resized) ? 0 : gui.view.pane_width_right, 28),
+                ImVec2((gui.re_size.inc_x || gui.window.resized) ? 0 : gui.view.pane_width_right, 28),
                 ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoDecoration);
         {
             if (right_pane_menu == nullptr) ImGui::Dummy(ImVec2(10, 12));
@@ -48,7 +52,10 @@ namespace ex::gui {
         ImGui::PopStyleColor(3);
     }
 
-    void show_right_pane(ex::State &state, ReSize &re_size, GuiState &gui) {
+    void show_right_pane() {
+        State &state = ex::logic::globals::state();
+        GuiState &gui = ex::gui::state();
+
         if (!gui.view.show_right)
             return;
         const auto old_width = gui.view.pane_width_right;
@@ -57,13 +64,13 @@ namespace ex::gui {
         ImVec2 default_window_padding = style.WindowPadding;
         style.WindowPadding = ImVec2(0, 0);
         ImGui::BeginChild("RightPane",
-                          ImVec2((re_size.inc_x || gui.window.resized) ? 0 : gui.view.pane_width_right, 0),
+                          ImVec2((gui.re_size.inc_x || gui.window.resized) ? 0 : gui.view.pane_width_right, 0),
                           0
                                   | ImGuiChildFlags_Borders,
                           reset_flag(gui));
         {
             style.WindowPadding = ImVec2(0, default_window_padding.y + 1);
-            show_right_pane_header(state, re_size, gui);
+            show_right_pane_header();
             style.WindowPadding = ImVec2(0, 0);
             show_right_dock_space(state, gui);
         }
@@ -72,7 +79,7 @@ namespace ex::gui {
         ImGui::EndChild();
         style.WindowPadding = default_window_padding;
 
-        re_size.inc_x = (!re_size.inc_x) && (old_width != gui.view.pane_width_right);
+        gui.re_size.inc_x = (!gui.re_size.inc_x) && (old_width != gui.view.pane_width_right);
     }
 
 }

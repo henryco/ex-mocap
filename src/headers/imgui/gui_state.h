@@ -56,6 +56,7 @@ namespace ex::gui {
     struct GuiState {
         Docking docking;
         Window  window;
+        ReSize  re_size;
         View    view;
     };
 }

@@ -8,6 +8,8 @@
 #include <cstring>
 #include <string>
 
+#include "../../../headers/logic/logic_globals.h"
+
 namespace ex::gui {
 
     namespace ww {
@@ -95,7 +97,10 @@ namespace ex::gui {
         return ww::node_mappers_.at(n_type).draw_node_window(gui, state, window);
     }
 
-    void show_work_window(ex::State &state, GuiState &gui) {
+    void show_work_window() {
+        State &state = ex::logic::globals::state();
+        GuiState &gui = ex::gui::state();
+
         update_active_window(state, state.active_node);
 
         for (auto it = pinned_windows__.begin(); it != pinned_windows__.end();) {

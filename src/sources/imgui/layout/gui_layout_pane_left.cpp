@@ -3,10 +3,14 @@
 //
 
 #include "../../../headers/imgui/gui_layout.h"
+#include "../../../headers/imgui/gui_globals.h"
+#include "../../../headers/logic/logic_globals.h"
 
 namespace ex::gui {
 
-    void show_left_pane_header(ex::State &state, GuiState &gui) {
+    void show_left_pane_header() {
+        State &state = ex::logic::globals::state();
+        GuiState &gui = ex::gui::state();
         ImGui::BeginChild("InnerLeftHeader", ImVec2(gui.view.pane_width_left, 28),
                 ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoDecoration);
         {
@@ -17,7 +21,9 @@ namespace ex::gui {
         ImGui::EndChild();
     }
 
-    void show_left_dock_space(ex::State &state, GuiState &gui) {
+    void show_left_dock_space() {
+        GuiState &gui = ex::gui::state();
+
         static bool first_time = true;
 
         ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.f, 0.f, 0.f, .0f));
@@ -65,7 +71,10 @@ namespace ex::gui {
     }
 
 
-    void show_left_pane(ex::State &state, ReSize &re_size, GuiState &gui) {
+    void show_left_pane() {
+        State &state = ex::logic::globals::state();
+        GuiState &gui = ex::gui::state();
+
         if (!gui.view.show_left)
             return;
         const auto old_width = gui.view.pane_width_left;
@@ -81,9 +90,9 @@ namespace ex::gui {
                           reset_flag(gui));
         {
             style.WindowPadding = ImVec2(0, default_window_padding.y + 1);
-            show_left_pane_header(state, gui);
+            show_left_pane_header();
             style.WindowPadding = ImVec2(0, 0);
-            show_left_dock_space(state, gui);
+            show_left_dock_space();
         }
 
         gui.view.pane_width_left = ImGui::GetWindowWidth();
@@ -91,7 +100,7 @@ namespace ex::gui {
         style.WindowPadding = default_window_padding;
         ImGui::SameLine();
 
-        re_size.inc_x = (!re_size.inc_x) && (old_width != gui.view.pane_width_left);
+        gui.re_size.inc_x = (!gui.re_size.inc_x) && (old_width != gui.view.pane_width_left);
     }
 
 

@@ -4,6 +4,7 @@
 
 #include "../../../headers/imgui/gui_layout.h"
 #include "../../../headers/imgui/gui_globals.h"
+#include "../../../headers/logic/logic_globals.h"
 #include "../../../headers/imgui/gui_tree_ops.h"
 
 namespace ex::gui {
@@ -29,9 +30,12 @@ namespace ex::gui {
         return nullptr;
     }
 
-    bool show_context_menu_group(State &state, GuiState &gui, selection_node *selection) {
+    bool show_context_menu_group(selection_node *selection) {
         if (selection == nullptr)
             return false;
+
+        State &state = ex::logic::globals::state();
+        GuiState &gui = ex::gui::state();
 
         static auto menu_id = "show_context_menu_group";
         bool clicked = false;
@@ -102,11 +106,12 @@ namespace ex::gui {
         return clicked;
     }
 
-    bool show_context_menu_element(State &state, GuiState &gui, TreeNode *node,
-        const bool last, const bool nested, const bool selected)
-    {
+    bool show_context_menu_element(TreeNode *node, const bool last, const bool nested, const bool selected) {
         if (node == nullptr)
             return false;
+
+        State &state = ex::logic::globals::state();
+        GuiState &gui = ex::gui::state();
 
         static auto menu_id = "show_context_menu_element";
         static char name_buffer[64] = "";
@@ -251,7 +256,10 @@ namespace ex::gui {
         return clicked;
     }
 
-    bool show_context_menu_general(State &state, GuiState &gui) {
+    bool show_context_menu_general() {
+        State &state = ex::logic::globals::state();
+        GuiState &gui = ex::gui::state();
+
         static auto menu_id = "show_context_menu_general";
 
         bool clicked = false;

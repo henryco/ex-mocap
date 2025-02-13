@@ -2,14 +2,15 @@
 // Created by xd on 02/12/24.
 //
 
-#include "../../../headers/imgui/gui_layout.h"
-#include "../../../headers/imgui/gui_globals.h"
 #include <IconsLucide.h>
+#include "../../../headers/imgui/gui_globals.h"
+#include "../../../headers/imgui/gui_layout.h"
+#include "../../../headers/logic/logic_globals.h"
 #include <simpfp.h>
 
 namespace ex::gui {
 
-    void end_pin_button(ex::State &, GuiState &gui) {
+    void end_pin_button(GuiState &gui) {
         const auto icon = gui.view.docking ? ICON_LC_PIN_OFF : ICON_LC_PIN;
         ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(icon).x
                 - ImGui::GetStyle().FramePadding.x * 3 - ImGui::GetStyle().ItemSpacing.x * 1);
@@ -21,7 +22,7 @@ namespace ex::gui {
         ex::gui::plain_tooltip("Unpin windows");
     }
 
-    void show_save_file_picker(bool *open, ex::State &state, GuiState &) {
+    void show_save_file_picker(bool *open, ex::State &state) {
         if (!open) return;
 
         constexpr auto min_size  = ImVec2(900, 500);
@@ -43,7 +44,7 @@ namespace ex::gui {
         }
     }
 
-    void show_open_file_picker(bool *open, ex::State &state, GuiState &) {
+    void show_open_file_picker(bool *open, ex::State &state) {
         if (!open) return;
 
         constexpr auto min_size  = ImVec2(900, 500);
@@ -65,12 +66,15 @@ namespace ex::gui {
         }
     }
 
-    void show_menu_top_bar(ex::State &state, GuiState &gui) {
+    void show_menu_top_bar() {
+        State    &state = ex::logic::globals::state();
+        GuiState &gui = ex::gui::state();
+
         static bool file_picker_save = false;
         static bool file_picker_open = false;
 
-        show_open_file_picker(&file_picker_open, state, gui);
-        show_save_file_picker(&file_picker_save, state, gui);
+        show_open_file_picker(&file_picker_open, state);
+        show_save_file_picker(&file_picker_save, state);
 
         if (!gui.view.show_menu)
             return;
@@ -171,7 +175,7 @@ namespace ex::gui {
                 ImGui::EndMenu();
             }
 
-            end_pin_button(state, gui);
+            end_pin_button(gui);
             ImGui::PopStyleVar();
             ImGui::EndMenuBar();
         }

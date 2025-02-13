@@ -2,12 +2,15 @@
 // Created by xd on 02/12/24.
 //
 
-#include "../../../headers/imgui/gui_layout.h"
 #include <IconsLucide.h>
+#include "../../../headers/imgui/gui_layout.h"
+
+#include "../../../headers/imgui/gui_globals.h"
 
 namespace ex::gui {
 
-    void show_logs_pane(ex::State &state, ReSize &re_size, GuiState &gui) {
+    void show_logs_pane() {
+        GuiState &gui = ex::gui::state();
         if (!gui.view.show_logs)
             return;
         const auto old_height = gui.view.pane_height_bottom;
@@ -50,7 +53,7 @@ namespace ex::gui {
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
             ImGui::BeginChild("BottomPane",
-                              ImVec2(0, (re_size.inc_y || gui.window.resized) ? 0 : gui.view.pane_height_bottom),
+                              ImVec2(0, (gui.re_size.inc_y || gui.window.resized) ? 0 : gui.view.pane_height_bottom),
                               0
                                       | ImGuiChildFlags_Borders, reset_flag(gui));
 
@@ -87,7 +90,7 @@ namespace ex::gui {
             ImGui::EndChild();
             ImGui::PopStyleVar();
         }
-        re_size.inc_y = (!re_size.inc_y) && (old_height != gui.view.pane_height_bottom);
+        gui.re_size.inc_y = (!gui.re_size.inc_y) && (old_height != gui.view.pane_height_bottom);
     }
 
 

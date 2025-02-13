@@ -8,6 +8,7 @@
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/gui_layout.h"
 #include "../../../headers/imgui/gui_tree_ops.h"
+#include "../../../headers/logic/logic_globals.h"
 
 
 namespace ex::gui {
@@ -404,11 +405,11 @@ namespace ex::gui {
 
             bool menu_element = false;
             if (selection_node::single(*selected)) {
-                menu_element = show_context_menu_element(state, gui, node, *menu_node == node->id_local,
+                menu_element = show_context_menu_element(node, *menu_node == node->id_local,
                                                          node->children_n > 0, (node->state >>= node_state::selected));
                 drag_space(state, gui, node);
             } else {
-                show_context_menu_group(state, gui, *selected);
+                show_context_menu_group(*selected);
             }
 
             if (menu_element) {
@@ -527,11 +528,11 @@ namespace ex::gui {
 
                 bool menu_element = false;
                 if (selection_node::single(*selected)) {
-                    menu_element = show_context_menu_element(state, gui, first, *menu_node == first->id_local, false,
+                    menu_element = show_context_menu_element(first, *menu_node == first->id_local, false,
                                                              first->state >>= node_state::selected);
                     drag_space(state, gui, first);
                 } else {
-                    show_context_menu_group(state, gui, *selected);
+                    show_context_menu_group(*selected);
                 }
 
                 if (menu_element) {
@@ -598,7 +599,9 @@ namespace ex::gui {
         return counter_i;
     }
 
-    void work_tree_content(State &state, GuiState &gui) {
+    void work_tree_content() {
+        State &state = ex::logic::globals::state();
+        GuiState &gui = ex::gui::state();
         if (state.work_tree == nullptr)
             return;
 
@@ -690,9 +693,13 @@ namespace ex::gui {
             tree::delete_selected(state, gui, selection);
     }
 
-    void process_tree_actions(ex::State &state, GuiState &gui) {
+    void process_tree_actions() {
         if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
             return;
+
+        State &state = ex::logic::globals::state();
+        GuiState &gui = ex::gui::state();
+
         if (state.selected_nodes == nullptr)
             return;
         if (selection_node::single(state.selected_nodes))
@@ -701,7 +708,10 @@ namespace ex::gui {
             process_multi_action(state, gui, state.selected_nodes);
     }
 
-    void show_work_tree(ex::State &state, GuiState &gui) {
+    void show_work_tree() {
+        State &state = ex::logic::globals::state();
+        GuiState &gui = ex::gui::state();
+
         static bool *watch = nullptr;
         if (watch != nullptr && !(*watch))
             return;
@@ -722,11 +732,11 @@ namespace ex::gui {
         watch = watch_parent_dock(gui);
 
         ImGui::BeginChild("WorkTreeBox", ImVec2(0, 0), 0, ImGuiWindowFlags_NoDecoration);
-        show_context_menu_general(state, gui);
-        work_tree_content(state, gui);
+        show_context_menu_general();
+        work_tree_content();
         ImGui::EndChild();
 
-        process_tree_actions(state, gui);
+        process_tree_actions();
         ImGui::End();
 
         tree::show_inspected_node(state, gui);

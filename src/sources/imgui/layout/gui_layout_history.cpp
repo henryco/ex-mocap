@@ -2,9 +2,11 @@
 // Created by xd on 02/12/24.
 //
 
-#include "../../../headers/imgui/gui_layout.h"
-#include "../../../headers/imgui/gui_globals.h"
 #include <IconsLucide.h>
+#include "../../../headers/imgui/gui_globals.h"
+#include "../../../headers/imgui/gui_layout.h"
+
+#include "../../../headers/logic/logic_globals.h"
 
 namespace ex::gui {
 
@@ -20,7 +22,7 @@ namespace ex::gui {
             ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen;
     }
 
-    void history_tree(ex::State &state, GuiState &gui) {
+    void history_tree() {
         ImGui::BeginChild(
                 "HistorySpaceTree",
                 ImVec2(0.0f, ImGui::GetContentRegionAvail().y - ImGui::CalcTextSize(ICON_LC_PLUS).y - ImGui::GetStyle().ItemSpacing.x - 10),
@@ -74,7 +76,7 @@ namespace ex::gui {
 
             if (selected >= 0 && selected != previous) {
                 undo_history().move(static_cast<std::size_t>(selected));
-                undo_history().apply(&state);
+                undo_history().apply(&ex::logic::globals::state());
             }
             previous = selected;
         }
@@ -82,7 +84,9 @@ namespace ex::gui {
         ImGui::EndChild();
     }
 
-    void show_history_tree(ex::State &state, GuiState &gui) {
+    void show_history_tree() {
+        GuiState &gui = ex::gui::state();
+
         static bool *watch = nullptr;
         if (watch != nullptr && !(*watch))
             return;
@@ -103,7 +107,7 @@ namespace ex::gui {
         watch = watch_parent_dock(gui);
 
         ImGui::BeginChild("HistoryBox", ImVec2(0, 0), 0, ImGuiWindowFlags_NoDecoration);
-        history_tree(state, gui);
+        history_tree();
 
         ImGui::EndChild();
 

@@ -2,12 +2,15 @@
 // Created by xd on 02/12/24.
 //
 
-#include "../../../headers/imgui/gui_layout.h"
 #include <IconsLucide.h>
+#include "../../../headers/imgui/gui_layout.h"
+
+#include "../../../headers/imgui/gui_globals.h"
 
 namespace ex::gui {
 
-    void show_content(ex::State &state, ReSize &re_size, GuiState &gui) {
+    void show_content() {
+        GuiState &gui = ex::gui::state();
         const auto old_height = gui.view.pane_height_content;
 
         ImGui::BeginChild("ContentBox",
@@ -15,7 +18,7 @@ namespace ex::gui {
                           0
                                   | ImGuiChildFlags_Borders
                                   | content_resize_flag(gui)
-                                  | ((re_size.inc_y || gui.window.resized) ? ImGuiChildFlags_AutoResizeY : 0),
+                                  | ((gui.re_size.inc_y || gui.window.resized) ? ImGuiChildFlags_AutoResizeY : 0),
                           reset_flag(gui)
         );
         if (ImGui::BeginTabBar("MainTabs")) {
@@ -33,10 +36,11 @@ namespace ex::gui {
         gui.view.pane_height_content = ImGui::GetWindowHeight();
         ImGui::EndChild();
 
-        re_size.inc_y = (!re_size.inc_y) && (old_height != gui.view.pane_height_content);
+        gui.re_size.inc_y = (!gui.re_size.inc_y) && (old_height != gui.view.pane_height_content);
     }
 
-    void show_main_container(ex::State &state, ReSize &re_size, GuiState &gui) {
+    void show_main_container() {
+        GuiState &gui = ex::gui::state();
         const auto old_width = gui.view.main_width;
         const auto old_height = gui.view.main_height;
 
@@ -44,7 +48,7 @@ namespace ex::gui {
                           main_size(gui),
                           0
                                   | (gui.view.show_right ? ImGuiChildFlags_ResizeX : 0)
-                                  | ((re_size.inc_x || gui.window.resized) ? ImGuiChildFlags_AutoResizeX : 0)
+                                  | ((gui.re_size.inc_x || gui.window.resized) ? ImGuiChildFlags_AutoResizeX : 0)
                                   ,
                           0
                                   | ImGuiWindowFlags_NoScrollWithMouse
@@ -52,16 +56,16 @@ namespace ex::gui {
                                   | reset_flag(gui)
         );
         {
-            show_content(state, re_size, gui);
-            show_logs_pane(state, re_size, gui);
+            show_content();
+            show_logs_pane();
         }
 
         gui.view.main_width = ImGui::GetWindowWidth();
         gui.view.main_height = ImGui::GetWindowHeight();
         ImGui::EndChild();
 
-        re_size.inc_x = (!re_size.inc_x) && (old_width != gui.view.main_width);
-        re_size.inc_y = (!re_size.inc_y) && (old_height != gui.view.main_height);
+        gui.re_size.inc_x = (!gui.re_size.inc_x) && (old_width != gui.view.main_width);
+        gui.re_size.inc_y = (!gui.re_size.inc_y) && (old_height != gui.view.main_height);
     }
 
 }

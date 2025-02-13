@@ -51,8 +51,7 @@ namespace ex::gui {
 
     bool layout::build(ex::State &state) {
         GuiState &gui = ex::gui::state();
-
-        ReSize re_size = {};
+        gui.re_size = {};
 
         ImGui::GetStyle().TabRounding = 0.0f;
 
@@ -70,14 +69,14 @@ namespace ex::gui {
             gui.view.main_free_x = ImGui::GetContentRegionAvail().x;
             gui.view.main_free_y = ImGui::GetContentRegionAvail().y;
 
-            show_menu_top_bar(state, gui);
-            show_left_pane(state, re_size, gui);
-            show_main_container(state, re_size, gui);
-            show_right_pane(state, re_size, gui);
+            show_menu_top_bar();
+            show_left_pane();
+            show_main_container();
+            show_right_pane();
 
-            show_work_tree(state, gui);
-            show_history_tree(state, gui);
-            show_work_window(state, gui);
+            show_work_tree();
+            show_history_tree();
+            show_work_window();
 
             process_shortcuts(state, gui);
 

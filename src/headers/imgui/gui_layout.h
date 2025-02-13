@@ -87,27 +87,27 @@ namespace ex::gui {
         return ImGuiChildFlags_ResizeY;
     }
 
-    void show_menu_top_bar(ex::State &state, GuiState &gui);
+    void show_menu_top_bar();
 
-    void show_left_pane(ex::State &state, ReSize &re_size, GuiState &gui);
+    void show_left_pane();
 
-    void show_right_pane(ex::State &state, ReSize &re_size, GuiState &gui);
+    void show_right_pane();
 
-    void show_logs_pane(ex::State &state, ReSize &re_size, GuiState &gui);
+    void show_logs_pane();
 
-    void show_work_tree(ex::State &state, GuiState &gui);
+    void show_work_tree();
 
-    void show_history_tree(ex::State &state, GuiState &gui);
+    void show_history_tree();
 
-    void show_main_container(ex::State &state, ReSize &re_size, GuiState &gui);
+    void show_main_container();
 
-    void show_work_window(ex::State &state, GuiState &gui);
+    void show_work_window();
 
-    bool show_context_menu_group(State &state, GuiState &gui, selection_node *selection);
+    bool show_context_menu_group(selection_node *selection);
 
-    bool show_context_menu_element(State &state, GuiState &gui, TreeNode *node, bool last, bool nested, bool selected);
+    bool show_context_menu_element(TreeNode *node, bool last, bool nested, bool selected);
 
-    bool show_context_menu_general(State &state, GuiState &gui);
+    bool show_context_menu_general();
 
 }
 #endif // EX_MOTION_GUI_LAYOUT_H
