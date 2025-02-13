@@ -38,18 +38,21 @@ namespace limbo::undo {
 
     template<typename T>
     struct history {
+        static constexpr int cap_history = 64;
+
         record<T> *records = nullptr;
         record<T> *current = nullptr;
         record<T> *target_ = nullptr;
         record<T> *root___ = nullptr;
 
-        int capacity = 64;
+        int capacity = cap_history;
         int size     = 0;
+
+        const char *init_str = nullptr;
 
         history() = default;
 
-        // ReSharper disable once CppNonExplicitConvertingConstructor
-        history(const char *initial) {
+        explicit history(const char *initial) : init_str(initial) {
             push(initial, nullptr, nullptr);
         }
 
@@ -178,6 +181,27 @@ namespace limbo::undo {
                     current->redo->operator()(state);
             }
             target_ = current;
+        }
+
+        void reset() {
+            record<T> *head = records;
+            while (head != nullptr) {
+                record<T> *prev = head->prev;
+                head->next      = nullptr;
+                delete head;
+                head = prev;
+            }
+
+            records = nullptr;
+            current = nullptr;
+            target_ = nullptr;
+            root___ = nullptr;
+
+            capacity = cap_history;
+            size     = 0;
+
+            if (init_str != nullptr)
+                push(init_str, nullptr, nullptr);
         }
     };
 

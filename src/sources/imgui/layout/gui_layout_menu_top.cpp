@@ -38,6 +38,8 @@ namespace ex::gui {
                 state.project_path = file;
                 state.should_save  = true;
                 *open              = false;
+
+                // TODO: ASK DIALOG
                 simpfp::CloseFileDialog();
             }
             simpfp::EndFileDialog();
@@ -57,9 +59,12 @@ namespace ex::gui {
 
         if (simpfp::ShowFileDialog("Open a file", open, min_size, true)) {
             if (static char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
+                undo_history().reset();
                 state.project_path = file;
                 state.should_open  = true;
                 *open              = false;
+
+                // TODO: ASK DIALOG
                 simpfp::CloseFileDialog();
             }
             simpfp::EndFileDialog();
