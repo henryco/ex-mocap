@@ -7,7 +7,7 @@
 
 namespace ex::logic::globals {
 
-    State &get_state() {
+    State &state() {
         static State instance;
         return instance;
     }

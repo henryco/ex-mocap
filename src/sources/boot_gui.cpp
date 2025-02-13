@@ -109,7 +109,7 @@ namespace ex::boot {
 
     int gui(int, char **, const char *project_path) {
 
-        State &state = ex::logic::globals::get_state();
+        State &state = ex::logic::globals::state();
         state.project_path = project_path;
 
         gui_set_target_fps(state, 60);

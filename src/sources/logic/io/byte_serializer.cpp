@@ -115,7 +115,7 @@ namespace ex::io::bytes {
             return;
 
         const auto mappers = ex::logic::globals::node_components().at(to->id_node);
-        const auto instance = mappers.instance(ex::logic::globals::get_state(), to);
+        const auto instance = mappers.instance(ex::logic::globals::state(), to);
         ex::logic::state::store_node(to->id_local, instance);
     }
 
