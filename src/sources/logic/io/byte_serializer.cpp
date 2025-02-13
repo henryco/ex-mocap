@@ -39,12 +39,12 @@ ex::io::byte_array ex::io::byte_array::from(const std::uint8_t *data, const size
 void ex::io::byte_array::free(byte_array *array) {
     if (array == nullptr)
         return;
-    limbo::bytebox::out::free_buffer_data(array->data);
+    delete[] array->data;
     array->data = nullptr;
 }
 
 void ex::io::byte_array::free(byte_array &array) {
-    limbo::bytebox::out::free_buffer_data(array.data);
+    delete[] array.data;
     array.data = nullptr;
 }
 
@@ -367,8 +367,9 @@ namespace ex::io::bytes {
         gc garbage_collector;
         write_tree(buff_out, root, garbage_collector);
 
-        std::size_t size = 0;
-        const auto data = out::read_buffer_data(buff_out, &size);
+        const auto size = out::buffer_size_b(buff_out);
+        const auto data = new unsigned char[size];
+        out::read_buffer_data(buff_out, data);
         return byte_array::from(data, size);
     }
 

@@ -80,32 +80,77 @@ namespace limbo::bytebox {
         struct buffer {
             array<internal_::element> items;
             array<index_t>            stack;
+            std::int32_t              iterator_i;
         };
 
         buffer create_buffer();
 
         buffer create_buffer(std::size_t init_cap);
 
+        /**
+         * Begin data array
+         * @param buff buffer instance
+         */
         void begin_array(buffer &buff);
 
+        /**
+         * Begin data array
+         * @param buff buffer instance
+         * @param type type of array
+         */
         void begin_array(buffer &buff, type__t type);
 
+        /**
+         * End data array
+         * @param buff buffer instance
+         */
         void end_array(buffer &buff);
 
+        /**
+         * Write object to buffer
+         * @param buff buffer instance
+         * @param type type of object
+         * @param size size of an object in bytes
+         * @param data object data
+         */
         void object(buffer &buff, type__t type, std::size_t size, const void *data);
 
-        const std::uint8_t *read_buffer_data(buffer &buff, std::size_t *size);
+        /**
+         * @param buff buffer instance
+         * @return size of the buffered data
+         */
+        std::size_t buffer_size_b(buffer &buff);
 
-        // TODO add sequential data reading
+        /**
+         * Read whole buffer data
+         * @param buff buffer instance
+         * @param out array to read data
+         */
+        void read_buffer_data(buffer &buff, std::uint8_t *out);
 
-        void free_buffer_data(const std::uint8_t *data);
+        /**
+         * Read next data chunk
+         * @param buff buffer instance
+         * @param out array to read data
+         * @return size of the next data chunk
+         */
+        std::size_t next(buffer &buff, std::uint8_t *out);
 
-    } // namespace out
+        /**
+         * Resets output iterator,
+         * see <b>std::size_t next(buffer &, std::uint8_t *)</b>
+         * @param buff buffer instance
+         */
+        void reset_iterator(buffer &buff);
+    }
 
     namespace in {
 
         enum mode: bool {
+            // chunk mode, useful when reading data in chunks
             CHUNKS = 0,
+
+            // offset mode
             OFFSET = 1
         };
 
@@ -175,7 +220,7 @@ namespace limbo::bytebox {
             return buff.bread;
         }
 
-    } // namespace in
+    }
 
 }
 

@@ -58,9 +58,10 @@ TEST_CASE("byte_box simple read write [offset]") {
         { arr_end,   0 },
     };
 
-    std::size_t size_have;
-    const auto size_must = (5 * sizeof(box::header)) + (3 * str_size);
-    const auto data = out::read_buffer_data(buff_out, &size_have);
+    std::size_t size_have = out::buffer_size_b(buff_out);
+    const auto  size_must = (5 * sizeof(box::header)) + (3 * str_size);
+    const auto  data      = new unsigned char[size_have];
+    out::read_buffer_data(buff_out, data);
 
     CHECK(size_have == size_must);
 
@@ -126,7 +127,8 @@ TEST_CASE("byte_box simple read write [offset]") {
         INFO("Content id   mismatch [" << i << "], have: " << type_have[i][1] << " <-> must: " << type_must[i][1]);
         CHECK(type_must[i][1] == type_have[i][1]);
     }
-    out::free_buffer_data(data);
+
+    delete[] data;
 }
 
 TEST_CASE("byte_box simple read write [chunks]") {
@@ -157,9 +159,10 @@ TEST_CASE("byte_box simple read write [chunks]") {
         { arr_end,   0 },
     };
 
-    std::size_t size_have;
-    const auto size_must = (5 * sizeof(box::header)) + (3 * str_size);
-    const auto data = out::read_buffer_data(buff_out, &size_have);
+    std::size_t size_have = out::buffer_size_b(buff_out);
+    const auto  size_must = (5 * sizeof(box::header)) + (3 * str_size);
+    const auto  data      = new unsigned char[size_have];
+    out::read_buffer_data(buff_out, data);
 
     CHECK(size_have == size_must);
 
@@ -230,5 +233,5 @@ TEST_CASE("byte_box simple read write [chunks]") {
         CHECK(type_must[i][1] == type_have[i][1]);
     }
 
-    out::free_buffer_data(data);
+    delete[] data;
 }
