@@ -100,13 +100,10 @@ namespace limbo::bytebox::out {
         const auto &item = buff.items[buff.iterator_i];
         std::memcpy(data, &item.header, sizeof(header));
 
-        if (item.header.size_n > 0) {
-            goto gg_go_next; // this is header of an array (no content)
+        if (item.header.size_n <= 0) {
+            // object, not an array
+            std::memcpy(data + sizeof(header), item.data, item.header.size_b - sizeof(header));
         }
-
-        std::memcpy(data + sizeof(header), item.data, item.header.size_b - sizeof(header));
-
-        gg_go_next:
 
         buff.iterator_i += 1;
         if (buff.iterator_i >= array_head(buff).header.size_n) {
