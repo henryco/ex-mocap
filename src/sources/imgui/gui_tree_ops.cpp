@@ -111,6 +111,14 @@ namespace ex::gui::tree {
     }
 
     void copy_selected(State &, GuiState &, selection_node *selection) {
+
+        auto head_h = selection->root;
+        while (head_h != nullptr) {
+            if (head_h->selected->parent != selection->root->selected->parent)
+                return;
+            head_h = head_h->next;
+        }
+
         const auto copy = selection_node::copy(selection->root);
         reset_state();
 
@@ -122,11 +130,15 @@ namespace ex::gui::tree {
     }
 
     void copy_node(State &, GuiState &, TreeNode *node) {
+        if (node->state >>= node_state::is_link)
+            return;
         reset_state();
         node_buffer::create(node_buffer_ptr(), node, false, false);
     }
 
     void ref_node(State &, GuiState &, TreeNode *node) {
+        if (node->state >>= node_state::is_link)
+            return;
         reset_state();
         node_buffer::create(node_buffer_ptr(), node, false, true);
     }
@@ -255,6 +267,14 @@ namespace ex::gui::tree {
     }
 
     void cut_selected(State &, GuiState &, selection_node *selection) {
+
+        auto head_h = selection->root;
+        while (head_h != nullptr) {
+            if (head_h->selected->parent != selection->root->selected->parent)
+                return;
+            head_h = head_h->next;
+        }
+
         const auto copy = selection_node::copy(selection->root);
         reset_state();
 
@@ -271,6 +291,8 @@ namespace ex::gui::tree {
     }
 
     void cut_node(State &, GuiState &, TreeNode *node) {
+        if (node->state >>= node_state::is_link)
+            return;
         reset_state();
         node_buffer::create(node_buffer_ptr(), node, true, false);
         node->state |= node_state::dimmed;
@@ -304,6 +326,8 @@ namespace ex::gui::tree {
     }
 
     void duplicate_node(State &state, GuiState &, TreeNode *node) {
+        if (node->state >>= node_state::is_link)
+            return;
         reset_state();
         const auto snapshot = Snapshot::create(state);
 
@@ -349,6 +373,10 @@ namespace ex::gui::tree {
             reset_state();
             return;
         }
+
+        if (node->state >>= node_state::is_link)
+            return;
+
         const auto parent    = node->parent;
         const auto parent_id = parent->id_local;
         const auto index     = node->index;
@@ -432,6 +460,9 @@ namespace ex::gui::tree {
             reset_state();
             return;
         }
+
+        if (node->state >>= node_state::is_link)
+            return;
 
         const auto selection = bubble_sort_selection((*node_buffer_ptr())->selection->root);
         const bool move      = (*node_buffer_ptr())->move;
