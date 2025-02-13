@@ -103,7 +103,7 @@ namespace ex::gui {
 
     void show_work_window();
 
-    bool show_context_menu_group(selection_node *selection);
+    bool show_context_menu_group();
 
     bool show_context_menu_element(TreeNode *node, bool last, bool nested, bool selected);
 

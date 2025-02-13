@@ -73,43 +73,11 @@ namespace ex {
         TreeNode() = default;
     };
 
-    struct selection_node {
-        // probably should move the fuck out there
-        selection_node *root     = nullptr;
-        selection_node *next     = nullptr;
-        selection_node *prev     = nullptr;
-        TreeNode       *selected = nullptr;
-
-        int index = -1;
-
-        selection_node        *copy() const;
-        static selection_node *copy(selection_node *src);
-        static selection_node *from_node(TreeNode *node);
-        static bool            single(selection_node *node);
-        static void            remove(selection_node *node, selection_node **next);
-        static void            free(selection_node *node, bool unselect = false);
-    };
-
-    struct node_buffer {
-        // probably should move the fuck out there
-        selection_node *selection = nullptr;
-        bool            move      = false;
-        bool            ref       = false;
-
-        ~node_buffer();
-
-        static void create(node_buffer **buffer, selection_node *selection, bool move = false, bool ref = false);
-        static void create(node_buffer **buffer, TreeNode *node, bool move = false, bool ref = false);
-        static void remove(node_buffer **buffer);
-    };
-
     struct State {
         const char     *project_path   = nullptr;
         GLFWwindow     *window         = nullptr;
         TreeNode       *work_tree      = nullptr;
         TreeNode       *active_node    = nullptr;
-        selection_node *selected_nodes = nullptr;
-        node_buffer    *clipboard_node = nullptr;
         cl_context      ocl_context    = nullptr;
         cl_device_id    ocl_device     = nullptr;
         int             gui_target_ns  = -1;

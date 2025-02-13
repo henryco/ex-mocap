@@ -30,7 +30,8 @@ namespace ex::gui {
         return nullptr;
     }
 
-    bool show_context_menu_group(selection_node *selection) {
+    bool show_context_menu_group() {
+        const auto selection = *tree::selected_nodes_ptr();
         if (selection == nullptr)
             return false;
 
@@ -166,7 +167,7 @@ namespace ex::gui {
             }
 
             if (ImGui::MenuItem("Group")) {
-                selection_node selection;
+                tree::selection_node selection;
                 selection.selected = node;
                 selection.root     = &selection;
                 selection.next     = nullptr;
@@ -176,7 +177,7 @@ namespace ex::gui {
 
             if (is_grouped) {
                 if (ImGui::MenuItem("Ungroup")) {
-                    selection_node selection;
+                    tree::selection_node selection;
                     selection.selected = node;
                     selection.root     = &selection;
                     selection.next     = nullptr;
@@ -213,7 +214,7 @@ namespace ex::gui {
                     ImGui::EndMenu();
                 }
 
-                if (ImGui::BeginMenu("Paste", state.clipboard_node != nullptr)) {
+                if (ImGui::BeginMenu("Paste", *(tree::node_buffer_ptr()) != nullptr)) {
 
                     if (ImGui::MenuItem("Paste after", key_mappings().work_tree.paste.label)) {
                         tree::paste_after_node(state, gui, node);

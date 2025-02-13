@@ -114,15 +114,15 @@ namespace ex::gui {
         }
     }
 
-    bool select_many(selection_node **selection, TreeNode *node, TreeNode *start, TreeNode *stop) {
+    bool select_many(tree::selection_node **selection, TreeNode *node, TreeNode *start, TreeNode *stop) {
         if (start == nullptr || stop == nullptr || node == nullptr || selection == nullptr)
             return false;
 
         if (node == start || node->id_local == start->id_local) {
             if (*selection != nullptr)
-                selection_node::free(*selection);
+                tree::selection_node::free(*selection);
 
-            *selection             = new selection_node;
+            *selection             = new tree::selection_node;
             (*selection)->root     = *selection;
             (*selection)->prev     = nullptr;
             (*selection)->next     = nullptr;
@@ -132,7 +132,7 @@ namespace ex::gui {
         }
 
         if (*selection != nullptr) {
-            const auto next = new selection_node;
+            const auto next = new tree::selection_node;
             next->root      = (*selection)->root;
             next->prev      = *selection;
             next->next      = nullptr;
@@ -159,7 +159,7 @@ namespace ex::gui {
         return false;
     }
 
-    bool select_node(selection_node **selection, TreeNode *node, const int counter) {
+    bool select_node(tree::selection_node **selection, TreeNode *node, const int counter) {
         // SELECTION ADD SINGLE (Ctrl)
         if (ImGui::GetIO().KeyCtrl && *selection != nullptr) {
 
@@ -167,7 +167,7 @@ namespace ex::gui {
 
                 if (node->state >>= node_state::selected) {
                     // OPTIONAL
-                    selection_node::free(*selection, true);
+                    tree::selection_node::free(*selection, true);
                     node->state -= node_state::selected;
                     *selection = nullptr;
                     return false;
@@ -185,7 +185,7 @@ namespace ex::gui {
                     head = head->next;
                 }
 
-                auto *new_node     = new selection_node;
+                auto *new_node     = new tree::selection_node;
                 new_node->root     = (*selection)->root;
                 new_node->prev     = head;
                 new_node->next     = nullptr;
@@ -277,7 +277,7 @@ namespace ex::gui {
             }
 
             if (start == stop) {
-                selection_node::free(*selection, true);
+                tree::selection_node::free(*selection, true);
                 *selection = nullptr;
                 return false;
             }
@@ -287,8 +287,8 @@ namespace ex::gui {
                 root = root->parent;
             }
 
-            selection_node *new_selected = nullptr;
-            selection_node::free(*selection, true);
+            tree::selection_node *new_selected = nullptr;
+            tree::selection_node::free(*selection, true);
             select_many(&new_selected, root, start, stop);
 
             if (new_selected == nullptr) {
@@ -312,12 +312,12 @@ namespace ex::gui {
 
         // REGULAR SELECTION (SINGLE)
         if (*selection != nullptr) {
-            selection_node::free(*selection, true);
-            *selection = new selection_node;
+            tree::selection_node::free(*selection, true);
+            *selection = new tree::selection_node;
         }
 
         if (*selection == nullptr) {
-            *selection = new selection_node;
+            *selection = new tree::selection_node;
         }
 
         (*selection)->selected = node;
@@ -363,7 +363,7 @@ namespace ex::gui {
         return counter_i;
     }
 
-    int show_tree_node(State &state, GuiState &gui, TreeNode *node, selection_node **selected, TreeNode **active,
+    int show_tree_node(State &state, GuiState &gui, TreeNode *node, tree::selection_node **selected, TreeNode **active,
                        std::size_t *menu_node, std::size_t *ref_node, const bool disabled_, const int counter,
                        const int n) {
 
@@ -404,12 +404,12 @@ namespace ex::gui {
             insertion_node(state, gui, node);
 
             bool menu_element = false;
-            if (selection_node::single(*selected)) {
+            if (tree::selection_node::single(*selected)) {
                 menu_element = show_context_menu_element(node, *menu_node == node->id_local,
                                                          node->children_n > 0, (node->state >>= node_state::selected));
                 drag_space(state, gui, node);
             } else {
-                show_context_menu_group(*selected);
+                show_context_menu_group();
             }
 
             if (menu_element) {
@@ -527,12 +527,12 @@ namespace ex::gui {
                 insertion_node(state, gui, first);
 
                 bool menu_element = false;
-                if (selection_node::single(*selected)) {
+                if (tree::selection_node::single(*selected)) {
                     menu_element = show_context_menu_element(first, *menu_node == first->id_local, false,
                                                              first->state >>= node_state::selected);
                     drag_space(state, gui, first);
                 } else {
-                    show_context_menu_group(*selected);
+                    show_context_menu_group();
                 }
 
                 if (menu_element) {
@@ -627,7 +627,7 @@ namespace ex::gui {
 
             ImGui::Indent(10.f);
             for (int i = 0, p = 0; i < state.work_tree->children_n; i++) {
-                p = show_tree_node(state, gui, state.work_tree->children[i], &state.selected_nodes,
+                p = show_tree_node(state, gui, state.work_tree->children[i], tree::selected_nodes_ptr(),
                     &active_node, &last_menu, &last_ref, false, p + 1, i);
             }
             ImGui::Unindent(10.f);
@@ -672,17 +672,17 @@ namespace ex::gui {
         else if (ImGui::Shortcut(key_mappings().work_tree.reference.key))
             tree::ref_node(state, gui, node);
 
-        else if (state.clipboard_node != nullptr && ImGui::Shortcut(key_mappings().work_tree.paste.key))
+        else if ((*tree::node_buffer_ptr()) != nullptr && ImGui::Shortcut(key_mappings().work_tree.paste.key))
             tree::paste_after_node(state, gui, node);
 
-        else if (state.clipboard_node != nullptr && ImGui::Shortcut(key_mappings().work_tree.insert.key))
+        else if ((*tree::node_buffer_ptr()) != nullptr && ImGui::Shortcut(key_mappings().work_tree.insert.key))
             tree::paste_into_node(state, gui, node);
 
         else if (ImGui::Shortcut(key_mappings().work_tree.deletion.key))
             tree::delete_node(state, gui, node);
     }
 
-    void process_multi_action(ex::State &state, GuiState &gui, selection_node *selection) {
+    void process_multi_action(ex::State &state, GuiState &gui, tree::selection_node *selection) {
         if (ImGui::Shortcut(key_mappings().work_tree.cut.key))
             tree::cut_selected(state, gui, selection);
 
@@ -700,12 +700,12 @@ namespace ex::gui {
         State &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
 
-        if (state.selected_nodes == nullptr)
+        if ((*tree::selected_nodes_ptr()) == nullptr)
             return;
-        if (selection_node::single(state.selected_nodes))
-            process_single_action(state, gui, state.selected_nodes->selected);
+        if (tree::selection_node::single((*tree::selected_nodes_ptr())))
+            process_single_action(state, gui, (*tree::selected_nodes_ptr())->selected);
         else
-            process_multi_action(state, gui, state.selected_nodes);
+            process_multi_action(state, gui, (*tree::selected_nodes_ptr()));
     }
 
     void show_work_tree() {

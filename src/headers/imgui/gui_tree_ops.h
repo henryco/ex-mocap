@@ -6,9 +6,10 @@
 #define GUI_TREE_OPS_H
 
 #include "gui_state.h"
-#include "../state.h"
+#include "gui_tree_state.h"
 
 namespace ex::gui::tree {
+
     void rename_node(State &state, GuiState &gui, TreeNode *node, const char *name);
 
     void duplicate_node(State &state, GuiState &gui, TreeNode *node);
