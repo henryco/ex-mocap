@@ -50,7 +50,7 @@ namespace ex::gui {
     }
 
     bool layout::build(ex::State &state) {
-        static GuiState gui;
+        GuiState &gui = ex::gui::state();
 
         ReSize re_size = {};
 

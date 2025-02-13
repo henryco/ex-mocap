@@ -16,6 +16,8 @@
 
 namespace ex::gui {
 
+    GuiState &state();
+
     logs::logger &logger();
 
     keys::KeyMapping &key_mappings();

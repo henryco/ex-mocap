@@ -7,6 +7,11 @@
 
 namespace ex::gui {
 
+    GuiState &state() {
+        static GuiState state;
+        return state;
+    }
+
     logs::logger &logger() {
         static ex::logs::logger log = ex::logs::get_logger("gui_layout");
         return log;
