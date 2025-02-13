@@ -26,7 +26,6 @@ include_directories(${ONNXRUNTIME_ROOT}/include)
 link_directories(${ONNXRUNTIME_ROOT}/lib)
 
 add_subdirectory(external/argparse)
-add_subdirectory(external/json)
 add_subdirectory(external/glm)
 
 set(CMAKE_C_COMPILER "clang-18")
@@ -205,7 +204,6 @@ set(INCL_TARGET
 set(LINK_TARGET
         ${OpenCV_LIBS}
         ${CUDA_LIBRARIES}
-        nlohmann_json::nlohmann_json
         spdlog::spdlog
         OpenCL::Headers
         OpenCL::OpenCL

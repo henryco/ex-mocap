@@ -15,16 +15,15 @@
 - [Argparse](https://github.com/p-ranav/argparse#positional-arguments) (external/argparse)
 - [SimpFp](https://github.com/henryco/simpfp) (external/simpfp)
 - [ImGui](https://github.com/ocornut/imgui) (external/imgui)
-- [JSON](https://github.com/nlohmann/json) (external/json)
 - [Glm](https://github.com/g-truc/glm) (external/glm)
-- [V4L2 (linux)](https://trac.gateworks.com/wiki/linux/v4l2)
+- [Spdlog](https://github.com/gabime/spdlog)
 - [OpenCV](https://opencv.org/get-started)
 - [OpenCL](https://www.khronos.org/opencl/)
 - [OpenGL](https://www.opengl.org/)
 - [GLFW](https://www.glfw.org/)
 - [GLEW](https://glew.sourceforge.net/)
-- [Spdlog](https://github.com/gabime/spdlog)
 - [CUDA](https://developer.nvidia.com/cuda-toolkit)
+- [V4L2 (linux)](https://trac.gateworks.com/wiki/linux/v4l2)
 
 #### How to install dependencies (Debian/Nvidia)
 ```shell
