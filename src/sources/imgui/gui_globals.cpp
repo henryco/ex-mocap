@@ -3,6 +3,7 @@
 //
 
 #include "../../headers/imgui/gui_globals.h"
+#include "../../headers/imgui/gui_strings.h"
 #include "../../headers/imgui/components/test_cmp.h"
 
 namespace ex::gui {
@@ -18,7 +19,7 @@ namespace ex::gui {
     }
 
     limbo::undo::history<ex::State> &undo_history() {
-        static limbo::undo::history<ex::State> undo_history("Blank");
+        static limbo::undo::history<ex::State> undo_history(strings::gui_tree_ops_history_blank);
         return undo_history;
     }
 

@@ -71,6 +71,7 @@ namespace ex::gui::strings {
     constexpr auto gui_tree_menu_node_edit_name   = "Edit name: ";
     constexpr auto gui_tree_menu_node_edit_apply  = "Apply";
 
+    constexpr auto gui_tree_ops_history_blank           = "Blank";
     constexpr auto gui_tree_ops_history_add             = "Add node";
     constexpr auto gui_tree_ops_history_add_into        = "Add into";
     constexpr auto gui_tree_ops_history_add_after       = "Add after";
@@ -88,7 +89,6 @@ namespace ex::gui::strings {
     constexpr auto gui_tree_ops_history_select_enabled  = "Enable selection";
     constexpr auto gui_tree_ops_history_select_disabled = "Disable selection";
     constexpr auto gui_tree_ops_history_select_deleted  = "Delete selection";
-
 
 }
 
