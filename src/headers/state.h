@@ -75,6 +75,7 @@ namespace ex {
 
     struct State {
         const char     *project_path   = nullptr;
+        const char     *title          = nullptr;
         GLFWwindow     *window         = nullptr;
         TreeNode       *work_tree      = nullptr;
         TreeNode       *active_node    = nullptr;

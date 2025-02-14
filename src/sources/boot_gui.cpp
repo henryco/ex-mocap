@@ -7,7 +7,6 @@
 #include "../headers/logic/logic.h"
 #include "../headers/cl/cl_gl_interop.h"
 #include "../headers/utils/gl_utils.h"
-#include "../headers/logic/logic_state.h"
 #include "../headers/logic/logic_globals.h"
 
 #include <GLFW/glfw3.h>
@@ -34,7 +33,7 @@ namespace ex::boot {
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
-        const auto window = gl::create_window("ExMoCap");
+        const auto window = gl::create_window(state.title);
         log->info("Window created");
         state.window = window;
 
@@ -111,6 +110,7 @@ namespace ex::boot {
 
         State &state = ex::logic::globals::state();
         state.project_path = project_path;
+        state.title        = "ExMoCap";
 
         gui_set_target_fps(state, 60);
 

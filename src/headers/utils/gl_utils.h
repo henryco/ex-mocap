@@ -11,6 +11,8 @@ namespace ex::gl {
 
     GLFWwindow* create_window(const char* title);
 
+    void set_window_title(GLFWwindow *window, const char* title);
+
 }
 
 #endif //GL_UTILS_H
