@@ -2,6 +2,7 @@
 // Created by xd on 02/12/24.
 //
 
+#include "../../../headers/imgui/gui_strings.h"
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/logic/logic_globals.h"
@@ -21,7 +22,7 @@ namespace ex::gui {
             gui.window.resized = true;
             logger()->debug("unpin windows: {}", gui.view.docking);
         }
-        ex::gui::plain_tooltip("Unpin windows");
+        ex::gui::plain_tooltip(strings::menu_top_view_unpin);
     }
 
     void show_save_file_picker(bool *open, ex::State &state) {
@@ -98,27 +99,27 @@ namespace ex::gui {
         if (ImGui::BeginMenuBar()) {
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 6.0f));
 
-            if (ImGui::BeginMenu("File")) {
-                if (ImGui::MenuItem("New")) {
+            if (ImGui::BeginMenu(strings::menu_top_file)) {
+                if (ImGui::MenuItem(strings::menu_top_file_new)) {
                     // TODO
                 }
 
-                if (ImGui::MenuItem("Open")) {
+                if (ImGui::MenuItem(strings::menu_top_file_open)) {
                     file_picker_open = true;
                 }
 
-                if (ImGui::MenuItem("Save")) {
+                if (ImGui::MenuItem(strings::menu_top_file_save)) {
                     file_picker_save = true;
                     // TODO
                 }
 
-                if (ImGui::MenuItem("Save As")) {
+                if (ImGui::MenuItem(strings::menu_top_file_save_as)) {
                     file_picker_save = true;
                 }
 
                 ImGui::Separator();
 
-                if (ImGui::MenuItem("Exit")) {
+                if (ImGui::MenuItem(strings::menu_top_file_exit)) {
                     gui.window.exit = true;
                 }
 
@@ -126,66 +127,66 @@ namespace ex::gui {
             }
 
             const auto &[history, work_tree] = key_mappings();
-            if (ImGui::BeginMenu("Edit")) {
+            if (ImGui::BeginMenu(strings::menu_top_edit)) {
 
-                if (ImGui::MenuItem(ICON_LC_UNDO " Undo", history.undo.label, false, undo_history().can_undo())) {
+                if (ImGui::MenuItem(strings::menu_top_edit_undo, history.undo.label, false, undo_history().can_undo())) {
                     undo_history().undo();
                     undo_history().apply(&state);
                 }
-                if (ImGui::MenuItem(ICON_LC_REDO " Redo", history.redo.label, false, undo_history().can_redo())) {
+                if (ImGui::MenuItem(strings::menu_top_edit_redo, history.redo.label, false, undo_history().can_redo())) {
                     undo_history().redo();
                     undo_history().apply(&state);
                 }
 
                 ImGui::Separator();
 
-                if (ImGui::MenuItem(ICON_LC_SCISSORS " Cut", work_tree.cut.label, false, false)) {
+                if (ImGui::MenuItem(strings::menu_top_edit_cut, work_tree.cut.label, false, false)) {
                     // TODO
                 }
-                if (ImGui::MenuItem(ICON_LC_CLIPBOARD_COPY " Copy", work_tree.copy.label, false, false)) {
+                if (ImGui::MenuItem(strings::menu_top_edit_copy, work_tree.copy.label, false, false)) {
                     // TODO
                 }
-                if (ImGui::MenuItem(ICON_LC_CLIPBOARD_PASTE " Paste", work_tree.paste.label, false, false)) {
+                if (ImGui::MenuItem(strings::menu_top_edit_paste, work_tree.paste.label, false, false)) {
                     // TODO
                 }
                 ImGui::EndMenu();
             }
 
-            if (ImGui::BeginMenu("View")) {
-                if (ImGui::MenuItem("Unpin windows", nullptr, &gui.view.docking)) {
+            if (ImGui::BeginMenu(strings::menu_top_view)) {
+                if (ImGui::MenuItem(strings::menu_top_view_unpin, nullptr, &gui.view.docking)) {
                     gui.window.resized = true;
                     logger()->debug("unpin windows: {}", gui.view.docking);
                 }
                 ImGui::Separator();
 
-                if (ImGui::MenuItem("Sidebar Left", nullptr, &gui.view.show_left)) {
+                if (ImGui::MenuItem(strings::menu_top_view_sidebar_left, nullptr, &gui.view.show_left)) {
                     gui.window.resized = true;
                 }
 
-                if (ImGui::MenuItem("Sidebar Right", nullptr, &gui.view.show_right)) {
+                if (ImGui::MenuItem(strings::menu_top_view_sidebar_right, nullptr, &gui.view.show_right)) {
                     gui.window.resized = true;
                 }
 
-                if (ImGui::MenuItem("Logs", nullptr, &gui.view.show_logs)) {
+                if (ImGui::MenuItem(strings::menu_top_view_logs, nullptr, &gui.view.show_logs)) {
                     gui.view.expanded_logs = gui.view.show_logs;
                     gui.window.resized     = true;
                 }
 
-                if (ImGui::MenuItem("Metrics", nullptr, &gui.view.show_debug)) {
+                if (ImGui::MenuItem(strings::menu_top_view_metrics, nullptr, &gui.view.show_debug)) {
                     gui.window.resized = true;
                 }
 
                 ImGui::Separator();
 
-                if (ImGui::MenuItem("Reset layout")) {
+                if (ImGui::MenuItem(strings::menu_top_view_reset_layout)) {
                     gui.window.reset        = true;
                     gui.window.resized      = true;
                 }
                 ImGui::EndMenu();
             }
 
-            if (ImGui::BeginMenu("Help")) {
-                if (ImGui::MenuItem("About")) {
+            if (ImGui::BeginMenu(strings::menu_top_help)) {
+                if (ImGui::MenuItem(strings::menu_top_help_about)) {
                     // TODO
                 }
                 ImGui::EndMenu();
