@@ -7,15 +7,21 @@
 
 namespace ex::gui::actions {
 
-    using action_fn_t = void (*)();
+    using action_fn_t  = void (*)();
+    using action_key_t = int;
 
-    void        set_action(int action, action_fn_t fn);
+    struct action {
+        action_key_t key;
+        action_fn_t  fn;
+    };
 
-    void        remove_action(int action);
+    void set_action(action_key_t key, action_fn_t fn);
 
-    action_fn_t get_action(int action);
+    void remove_action(action_key_t ley);
 
-    action_fn_t *list_actions(int *size_n);
+    action_fn_t get_action(action_key_t ley);
+
+    action *list_actions(int *size_n);
 
 }
 

@@ -3,11 +3,12 @@
 //
 
 #include "../../../headers/imgui/layout/gui_layout.h"
+#include "../../../headers/imgui/gui_actions.h"
 #include "../../../headers/imgui/gui_globals.h"
 
 namespace ex::gui {
 
-    bool is_window_resized() {
+    bool is_window_resized_() {
         static ImVec2 iwr_last_size = {};
         const auto current_size = ImGui::GetContentRegionAvail();
         if (current_size.x != iwr_last_size.x || current_size.y != iwr_last_size.y) {
@@ -17,7 +18,7 @@ namespace ex::gui {
         return false;
     }
 
-    void check_for_reset(GuiState &gui) {
+    void check_for_reset_(GuiState &gui) {
         if (!gui.window.reset)
             return;
         gui.window.reset        = false;
@@ -26,30 +27,26 @@ namespace ex::gui {
         gui.view.reset = true;
     }
 
-    void cleanup(GuiState &gui) {
+    void cleanup_(GuiState &gui) {
         gui.view.first_run = false;
         if (gui.view.reset) {
             gui.view.reset = false;
         }
     }
 
-    void process_shortcuts(ex::State &state, GuiState &) {
-        const auto &[undo, redo] = key_mappings().history;
-        if (ImGui::Shortcut(undo.key)) {
-            if (undo_history().can_undo()) {
-                undo_history().undo();
-                undo_history().apply(&state);
-            }
-        }
-        else if (ImGui::Shortcut(redo.key)) {
-            if (undo_history().can_redo()) {
-                undo_history().redo();
-                undo_history().apply(&state);
+    void process_shortcuts_() {
+        static int size     = 0;
+        const auto registry = actions::list_actions(&size);
+
+        for (int i = 0; i < size; i++) {
+            if (ImGui::Shortcut(registry[i].key)) {
+                registry[i].fn();
+                return;
             }
         }
     }
 
-    bool layout::build(ex::State &state) {
+    bool layout::build(ex::State &) {
         GuiState &gui = ex::gui::state();
         gui.re_size = {};
 
@@ -62,9 +59,9 @@ namespace ex::gui {
                              | menu_flag(gui)
                              | reset_flag(gui));
         {
-            gui.window.resized = is_window_resized();
+            gui.window.resized = is_window_resized_();
 
-            check_for_reset(gui);
+            check_for_reset_(gui);
 
             gui.view.main_free_x = ImGui::GetContentRegionAvail().x;
             gui.view.main_free_y = ImGui::GetContentRegionAvail().y;
@@ -79,14 +76,14 @@ namespace ex::gui {
             show_history_tree();
             show_work_window();
 
-            process_shortcuts(state, gui);
+            process_shortcuts_();
 
             if (gui.view.show_debug)
                 ImGui::ShowMetricsWindow(&gui.view.show_debug);
         }
         ImGui::End();
 
-        cleanup(gui);
+        cleanup_(gui);
 
         return gui.window.exit;
     }

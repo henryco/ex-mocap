@@ -14,15 +14,17 @@
 namespace ex::gui {
 
     static void undo_action_() {
-        State &state = ex::logic::globals::state();
+        if (!undo_history().can_undo())
+            return;
         undo_history().undo();
-        undo_history().apply(&state);
+        undo_history().apply(&ex::logic::globals::state());
     }
 
     static void redo_action_() {
-        State &state = ex::logic::globals::state();
+        if (!undo_history().can_redo())
+            return;
         undo_history().redo();
-        undo_history().apply(&state);
+        undo_history().apply(&ex::logic::globals::state());
     }
 
     inline void register_actions_(const int &undo_key, const int &redo_key) {
