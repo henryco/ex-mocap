@@ -15,6 +15,8 @@ namespace ex::gui::actions {
 
     action_fn_t get_action(int action);
 
+    action_fn_t *list_actions(int *size_n);
+
 }
 
 #endif //GUI_ACTIONS_H
