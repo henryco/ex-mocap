@@ -2,7 +2,7 @@
 // Created by xd on 03/01/25.
 //
 
-#include "../../../headers/imgui/cmp/test_cmp.h"
+#include "../../../headers/imgui/components/test_cmp.h"
 #include "../../../headers/utils/gui_utils.h"
 
 #include <IconsLucide.h>

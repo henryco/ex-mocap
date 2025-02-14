@@ -126,7 +126,7 @@ set(HEADER_FILES
         src/headers/core/image_protocol.h
         src/headers/imgui/gui_component.h
         src/headers/imgui/gui_state.h
-        src/headers/imgui/cmp/test_cmp.h
+        src/headers/imgui/components/test_cmp.h
         src/headers/imgui/tree/gui_tree_ops.h
         src/headers/imgui/gui_keymap.h
         src/headers/imgui/gui_globals.h

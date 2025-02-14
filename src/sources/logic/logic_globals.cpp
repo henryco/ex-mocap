@@ -3,7 +3,7 @@
 //
 
 #include "../../headers/logic/logic_globals.h"
-#include "../../headers/imgui/cmp/test_cmp.h"
+#include "../../headers/imgui/components/test_cmp.h"
 
 namespace ex::logic::globals {
 
