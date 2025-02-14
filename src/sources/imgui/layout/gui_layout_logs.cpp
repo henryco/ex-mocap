@@ -2,10 +2,10 @@
 // Created by xd on 02/12/24.
 //
 
-#include <IconsLucide.h>
 #include "../../../headers/imgui/layout/gui_layout.h"
-
+#include "../../../headers/imgui/gui_strings.h"
 #include "../../../headers/imgui/gui_globals.h"
+#include <IconsLucide.h>
 
 namespace ex::gui {
 
@@ -16,7 +16,7 @@ namespace ex::gui {
         const auto old_height = gui.view.pane_height_bottom;
         const auto old_expanded = gui.view.expanded_logs;
 
-        gui.view.expanded_logs = ImGui::CollapsingHeader(ICON_LC_LOGS " Log Output ", &gui.view.show_logs);
+        gui.view.expanded_logs = ImGui::CollapsingHeader(strings::logs_bot, &gui.view.show_logs);
         if (!gui.view.show_logs) {
             gui.view.expanded_logs = false;
             gui.window.resized     = true;
@@ -27,23 +27,23 @@ namespace ex::gui {
                               ImVec2(24, 0), 0, ImGuiWindowFlags_NoDecoration | reset_flag(gui));
             {
                 gui.view.highlight_logs = !ex::gui::toggle_button(ICON_LC_LIGHTBULB_OFF, !gui.view.highlight_logs);
-                ex::gui::plain_tooltip("Disable highlighting for warnings and errors");
+                ex::gui::plain_tooltip(strings::logs_bot_highlight);
                 ImGui::Spacing();
 
                 gui.view.follow_logs = ex::gui::toggle_button(ICON_LC_LIST_END, gui.view.follow_logs);
-                ex::gui::plain_tooltip("Follow logs");
+                ex::gui::plain_tooltip(strings::logs_bot_follow);
                 ImGui::Spacing();
 
                 if (ex::gui::toggle_button(ICON_LC_CLIPBOARD_COPY)) {
                     ImGui::SetClipboardText(ex::logs::get_all_as_string().c_str());
                 }
-                ex::gui::plain_tooltip("Copy to clipboard");
+                ex::gui::plain_tooltip(strings::logs_bot_copy);
                 ImGui::Spacing();
 
                 if (ex::gui::toggle_button(ICON_LC_TRASH_2)) {
                     ex::logs::clear_all();
                 }
-                ex::gui::plain_tooltip("Clear all");
+                ex::gui::plain_tooltip(strings::logs_bot_clear_all);
                 ImGui::Spacing();
 
             }
@@ -54,8 +54,7 @@ namespace ex::gui {
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
             ImGui::BeginChild("BottomPane",
                               ImVec2(0, (gui.re_size.inc_y || gui.window.resized) ? 0 : gui.view.pane_height_bottom),
-                              0
-                                      | ImGuiChildFlags_Borders, reset_flag(gui));
+                              0 | ImGuiChildFlags_Borders, reset_flag(gui));
 
             ImGui::BeginChild("LogPane", ImVec2(0, 0), ImGuiChildFlags_FrameStyle, reset_flag(gui));
             {

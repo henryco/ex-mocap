@@ -34,6 +34,14 @@ namespace ex::gui::strings {
     constexpr auto menu_top_help       = "Help";
     constexpr auto menu_top_help_about = "About";
 
+    constexpr auto logs_bot           = ICON_LC_LOGS " Log Output ";
+    constexpr auto logs_bot_highlight = "Disable highlighting for warnings and errors";
+    constexpr auto logs_bot_follow    = "Follow logs";
+    constexpr auto logs_bot_copy      = "Copy to clipboard";
+    constexpr auto logs_bot_clear_all = "Clear all";
+
+
+
 }
 
 #endif //GUI_STRINGS_H
