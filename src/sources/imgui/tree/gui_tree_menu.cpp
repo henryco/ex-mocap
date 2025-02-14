@@ -111,7 +111,7 @@ namespace ex::gui::tree {
         if (node == nullptr)
             return false;
 
-        TreeState &tree_state = ex::gui::tree::state();
+        const auto &tree_state = ex::gui::tree::state();
         State &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
 
@@ -139,13 +139,13 @@ namespace ex::gui::tree {
 
         if (ImGui::BeginPopup(menu_id)) {
 
-            if (ImGui::BeginMenu("New")) {
-                if (ImGui::BeginMenu("Add into")) {
+            if (ImGui::BeginMenu(strings::gui_tree_menu_node_new)) {
+                if (ImGui::BeginMenu(strings::gui_tree_menu_node_add_into)) {
                     if (const auto new_node = create_node_from_menu(state, gui))
                         tree::add_into_node(node, new_node);
                     ImGui::EndMenu();
                 }
-                if (ImGui::BeginMenu("Add After")) {
+                if (ImGui::BeginMenu(strings::gui_tree_menu_node_add_after)) {
                     if (const auto new_node = create_node_from_menu(state, gui))
                         tree::add_after_node(node, new_node);
                     ImGui::EndMenu();
@@ -155,19 +155,19 @@ namespace ex::gui::tree {
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Rename")) {
+            if (ImGui::MenuItem(strings::gui_tree_menu_node_rename)) {
                 std::memset(name_buffer, 0, sizeof(name_buffer));
                 std::memcpy(name_buffer, node->name, std::strlen(node->name));
                 rename_popup = true;
             }
 
             const bool enabled = !(node->state >>= node_state::disabled);
-            if (ImGui::MenuItem(enabled ? "Disable" : "Enable")) {
+            if (ImGui::MenuItem(enabled ? strings::gui_tree_menu_node_disable : strings::gui_tree_menu_node_enable)) {
                 if (enabled) tree::disable_node(node);
                 else tree::enable_node(node);
             }
 
-            if (ImGui::MenuItem("Group")) {
+            if (ImGui::MenuItem(strings::gui_tree_menu_node_group)) {
                 tree::selection_node selection;
                 selection.selected = node;
                 selection.root     = &selection;
@@ -177,7 +177,7 @@ namespace ex::gui::tree {
             }
 
             if (is_grouped) {
-                if (ImGui::MenuItem("Ungroup")) {
+                if (ImGui::MenuItem(strings::gui_tree_menu_node_ungroup)) {
                     tree::selection_node selection;
                     selection.selected = node;
                     selection.root     = &selection;
@@ -188,40 +188,40 @@ namespace ex::gui::tree {
             }
 
             if (!(node->state >>= node_state::is_link)) {
-                if (ImGui::MenuItem("Inspect")) {
+                if (ImGui::MenuItem(strings::gui_tree_menu_node_inspect)) {
                     tree::pick_inspected_node(node);
                 }
 
                 tm::node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);
 
-                if (ImGui::MenuItem("Duplicate", key_mappings().work_tree.duplicate.label)) {
+                if (ImGui::MenuItem(strings::gui_tree_menu_node_duplicate, key_mappings().work_tree.duplicate.label)) {
                     tree::duplicate_node(node);
                 }
 
-                if (ImGui::MenuItem("Cut", key_mappings().work_tree.cut.label)) {
+                if (ImGui::MenuItem(strings::gui_tree_menu_node_cut, key_mappings().work_tree.cut.label)) {
                     tree::cut_node(node);
                 }
 
-                if (ImGui::BeginMenu("Copy")) {
+                if (ImGui::BeginMenu(strings::gui_tree_menu_node_copy)) {
 
-                    if (ImGui::MenuItem("Copy", key_mappings().work_tree.copy.label)) {
+                    if (ImGui::MenuItem(strings::gui_tree_menu_node_copy, key_mappings().work_tree.copy.label)) {
                         tree::copy_node(node);
                     }
 
-                    if (ImGui::MenuItem("Copy Ref", key_mappings().work_tree.reference.label)) {
+                    if (ImGui::MenuItem(strings::gui_tree_menu_node_copy_ref, key_mappings().work_tree.reference.label)) {
                         tree::ref_node(node);
                     }
 
                     ImGui::EndMenu();
                 }
 
-                if (ImGui::BeginMenu("Paste", tree_state.buffer != nullptr)) {
+                if (ImGui::BeginMenu(strings::gui_tree_menu_node_paste, tree_state.buffer != nullptr)) {
 
-                    if (ImGui::MenuItem("Paste after", key_mappings().work_tree.paste.label)) {
+                    if (ImGui::MenuItem(strings::gui_tree_menu_node_paste_after, key_mappings().work_tree.paste.label)) {
                         tree::paste_after_node(node);
                     }
 
-                    if (ImGui::MenuItem("Paste into", key_mappings().work_tree.insert.label)) {
+                    if (ImGui::MenuItem(strings::gui_tree_menu_node_paste_into, key_mappings().work_tree.insert.label)) {
                         tree::paste_into_node(node);
                     }
 
@@ -231,7 +231,7 @@ namespace ex::gui::tree {
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Delete")) {
+            if (ImGui::MenuItem(strings::gui_tree_menu_node_delete)) {
                 tree::delete_node(node);
             }
 
@@ -243,9 +243,9 @@ namespace ex::gui::tree {
         }
 
         if (ImGui::BeginPopup("rename-popup")) {
-            ImGui::Text("Edit name: ");
+            ImGui::Text(strings::gui_tree_menu_node_edit_name);
             ImGui::InputText("##edit", name_buffer, IM_ARRAYSIZE(name_buffer));
-            if (ImGui::Button("Apply")) {
+            if (ImGui::Button(strings::gui_tree_menu_node_edit_apply)) {
                 tree::rename_node(node, name_buffer);
                 ImGui::CloseCurrentPopup();
             }

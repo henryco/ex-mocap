@@ -51,6 +51,25 @@ namespace ex::gui::strings {
     constexpr auto gui_tree_menu_group_copy    = "Copy";
     constexpr auto gui_tree_menu_group_delete  = "Delete";
 
+    constexpr auto gui_tree_menu_node_new         = "New";
+    constexpr auto gui_tree_menu_node_add_into    = "Add into";
+    constexpr auto gui_tree_menu_node_add_after   = "Add After";
+    constexpr auto gui_tree_menu_node_rename      = "Rename";
+    constexpr auto gui_tree_menu_node_disable     = "Disable";
+    constexpr auto gui_tree_menu_node_enable      = "Enable";
+    constexpr auto gui_tree_menu_node_group       = "Group";
+    constexpr auto gui_tree_menu_node_ungroup     = "Ungroup";
+    constexpr auto gui_tree_menu_node_inspect     = "Inspect";
+    constexpr auto gui_tree_menu_node_duplicate   = "Duplicate";
+    constexpr auto gui_tree_menu_node_cut         = "Cut";
+    constexpr auto gui_tree_menu_node_copy        = "Copy";
+    constexpr auto gui_tree_menu_node_copy_ref    = "Copy Ref";
+    constexpr auto gui_tree_menu_node_paste       = "Paste";
+    constexpr auto gui_tree_menu_node_paste_after = "Paste After";
+    constexpr auto gui_tree_menu_node_paste_into  = "Paste Into";
+    constexpr auto gui_tree_menu_node_delete      = "Delete";
+    constexpr auto gui_tree_menu_node_edit_name   = "Edit name: ";
+    constexpr auto gui_tree_menu_node_edit_apply  = "Apply";
 
 }
 
