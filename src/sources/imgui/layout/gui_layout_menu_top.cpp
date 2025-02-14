@@ -27,12 +27,18 @@ namespace ex::gui {
         undo_history().apply(&ex::logic::globals::state());
     }
 
-    inline void register_actions_(const int &undo_key, const int &redo_key) {
-        static bool init_undo = true;
-        if (init_undo) {
-            ex::gui::actions::set_action(undo_key, &undo_action_);
-            ex::gui::actions::set_action(redo_key, &redo_action_);
-            init_undo = false;
+    static void exit_action_() {
+        ex::gui::state().window.exit = true;
+    }
+
+    inline void register_actions_() {
+        static bool init_actions = true;
+        if (init_actions) {
+            const auto &[file, history, work_tree] = key_mappings();
+            ex::gui::actions::set_action(history.undo.key, &undo_action_);
+            ex::gui::actions::set_action(history.redo.key, &redo_action_);
+            ex::gui::actions::set_action(file.exit.key, &exit_action_);
+            init_actions = false;
         }
     }
 
@@ -49,17 +55,16 @@ namespace ex::gui {
     }
 
     void show_menu_top_bar() {
+        register_actions_();
+
         GuiState &gui = ex::gui::state();
-
-        const auto &[file, history, work_tree] = key_mappings();
-
-        register_actions_(history.undo.key, history.redo.key);
-
         if (!gui.view.show_menu)
             return;
 
         if (ImGui::BeginMenuBar()) {
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 6.0f));
+
+            const auto &[file, history, work_tree] = key_mappings();
 
             if (ImGui::BeginMenu(strings::menu_top_file)) {
                 if (ImGui::MenuItem(strings::menu_top_file_new)) {
@@ -84,7 +89,7 @@ namespace ex::gui {
                 ImGui::Separator();
 
                 if (ImGui::MenuItem(strings::menu_top_file_exit, file.exit.label)) {
-                    gui.window.exit = true;
+                    exit_action_();
                 }
 
                 ImGui::EndMenu();
