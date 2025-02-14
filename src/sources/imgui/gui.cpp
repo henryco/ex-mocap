@@ -74,7 +74,7 @@ namespace ex::gui {
         ImGui::Render();
     }
 
-    void GUI::draw(const float delta) const {
+    void GUI::draw(const float) const {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 

@@ -2,10 +2,12 @@
 // Created by xd on 02/12/24.
 //
 
-#include <IconsLucide.h>
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/logic/logic_globals.h"
+#include "../../../headers/utils/gl_utils.h"
+
+#include <IconsLucide.h>
 #include <simpfp.h>
 
 namespace ex::gui {
@@ -59,13 +61,22 @@ namespace ex::gui {
 
         if (simpfp::ShowFileDialog("Open a file", open, min_size, true)) {
             if (static char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
-                undo_history().reset();
-                state.project_path = file;
-                state.should_open  = true;
-                *open              = false;
+                const auto path = std::filesystem::path(file);
+                if (std::filesystem::exists(path) && std::filesystem::is_regular_file(path)) {
+                    // TODO: ASK DIALOG
 
-                // TODO: ASK DIALOG
-                simpfp::CloseFileDialog();
+                    undo_history().reset();
+                    state.title        = (new std::string("ExMoCap - " + path.filename().string()))->c_str();
+                    state.project_path = file;
+                    state.should_open  = true;
+                    *open              = false;
+
+                    ex::gl::set_window_title(state.window, state.title);
+
+                    simpfp::CloseFileDialog();
+                } else {
+                    // TODO ERROR DIALOG
+                }
             }
             simpfp::EndFileDialog();
         }
