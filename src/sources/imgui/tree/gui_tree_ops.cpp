@@ -3,11 +3,11 @@
 //
 
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
-#include <map>
-#include <ranges>
 #include "../../../headers/imgui/gui_globals.h"
-
+#include "../../../headers/imgui/gui_strings.h"
 #include "../../../headers/logic/logic_globals.h"
+#include <ranges>
+#include <map>
 
 namespace ex::gui::tree {
 
@@ -158,7 +158,7 @@ namespace ex::gui::tree {
         state.work_tree->add_node(add);
         state.active_node = add;
 
-        undo_history().push("Add node",
+        undo_history().push(strings::gui_tree_ops_history_add,
         new std::function([snapshot](State *s) {
             TreeState::reset(tree::state());
             snapshot->rollback(s);
@@ -201,7 +201,7 @@ namespace ex::gui::tree {
         parent->add_node(add);
         state.active_node = add;
 
-        undo_history().push("Add into",
+        undo_history().push(strings::gui_tree_ops_history_add_into,
         new std::function([snapshot] (ex::State *s) {
             TreeState::reset(tree::state());
             snapshot->rollback(s);
@@ -250,7 +250,7 @@ namespace ex::gui::tree {
         parent->insert_node(index + 1, add);
         state.active_node = add;
 
-        undo_history().push("Add after",
+        undo_history().push(strings::gui_tree_ops_history_add_after,
         new std::function([snapshot] (ex::State *s) {
             TreeState::reset(tree::state());
             snapshot->rollback(s);
@@ -316,7 +316,7 @@ namespace ex::gui::tree {
 
         TreeState::reset(tree::state());
 
-        undo_history().push("Node renamed",
+        undo_history().push(strings::gui_tree_ops_history_node_renamed,
         new std::function([id_local, og_name] (State *s) {
             TreeState::reset(tree::state());
             const auto f_node = s->work_tree->find_node(id_local);
@@ -355,7 +355,7 @@ namespace ex::gui::tree {
 
         state.active_node = copy;
 
-        undo_history().push("Node duplicated",
+        undo_history().push(strings::gui_tree_ops_history_node_duplicated,
         new std::function([snapshot] (ex::State *s) -> void {
             TreeState::reset(tree::state());
             snapshot->rollback(s);
@@ -433,7 +433,7 @@ namespace ex::gui::tree {
             parent->insert_node(++c, deep_copy);
         }
 
-        undo_history().push("Paste after",
+        undo_history().push(strings::gui_tree_ops_history_paste_after,
         new std::function([snapshot] (ex::State *s) {
             TreeState::reset(tree::state());
             snapshot->rollback(s);
@@ -531,7 +531,7 @@ namespace ex::gui::tree {
             parent->add_node(deep_copy);
         }
 
-        undo_history().push("Paste into",
+        undo_history().push(strings::gui_tree_ops_history_paste_into,
         new std::function([snapshot] (ex::State *s) {
             TreeState::reset(tree::state());
             snapshot->rollback(s);
@@ -597,7 +597,7 @@ namespace ex::gui::tree {
         parent->insert_node(index + 1, nco);
         state.active_node = nco;
 
-        undo_history().push("Move after",
+        undo_history().push(strings::gui_tree_ops_history_move_after,
         new std::function([snapshot] (ex::State *s) {
             TreeState::reset(tree::state());
             snapshot->rollback(s);
@@ -655,7 +655,7 @@ namespace ex::gui::tree {
 
         state.active_node = nco;
 
-        undo_history().push("Move into",
+        undo_history().push(strings::gui_tree_ops_history_move_into,
         new std::function([snapshot] (ex::State *s) {
             TreeState::reset(tree::state());
             snapshot->rollback(s);
@@ -724,7 +724,7 @@ namespace ex::gui::tree {
         if (index >= 0)
             parent->insert_node(index, new_group->deep_copy());
 
-        undo_history().push("Group selected",
+        undo_history().push(strings::gui_tree_ops_history_group,
         new std::function([snapshot] (ex::State *s) {
             TreeState::reset(tree::state());
             if (s->work_tree != nullptr && s->work_tree != snapshot)
@@ -793,7 +793,7 @@ namespace ex::gui::tree {
             parent->parent->insert_node(++i, temp_group->children[c]->deep_copy());
         }
 
-        undo_history().push("Ungroup selected",
+        undo_history().push(strings::gui_tree_ops_history_ungroup,
         new std::function([snapshot] (ex::State *s) {
             TreeState::reset(tree::state());
             if (s->work_tree != nullptr && s->work_tree != snapshot)
@@ -848,7 +848,7 @@ namespace ex::gui::tree {
 
         state.force_rewire = true;
 
-        undo_history().push("Node enabled",
+        undo_history().push(strings::gui_tree_ops_history_node_enabled,
         new std::function([id_l = node->id_local, og_state] (ex::State *s) {
             TreeState::reset(tree::state());
             s->force_rewire = true;
@@ -877,7 +877,7 @@ namespace ex::gui::tree {
         TreeState::reset(tree::state());
         state.force_rewire = true;
 
-        undo_history().push("Node disabled",
+        undo_history().push(strings::gui_tree_ops_history_node_disabled,
         new std::function([id_l = node->id_local, og_state] (ex::State *s) {
             TreeState::reset(tree::state());
             s->force_rewire = true;
@@ -914,7 +914,7 @@ namespace ex::gui::tree {
         TreeState::reset(tree::state());
         state.force_rewire = true;
 
-        undo_history().push("Selection enabled",
+        undo_history().push(strings::gui_tree_ops_history_select_enabled,
         new std::function([og_state = og_map](ex::State *s) {
             TreeState::reset(tree::state());
             s->force_rewire = true;
@@ -955,7 +955,7 @@ namespace ex::gui::tree {
         TreeState::reset(tree::state());
         state.force_rewire = true;
 
-        undo_history().push("Selection disabled",
+        undo_history().push(strings::gui_tree_ops_history_select_disabled,
         new std::function([og_state = og_map](ex::State *s) {
             s->force_rewire = true;
             for (const auto &[k, v] : og_state) {
@@ -1004,7 +1004,7 @@ namespace ex::gui::tree {
             head = head->next;
         }
 
-        undo_history().push("Selection deleted",
+        undo_history().push(strings::gui_tree_ops_history_select_deleted,
         new std::function([snapshot] (ex::State *s) {
             TreeState::reset(tree::state());
             snapshot->rollback(s);
@@ -1038,7 +1038,7 @@ namespace ex::gui::tree {
         const auto snapshot = Snapshot::create(state);
         node->state |= node_state::deleted;
 
-        undo_history().push("Node deleted",
+        undo_history().push(strings::gui_tree_ops_history_node_deleted,
         new std::function([snapshot] (ex::State *s) {
             TreeState::reset(tree::state());
             snapshot->rollback(s);

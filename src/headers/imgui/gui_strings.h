@@ -71,6 +71,25 @@ namespace ex::gui::strings {
     constexpr auto gui_tree_menu_node_edit_name   = "Edit name: ";
     constexpr auto gui_tree_menu_node_edit_apply  = "Apply";
 
+    constexpr auto gui_tree_ops_history_add             = "Add node";
+    constexpr auto gui_tree_ops_history_add_into        = "Add into";
+    constexpr auto gui_tree_ops_history_add_after       = "Add after";
+    constexpr auto gui_tree_ops_history_node_renamed    = "Rename node";
+    constexpr auto gui_tree_ops_history_node_duplicated = "Duplicate node";
+    constexpr auto gui_tree_ops_history_paste_after     = "Paste after";
+    constexpr auto gui_tree_ops_history_paste_into      = "Paste into";
+    constexpr auto gui_tree_ops_history_move_after      = "Move after";
+    constexpr auto gui_tree_ops_history_move_into       = "Move into";
+    constexpr auto gui_tree_ops_history_group           = "Group selection";
+    constexpr auto gui_tree_ops_history_ungroup         = "Ungroup selection";
+    constexpr auto gui_tree_ops_history_node_enabled    = "Enable node";
+    constexpr auto gui_tree_ops_history_node_disabled   = "Disable node";
+    constexpr auto gui_tree_ops_history_node_deleted    = "Delete node";
+    constexpr auto gui_tree_ops_history_select_enabled  = "Enable selection";
+    constexpr auto gui_tree_ops_history_select_disabled = "Disable selection";
+    constexpr auto gui_tree_ops_history_select_deleted  = "Delete selection";
+
+
 }
 
 #endif //GUI_STRINGS_H
