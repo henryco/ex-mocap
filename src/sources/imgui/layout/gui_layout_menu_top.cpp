@@ -106,15 +106,26 @@ namespace ex::gui {
 
                 ImGui::Separator();
 
-                if (ImGui::MenuItem(strings::menu_top_edit_cut, work_tree.cut.label, false, false)) {
-                    // TODO
+                const auto &cut_action = actions::get_action(work_tree.cut.key);
+                if (ImGui::MenuItem(strings::menu_top_edit_cut, work_tree.cut.label, false, cut_action != nullptr)) {
+                    cut_action();
                 }
-                if (ImGui::MenuItem(strings::menu_top_edit_copy, work_tree.copy.label, false, false)) {
-                    // TODO
+
+                const auto &copy_action = actions::get_action(work_tree.copy.key);
+                if (ImGui::MenuItem(strings::menu_top_edit_copy, work_tree.copy.label, false, copy_action != nullptr)) {
+                    copy_action();
                 }
-                if (ImGui::MenuItem(strings::menu_top_edit_paste, work_tree.paste.label, false, false)) {
-                    // TODO
+
+                const auto &paste_action = actions::get_action(work_tree.paste.key);
+                if (ImGui::MenuItem(strings::menu_top_edit_paste, work_tree.paste.label, false, paste_action != nullptr)) {
+                    paste_action();
                 }
+
+                const auto &insert_action = actions::get_action(work_tree.insert.key);
+                if (ImGui::MenuItem(strings::menu_top_edit_insert, work_tree.insert.label, false, insert_action != nullptr)) {
+                    insert_action();
+                }
+
                 ImGui::EndMenu();
             }
 

@@ -40,7 +40,8 @@ namespace ex::gui {
 
         for (int i = 0; i < size; i++) {
             if (ImGui::Shortcut(registry[i].key)) {
-                registry[i].fn();
+                if (registry[i].fn != nullptr)
+                    registry[i].fn();
                 return;
             }
         }

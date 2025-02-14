@@ -5,12 +5,12 @@
 #include <IconsLucide.h>
 #include <iostream>
 
+#include "../../../headers/imgui/gui_actions.h"
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/imgui/tree/gui_tree_menu.h"
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
 #include "../../../headers/logic/logic_globals.h"
-
 
 namespace ex::gui {
 
@@ -656,60 +656,134 @@ namespace ex::gui {
         ImGui::EndChild();
     }
 
+    void remove_actions_() {
+        const auto &mappings = key_mappings();
+        actions::remove_action(mappings.work_tree.copy.key);
+        actions::remove_action(mappings.work_tree.cut.key);
+        actions::remove_action(mappings.work_tree.deletion.key);
+        actions::remove_action(mappings.work_tree.duplicate.key);
+        actions::remove_action(mappings.work_tree.insert.key);
+        actions::remove_action(mappings.work_tree.paste.key);
+        actions::remove_action(mappings.work_tree.reference.key);
+    }
+
+    static void action_delete_node_() {
+        const auto node = ex::gui::tree::state().selection->selected;
+        tree::delete_node(node);
+    }
+
+    static void action_duplicate_node_() {
+        const auto node = ex::gui::tree::state().selection->selected;
+        tree::duplicate_node(node);
+    }
+
+    static void action_cut_node_() {
+        const auto node = ex::gui::tree::state().selection->selected;
+        tree::cut_node(node);
+    }
+
+    static void action_copy_node_() {
+        const auto node = ex::gui::tree::state().selection->selected;
+        tree::copy_node(node);
+    }
+
+    static void action_ref_node_() {
+        const auto node = ex::gui::tree::state().selection->selected;
+        tree::ref_node(node);
+    }
+
+    static void action_paste_after_node_() {
+        const auto node = ex::gui::tree::state().selection->selected;
+        tree::paste_after_node(node);
+    }
+
+    static void action_paste_into_node_() {
+        const auto node = ex::gui::tree::state().selection->selected;
+        tree::paste_into_node(node);
+    }
+
+    static void action_cut_selected_() {
+        const auto selection = ex::gui::tree::state().selection;
+        tree::cut_selected(selection);
+    }
+
+    static void action_copy_selected_() {
+        const auto selection = ex::gui::tree::state().selection;
+        tree::copy_selected(selection);
+    }
+
+    static void action_delete_selected_() {
+        const auto selection = ex::gui::tree::state().selection;
+        tree::delete_selected(selection);
+    }
+
     void process_single_action(TreeNode *node) {
+        const auto &mappings = key_mappings();
+        remove_actions_();
 
         if (node->state >>= node_state::is_link) {
-            if (ImGui::Shortcut(key_mappings().work_tree.deletion.key))
-                tree::delete_node(node);
+            actions::set_action(mappings.work_tree.deletion.key, action_delete_node_);
             return;
         }
 
-        const auto &tree_state = ex::gui::tree::state();
+        actions::set_action(mappings.work_tree.duplicate.key, action_duplicate_node_);
+        actions::set_action(mappings.work_tree.cut.key, action_cut_node_);
+        actions::set_action(mappings.work_tree.copy.key, action_copy_node_);
+        actions::set_action(mappings.work_tree.reference.key, action_ref_node_);
+        actions::set_action(mappings.work_tree.deletion.key, action_delete_node_);
 
-        if (ImGui::Shortcut(key_mappings().work_tree.duplicate.key))
-            tree::duplicate_node(node);
+        if (ex::gui::tree::state().buffer == nullptr)
+            return;
 
-        else if (ImGui::Shortcut(key_mappings().work_tree.cut.key))
-            tree::cut_node(node);
-
-        else if (ImGui::Shortcut(key_mappings().work_tree.copy.key))
-            tree::copy_node(node);
-
-        else if (ImGui::Shortcut(key_mappings().work_tree.reference.key))
-            tree::ref_node(node);
-
-        else if (tree_state.buffer != nullptr && ImGui::Shortcut(key_mappings().work_tree.paste.key))
-            tree::paste_after_node(node);
-
-        else if (tree_state.buffer != nullptr && ImGui::Shortcut(key_mappings().work_tree.insert.key))
-            tree::paste_into_node(node);
-
-        else if (ImGui::Shortcut(key_mappings().work_tree.deletion.key))
-            tree::delete_node(node);
+        actions::set_action(mappings.work_tree.paste.key, action_paste_after_node_);
+        actions::set_action(mappings.work_tree.insert.key, action_paste_into_node_);
     }
 
-    void process_multi_action(tree::selection_node *selection) {
-        if (ImGui::Shortcut(key_mappings().work_tree.cut.key))
-            tree::cut_selected(selection);
+    void process_multi_action() {
+        const auto &mappings = key_mappings();
+        remove_actions_();
 
-        else if (ImGui::Shortcut(key_mappings().work_tree.copy.key))
-            tree::copy_selected(selection);
+        const auto selection = ex::gui::tree::state().selection;
+        auto head = selection->root;
+        bool same_root = true;
+        while (head != nullptr) {
+            if (head->selected->parent != selection->root->selected->parent)
+                same_root = false;
+            head = head->next;
+        }
 
-        else if (ImGui::Shortcut(key_mappings().work_tree.deletion.key))
-            tree::delete_selected(selection);
+        actions::set_action(mappings.work_tree.deletion.key, action_delete_selected_);
+        if (same_root) {
+            actions::set_action(mappings.work_tree.cut.key, action_cut_selected_);
+            actions::set_action(mappings.work_tree.copy.key, action_copy_selected_);
+        }
     }
 
     void process_tree_actions() {
-        const auto &tree_state = ex::gui::tree::state();
 
         if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
             return;
-        if (tree_state.selection == nullptr)
+
+        static char last_active = 0;
+
+        const auto &tree_state = ex::gui::tree::state();
+        if (tree_state.selection == nullptr) {
+            if (last_active != 0)
+                remove_actions_();
+            last_active = 0;
             return;
-        if (tree::selection_node::single(tree_state.selection))
-            process_single_action(tree_state.selection->selected);
-        else
-            process_multi_action(tree_state.selection);
+        }
+
+        if (tree::selection_node::single(tree_state.selection)) {
+            if (last_active != 1)
+                process_single_action(tree_state.selection->selected);
+            last_active = 1;
+            return;
+        }
+
+        if (last_active != 2)
+            process_multi_action();
+        last_active = 2;
     }
 
     void show_work_tree() {

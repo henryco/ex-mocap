@@ -16,12 +16,13 @@ namespace ex::gui::strings {
     constexpr auto menu_top_file_save_as = "Save As";
     constexpr auto menu_top_file_exit    = "Exit";
 
-    constexpr auto menu_top_edit       = "Edit";
-    constexpr auto menu_top_edit_undo  = ICON_LC_UNDO " Undo";
-    constexpr auto menu_top_edit_redo  = ICON_LC_REDO " Redo";
-    constexpr auto menu_top_edit_cut   = ICON_LC_SCISSORS " Cut";
-    constexpr auto menu_top_edit_copy  = ICON_LC_CLIPBOARD_COPY " Copy";
-    constexpr auto menu_top_edit_paste = ICON_LC_CLIPBOARD_PASTE " Paste";
+    constexpr auto menu_top_edit        = "Edit";
+    constexpr auto menu_top_edit_undo   = ICON_LC_UNDO " Undo";
+    constexpr auto menu_top_edit_redo   = ICON_LC_REDO " Redo";
+    constexpr auto menu_top_edit_cut    = ICON_LC_SCISSORS " Cut";
+    constexpr auto menu_top_edit_copy   = ICON_LC_CLIPBOARD_COPY " Copy";
+    constexpr auto menu_top_edit_paste  = ICON_LC_CLIPBOARD_PASTE " Paste";
+    constexpr auto menu_top_edit_insert = ICON_LC_CLIPBOARD_PASTE " Insert";
 
     constexpr auto menu_top_view               = "View";
     constexpr auto menu_top_view_unpin         = "Unpin windows";
