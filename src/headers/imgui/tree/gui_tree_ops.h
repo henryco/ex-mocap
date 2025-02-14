@@ -5,7 +5,7 @@
 #ifndef GUI_TREE_OPS_H
 #define GUI_TREE_OPS_H
 
-#include "gui_state.h"
+#include "../gui_state.h"
 #include "gui_tree_state.h"
 
 namespace ex::gui::tree {

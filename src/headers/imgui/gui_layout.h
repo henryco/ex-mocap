@@ -103,11 +103,5 @@ namespace ex::gui {
 
     void show_work_window();
 
-    bool show_context_menu_group();
-
-    bool show_context_menu_element(TreeNode *node, bool last, bool nested, bool selected);
-
-    bool show_context_menu_general();
-
 }
 #endif // EX_MOTION_GUI_LAYOUT_H

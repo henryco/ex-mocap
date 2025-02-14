@@ -3,7 +3,7 @@
 //
 
 #include "../../../headers/imgui/gui_layout.h"
-#include "../../../headers/imgui/gui_tree_ops.h"
+#include "../../../headers/imgui/tree/gui_tree_ops.h"
 #include "../../../headers/logic/logic_state.h"
 
 namespace ex::gui::tree {

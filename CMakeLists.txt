@@ -127,14 +127,15 @@ set(HEADER_FILES
         src/headers/imgui/gui_component.h
         src/headers/imgui/gui_state.h
         src/headers/imgui/cmp/test_cmp.h
-        src/headers/imgui/gui_tree_ops.h
+        src/headers/imgui/tree/gui_tree_ops.h
         src/headers/imgui/gui_keymap.h
         src/headers/imgui/gui_globals.h
         src/headers/logic/logic_state.h
         src/headers/logic/io/byte_serializer.h
         src/headers/utils/file_utils.h
         src/headers/logic/logic_globals.h
-        src/headers/imgui/gui_tree_state.h
+        src/headers/imgui/tree/gui_tree_state.h
+        src/headers/imgui/tree/gui_tree_menu.h
 )
 
 set(SOURCE_FILES
@@ -163,16 +164,16 @@ set(SOURCE_FILES
         src/sources/logic/logic.cpp
         src/sources/state.cpp
         src/sources/imgui/cmp/test_cmp.cpp
-        src/sources/imgui/layout/gui_layout_tree_menu.cpp
+        src/sources/imgui/tree/gui_tree_menu.cpp
         src/sources/imgui/layout/gui_layout_work_window.cpp
         src/sources/imgui/layout/gui_layout_node_inspector.cpp
         src/sources/imgui/gui_globals.cpp
-        src/sources/imgui/gui_tree_ops.cpp
+        src/sources/imgui/tree/gui_tree_ops.cpp
         src/sources/logic/logic_state.cpp
         src/sources/logic/io/byte_serializer.cpp
         src/sources/utils/file_utils.cpp
         src/sources/logic/logic_globals.cpp
-        src/sources/imgui/gui_tree_state.cpp
+        src/sources/imgui/tree/gui_tree_state.cpp
 )
 
 # =================== OpenCL kernels generation =====================

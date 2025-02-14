@@ -7,7 +7,8 @@
 
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/gui_layout.h"
-#include "../../../headers/imgui/gui_tree_ops.h"
+#include "../../../headers/imgui/tree/gui_tree_menu.h"
+#include "../../../headers/imgui/tree/gui_tree_ops.h"
 #include "../../../headers/logic/logic_globals.h"
 
 
@@ -405,11 +406,11 @@ namespace ex::gui {
 
             bool menu_element = false;
             if (tree::selection_node::single(*selected)) {
-                menu_element = show_context_menu_element(node, *menu_node == node->id_local,
+                menu_element = tree::show_context_menu_element(node, *menu_node == node->id_local,
                                                          node->children_n > 0, (node->state >>= node_state::selected));
                 drag_space(state, gui, node);
             } else {
-                show_context_menu_group();
+                tree::show_context_menu_group();
             }
 
             if (menu_element) {
@@ -528,11 +529,11 @@ namespace ex::gui {
 
                 bool menu_element = false;
                 if (tree::selection_node::single(*selected)) {
-                    menu_element = show_context_menu_element(first, *menu_node == first->id_local, false,
+                    menu_element = tree::show_context_menu_element(first, *menu_node == first->id_local, false,
                                                              first->state >>= node_state::selected);
                     drag_space(state, gui, first);
                 } else {
-                    show_context_menu_group();
+                    tree::show_context_menu_group();
                 }
 
                 if (menu_element) {
@@ -732,7 +733,7 @@ namespace ex::gui {
         watch = watch_parent_dock(gui);
 
         ImGui::BeginChild("WorkTreeBox", ImVec2(0, 0), 0, ImGuiWindowFlags_NoDecoration);
-        show_context_menu_general();
+        tree::show_context_menu_general();
         work_tree_content();
         ImGui::EndChild();
 

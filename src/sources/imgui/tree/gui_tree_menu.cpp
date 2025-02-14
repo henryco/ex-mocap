@@ -2,12 +2,12 @@
 // Created by xd on 17/01/25.
 //
 
-#include "../../../headers/imgui/gui_layout.h"
 #include "../../../headers/imgui/gui_globals.h"
+#include "../../../headers/imgui/tree/gui_tree_menu.h"
+#include "../../../headers/imgui/tree/gui_tree_ops.h"
 #include "../../../headers/logic/logic_globals.h"
-#include "../../../headers/imgui/gui_tree_ops.h"
 
-namespace ex::gui {
+namespace ex::gui::tree {
 
     namespace tm {
         const auto &node_mappers_ = node_components();

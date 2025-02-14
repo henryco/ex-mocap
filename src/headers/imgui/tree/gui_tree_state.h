@@ -5,7 +5,7 @@
 #ifndef GUI_TREE_STATE_H
 #define GUI_TREE_STATE_H
 
-#include "../state.h"
+#include "../../state.h"
 
 namespace ex::gui::tree {
 
