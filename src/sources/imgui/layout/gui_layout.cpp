@@ -69,6 +69,7 @@ namespace ex::gui {
             gui.view.main_free_x = ImGui::GetContentRegionAvail().x;
             gui.view.main_free_y = ImGui::GetContentRegionAvail().y;
 
+            show_file_dialogs();
             show_menu_top_bar();
             show_left_pane();
             show_main_container();

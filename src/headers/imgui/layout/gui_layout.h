@@ -86,6 +86,8 @@ namespace ex::gui {
         return ImGuiChildFlags_ResizeY;
     }
 
+    void show_file_dialogs();
+
     void show_menu_top_bar();
 
     void show_left_pane();

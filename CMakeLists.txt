@@ -175,6 +175,7 @@ set(SOURCE_FILES
         src/sources/utils/file_utils.cpp
         src/sources/logic/logic_globals.cpp
         src/sources/imgui/tree/gui_tree_state.cpp
+        src/sources/imgui/layout/gui_layout_file_dialogs.cpp
 )
 
 # =================== OpenCL kernels generation =====================

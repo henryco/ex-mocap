@@ -53,12 +53,19 @@ namespace ex::gui {
         bool exit    = false;
     };
 
-    struct GuiState {
-        Docking docking;
-        Window  window;
-        ReSize  re_size;
-        View    view;
+    struct FileDialogs {
+        bool file_picker_save = false;
+        bool file_picker_open = false;
     };
+
+    struct GuiState {
+        FileDialogs file_dialogs;
+        Docking     docking;
+        Window      window;
+        ReSize      re_size;
+        View        view;
+    };
+
 }
 
 #endif //GUI_STATE_H

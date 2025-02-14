@@ -6,7 +6,6 @@
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/logic/logic_globals.h"
-#include "../../../headers/utils/gl_utils.h"
 
 #include <IconsLucide.h>
 #include <simpfp.h>
@@ -25,73 +24,9 @@ namespace ex::gui {
         ex::gui::plain_tooltip(strings::menu_top_view_unpin);
     }
 
-    void show_save_file_picker(bool *open, ex::State &state) {
-        if (!open) return;
-
-        constexpr auto min_size  = ImVec2(900, 500);
-        static constexpr simpfp::Labels labels {
-            .main_accept = "Save"
-        };
-
-        if (!simpfp::FileDialogOpen())
-            simpfp::OpenFileDialog("Save a file", state.project_path, nullptr, &labels);
-
-        if (simpfp::ShowFileDialog("Save a file", open, min_size, true)) {
-            if (static char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
-                state.project_path = file;
-                state.should_save  = true;
-                *open              = false;
-
-                // TODO: ASK DIALOG
-                simpfp::CloseFileDialog();
-            }
-            simpfp::EndFileDialog();
-        }
-    }
-
-    void show_open_file_picker(bool *open, ex::State &state) {
-        if (!open) return;
-
-        constexpr auto min_size  = ImVec2(900, 500);
-        static constexpr simpfp::Labels labels {
-            .main_accept = "Open"
-        };
-
-        if (!simpfp::FileDialogOpen())
-            simpfp::OpenFileDialog("Open a file", state.project_path, nullptr, &labels);
-
-        if (simpfp::ShowFileDialog("Open a file", open, min_size, true)) {
-            if (static char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
-                const auto path = std::filesystem::path(file);
-                if (std::filesystem::exists(path) && std::filesystem::is_regular_file(path)) {
-                    // TODO: ASK DIALOG
-
-                    undo_history().reset();
-                    state.title        = (new std::string("ExMoCap - " + path.filename().string()))->c_str();
-                    state.project_path = file;
-                    state.should_open  = true;
-                    *open              = false;
-
-                    ex::gl::set_window_title(state.window, state.title);
-
-                    simpfp::CloseFileDialog();
-                } else {
-                    // TODO ERROR DIALOG
-                }
-            }
-            simpfp::EndFileDialog();
-        }
-    }
-
     void show_menu_top_bar() {
         State    &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
-
-        static bool file_picker_save = false;
-        static bool file_picker_open = false;
-
-        show_open_file_picker(&file_picker_open, state);
-        show_save_file_picker(&file_picker_save, state);
 
         if (!gui.view.show_menu)
             return;
@@ -105,16 +40,16 @@ namespace ex::gui {
                 }
 
                 if (ImGui::MenuItem(strings::menu_top_file_open)) {
-                    file_picker_open = true;
+                    gui.file_dialogs.file_picker_open = true;
                 }
 
                 if (ImGui::MenuItem(strings::menu_top_file_save)) {
-                    file_picker_save = true;
+                    gui.file_dialogs.file_picker_save = true;
                     // TODO
                 }
 
                 if (ImGui::MenuItem(strings::menu_top_file_save_as)) {
-                    file_picker_save = true;
+                    gui.file_dialogs.file_picker_save = true;
                 }
 
                 ImGui::Separator();
