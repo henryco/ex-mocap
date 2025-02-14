@@ -90,6 +90,12 @@ namespace ex::gui::strings {
     constexpr auto gui_tree_ops_history_select_disabled = "Disable selection";
     constexpr auto gui_tree_ops_history_select_deleted  = "Delete selection";
 
+    constexpr auto gui_dialogs_file_save        = "Save a file";
+    constexpr auto gui_dialogs_file_save_accept = "Save";
+
+    constexpr auto gui_dialogs_file_open        = "Open a file";
+    constexpr auto gui_dialogs_file_open_accept = "Open";
+
 }
 
 #endif //GUI_STRINGS_H
