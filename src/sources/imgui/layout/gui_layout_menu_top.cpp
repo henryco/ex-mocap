@@ -3,6 +3,7 @@
 //
 
 #include "../../../headers/imgui/gui_strings.h"
+#include "../../../headers/imgui/gui_actions.h"
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/logic/logic_globals.h"
@@ -12,7 +13,28 @@
 
 namespace ex::gui {
 
-    void end_pin_button(GuiState &gui) {
+    static void undo_action_() {
+        State &state = ex::logic::globals::state();
+        undo_history().undo();
+        undo_history().apply(&state);
+    }
+
+    static void redo_action_() {
+        State &state = ex::logic::globals::state();
+        undo_history().redo();
+        undo_history().apply(&state);
+    }
+
+    inline void register_actions_(const int &undo_key, const int &redo_key) {
+        static bool init_undo = true;
+        if (init_undo) {
+            ex::gui::actions::set_action(undo_key, &undo_action_);
+            ex::gui::actions::set_action(redo_key, &redo_action_);
+            init_undo = false;
+        }
+    }
+
+    void end_pin_button_(GuiState &gui) {
         const auto icon = gui.view.docking ? ICON_LC_PIN_OFF : ICON_LC_PIN;
         ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(icon).x
                 - ImGui::GetStyle().FramePadding.x * 3 - ImGui::GetStyle().ItemSpacing.x * 1);
@@ -25,16 +47,17 @@ namespace ex::gui {
     }
 
     void show_menu_top_bar() {
-        State    &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
+
+        const auto &[file, history, work_tree] = key_mappings();
+
+        register_actions_(history.undo.key, history.redo.key);
 
         if (!gui.view.show_menu)
             return;
 
         if (ImGui::BeginMenuBar()) {
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 6.0f));
-
-            const auto &[file, history, work_tree] = key_mappings();
 
             if (ImGui::BeginMenu(strings::menu_top_file)) {
                 if (ImGui::MenuItem(strings::menu_top_file_new)) {
@@ -68,12 +91,10 @@ namespace ex::gui {
             if (ImGui::BeginMenu(strings::menu_top_edit)) {
 
                 if (ImGui::MenuItem(strings::menu_top_edit_undo, history.undo.label, false, undo_history().can_undo())) {
-                    undo_history().undo();
-                    undo_history().apply(&state);
+                    undo_action_();
                 }
                 if (ImGui::MenuItem(strings::menu_top_edit_redo, history.redo.label, false, undo_history().can_redo())) {
-                    undo_history().redo();
-                    undo_history().apply(&state);
+                    redo_action_();
                 }
 
                 ImGui::Separator();
@@ -130,7 +151,7 @@ namespace ex::gui {
                 ImGui::EndMenu();
             }
 
-            end_pin_button(gui);
+            end_pin_button_(gui);
             ImGui::PopStyleVar();
             ImGui::EndMenuBar();
         }
