@@ -3,6 +3,7 @@
 //
 
 #include "../../../headers/imgui/gui_layout.h"
+#include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
 #include "../../../headers/logic/logic_state.h"
 
@@ -12,7 +13,7 @@ namespace ex::gui::tree {
     static TreeNode               *inspected_node  = nullptr;
     static bool                    inspection_open = false;
 
-    void show_inspected_node(State &, GuiState &gui) {
+    void show_inspected_node() {
         if (inspected_node == nullptr || (inspected_node->state >>= node_state::deleted) || !inspection_open) {
             inspection_open = false;
             inspected_base  = nullptr;
@@ -26,6 +27,8 @@ namespace ex::gui::tree {
                 return;
             }
         }
+
+        GuiState &gui = ex::gui::state();
 
         const auto rf = ex::gui::window_reset_flags(gui.view.reset, true);
         ImGui::Begin("Node inspector", &inspection_open, rf);
@@ -68,7 +71,7 @@ namespace ex::gui::tree {
         ImGui::End();
     }
 
-    void pick_inspected_node(State &, GuiState &, TreeNode *node) {
+    void pick_inspected_node(TreeNode *node) {
         inspection_open = true;
         inspected_node  = node;
         inspected_base  = nullptr;

@@ -65,39 +65,39 @@ namespace ex::gui::tree {
         if (ImGui::BeginPopup(menu_id)) {
 
             if (enabled && ImGui::MenuItem("Disable")) {
-                tree::disable_selected(state, gui, selection);
+                tree::disable_selected(selection);
             }
 
             if (disabled && ImGui::MenuItem("Enable")) {
-                tree::enable_selected(state, gui, selection);
+                tree::enable_selected(selection);
             }
 
             if (same_root) {
                 if (ImGui::MenuItem("Group")) {
-                    tree::group_selected(state, gui, selection);
+                    tree::group_selected(selection);
                 }
 
                 if (is_grouped) {
                     if (ImGui::MenuItem("Ungroup")) {
-                        tree::ungroup_selected(state, gui, selection);
+                        tree::ungroup_selected(selection);
                     }
                 }
 
                 ImGui::Separator();
 
                 if (ImGui::MenuItem("Cut", key_mappings().work_tree.cut.label)) {
-                    tree::cut_selected(state, gui, selection);
+                    tree::cut_selected(selection);
                 }
 
                 if (ImGui::MenuItem("Copy", key_mappings().work_tree.copy.label)) {
-                    tree::copy_selected(state, gui, selection);
+                    tree::copy_selected(selection);
                 }
             }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem("Delete")) {
-                tree::delete_selected(state, gui, selection);
+                tree::delete_selected(selection);
             }
 
             ImGui::EndPopup();
@@ -141,12 +141,12 @@ namespace ex::gui::tree {
             if (ImGui::BeginMenu("New")) {
                 if (ImGui::BeginMenu("Add into")) {
                     if (const auto new_node = create_node_from_menu(state, gui))
-                        tree::add_into_node(state, gui, node, new_node);
+                        tree::add_into_node(node, new_node);
                     ImGui::EndMenu();
                 }
                 if (ImGui::BeginMenu("Add After")) {
                     if (const auto new_node = create_node_from_menu(state, gui))
-                        tree::add_after_node(state, gui, node, new_node);
+                        tree::add_after_node(node, new_node);
                     ImGui::EndMenu();
                 }
                 ImGui::EndMenu();
@@ -162,8 +162,8 @@ namespace ex::gui::tree {
 
             const bool enabled = !(node->state >>= node_state::disabled);
             if (ImGui::MenuItem(enabled ? "Disable" : "Enable")) {
-                if (enabled) tree::disable_node(state, gui, node);
-                else tree::enable_node(state, gui, node);
+                if (enabled) tree::disable_node(node);
+                else tree::enable_node(node);
             }
 
             if (ImGui::MenuItem("Group")) {
@@ -172,7 +172,7 @@ namespace ex::gui::tree {
                 selection.root     = &selection;
                 selection.next     = nullptr;
                 selection.prev     = nullptr;
-                tree::group_selected(state, gui, &selection);
+                tree::group_selected(&selection);
             }
 
             if (is_grouped) {
@@ -182,33 +182,33 @@ namespace ex::gui::tree {
                     selection.root     = &selection;
                     selection.next     = nullptr;
                     selection.prev     = nullptr;
-                    tree::ungroup_selected(state, gui, &selection);
+                    tree::ungroup_selected(&selection);
                 }
             }
 
             if (!(node->state >>= node_state::is_link)) {
                 if (ImGui::MenuItem("Inspect")) {
-                    tree::pick_inspected_node(state, gui, node);
+                    tree::pick_inspected_node(node);
                 }
 
                 tm::node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);
 
                 if (ImGui::MenuItem("Duplicate", key_mappings().work_tree.duplicate.label)) {
-                    tree::duplicate_node(state, gui, node);
+                    tree::duplicate_node(node);
                 }
 
                 if (ImGui::MenuItem("Cut", key_mappings().work_tree.cut.label)) {
-                    tree::cut_node(state, gui, node);
+                    tree::cut_node(node);
                 }
 
                 if (ImGui::BeginMenu("Copy")) {
 
                     if (ImGui::MenuItem("Copy", key_mappings().work_tree.copy.label)) {
-                        tree::copy_node(state, gui, node);
+                        tree::copy_node(node);
                     }
 
                     if (ImGui::MenuItem("Copy Ref", key_mappings().work_tree.reference.label)) {
-                        tree::ref_node(state, gui, node);
+                        tree::ref_node(node);
                     }
 
                     ImGui::EndMenu();
@@ -217,11 +217,11 @@ namespace ex::gui::tree {
                 if (ImGui::BeginMenu("Paste", *(tree::node_buffer_ptr()) != nullptr)) {
 
                     if (ImGui::MenuItem("Paste after", key_mappings().work_tree.paste.label)) {
-                        tree::paste_after_node(state, gui, node);
+                        tree::paste_after_node(node);
                     }
 
                     if (ImGui::MenuItem("Paste into", key_mappings().work_tree.insert.label)) {
-                        tree::paste_into_node(state, gui, node);
+                        tree::paste_into_node(node);
                     }
 
                     ImGui::EndMenu();
@@ -231,7 +231,7 @@ namespace ex::gui::tree {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Delete")) {
-                tree::delete_node(state, gui, node);
+                tree::delete_node(node);
             }
 
             ImGui::EndPopup();
@@ -245,7 +245,7 @@ namespace ex::gui::tree {
             ImGui::Text("Edit name: ");
             ImGui::InputText("##edit", name_buffer, IM_ARRAYSIZE(name_buffer));
             if (ImGui::Button("Apply")) {
-                tree::rename_node(state, gui, node, name_buffer);
+                tree::rename_node(node, name_buffer);
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
@@ -277,7 +277,7 @@ namespace ex::gui::tree {
         if (ImGui::BeginPopup(menu_id)) {
             if (ImGui::BeginMenu("Add new node")) {
                 if (const auto new_node = create_node_from_menu(state, gui))
-                    tree::add_node(state, gui, new_node);
+                    tree::add_node(new_node);
                 ImGui::EndMenu();
             }
             ImGui::EndPopup();

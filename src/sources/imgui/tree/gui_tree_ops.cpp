@@ -3,9 +3,11 @@
 //
 
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
-#include "../../../headers/imgui/gui_globals.h"
-#include <ranges>
 #include <map>
+#include <ranges>
+#include "../../../headers/imgui/gui_globals.h"
+
+#include "../../../headers/logic/logic_globals.h"
 
 namespace ex::gui::tree {
 
@@ -110,7 +112,7 @@ namespace ex::gui::tree {
         return root;
     }
 
-    void copy_selected(State &, GuiState &, selection_node *selection) {
+    void copy_selected(selection_node *selection) {
 
         auto head_h = selection->root;
         while (head_h != nullptr) {
@@ -129,21 +131,23 @@ namespace ex::gui::tree {
         selection_node::free(copy);
     }
 
-    void copy_node(State &, GuiState &, TreeNode *node) {
+    void copy_node(TreeNode *node) {
         if (node->state >>= node_state::is_link)
             return;
         reset_state();
         node_buffer::create(node_buffer_ptr(), node, false, false);
     }
 
-    void ref_node(State &, GuiState &, TreeNode *node) {
+    void ref_node(TreeNode *node) {
         if (node->state >>= node_state::is_link)
             return;
         reset_state();
         node_buffer::create(node_buffer_ptr(), node, false, true);
     }
 
-    void add_node(State &state, GuiState &, TreeNode *add) {
+    void add_node(TreeNode *add) {
+        State &state = ex::logic::globals::state();
+
         reset_state();
         const auto snapshot = Snapshot::create(state);
 
@@ -173,7 +177,9 @@ namespace ex::gui::tree {
         }));
     }
 
-    void add_into_node(State &state, GuiState &, TreeNode *node, TreeNode *add) {
+    void add_into_node(TreeNode *node, TreeNode *add) {
+        State &state = ex::logic::globals::state();
+
         reset_state();
         const auto snapshot = Snapshot::create(state);
 
@@ -227,7 +233,9 @@ namespace ex::gui::tree {
         }));
     }
 
-    void add_after_node(State &state, GuiState &, TreeNode *node, TreeNode *add) {
+    void add_after_node(TreeNode *node, TreeNode *add) {
+        State &state = ex::logic::globals::state();
+
         reset_state();
         const auto snapshot = Snapshot::create(state);
 
@@ -266,7 +274,7 @@ namespace ex::gui::tree {
         }));
     }
 
-    void cut_selected(State &, GuiState &, selection_node *selection) {
+    void cut_selected(selection_node *selection) {
 
         auto head_h = selection->root;
         while (head_h != nullptr) {
@@ -290,7 +298,7 @@ namespace ex::gui::tree {
         selection_node::free(copy);
     }
 
-    void cut_node(State &, GuiState &, TreeNode *node) {
+    void cut_node(TreeNode *node) {
         if (node->state >>= node_state::is_link)
             return;
         reset_state();
@@ -298,7 +306,7 @@ namespace ex::gui::tree {
         node->state |= node_state::dimmed;
     }
 
-    void rename_node(State &, GuiState &, TreeNode *node, const char *name) {
+    void rename_node(TreeNode *node, const char *name) {
         const auto id_local = node->id_local;
         const auto og_name = node->name;
         const auto new_name = new char[64]{ "" };
@@ -325,10 +333,13 @@ namespace ex::gui::tree {
         }));
     }
 
-    void duplicate_node(State &state, GuiState &, TreeNode *node) {
+    void duplicate_node(TreeNode *node) {
         if (node->state >>= node_state::is_link)
             return;
         reset_state();
+
+        State &state = ex::logic::globals::state();
+
         const auto snapshot = Snapshot::create(state);
 
         TreeNode *copy = TreeNode::deep_copy(node, true);
@@ -368,7 +379,7 @@ namespace ex::gui::tree {
         }));
     }
 
-    void paste_after_node(State &state, GuiState &, TreeNode *node) {
+    void paste_after_node(TreeNode *node) {
         if (node == nullptr || node->parent == nullptr || *node_buffer_ptr() == nullptr) {
             reset_state();
             return;
@@ -384,6 +395,8 @@ namespace ex::gui::tree {
         const auto selection = bubble_sort_selection((*node_buffer_ptr())->selection->root);
         const bool move      = (*node_buffer_ptr())->move;
         const bool ref       = (*node_buffer_ptr())->ref;
+
+        State &state = ex::logic::globals::state();
 
         reset_state();
         const auto snapshot = Snapshot::create(state);
@@ -455,7 +468,7 @@ namespace ex::gui::tree {
         }));
     }
 
-    void paste_into_node(State &state, GuiState &, TreeNode *node) {
+    void paste_into_node(TreeNode *node) {
         if (node == nullptr || *node_buffer_ptr() == nullptr) {
             reset_state();
             return;
@@ -467,6 +480,8 @@ namespace ex::gui::tree {
         const auto selection = bubble_sort_selection((*node_buffer_ptr())->selection->root);
         const bool move      = (*node_buffer_ptr())->move;
         const bool ref       = (*node_buffer_ptr())->ref;
+
+        State &state = ex::logic::globals::state();
 
         reset_state();
         const auto snapshot = Snapshot::create(state);
@@ -557,9 +572,11 @@ namespace ex::gui::tree {
         }));
     }
 
-    void move_after_node(State &state, GuiState &, TreeNode *node, TreeNode *move) {
+    void move_after_node(TreeNode *node, TreeNode *move) {
         if (node == nullptr || move == nullptr)
             return;
+
+        State &state = ex::logic::globals::state();
 
         reset_state();
         const auto snapshot = Snapshot::create(state);
@@ -605,9 +622,11 @@ namespace ex::gui::tree {
         }));
     }
 
-    void move_into_node(State &state, GuiState &, TreeNode *node, TreeNode *move) {
+    void move_into_node(TreeNode *node, TreeNode *move) {
         if (node == nullptr || move == nullptr)
             return;
+
+        State &state = ex::logic::globals::state();
 
         reset_state();
         const auto snapshot = Snapshot::create(state);
@@ -669,10 +688,12 @@ namespace ex::gui::tree {
         }));
     }
 
-    void group_selected(State &state, GuiState &, selection_node *selection) {
+    void group_selected(selection_node *selection) {
         const auto sorted    = bubble_sort_selection(selection->root);
         const auto parent    = selection->root->selected->parent;
         const auto parent_id = parent->id_local;
+
+        State &state = ex::logic::globals::state();
 
         reset_state();
         const auto snapshot = state.work_tree->deep_copy();
@@ -739,12 +760,14 @@ namespace ex::gui::tree {
         }));
     }
 
-    void ungroup_selected(State &state, GuiState &, selection_node *selection) {
+    void ungroup_selected(selection_node *selection) {
         const auto sorted = bubble_sort_selection(selection->root);
         const auto parent = selection->root->selected->parent;
 
         const std::size_t parent_id = parent->parent->id_local;
         const std::size_t index     = parent->index;
+
+        State &state = ex::logic::globals::state();
 
         reset_state();
         const auto snapshot = state.work_tree->deep_copy();
@@ -811,9 +834,11 @@ namespace ex::gui::tree {
         }));
     }
 
-    void enable_node(State &state, GuiState &, TreeNode *node) {
+    void enable_node(TreeNode *node) {
         const auto og_state = node->state;
         node->state -= node_state::disabled;
+
+        State &state = ex::logic::globals::state();
 
         reset_state();
 
@@ -839,9 +864,11 @@ namespace ex::gui::tree {
         }));
     }
 
-    void disable_node(State &state, GuiState &, TreeNode *node) {
+    void disable_node(TreeNode *node) {
         const auto og_state = node->state;
         node->state |= node_state::disabled;
+
+        State &state = ex::logic::globals::state();
 
         reset_state();
         state.force_rewire = true;
@@ -866,7 +893,7 @@ namespace ex::gui::tree {
         }));
     }
 
-    void enable_selected(State &state, GuiState &, selection_node *selection) {
+    void enable_selected(selection_node *selection) {
         if (selection == nullptr)
             return;
 
@@ -877,6 +904,8 @@ namespace ex::gui::tree {
             head->selected->state -= node_state::disabled;
             head = head->next;
         }
+
+        State &state = ex::logic::globals::state();
 
         reset_state();
         state.force_rewire = true;
@@ -905,7 +934,7 @@ namespace ex::gui::tree {
         }));
     }
 
-    void disable_selected(State &state, GuiState &, selection_node *selection) {
+    void disable_selected(selection_node *selection) {
         if (selection == nullptr)
             return;
 
@@ -916,6 +945,8 @@ namespace ex::gui::tree {
             head->selected->state |= node_state::disabled;
             head = head->next;
         }
+
+        State &state = ex::logic::globals::state();
 
         reset_state();
         state.force_rewire = true;
@@ -944,9 +975,11 @@ namespace ex::gui::tree {
         }));
     }
 
-    void delete_selected(State &state, GuiState &, selection_node *selection) {
+    void delete_selected(selection_node *selection) {
         if (selection == nullptr)
             return;
+
+        State &state = ex::logic::globals::state();
 
         const auto copy_selection = selection_node::copy(selection->root);
         reset_state();
@@ -988,9 +1021,11 @@ namespace ex::gui::tree {
         }));
     }
 
-    void delete_node(State &state, GuiState &, TreeNode *node) {
+    void delete_node(TreeNode *node) {
         if (node == nullptr)
             return;
+
+        State &state = ex::logic::globals::state();
 
         reset_state();
 

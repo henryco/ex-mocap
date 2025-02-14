@@ -59,7 +59,7 @@ namespace ex::gui {
         }
     }
 
-    void insertion_space(State &state, GuiState &gui, TreeNode *node, const int n) {
+    void insertion_space(TreeNode *node, const int n) {
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0, 0.f));
 
         ImGui::TableNextRow();
@@ -83,7 +83,7 @@ namespace ex::gui {
 
             if (const auto payload = ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptNoDrawDefaultRect)) {
                 const auto data_node = static_cast<TreeNode **>(payload->Data);
-                tree::move_after_node(state, gui, node, *data_node);
+                tree::move_after_node(node, *data_node);
             }
 
             ImGui::EndDragDropTarget();
@@ -95,7 +95,7 @@ namespace ex::gui {
         ImGui::TableNextColumn();
     }
 
-    void insertion_node(State &state, GuiState &gui, TreeNode *node) {
+    void insertion_node(TreeNode *node) {
         if (ImGui::BeginDragDropTarget()) {
             if (const auto payload = ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptPeekOnly)) {
                 const auto data_node = static_cast<TreeNode **>(payload->Data);
@@ -108,7 +108,7 @@ namespace ex::gui {
 
             if (const auto payload = ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptNoDrawDefaultRect)) {
                 const auto data_node = static_cast<TreeNode **>(payload->Data);
-                tree::move_into_node(state, gui, node, *data_node);
+                tree::move_into_node(node, *data_node);
             }
 
             ImGui::EndDragDropTarget();
@@ -402,7 +402,7 @@ namespace ex::gui {
             if (symlinked)
                 highlight_border();
 
-            insertion_node(state, gui, node);
+            insertion_node(node);
 
             bool menu_element = false;
             if (tree::selection_node::single(*selected)) {
@@ -483,7 +483,7 @@ namespace ex::gui {
 
             ImGui::PopID();
 
-            insertion_space(state, gui, node, counter_i);
+            insertion_space(node, counter_i);
 
             return counter_i;
         }
@@ -525,7 +525,7 @@ namespace ex::gui {
                 if (symlinked)
                     highlight_border();
 
-                insertion_node(state, gui, first);
+                insertion_node(first);
 
                 bool menu_element = false;
                 if (tree::selection_node::single(*selected)) {
@@ -567,7 +567,7 @@ namespace ex::gui {
                     ImGui::TextDisabled(ICON_LC_ARROW_DOWN);
                 }
 
-                insertion_space(state, gui, first, counter_i);
+                insertion_space(first, counter_i);
                 ImGui::PopID();
 
                 int u = disabled ? 0 : 1;
@@ -582,7 +582,7 @@ namespace ex::gui {
 
             brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
 
-            insertion_space(state, gui, node->parent, counter);
+            insertion_space(node->parent, counter);
             return counter_i;
         }
 
@@ -596,7 +596,7 @@ namespace ex::gui {
 
         brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
 
-        insertion_space(state, gui, node->parent, counter);
+        insertion_space(node->parent, counter);
         return counter_i;
     }
 
@@ -654,63 +654,58 @@ namespace ex::gui {
         ImGui::EndChild();
     }
 
-    void process_single_action(ex::State &state, GuiState &gui, TreeNode *node) {
+    void process_single_action(TreeNode *node) {
         if (node->state >>= node_state::is_link) {
             if (ImGui::Shortcut(key_mappings().work_tree.deletion.key))
-                tree::delete_node(state, gui, node);
+                tree::delete_node(node);
             return;
         }
 
         if (ImGui::Shortcut(key_mappings().work_tree.duplicate.key))
-            tree::duplicate_node(state, gui, node);
+            tree::duplicate_node(node);
 
         else if (ImGui::Shortcut(key_mappings().work_tree.cut.key))
-            tree::cut_node(state, gui, node);
+            tree::cut_node(node);
 
         else if (ImGui::Shortcut(key_mappings().work_tree.copy.key))
-            tree::copy_node(state, gui, node);
+            tree::copy_node(node);
 
         else if (ImGui::Shortcut(key_mappings().work_tree.reference.key))
-            tree::ref_node(state, gui, node);
+            tree::ref_node(node);
 
         else if ((*tree::node_buffer_ptr()) != nullptr && ImGui::Shortcut(key_mappings().work_tree.paste.key))
-            tree::paste_after_node(state, gui, node);
+            tree::paste_after_node(node);
 
         else if ((*tree::node_buffer_ptr()) != nullptr && ImGui::Shortcut(key_mappings().work_tree.insert.key))
-            tree::paste_into_node(state, gui, node);
+            tree::paste_into_node(node);
 
         else if (ImGui::Shortcut(key_mappings().work_tree.deletion.key))
-            tree::delete_node(state, gui, node);
+            tree::delete_node(node);
     }
 
-    void process_multi_action(ex::State &state, GuiState &gui, tree::selection_node *selection) {
+    void process_multi_action(tree::selection_node *selection) {
         if (ImGui::Shortcut(key_mappings().work_tree.cut.key))
-            tree::cut_selected(state, gui, selection);
+            tree::cut_selected(selection);
 
         else if (ImGui::Shortcut(key_mappings().work_tree.copy.key))
-            tree::copy_selected(state, gui, selection);
+            tree::copy_selected(selection);
 
         else if (ImGui::Shortcut(key_mappings().work_tree.deletion.key))
-            tree::delete_selected(state, gui, selection);
+            tree::delete_selected(selection);
     }
 
     void process_tree_actions() {
         if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
             return;
-
-        State &state = ex::logic::globals::state();
-        GuiState &gui = ex::gui::state();
-
         if ((*tree::selected_nodes_ptr()) == nullptr)
             return;
         if (tree::selection_node::single((*tree::selected_nodes_ptr())))
-            process_single_action(state, gui, (*tree::selected_nodes_ptr())->selected);
+            process_single_action((*tree::selected_nodes_ptr())->selected);
         else
-            process_multi_action(state, gui, (*tree::selected_nodes_ptr()));
+            process_multi_action((*tree::selected_nodes_ptr()));
     }
 
     void show_work_tree() {
-        State &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
 
         static bool *watch = nullptr;
@@ -740,7 +735,7 @@ namespace ex::gui {
         process_tree_actions();
         ImGui::End();
 
-        tree::show_inspected_node(state, gui);
+        tree::show_inspected_node();
     }
 
 }
