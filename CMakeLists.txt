@@ -136,6 +136,7 @@ set(HEADER_FILES
         src/headers/logic/logic_globals.h
         src/headers/imgui/tree/gui_tree_state.h
         src/headers/imgui/tree/gui_tree_menu.h
+        src/headers/imgui/gui_strings.h
 )
 
 set(SOURCE_FILES
