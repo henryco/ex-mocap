@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "../../../headers/imgui/gui_globals.h"
-#include "../../../headers/imgui/gui_layout.h"
+#include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/imgui/tree/gui_tree_menu.h"
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
 #include "../../../headers/logic/logic_globals.h"

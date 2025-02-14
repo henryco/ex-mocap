@@ -2,8 +2,8 @@
 // Created by xd on 24/11/24.
 //
 
-#include "../../headers/imgui/gui_layout.h"
-#include "../../headers/imgui/gui_globals.h"
+#include "../../../headers/imgui/layout/gui_layout.h"
+#include "../../../headers/imgui/gui_globals.h"
 
 namespace ex::gui {
 

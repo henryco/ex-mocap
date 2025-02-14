@@ -5,10 +5,10 @@
 #ifndef EX_MOTION_GUI_LAYOUT_H
 #define EX_MOTION_GUI_LAYOUT_H
 
-#include "../state.h"
-#include "../utils/gui_utils.h"
-#include "../utils/log_utils.h"
-#include "gui_state.h"
+#include "../../state.h"
+#include "../../utils/gui_utils.h"
+#include "../../utils/log_utils.h"
+#include "../gui_state.h"
 
 #include <imgui_internal.h>
 

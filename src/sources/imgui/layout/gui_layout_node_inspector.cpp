@@ -2,7 +2,7 @@
 // Created by xd on 28/01/25.
 //
 
-#include "../../../headers/imgui/gui_layout.h"
+#include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
 #include "../../../headers/logic/logic_state.h"

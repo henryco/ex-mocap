@@ -118,7 +118,7 @@ set(HEADER_FILES
         src/headers/cl/ocl_data.h
         src/headers/cl/ocl_interop.h
         src/headers/cl/ocl_interop_ext.h
-        src/headers/imgui/gui_layout.h
+        src/headers/imgui/layout/gui_layout.h
         src/headers/core/camera.h
         src/headers/logic/components/c_camera.h
         src/headers/logic/logic.h
@@ -143,7 +143,7 @@ set(SOURCE_FILES
 
         src/sources/boot_gui.cpp
         src/sources/boot_terminal.cpp
-        src/sources/imgui/gui_layout.cpp
+        src/sources/imgui/layout/gui_layout.cpp
         src/sources/utils/gl_utils.cpp
         src/sources/utils/log_utils.cpp
         src/sources/utils/gui_utils.cpp

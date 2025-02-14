@@ -3,7 +3,7 @@
 //
 
 #include "../../headers/imgui/gui.h"
-#include "../../headers/imgui/gui_layout.h"
+#include "../../headers/imgui/layout/gui_layout.h"
 
 #include <IconsLucide.h>
 #include <IconsLucide.h_lucide.ttf.h>
