@@ -3,85 +3,56 @@
 //
 
 #include "../../headers/imgui/gui_actions.h"
+#include "../../headers/utils/data_utils.h"
 
-#include <stdlib.h>
 
 namespace ex::gui::actions {
 
-    struct body {
-        action_fn_t fn;
-        int         id;
-    };
-
-    struct array {
-
-        body *data     = nullptr;
-        int   size     = 0;
-        int   capacity = 0;
-
-        array() = default;
-
-        ~array() {
-            if (data == nullptr)
-                return;
-            free(data);
-        }
-
-        explicit array(const int capacity) {
-            this->capacity = capacity;
-            this->data     = static_cast<body *>(malloc(capacity * sizeof(body)));
-        }
-
-        body &operator [] (const int index) {
-            return data[index];
-        }
-
-        const body &operator [] (const int index) const {
-            return data[index];
-        }
-
-        void push(const body &value) {
-            if (size >= capacity) {
-                capacity = capacity > 0 ? (2 * capacity) : 2;
-                data     = static_cast<body *>(realloc(data, capacity * sizeof(body)));
-            }
-            data[size++] = value;
-        }
-
-        void pop() {
-            size = (size > 0) ? (size - 1) : 0;
-        }
-
-        bool empty() const {
-            return size <= 0;
-        }
-    };
-
-    array &registry_() {
-        static array array(20);
+    data::array<int> &registry_() {
+        static data::array<int> array(20);
         return array;
     }
 
-    void set_action(int action, action_fn_t fn) {
-
+    data::array<action_fn_t> &functions_() {
+        static data::array<action_fn_t> array(20);
+        return array;
     }
 
-    void remove_action(int action) {
+    data::array<action_fn_t> &fns_ = functions_();
+    data::array<int>         &reg_ = registry_();
 
+    void set_action(const int action, const action_fn_t fn) {
+        for (auto i = 0; i < reg_.size; i++) {
+            if (reg_[i] == action) {
+                fns_[i] = fn;
+                return;
+            }
+        }
+        reg_.push(action);
+        fns_.push(fn);
+    }
+
+    void remove_action(const int action) {
+        for (auto i = 0; i < reg_.size; i++) {
+            if (reg_[i] == action) {
+                reg_.swap_remove(i);
+                fns_.swap_remove(i);
+                return;
+            }
+        }
     }
 
     action_fn_t get_action(const int action) {
-        auto &reg = registry_();
-        for (auto i = 0; i < reg.size; i++) {
-            if (reg[i].id == action)
-                return reg[i].fn;
+        for (auto i = 0; i < reg_.size; i++) {
+            if (reg_[i] == action)
+                return fns_[i];
         }
         return nullptr;
     }
 
     action_fn_t *list_actions(int *size_n) {
-        // TODO
-        return nullptr;
+        *size_n = fns_.size;
+        return fns_.data;
     }
 
 }
