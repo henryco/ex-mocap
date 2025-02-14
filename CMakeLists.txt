@@ -137,6 +137,7 @@ set(HEADER_FILES
         src/headers/imgui/tree/gui_tree_state.h
         src/headers/imgui/tree/gui_tree_menu.h
         src/headers/imgui/gui_strings.h
+        src/headers/imgui/gui_actions.h
 )
 
 set(SOURCE_FILES

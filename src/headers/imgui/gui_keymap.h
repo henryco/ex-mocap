@@ -16,6 +16,13 @@ namespace ex::gui::keys {
 
     struct KeyMapping {
         struct {
+            Op open    = { "C-o", ImGuiMod_Ctrl | ImGuiKey_O };
+            Op save    = { "C-s", ImGuiMod_Ctrl | ImGuiKey_S };
+            Op save_as = { "C-S-s", ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_S };
+            Op exit    = { "C-q", ImGuiMod_Ctrl | ImGuiKey_Q };
+        } file;
+
+        struct {
             Op undo = { "C-z", ImGuiMod_Ctrl | ImGuiKey_Z };
             Op redo = { "C-y", ImGuiMod_Ctrl | ImGuiKey_Y };
         } history;

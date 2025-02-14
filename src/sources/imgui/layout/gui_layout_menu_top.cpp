@@ -34,34 +34,35 @@ namespace ex::gui {
         if (ImGui::BeginMenuBar()) {
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 6.0f));
 
+            const auto &[file, history, work_tree] = key_mappings();
+
             if (ImGui::BeginMenu(strings::menu_top_file)) {
                 if (ImGui::MenuItem(strings::menu_top_file_new)) {
                     // TODO
                 }
 
-                if (ImGui::MenuItem(strings::menu_top_file_open)) {
+                if (ImGui::MenuItem(strings::menu_top_file_open, file.open.label)) {
                     gui.file_dialogs.project_open = true;
                 }
 
-                if (ImGui::MenuItem(strings::menu_top_file_save)) {
+                if (ImGui::MenuItem(strings::menu_top_file_save, file.save.label)) {
                     gui.file_dialogs.project_save = true;
                     // TODO
                 }
 
-                if (ImGui::MenuItem(strings::menu_top_file_save_as)) {
+                if (ImGui::MenuItem(strings::menu_top_file_save_as, file.save_as.label)) {
                     gui.file_dialogs.project_save = true;
                 }
 
                 ImGui::Separator();
 
-                if (ImGui::MenuItem(strings::menu_top_file_exit)) {
+                if (ImGui::MenuItem(strings::menu_top_file_exit, file.exit.label)) {
                     gui.window.exit = true;
                 }
 
                 ImGui::EndMenu();
             }
 
-            const auto &[history, work_tree] = key_mappings();
             if (ImGui::BeginMenu(strings::menu_top_edit)) {
 
                 if (ImGui::MenuItem(strings::menu_top_edit_undo, history.undo.label, false, undo_history().can_undo())) {
