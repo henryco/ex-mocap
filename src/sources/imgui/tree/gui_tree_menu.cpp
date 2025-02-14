@@ -3,6 +3,7 @@
 //
 
 #include "../../../headers/imgui/gui_globals.h"
+#include "../../../headers/imgui/gui_strings.h"
 #include "../../../headers/imgui/tree/gui_tree_menu.h"
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
 #include "../../../headers/logic/logic_globals.h"
@@ -18,11 +19,11 @@ namespace ex::gui::tree {
             ImGui::PushID(type_id);
             if (ImGui::MenuItem(mapper.get_node_name(gui, state) )) {
                 ImGui::PopID();
-                TreeNode *new_node = TreeNode::create();
+                TreeNode *new_node   = TreeNode::create();
                 new_node->state      = node_state::created;
                 new_node->children_n = 0;
                 new_node->id_node    = type_id;
-                new_node->name       = "New node";
+                new_node->name       = strings::gui_tree_menu_general_new;
                 return new_node;
             }
             ImGui::PopID();
@@ -63,39 +64,39 @@ namespace ex::gui::tree {
 
         if (ImGui::BeginPopup(menu_id)) {
 
-            if (enabled && ImGui::MenuItem("Disable")) {
+            if (enabled && ImGui::MenuItem(strings::gui_tree_menu_group_disable)) {
                 tree::disable_selected(selection);
             }
 
-            if (disabled && ImGui::MenuItem("Enable")) {
+            if (disabled && ImGui::MenuItem(strings::gui_tree_menu_group_enable)) {
                 tree::enable_selected(selection);
             }
 
             if (same_root) {
-                if (ImGui::MenuItem("Group")) {
+                if (ImGui::MenuItem(strings::gui_tree_menu_group)) {
                     tree::group_selected(selection);
                 }
 
                 if (is_grouped) {
-                    if (ImGui::MenuItem("Ungroup")) {
+                    if (ImGui::MenuItem(strings::gui_tree_menu_group_ungroup)) {
                         tree::ungroup_selected(selection);
                     }
                 }
 
                 ImGui::Separator();
 
-                if (ImGui::MenuItem("Cut", key_mappings().work_tree.cut.label)) {
+                if (ImGui::MenuItem(strings::gui_tree_menu_group_cut, key_mappings().work_tree.cut.label)) {
                     tree::cut_selected(selection);
                 }
 
-                if (ImGui::MenuItem("Copy", key_mappings().work_tree.copy.label)) {
+                if (ImGui::MenuItem(strings::gui_tree_menu_group_copy, key_mappings().work_tree.copy.label)) {
                     tree::copy_selected(selection);
                 }
             }
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Delete")) {
+            if (ImGui::MenuItem(strings::gui_tree_menu_group_delete)) {
                 tree::delete_selected(selection);
             }
 
@@ -275,7 +276,7 @@ namespace ex::gui::tree {
         }
 
         if (ImGui::BeginPopup(menu_id)) {
-            if (ImGui::BeginMenu("Add new node")) {
+            if (ImGui::BeginMenu(strings::gui_tree_menu_general_add)) {
                 if (const auto new_node = create_node_from_menu(state, gui))
                     tree::add_node(new_node);
                 ImGui::EndMenu();

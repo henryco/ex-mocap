@@ -40,6 +40,16 @@ namespace ex::gui::strings {
     constexpr auto logs_bot_copy      = "Copy to clipboard";
     constexpr auto logs_bot_clear_all = "Clear all";
 
+    constexpr auto gui_tree_menu_general_add = "Add new node";
+    constexpr auto gui_tree_menu_general_new = "New node";
+
+    constexpr auto gui_tree_menu_group         = "Group";
+    constexpr auto gui_tree_menu_group_ungroup = "Ungroup";
+    constexpr auto gui_tree_menu_group_disable = "Disable";
+    constexpr auto gui_tree_menu_group_enable  = "Enable";
+    constexpr auto gui_tree_menu_group_cut     = "Cut";
+    constexpr auto gui_tree_menu_group_copy    = "Copy";
+    constexpr auto gui_tree_menu_group_delete  = "Delete";
 
 
 }
