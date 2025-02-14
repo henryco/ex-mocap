@@ -41,6 +41,8 @@ namespace ex::gui {
                     // TODO
                 }
 
+                ImGui::Separator();
+
                 if (ImGui::MenuItem(strings::menu_top_file_open, file.open.label)) {
                     gui.file_dialogs.project_open = true;
                 }
