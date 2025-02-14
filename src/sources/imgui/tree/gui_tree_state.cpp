@@ -159,20 +159,30 @@ namespace ex::gui::tree {
         (*buffer) = nullptr;
     }
 
-    void reset_state() {
-        selection_node::free(*selected_nodes_ptr(), true);
-        node_buffer::remove(node_buffer_ptr());
-        *(selected_nodes_ptr()) = nullptr;
+    TreeState::~TreeState() {
+        if (selection != nullptr)
+            selection_node::free(selection);
+        if (buffer != nullptr)
+            delete buffer;
     }
 
-    selection_node **selected_nodes_ptr() {
-        static selection_node *ptr = nullptr;
-        return &ptr;
+    void TreeState::reset(TreeState *state) {
+        if (state == nullptr)
+            return;
+        selection_node::free(state->selection, true);
+        node_buffer::remove(&state->buffer);
+        state->selection = nullptr;
     }
 
-    node_buffer **node_buffer_ptr() {
-        static node_buffer *ptr = nullptr;
-        return &ptr;
+    void TreeState::reset(TreeState &state) {
+        selection_node::free(state.selection, true);
+        node_buffer::remove(&state.buffer);
+        state.selection = nullptr;
+    }
+
+    TreeState &state() {
+        static TreeState instance;
+        return instance;
     }
 
 }

@@ -37,12 +37,17 @@ namespace ex::gui::tree {
         static void remove(node_buffer **buffer);
     };
 
-    void reset_state();
+    struct TreeState {
+        selection_node *selection = nullptr;
+        node_buffer    *buffer    = nullptr;
 
-    selection_node **selected_nodes_ptr();
+        ~TreeState();
 
-    node_buffer **node_buffer_ptr();
+        static void reset(TreeState *state);
+        static void reset(TreeState &state);
+    };
 
+    TreeState &state();
 }
 
 #endif //GUI_TREE_STATE_H

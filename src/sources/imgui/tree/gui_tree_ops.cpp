@@ -122,33 +122,33 @@ namespace ex::gui::tree {
         }
 
         const auto copy = selection_node::copy(selection->root);
-        reset_state();
+        TreeState::reset(tree::state());
 
         if (copy == nullptr)
             return;
 
-        node_buffer::create(node_buffer_ptr(), copy->root, false, false);
+        node_buffer::create(&tree::state().buffer, copy->root, false, false);
         selection_node::free(copy);
     }
 
     void copy_node(TreeNode *node) {
         if (node->state >>= node_state::is_link)
             return;
-        reset_state();
-        node_buffer::create(node_buffer_ptr(), node, false, false);
+        TreeState::reset(tree::state());
+        node_buffer::create(&tree::state().buffer, node, false, false);
     }
 
     void ref_node(TreeNode *node) {
         if (node->state >>= node_state::is_link)
             return;
-        reset_state();
-        node_buffer::create(node_buffer_ptr(), node, false, true);
+        TreeState::reset(tree::state());
+        node_buffer::create(&tree::state().buffer, node, false, true);
     }
 
     void add_node(TreeNode *add) {
         State &state = ex::logic::globals::state();
 
-        reset_state();
+        TreeState::reset(tree::state());
         const auto snapshot = Snapshot::create(state);
 
         TreeNode *copy = TreeNode::deep_copy(add);
@@ -160,11 +160,11 @@ namespace ex::gui::tree {
 
         undo_history().push("Add node",
         new std::function([snapshot](State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             snapshot->rollback(s);
         }),
         new std::function([copy](State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             TreeNode *new_copy = TreeNode::deep_copy(copy);
             new_copy->state |= node_state::created;
             s->work_tree->add_node(new_copy);
@@ -180,7 +180,7 @@ namespace ex::gui::tree {
     void add_into_node(TreeNode *node, TreeNode *add) {
         State &state = ex::logic::globals::state();
 
-        reset_state();
+        TreeState::reset(tree::state());
         const auto snapshot = Snapshot::create(state);
 
         TreeNode *copy = TreeNode::deep_copy(add);
@@ -203,11 +203,11 @@ namespace ex::gui::tree {
 
         undo_history().push("Add into",
         new std::function([snapshot] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             snapshot->rollback(s);
         }),
         new std::function([parent_id, group_id, copy] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             const auto p_node = s->work_tree->find_node(parent_id);
             if (p_node == nullptr)
                 throw std::runtime_error("Cannot find original node");
@@ -236,7 +236,7 @@ namespace ex::gui::tree {
     void add_after_node(TreeNode *node, TreeNode *add) {
         State &state = ex::logic::globals::state();
 
-        reset_state();
+        TreeState::reset(tree::state());
         const auto snapshot = Snapshot::create(state);
 
         TreeNode *copy = TreeNode::deep_copy(add);
@@ -252,11 +252,11 @@ namespace ex::gui::tree {
 
         undo_history().push("Add after",
         new std::function([snapshot] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             snapshot->rollback(s);
         }),
         new std::function([parent_id, index, copy] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             const auto p_node = s->work_tree->find_node(parent_id);
             if (p_node == nullptr)
                 throw std::runtime_error("Cannot find original node");
@@ -284,12 +284,12 @@ namespace ex::gui::tree {
         }
 
         const auto copy = selection_node::copy(selection->root);
-        reset_state();
+        TreeState::reset(tree::state());
 
         if (copy == nullptr)
             return;
 
-        node_buffer::create(node_buffer_ptr(), copy->root, true, false);
+        node_buffer::create(&tree::state().buffer, copy->root, true, false);
         auto head = copy->root;
         while (head != nullptr) {
             head->selected->state |= node_state::dimmed;
@@ -301,8 +301,8 @@ namespace ex::gui::tree {
     void cut_node(TreeNode *node) {
         if (node->state >>= node_state::is_link)
             return;
-        reset_state();
-        node_buffer::create(node_buffer_ptr(), node, true, false);
+        TreeState::reset(tree::state());
+        node_buffer::create(&tree::state().buffer, node, true, false);
         node->state |= node_state::dimmed;
     }
 
@@ -314,18 +314,18 @@ namespace ex::gui::tree {
         std::memcpy(new_name, name, std::strlen(name));
         node->name = new_name;
 
-        reset_state();
+        TreeState::reset(tree::state());
 
         undo_history().push("Node renamed",
         new std::function([id_local, og_name] (State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             const auto f_node = s->work_tree->find_node(id_local);
             if (f_node == nullptr)
                 throw std::runtime_error("Cannot find original node");
             f_node->name = og_name;
         }),
         new std::function([id_local, new_name] (State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             const auto f_node = s->work_tree->find_node(id_local);
             if (f_node == nullptr)
                 throw std::runtime_error("Cannot find original node");
@@ -336,7 +336,7 @@ namespace ex::gui::tree {
     void duplicate_node(TreeNode *node) {
         if (node->state >>= node_state::is_link)
             return;
-        reset_state();
+        TreeState::reset(tree::state());
 
         State &state = ex::logic::globals::state();
 
@@ -357,12 +357,12 @@ namespace ex::gui::tree {
 
         undo_history().push("Node duplicated",
         new std::function([snapshot] (ex::State *s) -> void {
-            reset_state();
+            TreeState::reset(tree::state());
             snapshot->rollback(s);
         }),
 
         new std::function([parent_id, child_index, snap] (ex::State *s) -> void {
-            reset_state();
+            TreeState::reset(tree::state());
             if (const auto p_node = s->work_tree->find_node(parent_id); p_node != nullptr) {
                 const auto new_copy = snap->deep_copy();
                 new_copy->state |= node_state::created;
@@ -380,8 +380,10 @@ namespace ex::gui::tree {
     }
 
     void paste_after_node(TreeNode *node) {
-        if (node == nullptr || node->parent == nullptr || *node_buffer_ptr() == nullptr) {
-            reset_state();
+        const auto &tree_state = tree::state();
+
+        if (node == nullptr || node->parent == nullptr || tree_state.buffer == nullptr) {
+            TreeState::reset(tree::state());
             return;
         }
 
@@ -392,13 +394,13 @@ namespace ex::gui::tree {
         const auto parent_id = parent->id_local;
         const auto index     = node->index;
 
-        const auto selection = bubble_sort_selection((*node_buffer_ptr())->selection->root);
-        const bool move      = (*node_buffer_ptr())->move;
-        const bool ref       = (*node_buffer_ptr())->ref;
+        const auto selection = bubble_sort_selection(tree_state.buffer->selection->root);
+        const bool move      = tree_state.buffer->move;
+        const bool ref       = tree_state.buffer->ref;
 
         State &state = ex::logic::globals::state();
 
-        reset_state();
+        TreeState::reset(tree::state());
         const auto snapshot = Snapshot::create(state);
 
         selection_node *pasted = nullptr;
@@ -433,11 +435,11 @@ namespace ex::gui::tree {
 
         undo_history().push("Paste after",
         new std::function([snapshot] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             snapshot->rollback(s);
         }),
         new std::function([parent_id, move, index, selection, pasted] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             const auto p_node = s->work_tree->find_node(parent_id);
             if (p_node == nullptr)
                 throw std::runtime_error("Cannot find original node");
@@ -469,21 +471,23 @@ namespace ex::gui::tree {
     }
 
     void paste_into_node(TreeNode *node) {
-        if (node == nullptr || *node_buffer_ptr() == nullptr) {
-            reset_state();
+        const auto &tree_state = tree::state();
+
+        if (node == nullptr || tree_state.buffer == nullptr) {
+            TreeState::reset(tree::state());
             return;
         }
 
         if (node->state >>= node_state::is_link)
             return;
 
-        const auto selection = bubble_sort_selection((*node_buffer_ptr())->selection->root);
-        const bool move      = (*node_buffer_ptr())->move;
-        const bool ref       = (*node_buffer_ptr())->ref;
+        const auto selection = bubble_sort_selection(tree_state.buffer->selection->root);
+        const bool move      = tree_state.buffer->move;
+        const bool ref       = tree_state.buffer->ref;
 
         State &state = ex::logic::globals::state();
 
-        reset_state();
+        TreeState::reset(tree::state());
         const auto snapshot = Snapshot::create(state);
 
         if (node->children == nullptr || node->children_n <= 0) {
@@ -529,11 +533,11 @@ namespace ex::gui::tree {
 
         undo_history().push("Paste into",
         new std::function([snapshot] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             snapshot->rollback(s);
         }),
         new std::function([parent_id, group_id, move, selection, pasted] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             const auto p_node = s->work_tree->find_node(parent_id);
             if (p_node == nullptr)
                 throw std::runtime_error("Cannot find original node");
@@ -578,7 +582,7 @@ namespace ex::gui::tree {
 
         State &state = ex::logic::globals::state();
 
-        reset_state();
+        TreeState::reset(tree::state());
         const auto snapshot = Snapshot::create(state);
 
         const auto parent    = node->parent;
@@ -595,11 +599,11 @@ namespace ex::gui::tree {
 
         undo_history().push("Move after",
         new std::function([snapshot] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             snapshot->rollback(s);
         }),
         new std::function([parent_id, index, copy] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             const auto p_node = s->work_tree->find_node(parent_id);
             if (p_node == nullptr)
                 throw std::runtime_error("Cannot find original node");
@@ -628,7 +632,7 @@ namespace ex::gui::tree {
 
         State &state = ex::logic::globals::state();
 
-        reset_state();
+        TreeState::reset(tree::state());
         const auto snapshot = Snapshot::create(state);
 
         if (node->children == nullptr || node->children_n <= 0) {
@@ -653,11 +657,11 @@ namespace ex::gui::tree {
 
         undo_history().push("Move into",
         new std::function([snapshot] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             snapshot->rollback(s);
         }),
         new std::function([parent_id, group_id, copy] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             const auto p_node = s->work_tree->find_node(parent_id);
             if (p_node == nullptr)
                 throw std::runtime_error("Cannot find original node");
@@ -693,9 +697,9 @@ namespace ex::gui::tree {
         const auto parent    = selection->root->selected->parent;
         const auto parent_id = parent->id_local;
 
-        State &state = ex::logic::globals::state();
+        const auto &state = ex::logic::globals::state();
 
-        reset_state();
+        TreeState::reset(tree::state());
         const auto snapshot = state.work_tree->deep_copy();
 
         TreeNode *new_group = TreeNode::create();
@@ -722,7 +726,7 @@ namespace ex::gui::tree {
 
         undo_history().push("Group selected",
         new std::function([snapshot] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             if (s->work_tree != nullptr && s->work_tree != snapshot)
                 delete s->work_tree;
             s->work_tree            = snapshot->deep_copy();
@@ -731,7 +735,7 @@ namespace ex::gui::tree {
         }),
 
         new std::function([new_group, parent_id, index, sorted] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             if (index < 0)
                 throw std::runtime_error("Cannot find original node, index < 0");
 
@@ -767,9 +771,9 @@ namespace ex::gui::tree {
         const std::size_t parent_id = parent->parent->id_local;
         const std::size_t index     = parent->index;
 
-        State &state = ex::logic::globals::state();
+        const auto &state = ex::logic::globals::state();
 
-        reset_state();
+        TreeState::reset(tree::state());
         const auto snapshot = state.work_tree->deep_copy();
 
         TreeNode       *temp_group = TreeNode::create();
@@ -791,7 +795,7 @@ namespace ex::gui::tree {
 
         undo_history().push("Ungroup selected",
         new std::function([snapshot] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             if (s->work_tree != nullptr && s->work_tree != snapshot)
                 delete s->work_tree;
             s->work_tree            = snapshot->deep_copy();
@@ -800,7 +804,7 @@ namespace ex::gui::tree {
         }),
 
         new std::function([index, parent_id, sorted, temp_group] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             if (index < 0)
                 throw std::runtime_error("Cannot find original node, index < 0");
 
@@ -840,13 +844,13 @@ namespace ex::gui::tree {
 
         State &state = ex::logic::globals::state();
 
-        reset_state();
+        TreeState::reset(tree::state());
 
         state.force_rewire = true;
 
         undo_history().push("Node enabled",
         new std::function([id_l = node->id_local, og_state] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             s->force_rewire = true;
             const auto f_node = s->work_tree->find_node(id_l);
             if (f_node == nullptr)
@@ -855,7 +859,7 @@ namespace ex::gui::tree {
             f_node->state |= (og_state & node_state::disabled);
         }),
         new std::function([id_l = node->id_local] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             s->force_rewire = true;
             const auto f_node = s->work_tree->find_node(id_l);
             if (f_node == nullptr)
@@ -870,12 +874,12 @@ namespace ex::gui::tree {
 
         State &state = ex::logic::globals::state();
 
-        reset_state();
+        TreeState::reset(tree::state());
         state.force_rewire = true;
 
         undo_history().push("Node disabled",
         new std::function([id_l = node->id_local, og_state] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             s->force_rewire = true;
             const auto f_node = s->work_tree->find_node(id_l);
             if (f_node == nullptr)
@@ -884,7 +888,7 @@ namespace ex::gui::tree {
             f_node->state |= (og_state & node_state::disabled);
         }),
         new std::function([id_l = node->id_local] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             s->force_rewire = true;
             const auto f_node = s->work_tree->find_node(id_l);
             if (f_node == nullptr)
@@ -907,12 +911,12 @@ namespace ex::gui::tree {
 
         State &state = ex::logic::globals::state();
 
-        reset_state();
+        TreeState::reset(tree::state());
         state.force_rewire = true;
 
         undo_history().push("Selection enabled",
         new std::function([og_state = og_map](ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             s->force_rewire = true;
             for (const auto &[k, v] : og_state) {
                 const auto f_node = s->work_tree->find_node(k);
@@ -923,7 +927,7 @@ namespace ex::gui::tree {
             }
         }),
         new std::function([og_state = og_map](ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             s->force_rewire = true;
             for (const auto &k : std::views::keys(og_state)) {
                 const auto f_node = s->work_tree->find_node(k);
@@ -948,7 +952,7 @@ namespace ex::gui::tree {
 
         State &state = ex::logic::globals::state();
 
-        reset_state();
+        TreeState::reset(tree::state());
         state.force_rewire = true;
 
         undo_history().push("Selection disabled",
@@ -961,7 +965,7 @@ namespace ex::gui::tree {
                 f_node->state -= node_state::disabled;
                 f_node->state |= (v & node_state::disabled);
             }
-            reset_state();
+            TreeState::reset(tree::state());
         }),
         new std::function([og_state = og_map](ex::State *s) {
             s->force_rewire = true;
@@ -971,7 +975,7 @@ namespace ex::gui::tree {
                     throw std::runtime_error("Cannot find original node");
                 f_node->state |= node_state::disabled;
             }
-            reset_state();
+            TreeState::reset(tree::state());
         }));
     }
 
@@ -982,7 +986,7 @@ namespace ex::gui::tree {
         State &state = ex::logic::globals::state();
 
         const auto copy_selection = selection_node::copy(selection->root);
-        reset_state();
+        TreeState::reset(tree::state());
 
         auto head = copy_selection->root;
         while (head != nullptr) {
@@ -1002,11 +1006,11 @@ namespace ex::gui::tree {
 
         undo_history().push("Selection deleted",
         new std::function([snapshot] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             snapshot->rollback(s);
         }),
         new std::function([copy_selection] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             auto s_head = copy_selection->root;
             while (s_head != nullptr) {
                 const auto f_node = s->work_tree->find_node(s_head->selected->id_local);
@@ -1027,7 +1031,7 @@ namespace ex::gui::tree {
 
         State &state = ex::logic::globals::state();
 
-        reset_state();
+        TreeState::reset(tree::state());
 
         node->state -= node_state::selected;
         const auto node_id  = node->id_local;
@@ -1036,16 +1040,15 @@ namespace ex::gui::tree {
 
         undo_history().push("Node deleted",
         new std::function([snapshot] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
             snapshot->rollback(s);
         }),
         new std::function([node_id] (ex::State *s) {
-            reset_state();
+            TreeState::reset(tree::state());
 
             const auto f_node = s->work_tree->find_node(node_id);
             if (f_node == nullptr)
                throw std::runtime_error("Cannot find original node");
-            (*selected_nodes_ptr()) = nullptr;
             f_node->state |= node_state::deleted;
         }),
         new std::function([snapshot] {

@@ -31,12 +31,11 @@ namespace ex::gui::tree {
     }
 
     bool show_context_menu_group() {
-        const auto selection = *tree::selected_nodes_ptr();
+        const auto &tree_state = ex::gui::tree::state();
+
+        const auto selection = tree_state.selection;
         if (selection == nullptr)
             return false;
-
-        State &state = ex::logic::globals::state();
-        GuiState &gui = ex::gui::state();
 
         static auto menu_id = "show_context_menu_group";
         bool clicked = false;
@@ -111,6 +110,7 @@ namespace ex::gui::tree {
         if (node == nullptr)
             return false;
 
+        TreeState &tree_state = ex::gui::tree::state();
         State &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
 
@@ -214,7 +214,7 @@ namespace ex::gui::tree {
                     ImGui::EndMenu();
                 }
 
-                if (ImGui::BeginMenu("Paste", *(tree::node_buffer_ptr()) != nullptr)) {
+                if (ImGui::BeginMenu("Paste", tree_state.buffer != nullptr)) {
 
                     if (ImGui::MenuItem("Paste after", key_mappings().work_tree.paste.label)) {
                         tree::paste_after_node(node);

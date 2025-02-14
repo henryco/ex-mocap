@@ -601,8 +601,10 @@ namespace ex::gui {
     }
 
     void work_tree_content() {
+        tree::TreeState &tree_state = ex::gui::tree::state();
         State &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
+
         if (state.work_tree == nullptr)
             return;
 
@@ -628,7 +630,7 @@ namespace ex::gui {
 
             ImGui::Indent(10.f);
             for (int i = 0, p = 0; i < state.work_tree->children_n; i++) {
-                p = show_tree_node(state, gui, state.work_tree->children[i], tree::selected_nodes_ptr(),
+                p = show_tree_node(state, gui, state.work_tree->children[i], &tree_state.selection,
                     &active_node, &last_menu, &last_ref, false, p + 1, i);
             }
             ImGui::Unindent(10.f);
@@ -655,11 +657,14 @@ namespace ex::gui {
     }
 
     void process_single_action(TreeNode *node) {
+
         if (node->state >>= node_state::is_link) {
             if (ImGui::Shortcut(key_mappings().work_tree.deletion.key))
                 tree::delete_node(node);
             return;
         }
+
+        const auto &tree_state = ex::gui::tree::state();
 
         if (ImGui::Shortcut(key_mappings().work_tree.duplicate.key))
             tree::duplicate_node(node);
@@ -673,10 +678,10 @@ namespace ex::gui {
         else if (ImGui::Shortcut(key_mappings().work_tree.reference.key))
             tree::ref_node(node);
 
-        else if ((*tree::node_buffer_ptr()) != nullptr && ImGui::Shortcut(key_mappings().work_tree.paste.key))
+        else if (tree_state.buffer != nullptr && ImGui::Shortcut(key_mappings().work_tree.paste.key))
             tree::paste_after_node(node);
 
-        else if ((*tree::node_buffer_ptr()) != nullptr && ImGui::Shortcut(key_mappings().work_tree.insert.key))
+        else if (tree_state.buffer != nullptr && ImGui::Shortcut(key_mappings().work_tree.insert.key))
             tree::paste_into_node(node);
 
         else if (ImGui::Shortcut(key_mappings().work_tree.deletion.key))
@@ -695,14 +700,16 @@ namespace ex::gui {
     }
 
     void process_tree_actions() {
+        const auto &tree_state = ex::gui::tree::state();
+
         if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
             return;
-        if ((*tree::selected_nodes_ptr()) == nullptr)
+        if (tree_state.selection == nullptr)
             return;
-        if (tree::selection_node::single((*tree::selected_nodes_ptr())))
-            process_single_action((*tree::selected_nodes_ptr())->selected);
+        if (tree::selection_node::single(tree_state.selection))
+            process_single_action(tree_state.selection->selected);
         else
-            process_multi_action((*tree::selected_nodes_ptr()));
+            process_multi_action(tree_state.selection);
     }
 
     void show_work_tree() {
