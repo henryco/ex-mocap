@@ -40,16 +40,16 @@ namespace ex::gui {
                 }
 
                 if (ImGui::MenuItem(strings::menu_top_file_open)) {
-                    gui.file_dialogs.file_picker_open = true;
+                    gui.file_dialogs.project_open = true;
                 }
 
                 if (ImGui::MenuItem(strings::menu_top_file_save)) {
-                    gui.file_dialogs.file_picker_save = true;
+                    gui.file_dialogs.project_save = true;
                     // TODO
                 }
 
                 if (ImGui::MenuItem(strings::menu_top_file_save_as)) {
-                    gui.file_dialogs.file_picker_save = true;
+                    gui.file_dialogs.project_save = true;
                 }
 
                 ImGui::Separator();

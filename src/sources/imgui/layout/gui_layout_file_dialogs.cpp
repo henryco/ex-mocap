@@ -17,13 +17,13 @@ namespace ex::gui {
 
         constexpr auto min_size  = ImVec2(900, 500);
         static constexpr simpfp::Labels labels {
-            .main_accept = strings::gui_dialogs_file_save_accept
+            .main_accept = strings::gui_dialogs_project_save_accept
         };
 
         if (!simpfp::FileDialogOpen())
-            simpfp::OpenFileDialog(strings::gui_dialogs_file_save, state.project_path, nullptr, &labels);
+            simpfp::OpenFileDialog(strings::gui_dialogs_project_save, state.project_path, nullptr, &labels);
 
-        if (simpfp::ShowFileDialog(strings::gui_dialogs_file_save, open, min_size, true)) {
+        if (simpfp::ShowFileDialog(strings::gui_dialogs_project_save, open, min_size, true)) {
             if (static char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
                 state.project_path = file;
                 state.should_save  = true;
@@ -41,13 +41,13 @@ namespace ex::gui {
 
         constexpr auto min_size  = ImVec2(900, 500);
         static constexpr simpfp::Labels labels {
-            .main_accept = strings::gui_dialogs_file_open_accept
+            .main_accept = strings::gui_dialogs_project_open_accept
         };
 
         if (!simpfp::FileDialogOpen())
-            simpfp::OpenFileDialog(strings::gui_dialogs_file_open, state.project_path, nullptr, &labels);
+            simpfp::OpenFileDialog(strings::gui_dialogs_project_open, state.project_path, nullptr, &labels);
 
-        if (simpfp::ShowFileDialog(strings::gui_dialogs_file_open, open, min_size, true)) {
+        if (simpfp::ShowFileDialog(strings::gui_dialogs_project_open, open, min_size, true)) {
             if (static char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
                 const auto path = std::filesystem::path(file);
                 if (std::filesystem::exists(path) && std::filesystem::is_regular_file(path)) {
@@ -74,8 +74,8 @@ namespace ex::gui {
         State    &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
 
-        show_open_file_picker_(&gui.file_dialogs.file_picker_open, state);
-        show_save_file_picker_(&gui.file_dialogs.file_picker_save, state);
+        show_open_file_picker_(&gui.file_dialogs.project_open, state);
+        show_save_file_picker_(&gui.file_dialogs.project_save, state);
     }
 
 }

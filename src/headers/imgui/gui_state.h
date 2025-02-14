@@ -54,8 +54,8 @@ namespace ex::gui {
     };
 
     struct FileDialogs {
-        bool file_picker_save = false;
-        bool file_picker_open = false;
+        bool project_save = false;
+        bool project_open = false;
     };
 
     struct GuiState {
