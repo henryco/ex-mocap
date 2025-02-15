@@ -4,6 +4,7 @@
 
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/gui_strings.h"
+#include "../../../headers/imgui/gui_actions.h"
 #include "../../../headers/imgui/tree/gui_tree_menu.h"
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
 #include "../../../headers/logic/logic_globals.h"
@@ -12,6 +13,137 @@ namespace ex::gui::tree {
 
     namespace tm {
         const auto &node_mappers_ = node_components();
+    }
+
+
+    void remove_actions_() {
+        const auto &mappings = key_mappings();
+        actions::remove_action(mappings.work_tree.copy.key);
+        actions::remove_action(mappings.work_tree.cut.key);
+        actions::remove_action(mappings.work_tree.deletion.key);
+        actions::remove_action(mappings.work_tree.duplicate.key);
+        actions::remove_action(mappings.work_tree.insert.key);
+        actions::remove_action(mappings.work_tree.paste.key);
+        actions::remove_action(mappings.work_tree.reference.key);
+    }
+
+    static void action_delete_node_() {
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
+        const auto &node = selection->selected;
+        tree::delete_node(node);
+    }
+
+    static void action_duplicate_node_() {
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
+        const auto &node = selection->selected;
+        tree::duplicate_node(node);
+    }
+
+    static void action_cut_node_() {
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
+        const auto &node = selection->selected;
+        tree::cut_node(node);
+    }
+
+    static void action_copy_node_() {
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
+        const auto &node = selection->selected;
+        tree::copy_node(node);
+    }
+
+    static void action_ref_node_() {
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
+        const auto &node = selection->selected;
+        tree::ref_node(node);
+    }
+
+    static void action_paste_after_node_() {
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
+        const auto &node = selection->selected;
+        tree::paste_after_node(node);
+    }
+
+    static void action_paste_into_node_() {
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
+        const auto &node = selection->selected;
+        tree::paste_into_node(node);
+    }
+
+    static void action_cut_selected_() {
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
+        tree::cut_selected(selection);
+    }
+
+    static void action_copy_selected_() {
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
+        tree::copy_selected(selection);
+    }
+
+    static void action_delete_selected_() {
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
+        tree::delete_selected(selection);
+    }
+
+    void process_single_action(TreeNode *node) {
+        const auto &mappings = key_mappings();
+        remove_actions_();
+
+        if (node->state >>= node_state::is_link) {
+            actions::set_action(mappings.work_tree.deletion.key, action_delete_node_);
+            return;
+        }
+
+        actions::set_action(mappings.work_tree.duplicate.key, action_duplicate_node_);
+        actions::set_action(mappings.work_tree.cut.key, action_cut_node_);
+        actions::set_action(mappings.work_tree.copy.key, action_copy_node_);
+        actions::set_action(mappings.work_tree.reference.key, action_ref_node_);
+        actions::set_action(mappings.work_tree.deletion.key, action_delete_node_);
+
+        if (ex::gui::tree::state().buffer == nullptr)
+            return;
+
+        actions::set_action(mappings.work_tree.paste.key, action_paste_after_node_);
+        actions::set_action(mappings.work_tree.insert.key, action_paste_into_node_);
+    }
+
+    void process_multi_action() {
+        const auto &mappings = key_mappings();
+        remove_actions_();
+
+        const auto selection = ex::gui::tree::state().selection;
+        auto head = selection->root;
+        bool same_root = true;
+        while (head != nullptr) {
+            if (head->selected->parent != selection->root->selected->parent)
+                same_root = false;
+            head = head->next;
+        }
+
+        actions::set_action(mappings.work_tree.deletion.key, action_delete_selected_);
+        if (same_root) {
+            actions::set_action(mappings.work_tree.cut.key, action_cut_selected_);
+            actions::set_action(mappings.work_tree.copy.key, action_copy_selected_);
+        }
     }
 
     TreeNode *create_node_from_menu(State &state, GuiState &gui) {
@@ -260,8 +392,8 @@ namespace ex::gui::tree {
 
     bool show_context_menu_general() {
         const auto &tree_state = ex::gui::tree::state();
-        State &state = ex::logic::globals::state();
-        GuiState &gui = ex::gui::state();
+        State      &state      = ex::logic::globals::state();
+        GuiState   &gui        = ex::gui::state();
 
         static auto menu_id = "show_context_menu_general";
 
@@ -269,9 +401,8 @@ namespace ex::gui::tree {
 
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.f);
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 6.0f));
-        if (ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows) &&
-            !ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
-        {
+        if (ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows) && !ImGui::IsItemHovered() &&
+            ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
             ImGui::OpenPopup(menu_id);
             clicked = true;
         }
@@ -297,4 +428,31 @@ namespace ex::gui::tree {
         return clicked;
     }
 
-}
+    void register_context_menu_actions() {
+        if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
+            return;
+
+        // TODO FIXME
+        static char last_active = 0;
+
+        const auto &tree_state = ex::gui::tree::state();
+        if (tree_state.selection == nullptr) {
+            if (last_active != 0)
+                remove_actions_();
+            last_active = 0;
+            return;
+        }
+
+        if (tree::selection_node::single(tree_state.selection)) {
+            if (last_active != 1)
+                process_single_action(tree_state.selection->selected);
+            last_active = 1;
+            return;
+        }
+
+        if (last_active != 2)
+            process_multi_action();
+        last_active = 2;
+    }
+
+} // namespace ex::gui::tree

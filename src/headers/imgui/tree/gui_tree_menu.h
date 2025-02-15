@@ -15,6 +15,8 @@ namespace ex::gui::tree {
 
     bool show_context_menu_general();
 
+    void register_context_menu_actions();
+
 }
 
 #endif //GUI_TREE_MENU_H
