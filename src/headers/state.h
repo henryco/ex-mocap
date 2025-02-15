@@ -96,6 +96,7 @@ namespace ex {
         TreeNode *active_node = nullptr;
         int16_t   clock_freq  = -1;
         bool      rewire      = false;
+        bool      dirty       = false;
     };
 
     struct State {

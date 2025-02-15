@@ -128,6 +128,7 @@ namespace ex::main {
         }
 
         state.logic.rewire = false;
+        state.logic.dirty  = rewire;
     }
 
     void Logic::mark_node_deleted_(State &state, TreeNode *node, const bool moved) {

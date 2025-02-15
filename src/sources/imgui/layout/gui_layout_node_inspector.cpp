@@ -2,9 +2,10 @@
 // Created by xd on 28/01/25.
 //
 
-#include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/imgui/gui_globals.h"
+#include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
+#include "../../../headers/logic/logic_globals.h"
 #include "../../../headers/logic/logic_state.h"
 
 namespace ex::gui::tree {
@@ -15,6 +16,8 @@ namespace ex::gui::tree {
     static long                    inspection_id   = -1;
 
     void show_inspected_node() {
+        static const State &state = ex::logic::globals::state();
+        static const GuiState &gui = ex::gui::state();
 
         if (inspected_node == nullptr ||
             (inspected_node->state >>= node_state::created) ||
@@ -23,20 +26,33 @@ namespace ex::gui::tree {
         {
             inspection_open = false;
             inspected_base  = nullptr;
+            inspected_base  = nullptr;
             inspection_id   = -1;
             return;
+        }
+
+        if (state.logic.dirty && inspection_id >= 0) {
+            TreeNode *new_node = state.logic.work_tree->find_node(inspection_id);
+            if (new_node == nullptr) {
+                inspection_open = false;
+                inspected_node  = nullptr;
+                inspected_base  = nullptr;
+                inspection_id   = -1;
+                return;
+            }
+            inspected_node = new_node;
+            inspected_base = nullptr;
         }
 
         if (inspected_base == nullptr) {
             inspected_base = ex::logic::state::get_node(inspected_node->id_local);
             if (inspected_base == nullptr) {
                 inspection_open = false;
+                inspected_node  = nullptr;
                 inspection_id   = -1;
                 return;
             }
         }
-
-        GuiState &gui = ex::gui::state();
 
         const auto rf = ex::gui::window_reset_flags(gui.view.reset, true);
         ImGui::Begin("Node inspector", &inspection_open, rf);
