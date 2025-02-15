@@ -90,7 +90,7 @@ namespace ex::main {
             delete state.logic.work_tree;
 
         state.logic.work_tree = new_state->logic.work_tree;
-        state.logic.dirty  = true;
+        state.logic.rewire  = true;
 
         delete new_state;
         delete[] data;
@@ -105,14 +105,14 @@ namespace ex::main {
         const auto now = std::chrono::high_resolution_clock::now().time_since_epoch().count();
         static long timestamp = 0;
 
-        if (!state.logic.dirty) {
+        if (!state.logic.rewire) {
             if (const auto elapsed = now - timestamp; elapsed < update_threshold)
                 return;
         }
 
         timestamp = now;
 
-        bool rewire = state.logic.dirty;
+        bool rewire = state.logic.rewire;
         traverse_(state, state.logic.work_tree, &rewire, false);
 
         static bool gc_run = false;
@@ -127,7 +127,7 @@ namespace ex::main {
             gc_run = true;
         }
 
-        state.logic.dirty = false;
+        state.logic.rewire = false;
     }
 
     void Logic::mark_node_deleted_(State &state, TreeNode *node, const bool moved) {
