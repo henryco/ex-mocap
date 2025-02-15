@@ -46,7 +46,7 @@ namespace ex::cmp {
 namespace ex::map::camera {
 
     limbo::nodes::BaseNode *instance(const State &state, TreeNode *from) {
-        limbo::nodes::BaseNode *node = new cmp::CameraNode(state.cl.ocl_context, state.cl.ocl_device);
+        limbo::nodes::BaseNode *node = new cmp::CameraNode(state.cl.context, state.cl.device);
         node->set_id(from->id_local);
         return node;
     }

@@ -81,8 +81,8 @@ namespace ex {
     };
 
     struct cl_state {
-        cl_context   ocl_context = nullptr;
-        cl_device_id ocl_device  = nullptr;
+        cl_context   context = nullptr;
+        cl_device_id device  = nullptr;
     };
 
     struct gl_state {

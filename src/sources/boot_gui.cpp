@@ -68,7 +68,7 @@ namespace ex::boot {
             ocl_context = cl::utils::create_cl_gl_context(window, platform, device);
             if (ocl_context != nullptr) {
                 state.gl.sharing = true;
-                state.cl.ocl_device = device;
+                state.cl.device = device;
                 log->info("CL context created");
                 break;
             }
@@ -79,11 +79,11 @@ namespace ex::boot {
             const auto device = cl_device_platforms[0].device;
             ocl_context       = ex::cl::utils::create_cl_context(device);
             state.gl.sharing  = false;
-            state.cl.ocl_device = device;
+            state.cl.device = device;
             log->info("Default CL context created");
         }
 
-        state.cl.ocl_context = ocl_context;
+        state.cl.context = ocl_context;
     }
 
     void gui_set_target_fps(State &state, const double fps) {
@@ -136,10 +136,10 @@ namespace ex::boot {
             update_gui(gui, state, window);
         }
 
-        if (state.cl.ocl_context != nullptr)
-            clReleaseContext(state.cl.ocl_context);
-        if (state.cl.ocl_device != nullptr)
-            clReleaseDevice(state.cl.ocl_device);
+        if (state.cl.context != nullptr)
+            clReleaseContext(state.cl.context);
+        if (state.cl.device != nullptr)
+            clReleaseDevice(state.cl.device);
 
         glfwDestroyWindow(window);
         glfwTerminate();
