@@ -12,10 +12,11 @@ namespace ex::gui {
 
     template <typename NODE_>
     struct GuiNodeWindow {
-        const char *uuid    = nullptr;
-        const char *name    = nullptr;
-        NODE_      *node    = nullptr;
-        bool       *visible = nullptr;
+        std::int64_t id      = -1;
+        const char  *uuid    = nullptr;
+        const char  *name    = nullptr;
+        NODE_       *node    = nullptr;
+        bool        *visible = nullptr;
 
         bool docked = false;
         bool pinned = false;

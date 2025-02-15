@@ -34,22 +34,40 @@ namespace ex::gui {
         if (node->state >>= node_state::is_link) {
             TreeNode                *source  = TreeNode::find_node(state.logic.work_tree, node->id_link);
             GuiNodeWindow<TreeNode> *new_win = new GuiNodeWindow{ .node = (source == nullptr) ? node : source };
+            new_win->id                      = new_win->node->id_local;
             new_win->name                    = new_win->node->name;
             return new_win;
         }
 
-        return new GuiNodeWindow{ .name = node->name, .node = node };
+        return new GuiNodeWindow{ .id = node->id_local, .name = node->name, .node = node };
     }
 
-    void update_active_window(const State &state, TreeNode *active_node) {
+    void update_active_window(State &state, TreeNode *active_node) {
         if (active_node == nullptr && active_window__ == nullptr) {
+            return;
+        }
+
+        if (active_window__ != nullptr && state.logic.dirty && active_window__->id >= 0) {
+
+            active_window__->node = TreeNode::find_node(state.logic.work_tree, active_window__->id);
+            if (active_window__->node == nullptr ||
+                (active_window__->node->state >>= node_state::created) ||
+                (active_window__->node->state >>= node_state::deleted))
+            {
+                if (!active_window__->pinned)
+                    delete active_window__;
+                active_window__         = nullptr;
+                state.logic.active_node = nullptr;
+                return;
+            }
+
+            state.logic.active_node = active_window__->node;
             return;
         }
 
         if (active_node == nullptr ||
             (active_node->state >>= node_state::created) ||
-            (active_node->state >>= node_state::deleted) ||
-            (active_node->state >>= node_state::moved))
+            (active_node->state >>= node_state::deleted))
         {
             if (active_window__ != nullptr && !active_window__->pinned)
                 delete active_window__;
@@ -85,6 +103,13 @@ namespace ex::gui {
         {
             return false;
         }
+
+        if (state.logic.dirty && window->id >= 0) {
+            window->node = TreeNode::find_node(state.logic.work_tree, window->id);
+            if (window->node == nullptr)
+                return false;
+        }
+
         const auto n_type = window->node->id_node;
         if (!ww::node_mappers_.contains(n_type))
             return false;
@@ -105,13 +130,24 @@ namespace ex::gui {
 
         for (auto it = pinned_windows__.begin(); it != pinned_windows__.end();) {
             const auto window = it->second;
-            if (window != nullptr && window->node == active_window__->node) {
+
+            if (window != nullptr && state.logic.dirty && window->id >= 0) {
+                window->node = TreeNode::find_node(state.logic.work_tree, window->id);
+                if (window->node == nullptr) {
+                    delete window;
+                    it = pinned_windows__.erase(it);
+                    continue;
+                }
+            }
+
+            if (window != nullptr && active_window__ != nullptr && window->node == active_window__->node) {
                 active_window__->visible = window->visible;
                 active_window__->pinned  = window->pinned;
                 active_window__->docked  = window->docked;
                 ++it;
                 continue;
             }
+
             if (!render_window(state, gui, window)) {
                 if (window != nullptr)
                     delete window;
@@ -124,15 +160,15 @@ namespace ex::gui {
         if (!render_window(state, gui, active_window__)) {
             if (active_window__ != nullptr) {
                 if (active_window__->node != nullptr)
-                    pinned_windows__.erase(active_window__->node->id_local);
+                    pinned_windows__.erase(active_window__->id);
                 delete active_window__;
             }
-            active_window__   = nullptr;
+            active_window__         = nullptr;
             state.logic.active_node = nullptr;
         } else {
             active_window__->pinned |= !active_window__->docked;
-            if (active_window__->pinned && !pinned_windows__.contains(active_window__->node->id_local)) {
-                pinned_windows__.emplace(active_window__->node->id_local, active_window__);
+            if (active_window__->pinned && !pinned_windows__.contains(active_window__->id)) {
+                pinned_windows__.emplace(active_window__->id, active_window__);
             }
         }
     }
