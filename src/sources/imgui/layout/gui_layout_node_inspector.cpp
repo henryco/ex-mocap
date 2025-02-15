@@ -12,16 +12,18 @@ namespace ex::gui::tree {
     static limbo::nodes::BaseNode *inspected_base  = nullptr;
     static TreeNode               *inspected_node  = nullptr;
     static bool                    inspection_open = false;
+    static long                    inspection_id   = -1;
 
     void show_inspected_node() {
+
         if (inspected_node == nullptr ||
             (inspected_node->state >>= node_state::created) ||
             (inspected_node->state >>= node_state::deleted) ||
-            (inspected_node->state >>= node_state::moved) ||
             !inspection_open)
         {
             inspection_open = false;
             inspected_base  = nullptr;
+            inspection_id   = -1;
             return;
         }
 
@@ -29,6 +31,7 @@ namespace ex::gui::tree {
             inspected_base = ex::logic::state::get_node(inspected_node->id_local);
             if (inspected_base == nullptr) {
                 inspection_open = false;
+                inspection_id   = -1;
                 return;
             }
         }
@@ -77,9 +80,10 @@ namespace ex::gui::tree {
     }
 
     void pick_inspected_node(TreeNode *node) {
-        inspection_open = true;
+        inspection_id   = node->id_local;
         inspected_node  = node;
         inspected_base  = nullptr;
+        inspection_open = true;
     }
 
 }

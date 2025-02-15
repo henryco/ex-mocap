@@ -940,12 +940,12 @@ namespace ex::gui::tree {
 
         TreeState::reset(tree::state());
 
-        state.force_rewire = true;
+        state.should_rewire = true;
 
         undo_history().push(strings::gui_tree_ops_history_node_enabled,
         new std::function([id_l = node->id_local, og_state] (ex::State *s) {
             TreeState::reset(tree::state());
-            s->force_rewire = true;
+            s->should_rewire = true;
             const auto f_node = s->work_tree->find_node(id_l);
             if (f_node == nullptr)
                 throw std::runtime_error("Cannot find original node");
@@ -954,7 +954,7 @@ namespace ex::gui::tree {
         }),
         new std::function([id_l = node->id_local] (ex::State *s) {
             TreeState::reset(tree::state());
-            s->force_rewire = true;
+            s->should_rewire = true;
             const auto f_node = s->work_tree->find_node(id_l);
             if (f_node == nullptr)
                 throw std::runtime_error("Cannot find original node");
@@ -969,12 +969,12 @@ namespace ex::gui::tree {
         State &state = ex::logic::globals::state();
 
         TreeState::reset(tree::state());
-        state.force_rewire = true;
+        state.should_rewire = true;
 
         undo_history().push(strings::gui_tree_ops_history_node_disabled,
         new std::function([id_l = node->id_local, og_state] (ex::State *s) {
             TreeState::reset(tree::state());
-            s->force_rewire = true;
+            s->should_rewire = true;
             const auto f_node = s->work_tree->find_node(id_l);
             if (f_node == nullptr)
                 throw std::runtime_error("Cannot find original node");
@@ -983,7 +983,7 @@ namespace ex::gui::tree {
         }),
         new std::function([id_l = node->id_local] (ex::State *s) {
             TreeState::reset(tree::state());
-            s->force_rewire = true;
+            s->should_rewire = true;
             const auto f_node = s->work_tree->find_node(id_l);
             if (f_node == nullptr)
                 throw std::runtime_error("Cannot find original node");
@@ -1006,12 +1006,12 @@ namespace ex::gui::tree {
         State &state = ex::logic::globals::state();
 
         TreeState::reset(tree::state());
-        state.force_rewire = true;
+        state.should_rewire = true;
 
         undo_history().push(strings::gui_tree_ops_history_select_enabled,
         new std::function([og_state = og_map](ex::State *s) {
             TreeState::reset(tree::state());
-            s->force_rewire = true;
+            s->should_rewire = true;
             for (const auto &[k, v] : og_state) {
                 const auto f_node = s->work_tree->find_node(k);
                 if (f_node == nullptr)
@@ -1022,7 +1022,7 @@ namespace ex::gui::tree {
         }),
         new std::function([og_state = og_map](ex::State *s) {
             TreeState::reset(tree::state());
-            s->force_rewire = true;
+            s->should_rewire = true;
             for (const auto &k : std::views::keys(og_state)) {
                 const auto f_node = s->work_tree->find_node(k);
                 if (f_node == nullptr)
@@ -1047,11 +1047,11 @@ namespace ex::gui::tree {
         State &state = ex::logic::globals::state();
 
         TreeState::reset(tree::state());
-        state.force_rewire = true;
+        state.should_rewire = true;
 
         undo_history().push(strings::gui_tree_ops_history_select_disabled,
         new std::function([og_state = og_map](ex::State *s) {
-            s->force_rewire = true;
+            s->should_rewire = true;
             for (const auto &[k, v] : og_state) {
                 const auto f_node = s->work_tree->find_node(k);
                 if (f_node == nullptr)
@@ -1062,7 +1062,7 @@ namespace ex::gui::tree {
             TreeState::reset(tree::state());
         }),
         new std::function([og_state = og_map](ex::State *s) {
-            s->force_rewire = true;
+            s->should_rewire = true;
             for (const auto &k : std::views::keys(og_state)) {
                 const auto f_node = s->work_tree->find_node(k);
                 if (f_node == nullptr)

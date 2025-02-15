@@ -84,10 +84,9 @@ namespace ex {
         int             gui_target_ns  = -1;
         short           clock_freq     = -1;
         bool            gl_sharing     = false;
-        bool            force_sync     = false;
-        bool            force_rewire   = false;
         bool            should_save    = false;
         bool            should_open    = false;
+        bool            should_rewire  = false;
     };
 
     /** OR */
