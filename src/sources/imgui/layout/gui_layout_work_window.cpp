@@ -47,6 +47,7 @@ namespace ex::gui {
         }
 
         if (active_node == nullptr ||
+            (active_node->state >>= node_state::created) ||
             (active_node->state >>= node_state::deleted) ||
             (active_node->state >>= node_state::moved))
         {

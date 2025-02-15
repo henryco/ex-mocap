@@ -479,11 +479,9 @@ namespace ex::gui::tree {
         const bool ref       = tree_state.buffer->ref;
 
         if (move) {
-            auto base = selection;
-            while (base != nullptr) {
+            for (auto base = selection; base != nullptr; base = base->next) {
                 if (base->selected == node)
                     return;
-                base = base->next;
             }
         }
 
@@ -575,11 +573,9 @@ namespace ex::gui::tree {
         const bool ref       = tree_state.buffer->ref;
 
         if (move) {
-            auto base = selection;
-            while (base != nullptr) {
+            for (auto base = selection; base != nullptr; base = base->next) {
                 if (base->selected == node)
                     return;
-                base = base->next;
             }
         }
 
