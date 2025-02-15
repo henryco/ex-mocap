@@ -558,6 +558,8 @@ namespace ex::gui::tree {
             return;
         }
 
+        // TODO FIXME: SELF INSERTION
+
         if (node->state >>= node_state::is_link)
             return;
 
@@ -709,6 +711,8 @@ namespace ex::gui::tree {
     void move_into_node(TreeNode *node, TreeNode *move) {
         if (node == nullptr || move == nullptr)
             return;
+
+        // TODO FIXME: SELF INSERTION
 
         State &state = ex::logic::globals::state();
 
