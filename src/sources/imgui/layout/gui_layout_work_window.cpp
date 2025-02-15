@@ -32,9 +32,9 @@ namespace ex::gui {
             return nullptr;
 
         if (node->state >>= node_state::is_link) {
-            TreeNode             *source  = TreeNode::find_node(state.logic.work_tree, node->id_link);
+            TreeNode                *source  = TreeNode::find_node(state.logic.work_tree, node->id_link);
             GuiNodeWindow<TreeNode> *new_win = new GuiNodeWindow{ .node = (source == nullptr) ? node : source };
-            new_win->name                 = new_win->node->name;
+            new_win->name                    = new_win->node->name;
             return new_win;
         }
 
