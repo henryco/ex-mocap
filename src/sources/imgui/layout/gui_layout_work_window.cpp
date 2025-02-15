@@ -32,7 +32,7 @@ namespace ex::gui {
             return nullptr;
 
         if (node->state >>= node_state::is_link) {
-            TreeNode             *source  = TreeNode::find_node(state.work_tree, node->id_link);
+            TreeNode             *source  = TreeNode::find_node(state.logic.work_tree, node->id_link);
             GuiNodeWindow<TreeNode> *new_win = new GuiNodeWindow{ .node = (source == nullptr) ? node : source };
             new_win->name                 = new_win->node->name;
             return new_win;
@@ -101,7 +101,7 @@ namespace ex::gui {
         State &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
 
-        update_active_window(state, state.active_node);
+        update_active_window(state, state.logic.active_node);
 
         for (auto it = pinned_windows__.begin(); it != pinned_windows__.end();) {
             const auto window = it->second;
@@ -128,7 +128,7 @@ namespace ex::gui {
                 delete active_window__;
             }
             active_window__   = nullptr;
-            state.active_node = nullptr;
+            state.logic.active_node = nullptr;
         } else {
             active_window__->pinned |= !active_window__->docked;
             if (active_window__->pinned && !pinned_windows__.contains(active_window__->node->id_local)) {

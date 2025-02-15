@@ -360,7 +360,7 @@ namespace ex::io::bytes {
 
     byte_array ByteSerializer::serialize(const void *in) const {
         const auto state = static_cast<const ex::State *>(in);
-        const auto root  = state->work_tree;
+        const auto root  = state->logic.work_tree;
 
         auto buff_out = out::create_buffer(10);
 
@@ -394,8 +394,8 @@ namespace ex::io::bytes {
 
         const auto t1 = std::chrono::high_resolution_clock::now();
 
-        state->work_tree         = base.children[0];
-        state->work_tree->parent = nullptr;
+        state->logic.work_tree         = base.children[0];
+        state->logic.work_tree->parent = nullptr;
 
         base.children[0] = nullptr;
         base.children_n  = 0;

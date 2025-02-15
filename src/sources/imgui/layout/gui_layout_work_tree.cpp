@@ -607,7 +607,7 @@ namespace ex::gui {
         State &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
 
-        if (state.work_tree == nullptr)
+        if (state.logic.work_tree == nullptr)
             return;
 
         ImGui::BeginChild(
@@ -631,19 +631,19 @@ namespace ex::gui {
             TreeNode          *active_node = nullptr;
 
             ImGui::Indent(10.f);
-            for (int i = 0, p = 0; i < state.work_tree->children_n; i++) {
-                p = show_tree_node(state, gui, state.work_tree->children[i], &tree_state.selection,
+            for (int i = 0, p = 0; i < state.logic.work_tree->children_n; i++) {
+                p = show_tree_node(state, gui, state.logic.work_tree->children[i], &tree_state.selection,
                     &active_node, &last_menu, &last_ref, false, p + 1, i);
             }
             ImGui::Unindent(10.f);
 
             if (active_node != nullptr) {
-                if (state.active_node != nullptr && state.active_node != active_node) {
-                    state.active_node = active_node;
+                if (state.logic.active_node != nullptr && state.logic.active_node != active_node) {
+                    state.logic.active_node = active_node;
                 }
 
-                if (state.active_node == nullptr) {
-                    state.active_node = active_node;
+                if (state.logic.active_node == nullptr) {
+                    state.logic.active_node = active_node;
                 }
             }
 

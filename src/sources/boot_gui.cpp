@@ -33,9 +33,9 @@ namespace ex::boot {
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
-        const auto window = gl::create_window(state.title);
+        const auto window = gl::create_window(state.project.title);
         log->info("Window created");
-        state.window = window;
+        state.gl.window = window;
 
         if (!window) {
             log->error("Window pointer null reference");
@@ -67,8 +67,8 @@ namespace ex::boot {
                 continue;
             ocl_context = cl::utils::create_cl_gl_context(window, platform, device);
             if (ocl_context != nullptr) {
-                state.gl_sharing = true;
-                state.ocl_device = device;
+                state.gl.sharing = true;
+                state.cl.ocl_device = device;
                 log->info("CL context created");
                 break;
             }
@@ -78,23 +78,23 @@ namespace ex::boot {
             log->error("CL context pointer null reference, fallback to default context");
             const auto device = cl_device_platforms[0].device;
             ocl_context       = ex::cl::utils::create_cl_context(device);
-            state.gl_sharing  = false;
-            state.ocl_device = device;
+            state.gl.sharing  = false;
+            state.cl.ocl_device = device;
             log->info("Default CL context created");
         }
 
-        state.ocl_context = ocl_context;
+        state.cl.ocl_context = ocl_context;
     }
 
     void gui_set_target_fps(State &state, const double fps) {
-        state.gui_target_ns = static_cast<int>(1000000000.0 / fps);
+        state.gl.target_fps = static_cast<int>(1000000000.0 / fps);
     }
 
     inline void update_gui(const ex::gui::GUI &gui, State &state, GLFWwindow *window) {
-        if (state.gui_target_ns > 0) {
+        if (state.gl.target_fps > 0) {
             static auto t0 = std::chrono::high_resolution_clock::now();
             const auto t1 = std::chrono::high_resolution_clock::now();
-            if (t1 - t0 < std::chrono::nanoseconds(state.gui_target_ns))
+            if (t1 - t0 < std::chrono::nanoseconds(state.gl.target_fps))
                 return;
             t0 = std::chrono::high_resolution_clock::now();
         }
@@ -109,8 +109,8 @@ namespace ex::boot {
     int gui(int, char **, const char *project_path) {
 
         State &state = ex::logic::globals::state();
-        state.project_path = project_path;
-        state.title        = "ExMoCap";
+        state.project.project_path = project_path;
+        state.project.title        = "ExMoCap";
 
         gui_set_target_fps(state, 60);
 
@@ -136,10 +136,10 @@ namespace ex::boot {
             update_gui(gui, state, window);
         }
 
-        if (state.ocl_context != nullptr)
-            clReleaseContext(state.ocl_context);
-        if (state.ocl_device != nullptr)
-            clReleaseDevice(state.ocl_device);
+        if (state.cl.ocl_context != nullptr)
+            clReleaseContext(state.cl.ocl_context);
+        if (state.cl.ocl_device != nullptr)
+            clReleaseDevice(state.cl.ocl_device);
 
         glfwDestroyWindow(window);
         glfwTerminate();

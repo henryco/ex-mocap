@@ -21,12 +21,12 @@ namespace ex::gui {
         };
 
         if (!simpfp::FileDialogOpen())
-            simpfp::OpenFileDialog(strings::gui_dialogs_project_save, state.project_path, nullptr, &labels);
+            simpfp::OpenFileDialog(strings::gui_dialogs_project_save, state.project.project_path, nullptr, &labels);
 
         if (simpfp::ShowFileDialog(strings::gui_dialogs_project_save, open, min_size, true)) {
             if (static char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
-                state.project_path = file;
-                state.should_save  = true;
+                state.project.project_path = file;
+                state.project.should_save  = true;
                 *open              = false;
 
                 // TODO: ASK DIALOG
@@ -45,7 +45,7 @@ namespace ex::gui {
         };
 
         if (!simpfp::FileDialogOpen())
-            simpfp::OpenFileDialog(strings::gui_dialogs_project_open, state.project_path, nullptr, &labels);
+            simpfp::OpenFileDialog(strings::gui_dialogs_project_open, state.project.project_path, nullptr, &labels);
 
         if (simpfp::ShowFileDialog(strings::gui_dialogs_project_open, open, min_size, true)) {
             if (static char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
@@ -54,12 +54,12 @@ namespace ex::gui {
                     // TODO: ASK DIALOG
 
                     undo_history().reset();
-                    state.title        = (new std::string("ExMoCap - " + path.filename().string()))->c_str();
-                    state.project_path = file;
-                    state.should_open  = true;
-                    *open              = false;
+                    state.project.title        = (new std::string("ExMoCap - " + path.filename().string()))->c_str();
+                    state.project.project_path = file;
+                    state.project.should_open  = true;
+                    *open                      = false;
 
-                    ex::gl::set_window_title(state.window, state.title);
+                    ex::gl::set_window_title(state.gl.window, state.project.title);
 
                     simpfp::CloseFileDialog();
                 } else {

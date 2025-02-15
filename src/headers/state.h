@@ -73,20 +73,36 @@ namespace ex {
         TreeNode() = default;
     };
 
+    struct project_state {
+        const char *project_path = nullptr;
+        const char *title        = nullptr;
+        bool        should_save  = false;
+        bool        should_open  = false;
+    };
+
+    struct cl_state {
+        cl_context   ocl_context = nullptr;
+        cl_device_id ocl_device  = nullptr;
+    };
+
+    struct gl_state {
+        GLFWwindow *window     = nullptr;
+        int16_t     target_fps = -1;
+        bool        sharing    = false;
+    };
+
+    struct logic_state {
+        TreeNode *work_tree   = nullptr;
+        TreeNode *active_node = nullptr;
+        int16_t   clock_freq  = -1;
+        bool      dirty       = false;
+    };
+
     struct State {
-        const char     *project_path   = nullptr;
-        const char     *title          = nullptr;
-        GLFWwindow     *window         = nullptr;
-        TreeNode       *work_tree      = nullptr;
-        TreeNode       *active_node    = nullptr;
-        cl_context      ocl_context    = nullptr;
-        cl_device_id    ocl_device     = nullptr;
-        int             gui_target_ns  = -1;
-        short           clock_freq     = -1;
-        bool            gl_sharing     = false;
-        bool            should_save    = false;
-        bool            should_open    = false;
-        bool            should_rewire  = false;
+        project_state project = {};
+        logic_state   logic   = {};
+        cl_state      cl      = {};
+        gl_state      gl      = {};
     };
 
     /** OR */

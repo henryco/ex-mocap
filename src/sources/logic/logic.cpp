@@ -36,15 +36,15 @@ namespace ex::main {
     void Logic::initialize(State &state) {
         log->info("main logic initialization started");
 
-        if (state.work_tree != nullptr)
-            delete state.work_tree;
+        if (state.logic.work_tree != nullptr)
+            delete state.logic.work_tree;
 
         state::uuid::reset_last_id();
 
-        state.work_tree             = TreeNode::create();
-        state.work_tree->state      = node_state::is_group;
-        state.work_tree->name       = "root";
-        state.work_tree->children_n = 0;
+        state.logic.work_tree             = TreeNode::create();
+        state.logic.work_tree->state      = node_state::is_group;
+        state.logic.work_tree->name       = "root";
+        state.logic.work_tree->children_n = 0;
 
         log->info("main logic initialization synchronization");
         synchronize_(state);
@@ -52,16 +52,16 @@ namespace ex::main {
     }
 
     void Logic::run(State &state) {
-        if (state.work_tree == nullptr)
+        if (state.logic.work_tree == nullptr)
             throw std::runtime_error("Logic::run: work tree is null");
 
-        if (state.should_save) {
-            state.should_save = false;
+        if (state.project.should_save) {
+            state.project.should_save = false;
             serialize_(state);
         }
 
-        if (state.should_open) {
-            state.should_open = false;
+        if (state.project.should_open) {
+            state.project.should_open = false;
             deserialize_(state);
         }
 
@@ -70,31 +70,31 @@ namespace ex::main {
     }
 
     void Logic::serialize_(State &state) {
-        log->info("serialization start: {}", state.project_path);
+        log->info("serialization start: {}", state.project.project_path);
         auto bytes = io::bytes::ByteSerializer().serialize(&state);
-        ex::files::write_binary_file(state.project_path, bytes.data, bytes.size);
+        ex::files::write_binary_file(state.project.project_path, bytes.data, bytes.size);
         io::byte_array::free(bytes);
-        log->info("serialization complete: {}", state.project_path);
+        log->info("serialization complete: {}", state.project.project_path);
     }
 
     void Logic::deserialize_(State &state) {
-        log->info("deserialization start: {}", state.project_path);
+        log->info("deserialization start: {}", state.project.project_path);
 
         std::size_t size;
-        const auto data = ex::files::read_binary_file(state.project_path, &size);
+        const auto data = ex::files::read_binary_file(state.project.project_path, &size);
 
         const auto new_state =
                 static_cast<State *>(io::bytes::ByteSerializer().deserialize(io::byte_array::from(data, size)));
 
-        if (state.work_tree != nullptr)
-            delete state.work_tree;
+        if (state.logic.work_tree != nullptr)
+            delete state.logic.work_tree;
 
-        state.work_tree    = new_state->work_tree;
-        state.should_rewire = true;
+        state.logic.work_tree = new_state->logic.work_tree;
+        state.logic.dirty  = true;
 
         delete new_state;
         delete[] data;
-        log->info("deserialization complete: {}", state.project_path);
+        log->info("deserialization complete: {}", state.project.project_path);
     }
 
     void Logic::process_(State &_) {
@@ -105,15 +105,15 @@ namespace ex::main {
         const auto now = std::chrono::high_resolution_clock::now().time_since_epoch().count();
         static long timestamp = 0;
 
-        if (!state.should_rewire) {
+        if (!state.logic.dirty) {
             if (const auto elapsed = now - timestamp; elapsed < update_threshold)
                 return;
         }
 
         timestamp = now;
 
-        bool rewire = state.should_rewire;
-        traverse_(state, state.work_tree, &rewire, false);
+        bool rewire = state.logic.dirty;
+        traverse_(state, state.logic.work_tree, &rewire, false);
 
         static bool gc_run = false;
 
@@ -127,7 +127,7 @@ namespace ex::main {
             gc_run = true;
         }
 
-        state.should_rewire = false;
+        state.logic.dirty = false;
     }
 
     void Logic::mark_node_deleted_(State &state, TreeNode *node, const bool moved) {
@@ -232,8 +232,8 @@ namespace ex::main {
             node->detach_all_any();
         }
 
-        simple_list current = { state.work_tree };
-        build_tree_(state, state.work_tree, nullptr, &current);
+        simple_list current = { state.logic.work_tree };
+        build_tree_(state, state.logic.work_tree, nullptr, &current);
 
         gc_(state);
 
