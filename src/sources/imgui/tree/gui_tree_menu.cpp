@@ -347,7 +347,6 @@ namespace ex::gui::tree {
                     ImGui::EndMenu();
                 }
 
-                // TODO: FIXME SELF-INSERT
                 if (ImGui::BeginMenu(strings::gui_tree_menu_node_paste, tree_state.buffer != nullptr)) {
 
                     if (ImGui::MenuItem(strings::gui_tree_menu_node_paste_after, key_mappings().work_tree.paste.label)) {

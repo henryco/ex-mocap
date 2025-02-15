@@ -558,14 +558,19 @@ namespace ex::gui::tree {
             return;
         }
 
-        // TODO FIXME: SELF INSERTION
-
         if (node->state >>= node_state::is_link)
             return;
 
         const auto selection = bubble_sort_selection(tree_state.buffer->selection->root);
         const bool move      = tree_state.buffer->move;
         const bool ref       = tree_state.buffer->ref;
+
+        auto base = selection;
+        while (base != nullptr) {
+            if (base->selected == node)
+                return;
+            base = base->next;
+        }
 
         State &state = ex::logic::globals::state();
 
@@ -709,10 +714,8 @@ namespace ex::gui::tree {
     }
 
     void move_into_node(TreeNode *node, TreeNode *move) {
-        if (node == nullptr || move == nullptr)
+        if (node == nullptr || move == nullptr || move == node)
             return;
-
-        // TODO FIXME: SELF INSERTION
 
         State &state = ex::logic::globals::state();
 
