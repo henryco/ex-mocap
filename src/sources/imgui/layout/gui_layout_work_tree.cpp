@@ -668,52 +668,79 @@ namespace ex::gui {
     }
 
     static void action_delete_node_() {
-        const auto node = ex::gui::tree::state().selection->selected;
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
+        const auto &node = selection->selected;
         tree::delete_node(node);
     }
 
     static void action_duplicate_node_() {
-        const auto node = ex::gui::tree::state().selection->selected;
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
+        const auto &node = selection->selected;
         tree::duplicate_node(node);
     }
 
     static void action_cut_node_() {
-        const auto node = ex::gui::tree::state().selection->selected;
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
+        const auto &node = selection->selected;
         tree::cut_node(node);
     }
 
     static void action_copy_node_() {
-        const auto node = ex::gui::tree::state().selection->selected;
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
+        const auto &node = selection->selected;
         tree::copy_node(node);
     }
 
     static void action_ref_node_() {
-        const auto node = ex::gui::tree::state().selection->selected;
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
+        const auto &node = selection->selected;
         tree::ref_node(node);
     }
 
     static void action_paste_after_node_() {
-        const auto node = ex::gui::tree::state().selection->selected;
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
+        const auto &node = selection->selected;
         tree::paste_after_node(node);
     }
 
     static void action_paste_into_node_() {
-        const auto node = ex::gui::tree::state().selection->selected;
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
+        const auto &node = selection->selected;
         tree::paste_into_node(node);
     }
 
     static void action_cut_selected_() {
-        const auto selection = ex::gui::tree::state().selection;
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
         tree::cut_selected(selection);
     }
 
     static void action_copy_selected_() {
-        const auto selection = ex::gui::tree::state().selection;
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
         tree::copy_selected(selection);
     }
 
     static void action_delete_selected_() {
-        const auto selection = ex::gui::tree::state().selection;
+        const auto &selection = ex::gui::tree::state().selection;
+        if (selection == nullptr)
+            return;
         tree::delete_selected(selection);
     }
 
