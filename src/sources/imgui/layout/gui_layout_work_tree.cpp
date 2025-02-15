@@ -677,6 +677,8 @@ namespace ex::gui {
         ex::gui::next_auto_hide(docked || gui.view.docking);
         ImGui::SetNextWindowDockID(gui.docking.dock_left_top_id, cond_node());
         ImGui::Begin("Work tree", ptr, reset_flag(gui) | ImGuiWindowFlags_NoCollapse);
+        tree::register_context_menu_actions();
+
         docked = ex::gui::window_is_multi_docked();
         watch = watch_parent_dock(gui);
 
@@ -687,7 +689,6 @@ namespace ex::gui {
 
         ImGui::End();
         tree::show_inspected_node();
-        tree::register_context_menu_actions();
     }
 
 }

@@ -17,6 +17,8 @@ namespace ex::gui::tree {
 
 
     void remove_actions_() {
+        std::cout << "remove" << std::endl; // TODO REMOVE
+
         const auto &mappings = key_mappings();
         actions::remove_action(mappings.work_tree.copy.key);
         actions::remove_action(mappings.work_tree.cut.key);
@@ -104,9 +106,13 @@ namespace ex::gui::tree {
         tree::delete_selected(selection);
     }
 
-    void process_single_action(TreeNode *node) {
+    void process_single_action_(TreeNode *node) {
+        std::cout << "\nsingle" << std::endl;   // TODO REMOVE
+
         const auto &mappings = key_mappings();
         remove_actions_();
+
+        std::cout << "registered" << std::endl; // TODO REMOVE
 
         if (node->state >>= node_state::is_link) {
             actions::set_action(mappings.work_tree.deletion.key, action_delete_node_);
@@ -126,9 +132,13 @@ namespace ex::gui::tree {
         actions::set_action(mappings.work_tree.insert.key, action_paste_into_node_);
     }
 
-    void process_multi_action() {
+    void process_multi_action_() {
+        std::cout << "\nmulti" << std::endl;    // TODO REMOVE
+
         const auto &mappings = key_mappings();
         remove_actions_();
+
+        std::cout << "registered" << std::endl; // TODO REMOVE
 
         const auto selection = ex::gui::tree::state().selection;
         auto head = selection->root;
@@ -429,9 +439,6 @@ namespace ex::gui::tree {
     }
 
     void register_context_menu_actions() {
-        if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
-            return;
-
         // TODO FIXME
         static char last_active = 0;
 
@@ -443,15 +450,18 @@ namespace ex::gui::tree {
             return;
         }
 
+        if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
+            return;
+
         if (tree::selection_node::single(tree_state.selection)) {
             if (last_active != 1)
-                process_single_action(tree_state.selection->selected);
+                process_single_action_(tree_state.selection->selected);
             last_active = 1;
             return;
         }
 
         if (last_active != 2)
-            process_multi_action();
+            process_multi_action_();
         last_active = 2;
     }
 

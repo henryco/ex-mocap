@@ -478,6 +478,15 @@ namespace ex::gui::tree {
         const bool move      = tree_state.buffer->move;
         const bool ref       = tree_state.buffer->ref;
 
+        if (move) {
+            auto base = selection;
+            while (base != nullptr) {
+                if (base->selected == node)
+                    return;
+                base = base->next;
+            }
+        }
+
         State &state = ex::logic::globals::state();
 
         TreeState::reset(tree::state());
@@ -565,11 +574,13 @@ namespace ex::gui::tree {
         const bool move      = tree_state.buffer->move;
         const bool ref       = tree_state.buffer->ref;
 
-        auto base = selection;
-        while (base != nullptr) {
-            if (base->selected == node)
-                return;
-            base = base->next;
+        if (move) {
+            auto base = selection;
+            while (base != nullptr) {
+                if (base->selected == node)
+                    return;
+                base = base->next;
+            }
         }
 
         State &state = ex::logic::globals::state();
@@ -664,7 +675,7 @@ namespace ex::gui::tree {
     }
 
     void move_after_node(TreeNode *node, TreeNode *move) {
-        if (node == nullptr || move == nullptr)
+        if (node == nullptr || move == nullptr || node == move)
             return;
 
         State &state = ex::logic::globals::state();
