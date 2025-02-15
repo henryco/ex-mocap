@@ -177,6 +177,86 @@ namespace ex::gui::tree {
         }));
     }
 
+    void paste_node() {
+        const auto &tree_state = tree::state();
+
+        if (tree_state.buffer == nullptr) {
+            TreeState::reset(tree::state());
+            return;
+        }
+
+        const auto selection = bubble_sort_selection(tree_state.buffer->selection->root);
+        const bool move      = tree_state.buffer->move;
+        const bool ref       = tree_state.buffer->ref;
+
+        State &state = ex::logic::globals::state();
+
+        TreeState::reset(tree::state());
+        const auto snapshot = Snapshot::create(state);
+
+        selection_node *pasted = nullptr;
+
+        auto head = selection;
+        while (head != nullptr) {
+            TreeNode *deep_copy = ref ? TreeNode::link(head->selected) : TreeNode::deep_copy(head->selected, !move);
+            const auto copy = TreeNode::shallow_copy(head->selected);
+
+            if (!move && !ref) {
+                deep_copy->name = (new std::string(deep_copy->name))->append(" (copy)").c_str();
+            }
+
+            head->selected->state -= node_state::moved;
+            head->selected->state |= (node_state::moved && move);
+
+            head->selected = copy;
+            head           = head->next;
+
+            if (pasted == nullptr) {
+                pasted = selection_node::from_node(TreeNode::deep_copy(deep_copy));
+            } else {
+                pasted->next = selection_node::from_node(TreeNode::deep_copy(deep_copy));
+                pasted->next->prev = pasted;
+                pasted->next->root = pasted->root;
+                pasted             = pasted->next;
+            }
+
+            deep_copy->state |= node_state::created;
+            state.work_tree->add_node(deep_copy);
+        }
+
+        undo_history().push(strings::gui_tree_ops_history_paste,
+        new std::function([snapshot] (ex::State *s) {
+            TreeState::reset(tree::state());
+            snapshot->rollback(s);
+        }),
+        new std::function([move, selection, pasted] (ex::State *s) {
+            TreeState::reset(tree::state());
+
+            auto root = selection;
+            while (root != nullptr) {
+                const auto f_node = s->work_tree->find_node(root->selected->id_local);
+                if (f_node == nullptr)
+                    throw std::runtime_error("Cannot find original node");
+                f_node->state -= node_state::moved;
+                f_node->state |= (node_state::moved && move);
+                root = root->next;
+            }
+
+            root = pasted->root;
+            while (root != nullptr) {
+                const auto dcp = TreeNode::deep_copy(root->selected);
+                dcp->state |= node_state::created;
+                s->work_tree->add_node(dcp);
+                root = root->next;
+            }
+        }),
+        new std::function([snapshot, selection, pasted] {
+            Snapshot::free(snapshot);
+            selection_node::free(selection);
+            selection_node::free(pasted);
+        }));
+    }
+
     void add_into_node(TreeNode *node, TreeNode *add) {
         State &state = ex::logic::globals::state();
 

@@ -41,8 +41,9 @@ namespace ex::gui::strings {
     constexpr auto logs_bot_copy      = "Copy to clipboard";
     constexpr auto logs_bot_clear_all = "Clear all";
 
-    constexpr auto gui_tree_menu_general_add = "Add new node";
-    constexpr auto gui_tree_menu_general_new = "New node";
+    constexpr auto gui_tree_menu_general_add   = "Add new node";
+    constexpr auto gui_tree_menu_general_new   = "New node";
+    constexpr auto gui_tree_menu_general_paste = "Paste node";
 
     constexpr auto gui_tree_menu_group         = "Group";
     constexpr auto gui_tree_menu_group_ungroup = "Ungroup";
@@ -78,6 +79,7 @@ namespace ex::gui::strings {
     constexpr auto gui_tree_ops_history_add_after       = "Add after";
     constexpr auto gui_tree_ops_history_node_renamed    = "Rename node";
     constexpr auto gui_tree_ops_history_node_duplicated = "Duplicate node";
+    constexpr auto gui_tree_ops_history_paste           = "Paste Node";
     constexpr auto gui_tree_ops_history_paste_after     = "Paste after";
     constexpr auto gui_tree_ops_history_paste_into      = "Paste into";
     constexpr auto gui_tree_ops_history_move_after      = "Move after";

@@ -259,6 +259,7 @@ namespace ex::gui::tree {
     }
 
     bool show_context_menu_general() {
+        const auto &tree_state = ex::gui::tree::state();
         State &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
 
@@ -276,11 +277,19 @@ namespace ex::gui::tree {
         }
 
         if (ImGui::BeginPopup(menu_id)) {
+
             if (ImGui::BeginMenu(strings::gui_tree_menu_general_add)) {
                 if (const auto new_node = create_node_from_menu(state, gui))
                     tree::add_node(new_node);
                 ImGui::EndMenu();
             }
+
+            if (tree_state.buffer != nullptr) {
+                if (ImGui::MenuItem(strings::gui_tree_menu_general_paste, key_mappings().work_tree.paste.label)) {
+                    tree::paste_node();
+                }
+            }
+
             ImGui::EndPopup();
         }
 

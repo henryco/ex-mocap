@@ -395,6 +395,8 @@ namespace ex::gui {
 
             if (ImGui::IsItemHovered())
                 *ref_node = (node->state >>= node_state::is_link) ? node->id_link : (-1);
+            else if (node->id_link != -1 && node->id_link == *ref_node)
+                *ref_node = (-1);
 
             if (disabled || disabled_ || dimmed)
                 ImGui::PopStyleVar();
@@ -518,6 +520,8 @@ namespace ex::gui {
 
                 if (ImGui::IsItemHovered())
                     *ref_node = (first->state >>= node_state::is_link) ? first->id_link : (-1);
+                else if (first->id_link != -1 && first->id_link == *ref_node)
+                    *ref_node = (-1);
 
                 if (disabled || disabled_ || dimmed)
                     ImGui::PopStyleVar();
