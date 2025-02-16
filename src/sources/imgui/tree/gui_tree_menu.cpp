@@ -161,7 +161,8 @@ namespace ex::gui::tree {
     }
 
     TreeNode *create_node_from_menu(State &state, GuiState &gui) {
-        for (const auto &[type_id, mapper]: tm::node_mappers_) {
+        for (int i = 0; i < tm::node_mappers_.entries.size; ++i) {
+            const auto &[type_id, mapper] = tm::node_mappers_.entries[i];
             ImGui::PushID(type_id);
             if (ImGui::MenuItem(mapper.get_node_name(gui, state) )) {
                 ImGui::PopID();
@@ -338,7 +339,7 @@ namespace ex::gui::tree {
                     tree::pick_inspected_node(node);
                 }
 
-                tm::node_mappers_.at(node->id_node).draw_tree_menu(gui, state, node, nested, selected);
+                tm::node_mappers_[node->id_node].draw_tree_menu(gui, state, node, nested, selected);
 
                 if (ImGui::MenuItem(strings::gui_tree_menu_node_duplicate, key_mappings().work_tree.duplicate.label)) {
                     tree::duplicate_node(node);

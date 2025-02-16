@@ -138,7 +138,7 @@ namespace ex::gui {
         static State    &state         = ex::logic::globals::state();
         static GuiState &gui           = ex::gui::state();
 
-        const auto &mapper    = node_mappers_.at(box.window.node->id_node);
+        const auto &mapper    = node_mappers_[box.window.node->id_node];
         const auto  render_fn  = mapper.draw_node_window;
         const auto  dock_id_fn = mapper.get_dock_id;
 

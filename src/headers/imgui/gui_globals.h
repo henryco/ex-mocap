@@ -9,6 +9,7 @@
 
 #include "../state.h"
 #include "../utils/log_utils.h"
+#include "../utils/data_utils.h"
 #include "../../../extra/undo/undo_history.h"
 
 #include "gui_keymap.h"
@@ -24,7 +25,7 @@ namespace ex::gui {
 
     limbo::undo::history<ex::State> &undo_history();
 
-    const std::map<std::size_t, ex::gui::GuiNodeComponent> &node_components();
+    const data::map<std::size_t, gui::GuiNodeComponent> &node_components();
 
 }
 

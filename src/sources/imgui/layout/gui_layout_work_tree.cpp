@@ -51,7 +51,7 @@ namespace ex::gui {
                 ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
             } else {
                 ImGui::SetDragDropPayload(dnd_type, &node, sizeof(node));
-                wt::node_mappers_.at(node->id_node).draw_tree_node(gui, state, node, false, false);
+                wt::node_mappers_[node->id_node].draw_tree_node(gui, state, node, false, false);
                 ImGui::EndDragDropSource();
             }
         }
@@ -387,7 +387,7 @@ namespace ex::gui {
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
             ImGui::PushID(node->id_local);
-            const bool open = wt::node_mappers_.at(node->id_node)
+            const bool open = wt::node_mappers_[node->id_node]
                                       .draw_tree_node(gui, state, node, node->children_n > 0,
                                                       node->state >>= node_state::selected);
 
@@ -513,7 +513,7 @@ namespace ex::gui {
                     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
                 ImGui::PushID(first->id_local);
-                wt::node_mappers_.at(first->id_node)
+                wt::node_mappers_[first->id_node]
                         .draw_tree_node(gui, state, first, false, first->state >>= node_state::selected);
 
                 if (ImGui::IsItemHovered())
