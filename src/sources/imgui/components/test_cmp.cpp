@@ -51,7 +51,7 @@ namespace ex::gui::test::one {
         ex::gui::begin_docked_window(node->uuid, ptr, gui.view.reset, true);
         node->docked = ex::gui::window_is_docked();
         node->visible = watch_parent_dock_(gui);
-        ImGui::Text("This window: %d | %d | %d", node->docked, node->pinned, gui.view.docking);
+        ImGui::Text("This window 1: %d | %d | %d", node->docked, node->pinned, gui.view.docking);
         ImGui::End();
 
         return show;
@@ -101,7 +101,7 @@ namespace ex::gui::test::two {
         ex::gui::begin_docked_window(node->uuid, ptr, gui.view.reset, true);
         node->docked = ex::gui::window_is_docked();
         node->visible = watch_parent_dock_(gui);
-        ImGui::Text("This window: %d | %d | %d", node->docked, node->pinned, gui.view.docking);
+        ImGui::Text("This window 2: %d | %d | %d", node->docked, node->pinned, gui.view.docking);
         ImGui::End();
 
         return show;
@@ -153,7 +153,7 @@ namespace ex::gui::test::tri {
         ex::gui::begin_docked_window(node->uuid, ptr, gui.view.reset, true);
         node->docked = ex::gui::window_is_docked();
         node->visible = watch_parent_dock_(gui);
-        ImGui::Text("This window: %d | %d | %d", node->docked, node->pinned, gui.view.docking);
+        ImGui::Text("This window 3: %d | %d | %d", node->docked, node->pinned, gui.view.docking);
         ImGui::End();
 
         return show;

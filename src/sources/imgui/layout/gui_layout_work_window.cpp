@@ -20,20 +20,76 @@ namespace ex::gui {
     }
 
     struct Box {
+
         GuiNodeWindow window;
         std::uint32_t id;
 
-        ~Box() {
-            std::cout << "~Box: " << window.uuid << std::endl;
+        Box() = default;
 
-            if (window.uuid != nullptr)
+        Box(const GuiNodeWindow &window, const std::uint32_t &id) {
+            this->window = window;
+            this->id     = id;
+        }
+
+        Box(const Box &other) {
+            window = other.window;
+            id     = other.id;
+            if (other.window.uuid != nullptr) {
+                const auto buffer = new char[strlen(other.window.uuid) + 1];
+                strcpy(buffer, other.window.uuid);
+                window.uuid = buffer;
+            }
+        }
+
+        Box(Box &&other) noexcept {
+            window = other.window;
+            id     = other.id;
+
+            other.window.visible = nullptr;
+            other.window.uuid    = nullptr;
+            other.window.name    = nullptr;
+            other.window.node    = nullptr;
+        }
+
+        Box &operator = (const Box &other) {
+            if (this == &other)
+                return *this;
+
+            window = other.window;
+            id     = other.id;
+
+            if (other.window.uuid != nullptr) {
+                const auto buffer = new char[strlen(other.window.uuid) + 1];
+                strcpy(buffer, other.window.uuid);
+                window.uuid = buffer;
+            }
+
+            return *this;
+        }
+
+        Box &operator = (Box &&other) noexcept {
+            if (this == &other)
+                return *this;
+
+            window = other.window;
+            id     = other.id;
+
+            other.window.visible = nullptr;
+            other.window.uuid    = nullptr;
+            other.window.name    = nullptr;
+            other.window.node    = nullptr;
+
+            return *this;
+        }
+
+        ~Box() {
+            if (window.uuid != nullptr) {
                 delete window.uuid;
+            }
         }
     };
 
     void gen_uuid(GuiNodeWindow &window) {
-        std::cout << "gen_uuid: " << window.node->name << std::endl;
-
         const auto s_uuid =
                 std::string(std::string(window.node->name) + "##" + std::to_string(window.node->id_local) + "/" +
                             std::to_string(window.node->id_node));
@@ -50,8 +106,6 @@ namespace ex::gui {
             return {};
         }
 
-        std::cout << "win_from_node: " << node->name << std::endl;
-
         auto win = GuiNodeWindow{ .name = node->name, .node = node };
         gen_uuid(win);
         return win;
@@ -63,14 +117,12 @@ namespace ex::gui {
             return {};
         }
 
-        std::cout << "create_new_box: " << node->name << std::endl;
-
         if (node->state >>= node_state::is_link) {
             const auto source = TreeNode::find_node(state.logic.work_tree, node->id_link);
             const auto tr_src = (source == nullptr) ? node : source;
-            return { .window = win_from_node(tr_src), .id = tr_src->id_local };
+            return { win_from_node(tr_src), tr_src->id_local };
         }
-        return { .window = win_from_node(node), .id = node->id_local };
+        return { win_from_node(node), node->id_local };
     }
 
     void show_work_window() {
