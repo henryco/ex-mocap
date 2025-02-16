@@ -142,11 +142,27 @@ namespace ex::gui {
         if (render_fn == nullptr)
             return false;
 
-        const bool show = render_fn(gui, state, &box.window);
+        GuiNodeWindow &node = box.window;
+        if (node.visible != nullptr && !(*node.visible))
+            return false;
+
+        bool show = true;
+        bool *ptr = (node.pinned || !node.docked || gui.view.docking) ? &show : nullptr;
+
+        ex::gui::next_no_close();
+        ImGui::SetNextWindowDockID(gui.docking.dock_right_id, gui.view.reset ? ImGuiCond_Always : ImGuiCond_Once);
+        ex::gui::begin_docked_window(node.uuid, ptr, gui.view.reset, true);
+        node.docked = ex::gui::window_is_docked();
+        node.visible = watch_parent_dock_(gui);
+
+        const bool rendered = render_fn(gui, state, &box.window);
+
+        ImGui::End();
+
         box.window.pinned |= !box.window.docked;
 
-        // TODO rendering
-
+        if (!rendered)
+            return false;
         return show;
     }
 
