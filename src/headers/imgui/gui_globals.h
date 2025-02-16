@@ -5,8 +5,6 @@
 #ifndef GUI_GLOBALS_H
 #define GUI_GLOBALS_H
 
-#include <map>
-
 #include "../state.h"
 #include "../utils/log_utils.h"
 #include "../utils/data_utils.h"

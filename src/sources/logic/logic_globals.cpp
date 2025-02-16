@@ -17,21 +17,24 @@ namespace ex::logic::globals {
         return log;
     }
 
-    const std::map<id_type, ex::LogicNodeComponent> &node_components() {
+    const data::map<id_type, ex::LogicNodeComponent> &node_components() {
         // TODO REPLACE WITH REAL COMPONENTS
-        static const std::map<id_type, ex::LogicNodeComponent> instance = {
-            // { cmp::CameraNode::get_node_id(), map::camera::mappers },
-            { ex::gui::test::NodeOne::get_node_id(), ex::gui::test::one::data_mappers },
-            { ex::gui::test::NodeTwo::get_node_id(), ex::gui::test::two::data_mappers },
-            { ex::gui::test::NodeTri::get_node_id(), ex::gui::test::tri::data_mappers },
-            { 0, ex::gui::test::one::data_mappers },
-            { 1, ex::gui::test::tri::data_mappers },
-            { 2, ex::gui::test::two::data_mappers },
-            { 3, ex::gui::test::one::data_mappers },
-            { 4, ex::gui::test::tri::data_mappers },
-            { 5, ex::gui::test::two::data_mappers },
-            { 6, ex::gui::test::one::data_mappers },
-        };
+        static bool fist_time = true;
+        static data::map<id_type, ex::LogicNodeComponent> instance;
+
+        if (fist_time) {
+            instance.put(ex::gui::test::NodeOne::get_node_id(), ex::gui::test::one::data_mappers);
+            instance.put(ex::gui::test::NodeTwo::get_node_id(), ex::gui::test::two::data_mappers);
+            instance.put(ex::gui::test::NodeTri::get_node_id(), ex::gui::test::tri::data_mappers);
+            instance.put(0, ex::gui::test::one::data_mappers);
+            instance.put(1, ex::gui::test::tri::data_mappers);
+            instance.put(2, ex::gui::test::two::data_mappers);
+            instance.put(3, ex::gui::test::one::data_mappers);
+            instance.put(4, ex::gui::test::tri::data_mappers);
+            instance.put(5, ex::gui::test::two::data_mappers);
+            instance.put(6, ex::gui::test::one::data_mappers);
+        }
+
         return instance;
     }
 

@@ -5,8 +5,8 @@
 #ifndef LOGIC_GLOBALS_H
 #define LOGIC_GLOBALS_H
 
-#include <map>
 #include "logic_component.h"
+#include "../utils/data_utils.h"
 #include "../utils/log_utils.h"
 #include "../state.h"
 
@@ -19,7 +19,7 @@ namespace ex::logic::globals {
 
     logs::logger &logger();
 
-    const std::map<id_type, ex::LogicNodeComponent> &node_components();
+    const data::map<id_type, ex::LogicNodeComponent> &node_components();
 
 }
 

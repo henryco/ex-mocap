@@ -101,6 +101,14 @@ namespace ex::data {
             abort();
         }
 
+        element_t &at(const key_t &key) {
+            return this->operator[](key);
+        }
+
+        const element_t &at(const key_t &key) const {
+            return this->operator[](key);
+        }
+
         bool contains(const key_t &key) const {
             for (int i = 0; i < entries.size; ++i) {
                 if (entries[i].key == key)
