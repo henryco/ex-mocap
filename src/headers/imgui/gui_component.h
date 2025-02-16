@@ -25,6 +25,7 @@ namespace ex::gui {
         void (*draw_tree_menu)(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected) = nullptr;
         bool (*draw_node_window)(GuiState &gui, ex::State &state, GuiNodeWindow *win)                       = nullptr;
         const char *(*get_node_name)(GuiState &gui, ex::State &state)                                       = nullptr;
+        const uint32_t (*get_dock_id)(GuiState &gui, ex::State &state)                                      = nullptr;
     };
 }
 
