@@ -22,6 +22,13 @@ namespace ex::data {
             free(data);
         }
 
+        template<typename... Args>
+        array(Args ... args) {
+            this->capacity = sizeof...(args);
+            this->data     = static_cast<element_t *>(malloc(capacity * sizeof(element_t)));
+            ((push(args)), ... );
+        }
+
         array(const int capacity) {
             this->capacity = capacity;
             this->data     = static_cast<element_t *>(malloc(capacity * sizeof(element_t)));
@@ -70,8 +77,6 @@ namespace ex::data {
         array<entry<key_t, element_t>> entries;
 
         map() = default;
-
-
 
         map(int capacity): entries(capacity) {}
 

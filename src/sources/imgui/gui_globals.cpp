@@ -30,16 +30,20 @@ namespace ex::gui {
 
     const data::map<std::size_t, gui::GuiNodeComponent> &node_components() {
         // TODO REPLACE WITH REAL COMPONENTS
+        static bool fist_time = true;
         static data::map<std::size_t, gui::GuiNodeComponent> instance(10);
-//        static std::map<std::size_t, ex::gui::GuiNodeComponent> instance = {
-//            { 0, ex::gui::test::one::gui_mappers },
-//            { 1, ex::gui::test::tri::gui_mappers },
-//            { 2, ex::gui::test::two::gui_mappers },
-//            { 3, ex::gui::test::one::gui_mappers },
-//            { 4, ex::gui::test::tri::gui_mappers },
-//            { 5, ex::gui::test::two::gui_mappers },
-//            { 6, ex::gui::test::one::gui_mappers },
-//        };
+
+        if (fist_time) {
+            instance.put(0, ex::gui::test::one::gui_mappers);
+            instance.put(1, ex::gui::test::tri::gui_mappers);
+            instance.put(2, ex::gui::test::two::gui_mappers);
+            instance.put(3, ex::gui::test::one::gui_mappers);
+            instance.put(4, ex::gui::test::tri::gui_mappers);
+            instance.put(5, ex::gui::test::two::gui_mappers);
+            instance.put(6, ex::gui::test::one::gui_mappers);
+            fist_time = false;
+        }
+
         return instance;
     }
 
