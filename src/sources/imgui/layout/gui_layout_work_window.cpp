@@ -125,10 +125,26 @@ namespace ex::gui {
         return { win_from_node(node), node->id_local };
     }
 
-    void show_work_window() {
+    bool draw_window(Box &box) {
         static auto     &node_mappers_ = node_components();
         static State    &state         = ex::logic::globals::state();
         static GuiState &gui           = ex::gui::state();
+
+        const auto render_fn = node_mappers_.at(box.window.node->id_node).draw_node_window;
+        if (render_fn == nullptr)
+            return false;
+
+        const bool show = render_fn(gui, state, &box.window);
+        box.window.pinned |= !box.window.docked;
+
+        // TODO rendering
+
+        return show;
+    }
+
+    void show_work_window() {
+        static auto     &node_mappers_ = node_components();
+        static State    &state         = ex::logic::globals::state();
 
         static ex::data::array<Box> windows_(5);
 
@@ -139,7 +155,7 @@ namespace ex::gui {
         for (int i = 0; i < windows_.size; ++i) {
             Box &box = windows_[i];
 
-            if (active_node != nullptr && box.window.node == active_node) {
+            if (active_node != nullptr && (box.window.node == active_node || box.id == active_node->id_local)) {
                 active_one = &box;
             }
 
@@ -191,7 +207,8 @@ namespace ex::gui {
         if (active_node != nullptr && active_one == nullptr) {
             bool contains = false;
             for (int i = 0; i < windows_.size; ++i) {
-                if (windows_[i].window.node == active_node) {
+                const Box &box = windows_[i];
+                if (box.window.node == active_node || box.id == active_node->id_local) {
                     contains = true;
                     break;
                 }
@@ -205,18 +222,16 @@ namespace ex::gui {
 
         for (int i = 0; i < windows_.size; ++i) {
             Box &box = windows_[i];
-            const auto render_fn = node_mappers_.at(box.window.node->id_node).draw_node_window;
 
-            if (render_fn == nullptr || !(render_fn(gui, state, &box.window))) {
-                if (&box == active_one) {
-                    state.logic.active_node = nullptr;
-                    active_one = nullptr;
-                }
-                windows_.swap_remove(i--);
+            if (draw_window(box))
                 continue;
+
+            if (&box == active_one) {
+                state.logic.active_node = nullptr;
+                active_one              = nullptr;
             }
 
-            box.window.pinned |= !box.window.docked;
+            windows_.swap_remove(i--);
         }
     }
 
