@@ -38,7 +38,7 @@ namespace ex::gui::test::one {
         ImGui::Separator();
     }
 
-    bool draw_node_window(GuiState &gui, ex::State &state, GuiNodeWindow<TreeNode> *node) {
+    bool draw_node_window(GuiState &gui, ex::State &state, GuiNodeWindow *node) {
         if (node->visible != nullptr && !(*node->visible))
             return false;
 
@@ -88,7 +88,7 @@ namespace ex::gui::test::two {
         ImGui::Separator();
     }
 
-    bool draw_node_window(GuiState &gui, ex::State &state, GuiNodeWindow<TreeNode> *node) {
+    bool draw_node_window(GuiState &gui, ex::State &state, GuiNodeWindow *node) {
         if (node->visible != nullptr && !(*node->visible))
             return false;
 
@@ -140,7 +140,7 @@ namespace ex::gui::test::tri {
         ImGui::Separator();
     }
 
-    bool draw_node_window(GuiState &gui, ex::State &state, GuiNodeWindow<TreeNode> *node) {
+    bool draw_node_window(GuiState &gui, ex::State &state, GuiNodeWindow *node) {
         if (node->visible != nullptr && !(*node->visible))
             return false;
 

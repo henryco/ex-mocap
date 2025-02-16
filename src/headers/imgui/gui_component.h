@@ -10,13 +10,11 @@
 
 namespace ex::gui {
 
-    template <typename NODE_>
     struct GuiNodeWindow {
-        std::int64_t id      = -1;
-        const char  *uuid    = nullptr;
-        const char  *name    = nullptr;
-        NODE_       *node    = nullptr;
-        bool        *visible = nullptr;
+        const char *uuid    = nullptr;
+        const char *name    = nullptr;
+        TreeNode   *node    = nullptr;
+        bool       *visible = nullptr;
 
         bool docked = false;
         bool pinned = false;
@@ -25,7 +23,7 @@ namespace ex::gui {
     struct GuiNodeComponent {
         bool (*draw_tree_node)(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected) = nullptr;
         void (*draw_tree_menu)(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected) = nullptr;
-        bool (*draw_node_window)(GuiState &gui, ex::State &state, GuiNodeWindow<TreeNode> *win)             = nullptr;
+        bool (*draw_node_window)(GuiState &gui, ex::State &state, GuiNodeWindow *win)                       = nullptr;
         const char *(*get_node_name)(GuiState &gui, ex::State &state)                                       = nullptr;
     };
 }

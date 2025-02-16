@@ -165,7 +165,7 @@ namespace ex::gui::test {
     namespace one {
         bool draw_tree_node(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
         void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
-        bool draw_node_window(GuiState &gui, ex::State &state, GuiNodeWindow<TreeNode> *window);
+        bool draw_node_window(GuiState &gui, ex::State &state, GuiNodeWindow *window);
         const char *get_node_name(GuiState &gui, ex::State &state);
         static constexpr GuiNodeComponent gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
 
@@ -177,7 +177,7 @@ namespace ex::gui::test {
     namespace two {
         bool draw_tree_node(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
         void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
-        bool draw_node_window(GuiState &gui, ex::State &state, GuiNodeWindow<TreeNode> *window);
+        bool draw_node_window(GuiState &gui, ex::State &state, GuiNodeWindow *window);
         const char *get_node_name(GuiState &gui, ex::State &state);
         static constexpr GuiNodeComponent gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
 
@@ -189,7 +189,7 @@ namespace ex::gui::test {
     namespace tri {
         bool draw_tree_node(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
         void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
-        bool draw_node_window(GuiState &gui, ex::State &state, GuiNodeWindow<TreeNode> *window);
+        bool draw_node_window(GuiState &gui, ex::State &state, GuiNodeWindow *window);
         const char *get_node_name(GuiState &gui, ex::State &state);
         static constexpr GuiNodeComponent gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
 
