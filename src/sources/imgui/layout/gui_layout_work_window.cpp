@@ -19,6 +19,14 @@ namespace ex::gui {
         abort();
     }
 
+    inline bool *watch_parent_dock_(GuiState &gui) {
+        if (ex::gui::window_withing_dock(gui.docking.dock_left_id))
+            return &gui.view.show_left;
+        if (ex::gui::window_withing_dock(gui.docking.dock_right_id))
+            return &gui.view.show_right;
+        return nullptr;
+    }
+
     struct Box {
 
         GuiNodeWindow window;
