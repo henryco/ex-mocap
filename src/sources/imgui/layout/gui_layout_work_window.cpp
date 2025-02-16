@@ -173,7 +173,7 @@ namespace ex::gui {
                 continue;
             }
 
-            if (!box.window.pinned && !box.window.docked && (&box) != active_one) {
+            if (!box.window.pinned && (&box) != active_one) {
                 windows_.swap_remove(i--);
                 continue;
             }
