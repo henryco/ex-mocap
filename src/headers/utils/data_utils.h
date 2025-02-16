@@ -4,6 +4,7 @@
 
 #ifndef DATA_UTILS_H
 #define DATA_UTILS_H
+
 #include <cstdlib>
 
 namespace ex::data {
@@ -20,13 +21,6 @@ namespace ex::data {
             if (data == nullptr)
                 return;
             free(data);
-        }
-
-        template<typename... Args>
-        array(Args ... args) {
-            this->capacity = sizeof...(args);
-            this->data     = static_cast<element_t *>(malloc(capacity * sizeof(element_t)));
-            ((push(args)), ... );
         }
 
         array(const int capacity) {

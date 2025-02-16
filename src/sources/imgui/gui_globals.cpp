@@ -4,6 +4,7 @@
 
 #include "../../headers/imgui/gui_globals.h"
 #include "../../headers/imgui/gui_strings.h"
+
 #include "../../headers/imgui/components/test_cmp.h"
 
 namespace ex::gui {
@@ -31,7 +32,7 @@ namespace ex::gui {
     const data::map<std::size_t, gui::GuiNodeComponent> &node_components() {
         // TODO REPLACE WITH REAL COMPONENTS
         static bool fist_time = true;
-        static data::map<std::size_t, gui::GuiNodeComponent> instance(10);
+        static data::map<std::size_t, gui::GuiNodeComponent> instance;
 
         if (fist_time) {
             instance.put(0, ex::gui::test::one::gui_mappers);
