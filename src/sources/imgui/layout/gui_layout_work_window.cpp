@@ -145,8 +145,10 @@ namespace ex::gui {
 
             if (dirty_state) {
                 box.window.node = TreeNode::find_node(state.logic.work_tree, box.id);
-                if (&box == active_one)
+                if (&box == active_one) {
                     state.logic.active_node = box.window.node;
+                    active_node             = box.window.node;
+                }
                 if (box.window.node != nullptr)
                     gen_uuid(box.window);
             }
@@ -154,7 +156,8 @@ namespace ex::gui {
             if (box.window.node == nullptr) {
                 if (&box == active_one) {
                     state.logic.active_node = nullptr;
-                    active_one = nullptr;
+                    active_node             = nullptr;
+                    active_one              = nullptr;
                 }
                 windows_.swap_remove(i--);
                 continue;
@@ -163,7 +166,8 @@ namespace ex::gui {
             if (box.window.node->state >>= node_state::deleted) {
                 if (&box == active_one) {
                     state.logic.active_node = nullptr;
-                    active_one = nullptr;
+                    active_node             = nullptr;
+                    active_one              = nullptr;
                 }
                 windows_.swap_remove(i--);
                 continue;
@@ -177,14 +181,26 @@ namespace ex::gui {
             if (!node_mappers_.contains(box.window.node->id_node)) {
                 if (&box == active_one) {
                     state.logic.active_node = nullptr;
-                    active_one = nullptr;
+                    active_node             = nullptr;
+                    active_one              = nullptr;
                 }
                 windows_.swap_remove(i--);
             }
         }
 
         if (active_node != nullptr && active_one == nullptr) {
-            windows_.push(create_new_box(state, active_node));
+            bool contains = false;
+            for (int i = 0; i < windows_.size; ++i) {
+                if (windows_[i].window.node == active_node) {
+                    contains = true;
+                    break;
+                }
+            }
+
+            if (!contains) {
+                windows_.push(create_new_box(state, active_node));
+                active_one = &(windows_[windows_.size - 1]);
+            }
         }
 
         for (int i = 0; i < windows_.size; ++i) {
