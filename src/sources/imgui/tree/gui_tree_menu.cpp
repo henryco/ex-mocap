@@ -2,10 +2,10 @@
 // Created by xd on 17/01/25.
 //
 
+#include "../../../headers/imgui/tree/gui_tree_menu.h"
+#include "../../../headers/imgui/actions/gui_actions_registry.h"
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/gui_strings.h"
-#include "../../../headers/imgui/gui_actions.h"
-#include "../../../headers/imgui/tree/gui_tree_menu.h"
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
 #include "../../../headers/logic/logic_globals.h"
 
@@ -18,13 +18,13 @@ namespace ex::gui::tree {
 
     void remove_actions_() {
         const auto &mappings = key_mappings();
-        actions::remove_action(mappings.work_tree.copy.key);
-        actions::remove_action(mappings.work_tree.cut.key);
-        actions::remove_action(mappings.work_tree.deletion.key);
-        actions::remove_action(mappings.work_tree.duplicate.key);
-        actions::remove_action(mappings.work_tree.insert.key);
-        actions::remove_action(mappings.work_tree.paste.key);
-        actions::remove_action(mappings.work_tree.reference.key);
+        actions::registry::remove_action(mappings.work_tree.copy.key);
+        actions::registry::remove_action(mappings.work_tree.cut.key);
+        actions::registry::remove_action(mappings.work_tree.deletion.key);
+        actions::registry::remove_action(mappings.work_tree.duplicate.key);
+        actions::registry::remove_action(mappings.work_tree.insert.key);
+        actions::registry::remove_action(mappings.work_tree.paste.key);
+        actions::registry::remove_action(mappings.work_tree.reference.key);
     }
 
     static void action_delete_node_() {
@@ -115,7 +115,7 @@ namespace ex::gui::tree {
         if (ex::gui::tree::state().buffer == nullptr)
             return;
 
-        actions::set_action(mappings.work_tree.paste.key, action_paste_only_);
+        actions::registry::set_action(mappings.work_tree.paste.key, action_paste_only_);
     }
 
     void process_single_action_(TreeNode *node) {
@@ -123,21 +123,21 @@ namespace ex::gui::tree {
         remove_actions_();
 
         if (node->state >>= node_state::is_link) {
-            actions::set_action(mappings.work_tree.deletion.key, action_delete_node_);
+            actions::registry::set_action(mappings.work_tree.deletion.key, action_delete_node_);
             return;
         }
 
-        actions::set_action(mappings.work_tree.duplicate.key, action_duplicate_node_);
-        actions::set_action(mappings.work_tree.cut.key, action_cut_node_);
-        actions::set_action(mappings.work_tree.copy.key, action_copy_node_);
-        actions::set_action(mappings.work_tree.reference.key, action_ref_node_);
-        actions::set_action(mappings.work_tree.deletion.key, action_delete_node_);
+        actions::registry::set_action(mappings.work_tree.duplicate.key, action_duplicate_node_);
+        actions::registry::set_action(mappings.work_tree.cut.key, action_cut_node_);
+        actions::registry::set_action(mappings.work_tree.copy.key, action_copy_node_);
+        actions::registry::set_action(mappings.work_tree.reference.key, action_ref_node_);
+        actions::registry::set_action(mappings.work_tree.deletion.key, action_delete_node_);
 
         if (ex::gui::tree::state().buffer == nullptr)
             return;
 
-        actions::set_action(mappings.work_tree.paste.key, action_paste_after_node_);
-        actions::set_action(mappings.work_tree.insert.key, action_paste_into_node_);
+        actions::registry::set_action(mappings.work_tree.paste.key, action_paste_after_node_);
+        actions::registry::set_action(mappings.work_tree.insert.key, action_paste_into_node_);
     }
 
     void process_multi_action_() {
@@ -153,10 +153,10 @@ namespace ex::gui::tree {
             head = head->next;
         }
 
-        actions::set_action(mappings.work_tree.deletion.key, action_delete_selected_);
+        actions::registry::set_action(mappings.work_tree.deletion.key, action_delete_selected_);
         if (same_root) {
-            actions::set_action(mappings.work_tree.cut.key, action_cut_selected_);
-            actions::set_action(mappings.work_tree.copy.key, action_copy_selected_);
+            actions::registry::set_action(mappings.work_tree.cut.key, action_cut_selected_);
+            actions::registry::set_action(mappings.work_tree.copy.key, action_copy_selected_);
         }
     }
 

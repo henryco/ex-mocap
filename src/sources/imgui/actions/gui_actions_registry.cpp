@@ -2,11 +2,10 @@
 // Created by xd on 2/14/25.
 //
 
-#include "../../headers/imgui/gui_actions.h"
-#include "../../headers/utils/data_utils.h"
+#include "../../../headers/imgui/actions/gui_actions_registry.h"
+#include "../../../headers/utils/data_utils.h"
 
-
-namespace ex::gui::actions {
+namespace ex::gui::actions::registry {
 
     data::array<action> &registry_() {
         static data::array<action> array(20);

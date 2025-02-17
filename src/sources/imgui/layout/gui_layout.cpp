@@ -3,7 +3,7 @@
 //
 
 #include "../../../headers/imgui/layout/gui_layout.h"
-#include "../../../headers/imgui/gui_actions.h"
+#include "../../../headers/imgui/actions/gui_actions_registry.h"
 #include "../../../headers/imgui/gui_globals.h"
 
 namespace ex::gui {
@@ -36,7 +36,7 @@ namespace ex::gui {
 
     void process_shortcuts_() {
         static int size     = 0;
-        const auto registry = actions::list_actions(&size);
+        const auto registry = actions::registry::list_actions(&size);
 
         for (int i = 0; i < size; i++) {
             if (ImGui::Shortcut(registry[i].key)) {

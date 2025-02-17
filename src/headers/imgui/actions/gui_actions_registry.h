@@ -5,7 +5,7 @@
 #ifndef GUI_ACTIONS_H
 #define GUI_ACTIONS_H
 
-namespace ex::gui::actions {
+namespace ex::gui::actions::registry {
 
     using action_fn_t  = void (*)();
     using action_key_t = int;

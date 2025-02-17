@@ -2,12 +2,12 @@
 // Created by xd on 02/12/24.
 //
 
-#include "../../../headers/utils/gui_utils.h"
-#include "../../../headers/imgui/gui_strings.h"
-#include "../../../headers/imgui/gui_actions.h"
+#include "../../../headers/imgui/actions/gui_actions_registry.h"
 #include "../../../headers/imgui/gui_globals.h"
+#include "../../../headers/imgui/gui_strings.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/logic/logic_globals.h"
+#include "../../../headers/utils/gui_utils.h"
 
 #include <IconsLucide.h>
 #include <simpfp.h>
@@ -98,13 +98,13 @@ namespace ex::gui {
 
     inline void register_actions_() {
         static const auto &[file, history, work_tree] = key_mappings();
-        ex::gui::actions::set_action(file.create.key, &new_action);
-        ex::gui::actions::set_action(file.open.key, &open_action);
-        ex::gui::actions::set_action(file.save.key, &save_action);
-        ex::gui::actions::set_action(file.save_as.key, &save_as_action);
-        ex::gui::actions::set_action(history.undo.key, &undo_action_);
-        ex::gui::actions::set_action(history.redo.key, &redo_action_);
-        ex::gui::actions::set_action(file.exit.key, &exit_action_);
+        actions::registry::set_action(file.create.key, &new_action);
+        actions::registry::set_action(file.open.key, &open_action);
+        actions::registry::set_action(file.save.key, &save_action);
+        actions::registry::set_action(file.save_as.key, &save_as_action);
+        actions::registry::set_action(history.undo.key, &undo_action_);
+        actions::registry::set_action(history.redo.key, &redo_action_);
+        actions::registry::set_action(file.exit.key, &exit_action_);
     }
 
     void end_pin_button_(GuiState &gui) {
@@ -214,22 +214,22 @@ namespace ex::gui {
 
                 ImGui::Separator();
 
-                const auto &cut_action = actions::get_action(work_tree.cut.key);
+                const auto &cut_action = actions::registry::get_action(work_tree.cut.key);
                 if (ImGui::MenuItem(strings::menu_top_edit_cut, work_tree.cut.label, false, cut_action != nullptr)) {
                     cut_action();
                 }
 
-                const auto &copy_action = actions::get_action(work_tree.copy.key);
+                const auto &copy_action = actions::registry::get_action(work_tree.copy.key);
                 if (ImGui::MenuItem(strings::menu_top_edit_copy, work_tree.copy.label, false, copy_action != nullptr)) {
                     copy_action();
                 }
 
-                const auto &paste_action = actions::get_action(work_tree.paste.key);
+                const auto &paste_action = actions::registry::get_action(work_tree.paste.key);
                 if (ImGui::MenuItem(strings::menu_top_edit_paste, work_tree.paste.label, false, paste_action != nullptr)) {
                     paste_action();
                 }
 
-                const auto &insert_action = actions::get_action(work_tree.insert.key);
+                const auto &insert_action = actions::registry::get_action(work_tree.insert.key);
                 if (ImGui::MenuItem(strings::menu_top_edit_insert, work_tree.insert.label, false, insert_action != nullptr)) {
                     insert_action();
                 }

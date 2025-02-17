@@ -5,7 +5,7 @@
 #ifndef GUI_KEYMAP_H
 #define GUI_KEYMAP_H
 
-#include "imgui.h"
+#include "../../../../external/imgui/imgui.h"
 
 namespace ex::gui::keys {
 
