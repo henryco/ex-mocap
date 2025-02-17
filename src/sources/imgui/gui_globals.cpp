@@ -24,8 +24,8 @@ namespace ex::gui {
         return undo_history;
     }
 
-    keys::KeyMapping &key_mappings() {
-        static keys::KeyMapping instance;
+    actions::keys::Mappings &key_mappings() {
+        static actions::keys::Mappings instance;
         return instance;
     }
 

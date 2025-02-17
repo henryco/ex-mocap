@@ -3,6 +3,7 @@
 //
 
 #include "../../../headers/imgui/actions/gui_actions_registry.h"
+#include "../../../headers/imgui/actions/gui_actions.h"
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/gui_strings.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
@@ -13,99 +14,6 @@
 #include <simpfp.h>
 
 namespace ex::gui {
-
-    namespace dialogs_ {
-        static bool show_new_dialog  = false;
-        static bool show_open_dialog = false;
-        static bool show_exit_dialog = false;
-    }
-
-    static void new_anyway_action() {
-        // TODO
-    }
-
-    static void open_anyway_action() {
-        ex::gui::state().file_dialogs.project_open = true;
-    }
-
-    static void exit_anyway_action() {
-        ex::gui::state().window.exit = true;
-    }
-
-    static void new_action() {
-        if (ex::logic::globals::state().project.has_changes)
-            dialogs_::show_new_dialog = true;
-        else
-            new_anyway_action();
-    }
-
-    static void open_action() {
-        if (ex::logic::globals::state().project.has_changes)
-            dialogs_::show_open_dialog = true;
-        else
-            open_anyway_action();
-    }
-
-    static void save_action() {
-        State &state = ex::logic::globals::state();
-        GuiState &gui = ex::gui::state();
-
-        if (!state.project.has_changes)
-            return;
-
-        if (state.project.project_path == nullptr) {
-            gui.file_dialogs.project_save = true;
-            return;
-        }
-
-        const std::filesystem::path path = state.project.project_path;
-        if (std::filesystem::exists(path) && std::filesystem::is_regular_file(path)) {
-            state.project.should_save = true;
-            return;
-        }
-
-        gui.file_dialogs.project_save = true;
-    }
-
-    static void save_as_action() {
-        const State &state = ex::logic::globals::state();
-        GuiState &gui = ex::gui::state();
-        if (state.project.has_changes)
-            gui.file_dialogs.project_save = true;
-    }
-
-    static void undo_action_() {
-        if (!undo_history().can_undo())
-            return;
-        undo_history().undo();
-        undo_history().apply(&ex::logic::globals::state());
-    }
-
-    static void redo_action_() {
-        if (!undo_history().can_redo())
-            return;
-        undo_history().redo();
-        undo_history().apply(&ex::logic::globals::state());
-    }
-
-    static void about_action() {
-        // TODO
-    }
-
-    static void exit_action_() {
-        dialogs_::show_exit_dialog = true;
-    }
-
-    inline void register_actions_() {
-        static const auto &[file, history, work_tree] = key_mappings();
-        actions::registry::set_action(file.create.key, &new_action);
-        actions::registry::set_action(file.open.key, &open_action);
-        actions::registry::set_action(file.save.key, &save_action);
-        actions::registry::set_action(file.save_as.key, &save_as_action);
-        actions::registry::set_action(history.undo.key, &undo_action_);
-        actions::registry::set_action(history.redo.key, &redo_action_);
-        actions::registry::set_action(file.exit.key, &exit_action_);
-    }
 
     void end_pin_button_(GuiState &gui) {
         const auto icon = gui.view.docking ? ICON_LC_PIN_OFF : ICON_LC_PIN;
@@ -119,53 +27,9 @@ namespace ex::gui {
         ex::gui::plain_tooltip(strings::menu_top_view_unpin);
     }
 
-    void process_dialogs_() {
-        if (dialogs_::show_new_dialog) {
-            ImGui::OpenPopup(strings::gui_dialogs_project_new_alert);
-            dialogs_::show_new_dialog = false;
-        }
-
-        if (dialogs_::show_open_dialog) {
-            ImGui::OpenPopup(strings::gui_dialogs_project_open_alert);
-            dialogs_::show_open_dialog = false;
-        }
-
-        if (dialogs_::show_exit_dialog) {
-            ImGui::OpenPopup(strings::gui_dialogs_project_exit_alert);
-            dialogs_::show_exit_dialog = false;
-        }
-
-        if (show_yes_no_dialog_(strings::gui_dialogs_project_open_alert,
-            strings::gui_dialogs_project_open_alert_msg,
-            strings::gui_dialogs_project_open_alert_yes,
-            strings::gui_dialogs_project_open_alert_no)) {
-            open_anyway_action();
-            return;
-        }
-
-        if (show_yes_no_dialog_(strings::gui_dialogs_project_new_alert,
-            strings::gui_dialogs_project_new_alert_msg,
-            strings::gui_dialogs_project_new_alert_yes,
-            strings::gui_dialogs_project_new_alert_no)) {
-            new_anyway_action();
-            return;
-        }
-
-        if (show_yes_no_dialog_(strings::gui_dialogs_project_exit_alert,
-            strings::gui_dialogs_project_exit_alert_msg,
-            strings::gui_dialogs_project_exit_alert_yes,
-            strings::gui_dialogs_project_exit_alert_no)) {
-            exit_anyway_action();
-            return;
-        }
-    }
-
     void show_menu_top_bar() {
         const State &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
-
-        process_dialogs_();
-        register_actions_();
 
         if (!gui.view.show_menu)
             return;
@@ -176,28 +40,29 @@ namespace ex::gui {
             const auto &[file, history, work_tree] = key_mappings();
 
             if (ImGui::BeginMenu(strings::menu_top_file)) {
+
                 if (ImGui::MenuItem(strings::menu_top_file_new, file.create.label)) {
-                    new_action();
+                    actions::new_action();
                 }
 
                 ImGui::Separator();
 
                 if (ImGui::MenuItem(strings::menu_top_file_open, file.open.label)) {
-                    open_action();
+                    actions::open_action();
                 }
 
                 if (ImGui::MenuItem(strings::menu_top_file_save, file.save.label, false, state.project.has_changes)) {
-                    save_action();
+                    actions::save_action();
                 }
 
                 if (ImGui::MenuItem(strings::menu_top_file_save_as, file.save_as.label, false, state.project.has_changes)) {
-                    save_as_action();
+                    actions::save_as_action();
                 }
 
                 ImGui::Separator();
 
                 if (ImGui::MenuItem(strings::menu_top_file_exit, file.exit.label)) {
-                    exit_action_();
+                    actions::exit_action();
                 }
 
                 ImGui::EndMenu();
@@ -206,10 +71,11 @@ namespace ex::gui {
             if (ImGui::BeginMenu(strings::menu_top_edit)) {
 
                 if (ImGui::MenuItem(strings::menu_top_edit_undo, history.undo.label, false, undo_history().can_undo())) {
-                    undo_action_();
+                    actions::undo_action();
                 }
+
                 if (ImGui::MenuItem(strings::menu_top_edit_redo, history.redo.label, false, undo_history().can_redo())) {
-                    redo_action_();
+                    actions::redo_action();
                 }
 
                 ImGui::Separator();
@@ -238,10 +104,12 @@ namespace ex::gui {
             }
 
             if (ImGui::BeginMenu(strings::menu_top_view)) {
+
                 if (ImGui::MenuItem(strings::menu_top_view_unpin, nullptr, &gui.view.docking)) {
                     gui.window.resized = true;
                     logger()->debug("unpin windows: {}", gui.view.docking);
                 }
+
                 ImGui::Separator();
 
                 if (ImGui::MenuItem(strings::menu_top_view_sidebar_left, nullptr, &gui.view.show_left)) {
@@ -267,13 +135,16 @@ namespace ex::gui {
                     gui.window.reset        = true;
                     gui.window.resized      = true;
                 }
+
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu(strings::menu_top_help)) {
+
                 if (ImGui::MenuItem(strings::menu_top_help_about)) {
-                    about_action();
+                    actions::about_action();
                 }
+
                 ImGui::EndMenu();
             }
 

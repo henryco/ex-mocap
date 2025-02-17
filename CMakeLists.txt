@@ -138,6 +138,7 @@ set(HEADER_FILES
         src/headers/imgui/gui_strings.h
         src/headers/imgui/actions/gui_actions_registry.h
         src/headers/imgui/actions/gui_actions_keymap.h
+        src/headers/imgui/actions/gui_actions.h
         src/headers/utils/data_utils.h
 )
 
@@ -179,6 +180,7 @@ set(SOURCE_FILES
         src/sources/imgui/tree/gui_tree_state.cpp
         src/sources/imgui/layout/gui_layout_file_dialogs.cpp
         src/sources/imgui/actions/gui_actions_registry.cpp
+        src/sources/imgui/actions/gui_actions.cpp
 )
 
 # =================== OpenCL kernels generation =====================

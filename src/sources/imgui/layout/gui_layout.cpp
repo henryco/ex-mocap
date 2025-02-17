@@ -2,8 +2,9 @@
 // Created by xd on 24/11/24.
 //
 
-#include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/imgui/actions/gui_actions_registry.h"
+#include "../../../headers/imgui/actions/gui_actions.h"
+#include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/imgui/gui_globals.h"
 
 namespace ex::gui {
@@ -32,6 +33,17 @@ namespace ex::gui {
         if (gui.view.reset) {
             gui.view.reset = false;
         }
+    }
+
+    void register_default_shortcuts_() {
+        static const auto &[file, history, work_tree] = key_mappings();
+        actions::registry::set_action(file.create.key, &actions::new_action);
+        actions::registry::set_action(file.open.key, &actions::open_action);
+        actions::registry::set_action(file.save.key, &actions::save_action);
+        actions::registry::set_action(file.save_as.key, &actions::save_as_action);
+        actions::registry::set_action(history.undo.key, &actions::undo_action);
+        actions::registry::set_action(history.redo.key, &actions::redo_action);
+        actions::registry::set_action(file.exit.key, &actions::exit_action);
     }
 
     void process_shortcuts_() {
@@ -66,6 +78,8 @@ namespace ex::gui {
 
             gui.view.main_free_x = ImGui::GetContentRegionAvail().x;
             gui.view.main_free_y = ImGui::GetContentRegionAvail().y;
+
+            register_default_shortcuts_();
 
             show_file_dialogs();
             show_menu_top_bar();

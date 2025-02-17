@@ -19,7 +19,7 @@ namespace ex::gui {
 
     logs::logger &logger();
 
-    keys::KeyMapping &key_mappings();
+    actions::keys::Mappings &key_mappings();
 
     limbo::undo::history<ex::State> &undo_history();
 

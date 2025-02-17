@@ -2,19 +2,19 @@
 // Created by xd on 28/01/25.
 //
 
-#ifndef GUI_KEYMAP_H
-#define GUI_KEYMAP_H
+#ifndef GUI_ACTIONS_KEYMAP_H
+#define GUI_ACTIONS_KEYMAP_H
 
 #include "../../../../external/imgui/imgui.h"
 
-namespace ex::gui::keys {
+namespace ex::gui::actions::keys {
 
     struct Op {
         const char *label = nullptr;
         int         key   = 0;
     };
 
-    struct KeyMapping {
+    struct Mappings {
         struct {
             Op create  = { "C-n", ImGuiMod_Ctrl | ImGuiKey_N };
             Op open    = { "C-o", ImGuiMod_Ctrl | ImGuiKey_O };
@@ -41,4 +41,4 @@ namespace ex::gui::keys {
 
 }
 
-#endif //GUI_KEYMAP_H
+#endif //GUI_ACTIONS_KEYMAP_H

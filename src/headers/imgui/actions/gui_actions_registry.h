@@ -2,8 +2,8 @@
 // Created by xd on 2/14/25.
 //
 
-#ifndef GUI_ACTIONS_H
-#define GUI_ACTIONS_H
+#ifndef GUI_ACTIONS_REGISTRY_H
+#define GUI_ACTIONS_REGISTRY_H
 
 namespace ex::gui::actions::registry {
 
@@ -25,4 +25,4 @@ namespace ex::gui::actions::registry {
 
 }
 
-#endif //GUI_ACTIONS_H
+#endif //GUI_ACTIONS_REGISTRY_H

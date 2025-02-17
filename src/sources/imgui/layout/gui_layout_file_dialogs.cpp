@@ -2,6 +2,7 @@
 // Created by xd on 2/14/25.
 //
 
+#include "../../../headers/imgui/actions/gui_actions.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/imgui/gui_strings.h"
 #include "../../../headers/imgui/gui_globals.h"
@@ -92,6 +93,7 @@ namespace ex::gui {
         State    &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
 
+        actions::show_action_dialogs();
         show_open_file_picker_(&gui.file_dialogs.project_open, state);
         show_save_file_picker_(&gui.file_dialogs.project_save, state);
     }
