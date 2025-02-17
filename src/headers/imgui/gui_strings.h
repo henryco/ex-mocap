@@ -96,24 +96,24 @@ namespace ex::gui::strings {
     constexpr auto gui_dialogs_project_save           = "Save a file";
     constexpr auto gui_dialogs_project_save_accept    = "Save";
     constexpr auto gui_dialogs_project_save_alert     = "Are you sure?";
-    constexpr auto gui_dialogs_project_save_alert_msg = "This action will overwrite selected files";
+    constexpr auto gui_dialogs_project_save_alert_msg = "This action will overwrite selected files.";
     constexpr auto gui_dialogs_project_save_alert_yes = "Accept";
     constexpr auto gui_dialogs_project_save_alert_no  = "Cancel";
 
     constexpr auto gui_dialogs_project_open           = "Open a file";
     constexpr auto gui_dialogs_project_open_accept    = "Open";
     constexpr auto gui_dialogs_project_open_alert     = "Open another project?";
-    constexpr auto gui_dialogs_project_open_alert_msg = "Are you sure? Unsaved progress will be lost";
+    constexpr auto gui_dialogs_project_open_alert_msg = "Are you sure? Unsaved progress will be lost.";
     constexpr auto gui_dialogs_project_open_alert_yes = "Proceed";
     constexpr auto gui_dialogs_project_open_alert_no  = "Cancel";
 
     constexpr auto gui_dialogs_project_new_alert     = "Create new project?";
-    constexpr auto gui_dialogs_project_new_alert_msg = "Are you sure? Unsaved progress will be lost";
+    constexpr auto gui_dialogs_project_new_alert_msg = "Are you sure? Unsaved progress will be lost.";
     constexpr auto gui_dialogs_project_new_alert_yes = "Proceed";
     constexpr auto gui_dialogs_project_new_alert_no  = "Cancel";
 
     constexpr auto gui_dialogs_project_exit_alert     = "Confirm exit";
-    constexpr auto gui_dialogs_project_exit_alert_msg = "Changes which are not saved will be lost";
+    constexpr auto gui_dialogs_project_exit_alert_msg = "Changes which are not saved will be lost.";
     constexpr auto gui_dialogs_project_exit_alert_yes = "Exit";
     constexpr auto gui_dialogs_project_exit_alert_no  = "Cancel";
 

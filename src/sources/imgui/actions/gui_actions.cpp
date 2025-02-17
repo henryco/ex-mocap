@@ -30,10 +30,7 @@ namespace ex::gui::actions {
     }
 
     void new_action() {
-        if (ex::logic::globals::state().project.has_changes)
-            dialogs_::show_new_dialog = true;
-        else
-            new_anyway_action();
+        dialogs_::show_new_dialog = true;
     }
 
     void open_action() {
