@@ -87,7 +87,7 @@ namespace ex {
 
     struct gl_state {
         GLFWwindow *window     = nullptr;
-        int16_t     target_fps = -1;
+        int32_t     target_fps = -1;
         bool        sharing    = false;
     };
 
