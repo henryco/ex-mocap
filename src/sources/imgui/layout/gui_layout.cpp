@@ -22,7 +22,7 @@ namespace ex::gui {
     void check_for_window_closed_(State &state) {
         if (!glfwWindowShouldClose(state.gl.window))
             return;
-        glfwSetWindowShouldClose(state.gl.window, GL_FALSE);
+        glfwSetWindowShouldClose(state.gl.window, GLFW_FALSE);
         actions::exit_action();
     }
 
