@@ -101,6 +101,10 @@ namespace ex::main {
         synchronize_(state);
         state.project.has_changes = false;
 
+        const auto str_pre  = std::string("ExMoCap - ");
+        const auto str_post = std::string(state.project.project_path);
+        state.project.title = (new std::string(str_pre + str_post))->c_str();
+
         log->info("deserialization complete: {}", state.project.project_path);
     }
 

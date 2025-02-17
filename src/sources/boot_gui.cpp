@@ -90,6 +90,15 @@ namespace ex::boot {
         state.gl.target_fps = static_cast<int>(1000000000.0 / fps);
     }
 
+    void update_title(const State &state) {
+        static const char *prev_title = state.project.title;
+
+        if (prev_title != state.project.title) {
+            prev_title = state.project.title;
+            glfwSetWindowTitle(state.gl.window, state.project.title);
+        }
+    }
+
     inline void update_gui(const ex::gui::GUI &gui, State &state, GLFWwindow *window) {
         if (state.gl.target_fps > 0) {
             static auto t0 = std::chrono::high_resolution_clock::now();
@@ -134,6 +143,7 @@ namespace ex::boot {
 
             logic.run(state);
             update_gui(gui, state, window);
+            update_title(state);
         }
 
         if (state.cl.context != nullptr)

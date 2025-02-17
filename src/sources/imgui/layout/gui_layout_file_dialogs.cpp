@@ -7,7 +7,6 @@
 #include "../../../headers/imgui/gui_strings.h"
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/logic/logic_globals.h"
-#include "../../../headers/utils/gl_utils.h"
 
 #include <simpfp.h>
 
@@ -70,15 +69,11 @@ namespace ex::gui {
             if (static char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
                 const auto path = std::filesystem::path(file);
                 if (std::filesystem::exists(path) && std::filesystem::is_regular_file(path)) {
-                    // TODO: ASK DIALOG
 
                     undo_history().reset();
-                    state.project.title        = (new std::string("ExMoCap - " + path.filename().string()))->c_str();
                     state.project.project_path = file;
                     state.project.should_open  = true;
                     *open                      = false;
-
-                    ex::gl::set_window_title(state.gl.window, state.project.title);
 
                     simpfp::CloseFileDialog();
                 } else {
