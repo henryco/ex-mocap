@@ -107,6 +107,8 @@ namespace ex::gui::strings {
     constexpr auto gui_dialogs_project_open_alert_yes = "Proceed";
     constexpr auto gui_dialogs_project_open_alert_no  = "Cancel";
 
+    constexpr auto gui_dialogs_project_new           = "Create new project";
+    constexpr auto gui_dialogs_project_new_accept    = "Create";
     constexpr auto gui_dialogs_project_new_alert     = "Create new project?";
     constexpr auto gui_dialogs_project_new_alert_msg = "Are you sure? Unsaved progress will be lost.";
     constexpr auto gui_dialogs_project_new_alert_yes = "Proceed";

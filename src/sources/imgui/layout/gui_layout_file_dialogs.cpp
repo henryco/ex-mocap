@@ -84,6 +84,45 @@ namespace ex::gui {
         }
     }
 
+    void show_new_file_picker_(bool *open, ex::State &state) {
+        if (open == nullptr || !*open)
+            return;
+
+        constexpr auto min_size  = ImVec2(900, 500);
+        static constexpr simpfp::Labels labels {
+            .main_accept = strings::gui_dialogs_project_new_accept
+        };
+
+        if (!simpfp::FileDialogOpen())
+            simpfp::OpenFileDialog(strings::gui_dialogs_project_new, state.project.project_path, nullptr, &labels);
+
+        static char file[256];
+        if (simpfp::ShowFileDialog(strings::gui_dialogs_project_new, open, min_size, true)) {
+            if (simpfp::FileAccepted(file, sizeof(file))) {
+                const std::filesystem::path new_path(file);
+                if (std::filesystem::exists(new_path) && std::filesystem::is_regular_file(new_path)) {
+                    ImGui::OpenPopup(strings::gui_dialogs_project_save_alert);
+                } else {
+                    state.project.project_path  = file;
+                    state.project.should_create = true;
+                    *open                       = false;
+                    simpfp::CloseFileDialog();
+                }
+            }
+
+            if (show_yes_no_dialog_(
+                        strings::gui_dialogs_project_save_alert, strings::gui_dialogs_project_save_alert_msg,
+                        strings::gui_dialogs_project_save_alert_yes, strings::gui_dialogs_project_save_alert_no)) {
+                state.project.project_path  = file;
+                state.project.should_create = true;
+                *open                       = false;
+                simpfp::CloseFileDialog();
+            }
+
+            simpfp::EndFileDialog();
+        }
+    }
+
     void show_file_dialogs() {
         State    &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
@@ -91,6 +130,7 @@ namespace ex::gui {
         actions::show_action_dialogs();
         show_open_file_picker_(&gui.file_dialogs.project_open, state);
         show_save_file_picker_(&gui.file_dialogs.project_save, state);
+        show_new_file_picker_(&gui.file_dialogs.project_new, state);
     }
 
 }

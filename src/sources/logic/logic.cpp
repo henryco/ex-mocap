@@ -55,6 +55,13 @@ namespace ex::main {
         if (state.logic.work_tree == nullptr)
             throw std::runtime_error("Logic::run: work tree is null");
 
+        if (state.project.should_create) {
+            state.project.should_create = false;
+            std::cout << "should create: " << state.project.project_path << std::endl;
+            // TODO
+            return;
+        }
+
         if (state.project.should_open) {
             state.project.should_open = false;
             deserialize_(state);

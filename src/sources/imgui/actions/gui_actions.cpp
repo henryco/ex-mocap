@@ -18,7 +18,7 @@ namespace ex::gui::actions {
     }
 
     void new_anyway_action() {
-        // TODO
+        ex::gui::state().file_dialogs.project_new = true;
     }
 
     void open_anyway_action() {
