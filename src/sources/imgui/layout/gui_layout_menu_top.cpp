@@ -2,6 +2,7 @@
 // Created by xd on 02/12/24.
 //
 
+#include "../../../headers/utils/gui_utils.h"
 #include "../../../headers/imgui/gui_strings.h"
 #include "../../../headers/imgui/gui_actions.h"
 #include "../../../headers/imgui/gui_globals.h"
@@ -18,7 +19,12 @@ namespace ex::gui {
     }
 
     static void open_action() {
+        const State &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
+        if (state.project.has_changes) {
+            ImGui::OpenPopup("Open project");
+            return;
+        }
         gui.file_dialogs.project_open = true;
     }
 
@@ -86,10 +92,15 @@ namespace ex::gui {
     }
 
     void show_menu_top_bar() {
-        register_actions_();
-
         const State &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
+
+        if (show_yes_no_dialog_("Open project", "Are you sure? Unsaved progress will be lost", "Continue", "Cancel")) {
+            gui.file_dialogs.project_open = true;
+        }
+
+        register_actions_();
+
         if (!gui.view.show_menu)
             return;
 
