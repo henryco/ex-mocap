@@ -25,7 +25,8 @@ namespace ex::gui {
 
             ImGui::Spacing();
             ImGui::Spacing();
-            ImGui::Text("%s", msg);
+            ImGui::Text(" %s", msg);
+            ImGui::Spacing();
             ImGui::Spacing();
             ImGui::Spacing();
 
@@ -71,18 +72,21 @@ namespace ex::gui {
                 const std::filesystem::path save_path(file);
 
                 if (std::filesystem::exists(save_path) && std::filesystem::is_regular_file(save_path)) {
-                    ImGui::OpenPopup("Are you sure?");
+                    ImGui::OpenPopup(strings::gui_dialogs_project_save_alert);
                 } else {
                     state.project.project_path = file;
                     state.project.should_save  = true;
                     *open                      = false;
-
                     simpfp::CloseFileDialog();
                 }
             }
 
-            if (show_yes_no_dialog_("Are you sure?", "This action will overwrite selected files", "Accept", "Cancel")) {
-                // TODO
+            if (show_yes_no_dialog_(
+                        strings::gui_dialogs_project_save_alert, strings::gui_dialogs_project_save_alert_msg,
+                        strings::gui_dialogs_project_save_alert_yes, strings::gui_dialogs_project_save_alert_no)) {
+                state.project.project_path = file;
+                state.project.should_save  = true;
+                *open                      = false;
                 simpfp::CloseFileDialog();
             }
 

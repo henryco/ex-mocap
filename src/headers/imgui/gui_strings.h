@@ -93,8 +93,12 @@ namespace ex::gui::strings {
     constexpr auto gui_tree_ops_history_select_disabled = "Disable selection";
     constexpr auto gui_tree_ops_history_select_deleted  = "Delete selection";
 
-    constexpr auto gui_dialogs_project_save        = "Save a file";
-    constexpr auto gui_dialogs_project_save_accept = "Save";
+    constexpr auto gui_dialogs_project_save           = "Save a file";
+    constexpr auto gui_dialogs_project_save_accept    = "Save";
+    constexpr auto gui_dialogs_project_save_alert     = "Are you sure?";
+    constexpr auto gui_dialogs_project_save_alert_msg = "This action will overwrite selected files";
+    constexpr auto gui_dialogs_project_save_alert_yes = "Accept";
+    constexpr auto gui_dialogs_project_save_alert_no  = "Cancel";
 
     constexpr auto gui_dialogs_project_open        = "Open a file";
     constexpr auto gui_dialogs_project_open_accept = "Open";
