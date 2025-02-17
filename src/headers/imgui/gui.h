@@ -28,6 +28,8 @@ namespace ex::gui {
         void build(ex::State &state) const;
 
         void draw(float delta) const;
+
+        bool should_close() const;
     };
 } // namespace ex::gui
 

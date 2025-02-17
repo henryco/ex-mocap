@@ -230,6 +230,12 @@ namespace ex::gui {
         ImGui::SetNextWindowSize(ImVec2(title_size, 0));
         if (ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
 
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsKeyDown(ImGuiKey_Escape)) {
+                ImGui::CloseCurrentPopup();
+                ImGui::EndPopup();
+                return false;
+            }
+
             ImGui::Spacing();
             ImGui::Spacing();
             ImGui::Text(" %s", msg);

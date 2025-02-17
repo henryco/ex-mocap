@@ -2,8 +2,8 @@
 // Created by henryco on 22/11/24.
 //
 
-#include "../../headers/imgui/gui.h"
 #include "../../headers/imgui/layout/gui_layout.h"
+#include "../../headers/imgui/gui.h"
 
 #include <IconsLucide.h>
 #include <IconsLucide.h_lucide.ttf.h>
@@ -14,19 +14,20 @@
 
 namespace ex::gui {
 
+    namespace internal_ {
+        static bool should_exit = false;
+    }
+
     inline void init_font_icons(ImGuiIO &io) {
         GUI::log->info("initializing font icons");
 
         constexpr float base_font_size   = 13.f;
         constexpr float icon_font_size   = 16.f;
-        constexpr float font_multiply    = .7f;
         constexpr int   over_sample_size = 5;
 
         ImFontConfig default_config;
         default_config.FontDataOwnedByAtlas = true;
-//        default_config.RasterizerDensity    = 1.25f;
         default_config.PixelSnapH           = true;
-//        default_config.RasterizerMultiply   = font_multiply;
         default_config.SizePixels           = base_font_size;
         default_config.OversampleH          = over_sample_size;
         default_config.OversampleV          = over_sample_size;
@@ -67,8 +68,9 @@ namespace ex::gui {
         ImGui::SetNextWindowPos(ImVec2(0, 0));
         ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
 
+        internal_::should_exit = false;
         if (ex::gui::layout::build(state)) {
-            glfwSetWindowShouldClose(window, GL_TRUE);
+            internal_::should_exit = true;
         }
 
         ImGui::Render();
@@ -76,6 +78,10 @@ namespace ex::gui {
 
     void GUI::draw(const float) const {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    }
+
+    bool GUI::should_close() const {
+        return internal_::should_exit;
     }
 
     GUI::GUI(GLFWwindow *window) {

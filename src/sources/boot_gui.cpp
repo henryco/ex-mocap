@@ -5,9 +5,9 @@
 #include "../headers/boot.h"
 #include "../headers/imgui/gui.h"
 #include "../headers/logic/logic.h"
-#include "../headers/cl/cl_gl_interop.h"
-#include "../headers/utils/gl_utils.h"
 #include "../headers/logic/logic_globals.h"
+#include "../headers/utils/gl_utils.h"
+#include "../headers/cl/cl_gl_interop.h"
 
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -127,7 +127,7 @@ namespace ex::boot {
         log->info("Initialization complete");
 
         while (true) {
-            if (glfwWindowShouldClose(window))
+            if (gui.should_close())
                 break;
 
             glfwPollEvents();

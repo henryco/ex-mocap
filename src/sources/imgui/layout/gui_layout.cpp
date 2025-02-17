@@ -2,9 +2,9 @@
 // Created by xd on 24/11/24.
 //
 
-#include "../../../headers/imgui/actions/gui_actions_registry.h"
-#include "../../../headers/imgui/actions/gui_actions.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
+#include "../../../headers/imgui/actions/gui_actions.h"
+#include "../../../headers/imgui/actions/gui_actions_registry.h"
 #include "../../../headers/imgui/gui_globals.h"
 
 namespace ex::gui {
@@ -17,6 +17,13 @@ namespace ex::gui {
             return true;
         }
         return false;
+    }
+
+    void check_for_window_closed_(State &state) {
+        if (!glfwWindowShouldClose(state.gl.window))
+            return;
+        glfwSetWindowShouldClose(state.gl.window, GL_FALSE);
+        actions::exit_action();
     }
 
     void check_for_reset_(GuiState &gui) {
@@ -59,7 +66,7 @@ namespace ex::gui {
         }
     }
 
-    bool layout::build(ex::State &) {
+    bool layout::build(ex::State &state) {
         GuiState &gui = ex::gui::state();
         gui.re_size = {};
 
@@ -74,6 +81,7 @@ namespace ex::gui {
         {
             gui.window.resized = is_window_resized_();
 
+            check_for_window_closed_(state);
             check_for_reset_(gui);
 
             gui.view.main_free_x = ImGui::GetContentRegionAvail().x;
