@@ -55,18 +55,20 @@ namespace ex::main {
         if (state.logic.work_tree == nullptr)
             throw std::runtime_error("Logic::run: work tree is null");
 
-        if (state.project.should_save) {
-            state.project.should_save = false;
-            serialize_(state);
-        }
-
         if (state.project.should_open) {
             state.project.should_open = false;
             deserialize_(state);
+            process_(state);
+            return;
         }
 
         synchronize_(state);
         process_(state);
+
+        if (state.project.should_save) {
+            state.project.should_save = false;
+            serialize_(state);
+        }
     }
 
     void Logic::serialize_(State &state) {
@@ -74,6 +76,7 @@ namespace ex::main {
         auto bytes = io::bytes::ByteSerializer().serialize(&state);
         ex::files::write_binary_file(state.project.project_path, bytes.data, bytes.size);
         io::byte_array::free(bytes);
+        state.project.has_changes = false;
         log->info("serialization complete: {}", state.project.project_path);
     }
 
@@ -89,11 +92,15 @@ namespace ex::main {
         if (state.logic.work_tree != nullptr)
             delete state.logic.work_tree;
 
-        state.logic.work_tree = new_state->logic.work_tree;
-        state.logic.rewire  = true;
+        state.logic.work_tree     = new_state->logic.work_tree;
+        state.logic.rewire        = true;
 
         delete new_state;
         delete[] data;
+
+        synchronize_(state);
+        state.project.has_changes = false;
+
         log->info("deserialization complete: {}", state.project.project_path);
     }
 
@@ -125,6 +132,8 @@ namespace ex::main {
         if (rewire) {
             rewire_(state);
             gc_run = true;
+
+            state.project.has_changes = true;
         }
 
         state.logic.rewire = false;

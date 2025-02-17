@@ -76,6 +76,7 @@ namespace ex {
     struct project_state {
         const char *project_path = nullptr;
         const char *title        = nullptr;
+        bool        has_changes  = false;
         bool        should_save  = false;
         bool        should_open  = false;
     };

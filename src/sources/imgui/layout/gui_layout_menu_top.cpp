@@ -13,6 +13,30 @@
 
 namespace ex::gui {
 
+    static void new_action() {
+        // TODO
+    }
+
+    static void open_action() {
+        GuiState &gui = ex::gui::state();
+        gui.file_dialogs.project_open = true;
+    }
+
+    static void save_action() {
+        const State &state = ex::logic::globals::state();
+        GuiState &gui = ex::gui::state();
+        // TODO
+        if (state.project.has_changes)
+            gui.file_dialogs.project_save = true;
+    }
+
+    static void save_as_action() {
+        const State &state = ex::logic::globals::state();
+        GuiState &gui = ex::gui::state();
+        if (state.project.has_changes)
+            gui.file_dialogs.project_save = true;
+    }
+
     static void undo_action_() {
         if (!undo_history().can_undo())
             return;
@@ -28,6 +52,10 @@ namespace ex::gui {
     }
 
     static void exit_action_() {
+        const State &state = ex::logic::globals::state();
+        if (state.project.has_changes) {
+            // TODO DIALOG?
+        }
         ex::gui::state().window.exit = true;
     }
 
@@ -35,6 +63,9 @@ namespace ex::gui {
         static bool init_actions = true;
         if (init_actions) {
             const auto &[file, history, work_tree] = key_mappings();
+            ex::gui::actions::set_action(file.open.key, &open_action);
+            ex::gui::actions::set_action(file.save.key, &save_action);
+            ex::gui::actions::set_action(file.save_as.key, &save_as_action);
             ex::gui::actions::set_action(history.undo.key, &undo_action_);
             ex::gui::actions::set_action(history.redo.key, &redo_action_);
             ex::gui::actions::set_action(file.exit.key, &exit_action_);
@@ -57,6 +88,7 @@ namespace ex::gui {
     void show_menu_top_bar() {
         register_actions_();
 
+        const State &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
         if (!gui.view.show_menu)
             return;
@@ -68,22 +100,21 @@ namespace ex::gui {
 
             if (ImGui::BeginMenu(strings::menu_top_file)) {
                 if (ImGui::MenuItem(strings::menu_top_file_new)) {
-                    // TODO
+                    new_action();
                 }
 
                 ImGui::Separator();
 
                 if (ImGui::MenuItem(strings::menu_top_file_open, file.open.label)) {
-                    gui.file_dialogs.project_open = true;
+                    open_action();
                 }
 
-                if (ImGui::MenuItem(strings::menu_top_file_save, file.save.label)) {
-                    gui.file_dialogs.project_save = true;
-                    // TODO
+                if (ImGui::MenuItem(strings::menu_top_file_save, file.save.label, false, state.project.has_changes)) {
+                    save_action();
                 }
 
-                if (ImGui::MenuItem(strings::menu_top_file_save_as, file.save_as.label)) {
-                    gui.file_dialogs.project_save = true;
+                if (ImGui::MenuItem(strings::menu_top_file_save_as, file.save_as.label, false, state.project.has_changes)) {
+                    save_as_action();
                 }
 
                 ImGui::Separator();
