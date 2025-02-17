@@ -15,31 +15,56 @@
 namespace ex::gui {
 
     namespace dialogs_ {
+        static bool show_new_dialog  = false;
         static bool show_open_dialog = false;
+        static bool show_exit_dialog = false;
+    }
+
+    static void new_anyway_action() {
+        // TODO
+    }
+
+    static void open_anyway_action() {
+        ex::gui::state().file_dialogs.project_open = true;
+    }
+
+    static void exit_anyway_action() {
+        ex::gui::state().window.exit = true;
     }
 
     static void new_action() {
-        // TODO
+        if (ex::logic::globals::state().project.has_changes)
+            dialogs_::show_new_dialog = true;
+        else
+            new_anyway_action();
     }
 
     static void open_action() {
-        const State &state = ex::logic::globals::state();
-        GuiState &gui = ex::gui::state();
-
-        if (state.project.has_changes) {
+        if (ex::logic::globals::state().project.has_changes)
             dialogs_::show_open_dialog = true;
-            return;
-        }
-
-        gui.file_dialogs.project_open = true;
+        else
+            open_anyway_action();
     }
 
     static void save_action() {
-        const State &state = ex::logic::globals::state();
+        State &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
-        // TODO
-        if (state.project.has_changes)
+
+        if (!state.project.has_changes)
+            return;
+
+        if (state.project.project_path == nullptr) {
             gui.file_dialogs.project_save = true;
+            return;
+        }
+
+        const std::filesystem::path path = state.project.project_path;
+        if (std::filesystem::exists(path) && std::filesystem::is_regular_file(path)) {
+            state.project.should_save = true;
+            return;
+        }
+
+        gui.file_dialogs.project_save = true;
     }
 
     static void save_as_action() {
@@ -68,15 +93,12 @@ namespace ex::gui {
     }
 
     static void exit_action_() {
-        const State &state = ex::logic::globals::state();
-        if (state.project.has_changes) {
-            // TODO DIALOG?
-        }
-        ex::gui::state().window.exit = true;
+        dialogs_::show_exit_dialog = true;
     }
 
     inline void register_actions_() {
         static const auto &[file, history, work_tree] = key_mappings();
+        ex::gui::actions::set_action(file.create.key, &new_action);
         ex::gui::actions::set_action(file.open.key, &open_action);
         ex::gui::actions::set_action(file.save.key, &save_action);
         ex::gui::actions::set_action(file.save_as.key, &save_as_action);
@@ -98,21 +120,44 @@ namespace ex::gui {
     }
 
     void process_dialogs_() {
-        GuiState &gui = ex::gui::state();
+        if (dialogs_::show_new_dialog) {
+            ImGui::OpenPopup(strings::gui_dialogs_project_new_alert);
+            dialogs_::show_new_dialog = false;
+        }
 
         if (dialogs_::show_open_dialog) {
             ImGui::OpenPopup(strings::gui_dialogs_project_open_alert);
             dialogs_::show_open_dialog = false;
         }
 
+        if (dialogs_::show_exit_dialog) {
+            ImGui::OpenPopup(strings::gui_dialogs_project_exit_alert);
+            dialogs_::show_exit_dialog = false;
+        }
+
         if (show_yes_no_dialog_(strings::gui_dialogs_project_open_alert,
             strings::gui_dialogs_project_open_alert_msg,
             strings::gui_dialogs_project_open_alert_yes,
             strings::gui_dialogs_project_open_alert_no)) {
-            gui.file_dialogs.project_open = true;
+            open_anyway_action();
             return;
         }
 
+        if (show_yes_no_dialog_(strings::gui_dialogs_project_new_alert,
+            strings::gui_dialogs_project_new_alert_msg,
+            strings::gui_dialogs_project_new_alert_yes,
+            strings::gui_dialogs_project_new_alert_no)) {
+            new_anyway_action();
+            return;
+        }
+
+        if (show_yes_no_dialog_(strings::gui_dialogs_project_exit_alert,
+            strings::gui_dialogs_project_exit_alert_msg,
+            strings::gui_dialogs_project_exit_alert_yes,
+            strings::gui_dialogs_project_exit_alert_no)) {
+            exit_anyway_action();
+            return;
+        }
     }
 
     void show_menu_top_bar() {
@@ -131,7 +176,7 @@ namespace ex::gui {
             const auto &[file, history, work_tree] = key_mappings();
 
             if (ImGui::BeginMenu(strings::menu_top_file)) {
-                if (ImGui::MenuItem(strings::menu_top_file_new)) {
+                if (ImGui::MenuItem(strings::menu_top_file_new, file.create.label)) {
                     new_action();
                 }
 

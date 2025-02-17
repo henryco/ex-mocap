@@ -107,6 +107,16 @@ namespace ex::gui::strings {
     constexpr auto gui_dialogs_project_open_alert_yes = "Proceed";
     constexpr auto gui_dialogs_project_open_alert_no  = "Cancel";
 
+    constexpr auto gui_dialogs_project_new_alert     = "Create new project?";
+    constexpr auto gui_dialogs_project_new_alert_msg = "Are you sure? Unsaved progress will be lost";
+    constexpr auto gui_dialogs_project_new_alert_yes = "Proceed";
+    constexpr auto gui_dialogs_project_new_alert_no  = "Cancel";
+
+    constexpr auto gui_dialogs_project_exit_alert     = "Confirm exit";
+    constexpr auto gui_dialogs_project_exit_alert_msg = "Changes which are not saved will be lost";
+    constexpr auto gui_dialogs_project_exit_alert_yes = "Exit";
+    constexpr auto gui_dialogs_project_exit_alert_no  = "Cancel";
+
 }
 
 #endif //GUI_STRINGS_H
