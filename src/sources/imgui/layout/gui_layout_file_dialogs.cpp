@@ -12,8 +12,49 @@
 
 namespace ex::gui {
 
+    bool show_yes_no_dialog_(const char *title, const char *msg, const char *yes, const char *no) {
+        bool result = false;
+
+        const auto offset     = ImGui::GetStyle().FramePadding.x * 2 + ImGui::GetStyle().ItemSpacing.x * 2;
+        const auto title_size = ImGui::CalcTextSize(msg).x + offset * 4;
+
+        const auto center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize(ImVec2(title_size, 0));
+        if (ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+
+            ImGui::Spacing();
+            ImGui::Spacing();
+            ImGui::Text("%s", msg);
+            ImGui::Spacing();
+            ImGui::Spacing();
+
+            const float ok_size = ImGui::CalcTextSize(yes).x + offset;
+            const float no_size = ImGui::CalcTextSize(no).x + offset;
+            const float free_w  = ImGui::GetContentRegionMax().x;
+            const float spacing = ImGui::GetStyle().ItemSpacing.x;
+
+            ImGui::SetCursorPosX(free_w - (ok_size + no_size + spacing));
+
+            if (ImGui::Button(yes, ImVec2(ok_size, 0))) {
+                ImGui::CloseCurrentPopup();
+                result = true;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(no, ImVec2(no_size, 0))) {
+                ImGui::CloseCurrentPopup();
+                result = false;
+            }
+
+            ImGui::EndPopup();
+        }
+
+        return result;
+    }
+
     void show_save_file_picker_(bool *open, ex::State &state) {
-        if (!open) return;
+        if (open == nullptr || !*open)
+            return;
 
         constexpr auto min_size  = ImVec2(900, 500);
         static constexpr simpfp::Labels labels {
@@ -23,21 +64,35 @@ namespace ex::gui {
         if (!simpfp::FileDialogOpen())
             simpfp::OpenFileDialog(strings::gui_dialogs_project_save, state.project.project_path, nullptr, &labels);
 
+        static char file[256];
         if (simpfp::ShowFileDialog(strings::gui_dialogs_project_save, open, min_size, true)) {
-            if (static char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
-                state.project.project_path = file;
-                state.project.should_save  = true;
-                *open              = false;
 
-                // TODO: ASK DIALOG
+            if (simpfp::FileAccepted(file, sizeof(file))) {
+                const std::filesystem::path save_path(file);
+
+                if (std::filesystem::exists(save_path) && std::filesystem::is_regular_file(save_path)) {
+                    ImGui::OpenPopup("Are you sure?");
+                } else {
+                    state.project.project_path = file;
+                    state.project.should_save  = true;
+                    *open                      = false;
+
+                    simpfp::CloseFileDialog();
+                }
+            }
+
+            if (show_yes_no_dialog_("Are you sure?", "This action will overwrite selected files", "Accept", "Cancel")) {
+                // TODO
                 simpfp::CloseFileDialog();
             }
+
             simpfp::EndFileDialog();
         }
     }
 
     void show_open_file_picker_(bool *open, ex::State &state) {
-        if (!open) return;
+        if (open == nullptr || !*open)
+            return;
 
         constexpr auto min_size  = ImVec2(900, 500);
         static constexpr simpfp::Labels labels {
