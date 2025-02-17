@@ -14,6 +14,10 @@
 
 namespace ex::gui {
 
+    namespace dialogs_ {
+        static bool show_open_dialog = false;
+    }
+
     static void new_action() {
         // TODO
     }
@@ -21,10 +25,12 @@ namespace ex::gui {
     static void open_action() {
         const State &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
+
         if (state.project.has_changes) {
-            ImGui::OpenPopup("Open project");
+            dialogs_::show_open_dialog = true;
             return;
         }
+
         gui.file_dialogs.project_open = true;
     }
 
@@ -57,6 +63,10 @@ namespace ex::gui {
         undo_history().apply(&ex::logic::globals::state());
     }
 
+    static void about_action() {
+        // TODO
+    }
+
     static void exit_action_() {
         const State &state = ex::logic::globals::state();
         if (state.project.has_changes) {
@@ -66,17 +76,13 @@ namespace ex::gui {
     }
 
     inline void register_actions_() {
-        static bool init_actions = true;
-        if (init_actions) {
-            const auto &[file, history, work_tree] = key_mappings();
-            ex::gui::actions::set_action(file.open.key, &open_action);
-            ex::gui::actions::set_action(file.save.key, &save_action);
-            ex::gui::actions::set_action(file.save_as.key, &save_as_action);
-            ex::gui::actions::set_action(history.undo.key, &undo_action_);
-            ex::gui::actions::set_action(history.redo.key, &redo_action_);
-            ex::gui::actions::set_action(file.exit.key, &exit_action_);
-            init_actions = false;
-        }
+        static const auto &[file, history, work_tree] = key_mappings();
+        ex::gui::actions::set_action(file.open.key, &open_action);
+        ex::gui::actions::set_action(file.save.key, &save_action);
+        ex::gui::actions::set_action(file.save_as.key, &save_as_action);
+        ex::gui::actions::set_action(history.undo.key, &undo_action_);
+        ex::gui::actions::set_action(history.redo.key, &redo_action_);
+        ex::gui::actions::set_action(file.exit.key, &exit_action_);
     }
 
     void end_pin_button_(GuiState &gui) {
@@ -91,14 +97,29 @@ namespace ex::gui {
         ex::gui::plain_tooltip(strings::menu_top_view_unpin);
     }
 
+    void process_dialogs_() {
+        GuiState &gui = ex::gui::state();
+
+        if (dialogs_::show_open_dialog) {
+            ImGui::OpenPopup(strings::gui_dialogs_project_open_alert);
+            dialogs_::show_open_dialog = false;
+        }
+
+        if (show_yes_no_dialog_(strings::gui_dialogs_project_open_alert,
+            strings::gui_dialogs_project_open_alert_msg,
+            strings::gui_dialogs_project_open_alert_yes,
+            strings::gui_dialogs_project_open_alert_no)) {
+            gui.file_dialogs.project_open = true;
+            return;
+        }
+
+    }
+
     void show_menu_top_bar() {
         const State &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
 
-        if (show_yes_no_dialog_("Open project", "Are you sure? Unsaved progress will be lost", "Continue", "Cancel")) {
-            gui.file_dialogs.project_open = true;
-        }
-
+        process_dialogs_();
         register_actions_();
 
         if (!gui.view.show_menu)
@@ -206,7 +227,7 @@ namespace ex::gui {
 
             if (ImGui::BeginMenu(strings::menu_top_help)) {
                 if (ImGui::MenuItem(strings::menu_top_help_about)) {
-                    // TODO
+                    about_action();
                 }
                 ImGui::EndMenu();
             }

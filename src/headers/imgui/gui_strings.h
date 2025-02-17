@@ -100,8 +100,12 @@ namespace ex::gui::strings {
     constexpr auto gui_dialogs_project_save_alert_yes = "Accept";
     constexpr auto gui_dialogs_project_save_alert_no  = "Cancel";
 
-    constexpr auto gui_dialogs_project_open        = "Open a file";
-    constexpr auto gui_dialogs_project_open_accept = "Open";
+    constexpr auto gui_dialogs_project_open           = "Open a file";
+    constexpr auto gui_dialogs_project_open_accept    = "Open";
+    constexpr auto gui_dialogs_project_open_alert     = "Open another project?";
+    constexpr auto gui_dialogs_project_open_alert_msg = "Are you sure? Unsaved progress will be lost";
+    constexpr auto gui_dialogs_project_open_alert_yes = "Proceed";
+    constexpr auto gui_dialogs_project_open_alert_no  = "Cancel";
 
 }
 
