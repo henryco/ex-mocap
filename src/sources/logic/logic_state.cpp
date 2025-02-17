@@ -21,50 +21,59 @@ namespace ex::logic::state {
     }
 
     limbo::nodes::BaseNode *get_node(const id_local &id) {
-        if (!node_store_().contains(id))
+        auto &store = node_store_();
+        if (!store.contains(id))
             return nullptr;
-        return node_store_()[id];
+        return store[id];
     }
 
     void store_node(const id_local &id, limbo::nodes::BaseNode *node) {
-        if (!node_store_().contains(id))
-            node_store_().emplace(id, node);
-        inc_node_counter(id);
+        auto &store = node_store_();
+        if (!store.contains(id)) {
+            store.emplace(id, node);
+            inc_node_counter(id);
+        }
     }
 
     void replace_node(const id_local &id, limbo::nodes::BaseNode *node) {
-        if (node_store_().contains(id)) {
-            const auto base = node_store_().at(id);
-            node_store_().erase(id);
+        auto &store = node_store_();
+        if (store.contains(id)) {
+            const auto base = store.at(id);
+            store.erase(id);
             base->detach_all_any();
             delete base;
         }
-        if (!node_store_().contains(id))
-            node_store_().emplace(id, node);
+        if (!store.contains(id))
+            store.emplace(id, node);
     }
 
     void remove_node(const id_local &id) {
-        if (node_store_().contains(id)) {
-            const auto base = node_store_().at(id);
-            node_store_().erase(id);
+        auto &store = node_store_();
+        if (store.contains(id)) {
+            const auto base = store.at(id);
+            store.erase(id);
             base->detach_all_any();
             delete base;
         }
-        if (node_counter_().contains(id))
-            node_counter_().erase(id);
+
+        auto &counter = node_counter_();
+        if (counter.contains(id))
+            counter.erase(id);
     }
 
     void inc_node_counter(const id_local &id) {
-        if (node_counter_().contains(id)) {
-            const auto v          = node_counter_().at(id);
-            node_counter_().at(id) = std::min(v + 1, 10000000);
+        auto &counter = node_counter_();
+        if (counter.contains(id)) {
+            const auto v          = counter.at(id);
+            counter.at(id) = std::min(v + 1, 10000000);
         }
         else
-            node_counter_().emplace(id, 1);
+            counter.emplace(id, 1);
     }
 
     void cleanup_nodes() {
-        for (auto it = node_counter_().begin(); it != node_counter_().end(); /*nop*/) {
+        auto &counter = node_counter_();
+        for (auto it = counter.begin(); it != counter.end(); /*nop*/) {
             const auto id_local = it->first;
             if (it->second <= 0) {
 
@@ -73,7 +82,7 @@ namespace ex::logic::state {
                     node_store_().erase(id_local);
                 }
 
-                it = node_counter_().erase(it);
+                it = counter.erase(it);
             } else {
                 it->second = 0;
                 ++it;

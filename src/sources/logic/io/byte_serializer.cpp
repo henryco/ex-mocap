@@ -111,6 +111,9 @@ namespace ex::io::bytes {
         if (to->state >>= node_state::is_link)
             return;
 
+        if (to->state >>= node_state::is_group)
+            return;
+
         if (!ex::logic::globals::node_components().contains(to->id_node))
             return;
 
