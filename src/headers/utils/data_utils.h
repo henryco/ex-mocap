@@ -10,6 +10,39 @@
 namespace ex::data {
 
     template<typename element_t>
+    struct buffer {
+        element_t *data = nullptr;
+        long       size = 0;
+
+        buffer() = default;
+
+        buffer(const long &size) {
+            this->data = static_cast<element_t *>(malloc(size * sizeof(element_t)));
+            this->size = size;
+        }
+
+        void allocate(const long &size) {
+            if (size <= this->size)
+                return;
+            if (this->size <= 0) {
+                this->data = static_cast<element_t *>(malloc(size * sizeof(element_t)));
+                this->size = size;
+            }
+            else {
+                this->data = static_cast<element_t *>(realloc(this->data, size * sizeof(element_t)));
+                this->size = size;
+            }
+        }
+
+        ~buffer() {
+            if (this->data != nullptr)
+                std::free(this->data);
+            this->data = nullptr;
+            this->size = 0;
+        }
+    };
+
+    template<typename element_t>
     struct array {
         element_t *data     = nullptr;
         int        size     = 0;

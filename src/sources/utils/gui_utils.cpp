@@ -219,7 +219,7 @@ namespace ex::gui {
         return open;
     }
 
-    bool show_yes_no_dialog_(const char *title, const char *msg, const char *yes, const char *no) {
+    bool show_yes_no_dialog(const char *title, const char *msg, const char *yes, const char *no) {
         bool result = false;
 
         const auto offset     = ImGui::GetStyle().FramePadding.x * 2 + ImGui::GetStyle().ItemSpacing.x * 2;
@@ -266,4 +266,45 @@ namespace ex::gui {
         return result;
     }
 
-}
+    bool show_alert_dialog(const char *title, const char *msg, const char *ok) {
+        bool result = false;
+
+        const auto offset     = ImGui::GetStyle().FramePadding.x * 2 + ImGui::GetStyle().ItemSpacing.x * 2;
+        const auto title_size = ImGui::CalcTextSize(msg).x + offset * 4;
+
+        const auto center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize(ImVec2(title_size, 0));
+        if (ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsKeyDown(ImGuiKey_Escape)) {
+                ImGui::CloseCurrentPopup();
+                ImGui::EndPopup();
+                return false;
+            }
+
+            ImGui::Spacing();
+            ImGui::Spacing();
+            ImGui::Text(" %s", msg);
+            ImGui::Spacing();
+            ImGui::Spacing();
+            ImGui::Spacing();
+
+            const float ok_size = ImGui::CalcTextSize(ok).x + offset;
+            const float free_w  = ImGui::GetContentRegionMax().x;
+            const float spacing = ImGui::GetStyle().ItemSpacing.x;
+
+            ImGui::SetCursorPosX(free_w - (ok_size + spacing));
+
+            if (ImGui::Button(ok, ImVec2(ok_size, 0))) {
+                ImGui::CloseCurrentPopup();
+                result = true;
+            }
+
+            ImGui::EndPopup();
+        }
+
+        return result;
+    }
+
+} // namespace ex::gui

@@ -84,6 +84,11 @@ namespace ex {
         bool        should_create = false;
     };
 
+    struct project_error {
+        const char *msg  = nullptr;
+        uint64_t    code = 0;
+    };
+
     struct cl_state {
         cl_context   context = nullptr;
         cl_device_id device  = nullptr;
@@ -105,6 +110,7 @@ namespace ex {
 
     struct State {
         project_state project = {};
+        project_error error   = {};
         logic_state   logic   = {};
         cl_state      cl      = {};
         gl_state      gl      = {};

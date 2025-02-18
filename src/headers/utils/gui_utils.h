@@ -48,7 +48,9 @@ namespace ex::gui {
 
     bool plain_node(const char *name, bool bullet, bool selected = false, bool nested = false);
 
-    bool show_yes_no_dialog_(const char *title, const char *msg, const char *yes, const char *no);
+    bool show_yes_no_dialog(const char *title, const char *msg, const char *yes, const char *no);
+
+    bool show_alert_dialog(const char *title, const char *msg, const char *ok);
 }
 
 #endif // EX_MOTION_GUI_UTILS_H

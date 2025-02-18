@@ -181,6 +181,7 @@ set(SOURCE_FILES
         src/sources/imgui/layout/gui_layout_file_dialogs.cpp
         src/sources/imgui/actions/gui_actions_registry.cpp
         src/sources/imgui/actions/gui_actions.cpp
+        src/sources/imgui/layout/gui_layout_alert_dialogs.cpp
 )
 
 # =================== OpenCL kernels generation =====================

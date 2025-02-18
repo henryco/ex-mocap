@@ -40,7 +40,7 @@ namespace ex::gui {
                 }
             }
 
-            if (show_yes_no_dialog_(
+            if (show_yes_no_dialog(
                         strings::gui_dialogs_project_save_alert, strings::gui_dialogs_project_save_alert_msg,
                         strings::gui_dialogs_project_save_alert_yes, strings::gui_dialogs_project_save_alert_no)) {
                 state.project.project_path = file;
@@ -88,10 +88,8 @@ namespace ex::gui {
         if (open == nullptr || !*open)
             return;
 
-        constexpr auto min_size  = ImVec2(900, 500);
-        static constexpr simpfp::Labels labels {
-            .main_accept = strings::gui_dialogs_project_new_accept
-        };
+        constexpr auto                  min_size = ImVec2(900, 500);
+        static constexpr simpfp::Labels labels{ .main_accept = strings::gui_dialogs_project_new_accept };
 
         if (!simpfp::FileDialogOpen())
             simpfp::OpenFileDialog(strings::gui_dialogs_project_new, state.project.project_path, nullptr, &labels);
@@ -102,7 +100,8 @@ namespace ex::gui {
                 const std::filesystem::path new_path(file);
                 if (std::filesystem::exists(new_path) && std::filesystem::is_regular_file(new_path)) {
                     ImGui::OpenPopup(strings::gui_dialogs_project_save_alert);
-                } else {
+                }
+                else {
                     undo_history().reset();
                     state.project.project_path  = file;
                     state.project.should_create = true;
@@ -111,9 +110,9 @@ namespace ex::gui {
                 }
             }
 
-            if (show_yes_no_dialog_(
-                        strings::gui_dialogs_project_save_alert, strings::gui_dialogs_project_save_alert_msg,
-                        strings::gui_dialogs_project_save_alert_yes, strings::gui_dialogs_project_save_alert_no)) {
+            if (show_yes_no_dialog(strings::gui_dialogs_project_save_alert, strings::gui_dialogs_project_save_alert_msg,
+                                   strings::gui_dialogs_project_save_alert_yes,
+                                   strings::gui_dialogs_project_save_alert_no)) {
                 undo_history().reset();
                 state.project.project_path  = file;
                 state.project.should_create = true;

@@ -119,6 +119,9 @@ namespace ex::gui::strings {
     constexpr auto gui_dialogs_project_exit_alert_yes = "Exit";
     constexpr auto gui_dialogs_project_exit_alert_no  = "Cancel";
 
+    constexpr auto gui_dialogs_alert_error     = "Error";
+    constexpr auto gui_dialogs_alert_error_yes = "OK";
+
 }
 
 #endif //GUI_STRINGS_H

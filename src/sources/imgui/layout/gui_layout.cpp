@@ -89,6 +89,7 @@ namespace ex::gui {
 
             register_default_shortcuts_();
 
+            show_alert_dialogs();
             show_file_dialogs();
             show_menu_top_bar();
             show_left_pane();

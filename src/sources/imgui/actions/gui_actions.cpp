@@ -106,21 +106,21 @@ namespace ex::gui::actions {
             dialogs_::show_exit_dialog = false;
         }
 
-        if (show_yes_no_dialog_(strings::gui_dialogs_project_open_alert, strings::gui_dialogs_project_open_alert_msg,
+        if (show_yes_no_dialog(strings::gui_dialogs_project_open_alert, strings::gui_dialogs_project_open_alert_msg,
                                 strings::gui_dialogs_project_open_alert_yes,
                                 strings::gui_dialogs_project_open_alert_no)) {
             open_anyway_action();
             return;
         }
 
-        if (show_yes_no_dialog_(strings::gui_dialogs_project_new_alert, strings::gui_dialogs_project_new_alert_msg,
+        if (show_yes_no_dialog(strings::gui_dialogs_project_new_alert, strings::gui_dialogs_project_new_alert_msg,
                                 strings::gui_dialogs_project_new_alert_yes,
                                 strings::gui_dialogs_project_new_alert_no)) {
             new_anyway_action();
             return;
         }
 
-        if (show_yes_no_dialog_(strings::gui_dialogs_project_exit_alert, strings::gui_dialogs_project_exit_alert_msg,
+        if (show_yes_no_dialog(strings::gui_dialogs_project_exit_alert, strings::gui_dialogs_project_exit_alert_msg,
                                 strings::gui_dialogs_project_exit_alert_yes,
                                 strings::gui_dialogs_project_exit_alert_no)) {
             exit_anyway_action();
