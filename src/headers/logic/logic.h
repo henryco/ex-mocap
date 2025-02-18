@@ -42,6 +42,8 @@ namespace ex::main {
     protected:
         void traverse_(State &state, TreeNode *node, bool *rewire, bool fresh);
 
+        void reset_internal_state_(State &state);
+
         void synchronize_(State &state);
 
         void process_(State &state);

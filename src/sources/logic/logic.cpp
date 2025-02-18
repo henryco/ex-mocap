@@ -32,7 +32,9 @@ namespace ex::main {
         }
     }
 
-    void reset_internal_state_(State &state) {
+    void Logic::reset_internal_state_(State &state) {
+        clock_.detach_all();
+
         if (state.logic.work_tree != nullptr)
             delete state.logic.work_tree;
 
