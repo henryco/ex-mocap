@@ -13,7 +13,6 @@
 
 namespace ex::io::err {
     void abort(const char *msg) {
-        // TODO ERROR HANDLER
         std::cerr << msg << std::endl;
         std::abort();
     }
@@ -417,7 +416,9 @@ namespace ex::io::bytes {
         const auto state = new ex::State;
 
         if (data.size < sizeof(project_metadata)) {
-            io::err::abort("Fatal Error (0): Invalid size of data, not enough space for header");
+            state->error.code = 1;
+            state->error.msg  = "Invalid file format (not enough space for header)";
+            return state;
         }
 
         project_metadata metadata;
@@ -427,11 +428,15 @@ namespace ex::io::bytes {
                                             metadata.version.patch);
 
         if (metadata.magic_number != MAGIC_NUMBER) {
-            io::err::abort("Fatal Error (0): File format not supported, magic number missmatch");
+            state->error.code = 1;
+            state->error.msg  = "File format not supported, magic number missmatch";
+            return state;
         }
 
         if (metadata.version.major > PROJECT_VERSION_MAJOR) {
-            io::err::abort("Fatal Error (0): Project version not supported");
+            state->error.code = 1;
+            state->error.msg  = "File format version not supported";
+            return state;
         }
 
         in::buffer  buffer = in::create_buffer(64, in::mode::OFFSET);

@@ -96,6 +96,16 @@ namespace ex::main {
         const auto new_state =
                 static_cast<State *>(io::bytes::ByteSerializer().deserialize(io::byte_array::from(data, size)));
 
+        if (new_state->error.code != 0) {
+            state.error.code = new_state->error.code;
+            state.error.msg  = new_state->error.msg;
+            delete new_state;
+            delete[] data;
+
+            log->error("deserialization failure: {}", state.project.project_path);
+            return;
+        }
+
         if (state.logic.work_tree != nullptr)
             delete state.logic.work_tree;
 
