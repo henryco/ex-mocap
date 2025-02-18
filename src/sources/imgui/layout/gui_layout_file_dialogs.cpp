@@ -12,6 +12,8 @@
 
 namespace ex::gui {
 
+    static const char *filters_[] = { "*.exprj", "*", nullptr };
+
     void show_save_file_picker_(bool *open, ex::State &state) {
         if (open == nullptr || !*open)
             return;
@@ -22,7 +24,7 @@ namespace ex::gui {
         };
 
         if (!simpfp::FileDialogOpen())
-            simpfp::OpenFileDialog(strings::gui_dialogs_project_save, state.project.project_path, nullptr, &labels);
+            simpfp::OpenFileDialog(strings::gui_dialogs_project_save, state.project.project_path, filters_, &labels);
 
         static char file[256];
         if (simpfp::ShowFileDialog(strings::gui_dialogs_project_save, open, min_size, true)) {
@@ -63,7 +65,7 @@ namespace ex::gui {
         };
 
         if (!simpfp::FileDialogOpen())
-            simpfp::OpenFileDialog(strings::gui_dialogs_project_open, state.project.project_path, nullptr, &labels);
+            simpfp::OpenFileDialog(strings::gui_dialogs_project_open, state.project.project_path, filters_, &labels);
 
         if (simpfp::ShowFileDialog(strings::gui_dialogs_project_open, open, min_size, true)) {
             if (static char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
@@ -94,7 +96,7 @@ namespace ex::gui {
         static constexpr simpfp::Labels labels{ .main_accept = strings::gui_dialogs_project_new_accept };
 
         if (!simpfp::FileDialogOpen())
-            simpfp::OpenFileDialog(strings::gui_dialogs_project_new, state.project.project_path, nullptr, &labels);
+            simpfp::OpenFileDialog(strings::gui_dialogs_project_new, state.project.project_path, filters_, &labels);
 
         static char file[256];
         if (simpfp::ShowFileDialog(strings::gui_dialogs_project_new, open, min_size, true)) {
