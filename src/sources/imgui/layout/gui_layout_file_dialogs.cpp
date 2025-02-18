@@ -13,6 +13,7 @@
 namespace ex::gui {
 
     static const char *filters_[] = { "*.exprj", "*", nullptr };
+    // TODO FIXME COLUMN AND BUTTON SIZE FOR FILEPICKER
 
     void show_save_file_picker_(bool *open, ex::State &state) {
         if (open == nullptr || !*open)
@@ -35,6 +36,7 @@ namespace ex::gui {
                 if (std::filesystem::exists(save_path) && std::filesystem::is_regular_file(save_path)) {
                     ImGui::OpenPopup(strings::gui_dialogs_project_save_alert);
                 } else {
+                    // TODO ADD POSTFIX IF NOT PRESENT
                     state.project.project_path = file;
                     state.project.should_save  = true;
                     *open                      = false;
@@ -45,6 +47,7 @@ namespace ex::gui {
             if (show_yes_no_dialog(
                         strings::gui_dialogs_project_save_alert, strings::gui_dialogs_project_save_alert_msg,
                         strings::gui_dialogs_project_save_alert_yes, strings::gui_dialogs_project_save_alert_no)) {
+                // TODO ADD POSTFIX IF NOT PRESENT
                 state.project.project_path = file;
                 state.project.should_save  = true;
                 *open                      = false;
@@ -106,6 +109,7 @@ namespace ex::gui {
                     ImGui::OpenPopup(strings::gui_dialogs_project_save_alert);
                 }
                 else {
+                    // TODO ADD POSTFIX IF NOT PRESENT
                     state.project.project_path  = file;
                     state.project.should_create = true;
                     *open                       = false;
@@ -116,6 +120,7 @@ namespace ex::gui {
             if (show_yes_no_dialog(strings::gui_dialogs_project_save_alert, strings::gui_dialogs_project_save_alert_msg,
                                    strings::gui_dialogs_project_save_alert_yes,
                                    strings::gui_dialogs_project_save_alert_no)) {
+                // TODO ADD POSTFIX IF NOT PRESENT
                 state.project.project_path  = file;
                 state.project.should_create = true;
                 *open                       = false;
