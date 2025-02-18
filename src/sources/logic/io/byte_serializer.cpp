@@ -3,12 +3,13 @@
 //
 
 #include "../../../extra/bytebox/byte_box.h"
-#include <cstring>
-
 #include "../../../headers/logic/io/byte_serializer.h"
 #include "../../../headers/logic/logic_globals.h"
 #include "../../../headers/logic/logic_state.h"
 #include "../../../headers/state.h"
+
+#include <cstring>
+#include <ex_version.h>
 
 namespace ex::io::err {
     void abort(const char *msg) {
@@ -26,6 +27,14 @@ const std::uint8_t &ex::io::byte_array::operator [] (const std::size_t &index) c
 
 const std::uint8_t *ex::io::byte_array::operator + (const std::size_t &index) const {
     return data + index;
+}
+
+ex::io::byte_array ex::io::byte_array::operator >> (const std::size_t &offset) const {
+    return byte_array::from(data + offset, size - offset);
+}
+
+ex::io::byte_array ex::io::byte_array::operator << (const std::size_t &offset) const {
+    return byte_array::from(data - offset, size + offset);
 }
 
 bool ex::io::byte_array::empty() const {
@@ -50,6 +59,8 @@ void ex::io::byte_array::free(byte_array &array) {
 
 namespace ex::io::bytes {
 
+    static constexpr std::uint64_t MAGIC_NUMBER = 0x65786D6F74696F6E;
+
     #define TYPE_NODE_BGN 1
     #define TYPE_NODE_ARR 2
     #define TYPE_NODE_NAM 3
@@ -60,6 +71,18 @@ namespace ex::io::bytes {
     namespace box = limbo::bytebox;
     namespace out = box::out;
     namespace in  = box::in;
+
+    struct alignas(4) project_version {
+        std::uint8_t major = 0;
+        std::uint8_t minor = 0;
+        std::uint8_t patch = 0;
+        std::uint8_t _____ = 0;
+    };
+
+    struct alignas(16) project_metadata {
+        std::uint64_t   magic_number;
+        project_version version;
+    };
 
     struct alignas(32) tree_node_1 {
         std::uint64_t id_node    = 0;
@@ -370,16 +393,48 @@ namespace ex::io::bytes {
         gc garbage_collector;
         write_tree(buff_out, root, garbage_collector);
 
-        const auto size = out::buffer_size_b(buff_out);
-        const auto data = new unsigned char[size];
-        out::read_buffer_data(buff_out, data);
-        return byte_array::from(data, size);
+        const std::size_t size      = out::buffer_size_b(buff_out);
+        const std::size_t real_size = sizeof(project_metadata) + size;
+
+        const auto data = new unsigned char[real_size];
+
+        constexpr project_metadata metadata = {
+            .magic_number = MAGIC_NUMBER,
+            .version = {
+                .major = PROJECT_VERSION_MAJOR,
+                .minor = PROJECT_VERSION_MINOR,
+                .patch = PROJECT_VERSION_PATCH
+            }
+        };
+
+        std::memcpy(data, &metadata, sizeof(project_metadata));
+        out::read_buffer_data(buff_out, data + sizeof(project_metadata));
+
+        return byte_array::from(data, real_size);
     }
 
     void *ByteSerializer::deserialize(const byte_array &data) const {
         const auto state = new ex::State;
 
-        in::buffer  buffer = in::create_buffer(50, in::mode::OFFSET);
+        if (data.size < sizeof(project_metadata)) {
+            io::err::abort("Fatal Error (0): Invalid size of data, not enough space for header");
+        }
+
+        project_metadata metadata;
+        std::memcpy(&metadata, data.data, sizeof(project_metadata));
+
+        logic::globals::logger()->debug("File version: {}.{}.{}", metadata.version.major, metadata.version.minor,
+                                            metadata.version.patch);
+
+        if (metadata.magic_number != MAGIC_NUMBER) {
+            io::err::abort("Fatal Error (0): File format not supported, magic number missmatch");
+        }
+
+        if (metadata.version.major > PROJECT_VERSION_MAJOR) {
+            io::err::abort("Fatal Error (0): Project version not supported");
+        }
+
+        in::buffer  buffer = in::create_buffer(64, in::mode::OFFSET);
         byte_buffer bb;
         bb.allocate(64);
 
@@ -393,7 +448,7 @@ namespace ex::io::bytes {
 
         const auto t0 = std::chrono::high_resolution_clock::now();
 
-        read_tree(buffer, data, bb, &base);
+        read_tree(buffer, data >> sizeof(project_metadata), bb, &base);
 
         const auto t1 = std::chrono::high_resolution_clock::now();
 
@@ -403,7 +458,7 @@ namespace ex::io::bytes {
         base.children[0] = nullptr;
         base.children_n  = 0;
 
-        ex::logic::globals::logger()->debug("deserialization time: {} ns", (t1 - t0).count());
+        logic::globals::logger()->debug("deserialization time: {} ns", (t1 - t0).count());
 
         return state;
     }

@@ -14,6 +14,8 @@ namespace ex::io {
         std::uint64_t       size;
         const std::uint8_t &operator [] (const std::size_t &) const;
         const std::uint8_t *operator +  (const std::size_t &) const;
+        byte_array          operator >> (const std::size_t &) const;
+        byte_array          operator << (const std::size_t &) const;
         bool                empty() const;
         static byte_array   from(const std::uint8_t *, const std::size_t &);
         static void         free(byte_array *);

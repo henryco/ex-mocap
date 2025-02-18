@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.30)
-project(ex_motion VERSION 0.1 LANGUAGES CXX)
+project(ex_motion VERSION 0.1.1 LANGUAGES CXX)
 
 option(ENABLE_TESTS "Build with unit tests" OFF)
 if (ENABLE_TESTS)
@@ -204,6 +204,15 @@ endforeach ()
 add_custom_target(generate_cl_sources
         ALL DEPENDS ${GENERATED_CL_SOURCES})
 # ===================================================================
+add_library(in_house_gen INTERFACE)
+configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/version.h.in
+        ${CMAKE_BINARY_DIR}/exmotion_files/generated/include/ex_version.h
+)
+
+target_include_directories(in_house_gen INTERFACE
+        ${CMAKE_BINARY_DIR}/exmotion_files/generated/include)
+# ===================================================================
 
 set(COMP_TARGET)
 
@@ -216,6 +225,7 @@ set(LINK_TARGET
         spdlog::spdlog
         OpenCL::Headers
         OpenCL::OpenCL
+        in_house_gen
         onnxruntime
         OpenGL::GL
         argparse

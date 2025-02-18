@@ -12,6 +12,8 @@
 
 namespace ex {
 
+//    constexpr
+
     namespace state::uuid {
         std::uint32_t generate_id_inc();
         std::uint32_t get_last_id();
