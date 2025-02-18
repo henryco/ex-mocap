@@ -77,8 +77,11 @@ namespace ex::gui {
 
                     simpfp::CloseFileDialog();
                 } else {
-                    // TODO ERROR DIALOG
+                    ImGui::OpenPopup(strings::gui_dialogs_project_open_error);
                 }
+
+                show_alert_dialog(strings::gui_dialogs_alert_error, strings::gui_dialogs_project_open_error_msg,
+                                  strings::gui_dialogs_project_open_error_ok);
             }
             simpfp::EndFileDialog();
         }
