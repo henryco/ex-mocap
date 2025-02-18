@@ -6,6 +6,7 @@
 #include "../headers/imgui/gui.h"
 #include "../headers/logic/logic.h"
 #include "../headers/logic/logic_globals.h"
+#include "../headers/imgui/gui_globals.h"
 #include "../headers/utils/gl_utils.h"
 #include "../headers/cl/cl_gl_interop.h"
 
@@ -90,13 +91,18 @@ namespace ex::boot {
         state.gl.target_fps = static_cast<int>(1000000000.0 / fps);
     }
 
-    void update_title(const State &state) {
+    inline void update_title(const State &state) {
         static const char *prev_title = state.project.title;
 
         if (prev_title != state.project.title) {
             prev_title = state.project.title;
             glfwSetWindowTitle(state.gl.window, state.project.title);
         }
+    }
+
+    inline void update_history(const State &state) {
+        if (state.project.brand_new)
+            ex::gui::undo_history().reset();
     }
 
     inline void update_gui(const ex::gui::GUI &gui, State &state, GLFWwindow *window) {
@@ -142,8 +148,9 @@ namespace ex::boot {
             glfwPollEvents();
 
             logic.run(state);
-            update_gui(gui, state, window);
+            update_history(state);
             update_title(state);
+            update_gui(gui, state, window);
         }
 
         if (state.cl.context != nullptr)

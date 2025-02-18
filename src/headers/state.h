@@ -79,6 +79,7 @@ namespace ex {
         const char *project_path  = nullptr;
         const char *title         = nullptr;
         bool        has_changes   = false;
+        bool        brand_new     = false;
         bool        should_save   = false;
         bool        should_open   = false;
         bool        should_create = false;

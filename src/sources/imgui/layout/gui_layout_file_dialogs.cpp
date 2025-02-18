@@ -70,7 +70,6 @@ namespace ex::gui {
                 const auto path = std::filesystem::path(file);
                 if (std::filesystem::exists(path) && std::filesystem::is_regular_file(path)) {
 
-                    undo_history().reset();
                     state.project.project_path = file;
                     state.project.should_open  = true;
                     *open                      = false;
@@ -105,7 +104,6 @@ namespace ex::gui {
                     ImGui::OpenPopup(strings::gui_dialogs_project_save_alert);
                 }
                 else {
-                    undo_history().reset();
                     state.project.project_path  = file;
                     state.project.should_create = true;
                     *open                       = false;
@@ -116,7 +114,6 @@ namespace ex::gui {
             if (show_yes_no_dialog(strings::gui_dialogs_project_save_alert, strings::gui_dialogs_project_save_alert_msg,
                                    strings::gui_dialogs_project_save_alert_yes,
                                    strings::gui_dialogs_project_save_alert_no)) {
-                undo_history().reset();
                 state.project.project_path  = file;
                 state.project.should_create = true;
                 *open                       = false;

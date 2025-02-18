@@ -54,6 +54,8 @@ namespace ex::main {
 
         void serialize_(State &state);
 
+        void create_new_(State &state);
+
         void gc_(State &state);
 
         void mark_node_deleted_(State &state, TreeNode *node, bool moved);

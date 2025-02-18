@@ -64,13 +64,13 @@ namespace ex::main {
         if (state.logic.work_tree == nullptr)
             abort_("Logic::run: work tree is null");
 
+        if (state.project.brand_new) {
+            state.project.brand_new = false;
+        }
+
         if (state.project.should_create) {
-            log->info("create new project: {}", state.project.project_path);
             state.project.should_create = false;
-            reset_internal_state_(state);
-            synchronize_(state);
-            serialize_(state);
-            log->info("new project created: {}", state.project.project_path);
+            create_new_(state);
             return;
         }
 
@@ -88,6 +88,15 @@ namespace ex::main {
             state.project.should_save = false;
             serialize_(state);
         }
+    }
+
+    void Logic::create_new_(State &state) {
+        log->info("create new project: {}", state.project.project_path);
+        reset_internal_state_(state);
+        synchronize_(state);
+        serialize_(state);
+        state.project.brand_new = true;
+        log->info("new project created: {}", state.project.project_path);
     }
 
     void Logic::serialize_(State &state) {
@@ -130,9 +139,10 @@ namespace ex::main {
         synchronize_(state);
         state.project.has_changes = false;
 
-        const auto str_pre  = std::string("ExMoCap - ");
-        const auto str_post = std::string(state.project.project_path);
-        state.project.title = (new std::string(str_pre + str_post))->c_str();
+        const auto str_pre      = std::string("ExMoCap - ");
+        const auto str_post     = std::string(state.project.project_path);
+        state.project.title     = (new std::string(str_pre + str_post))->c_str();
+        state.project.brand_new = true;
 
         log->info("deserialization complete: {}", state.project.project_path);
     }
