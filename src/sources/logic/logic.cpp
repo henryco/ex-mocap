@@ -16,6 +16,11 @@ namespace ex::main {
 
     #define update_threshold 1000
 
+    void abort_(const char *msg) {
+        std::cerr << msg << std::endl;
+        std::abort();
+    }
+
     simple_list *get_head_(simple_list *node) {
         if (node == nullptr)
             return nullptr;
@@ -27,15 +32,7 @@ namespace ex::main {
         }
     }
 
-    Logic create_logic(State &state) {
-        Logic logic;
-        logic.initialize(state);
-        return logic;
-    }
-
-    void Logic::initialize(State &state) {
-        log->info("main logic initialization started");
-
+    void reset_internal_state_(State &state) {
         if (state.logic.work_tree != nullptr)
             delete state.logic.work_tree;
 
@@ -45,6 +42,18 @@ namespace ex::main {
         state.logic.work_tree->state      = node_state::is_group;
         state.logic.work_tree->name       = "root";
         state.logic.work_tree->children_n = 0;
+    }
+
+    Logic create_logic(State &state) {
+        Logic logic;
+        logic.initialize(state);
+        return logic;
+    }
+
+    void Logic::initialize(State &state) {
+        log->info("main logic initialization started");
+
+        reset_internal_state_(state);
 
         log->info("main logic initialization synchronization");
         synchronize_(state);
@@ -53,12 +62,15 @@ namespace ex::main {
 
     void Logic::run(State &state) {
         if (state.logic.work_tree == nullptr)
-            throw std::runtime_error("Logic::run: work tree is null");
+            abort_("Logic::run: work tree is null");
 
         if (state.project.should_create) {
+            log->info("create new project: {}", state.project.project_path);
             state.project.should_create = false;
-            std::cout << "should create: " << state.project.project_path << std::endl;
-            // TODO
+            reset_internal_state_(state);
+            synchronize_(state);
+            serialize_(state);
+            log->info("new project created: {}", state.project.project_path);
             return;
         }
 
