@@ -12,7 +12,7 @@ namespace ex::gui::actions::registry {
         return array;
     }
 
-    data::array<action> &reg_ = registry_();
+    static data::array<action> &reg_ = registry_();
 
     void set_action(const action_key_t key, const action_fn_t fn) {
         for (auto i = 0; i < reg_.size; i++) {

@@ -21,14 +21,14 @@ namespace ex::logic::state {
     }
 
     limbo::nodes::BaseNode *get_node(const id_local &id) {
-        auto &store = node_store_();
+        static auto &store = node_store_();
         if (!store.contains(id))
             return nullptr;
         return store[id];
     }
 
     void store_node(const id_local &id, limbo::nodes::BaseNode *node) {
-        auto &store = node_store_();
+        static auto &store = node_store_();
         if (!store.contains(id)) {
             store.emplace(id, node);
             inc_node_counter(id);
@@ -36,7 +36,7 @@ namespace ex::logic::state {
     }
 
     void replace_node(const id_local &id, limbo::nodes::BaseNode *node) {
-        auto &store = node_store_();
+        static auto &store = node_store_();
         if (store.contains(id)) {
             const auto base = store.at(id);
             store.erase(id);
@@ -48,7 +48,7 @@ namespace ex::logic::state {
     }
 
     void remove_node(const id_local &id) {
-        auto &store = node_store_();
+        static auto &store = node_store_();
         if (store.contains(id)) {
             const auto base = store.at(id);
             store.erase(id);
@@ -56,13 +56,13 @@ namespace ex::logic::state {
             delete base;
         }
 
-        auto &counter = node_counter_();
+        static auto &counter = node_counter_();
         if (counter.contains(id))
             counter.erase(id);
     }
 
     void inc_node_counter(const id_local &id) {
-        auto &counter = node_counter_();
+        static auto &counter = node_counter_();
         if (counter.contains(id)) {
             const auto v          = counter.at(id);
             counter.at(id) = std::min(v + 1, 10000000);
@@ -72,7 +72,7 @@ namespace ex::logic::state {
     }
 
     void cleanup_nodes() {
-        auto &counter = node_counter_();
+        static auto &counter = node_counter_();
         for (auto it = counter.begin(); it != counter.end(); /*nop*/) {
             const auto id_local = it->first;
             if (it->second <= 0) {
