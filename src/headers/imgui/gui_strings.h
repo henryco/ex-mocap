@@ -111,6 +111,10 @@ namespace ex::gui::strings {
     constexpr auto gui_dialogs_project_open_error_msg = "Invalid file type";
     constexpr auto gui_dialogs_project_open_error_ok  = "OK";
 
+    constexpr auto gui_dialogs_project_save_error     = "Error";
+    constexpr auto gui_dialogs_project_save_error_msg = "Invalid file name";
+    constexpr auto gui_dialogs_project_save_error_ok  = "OK";
+
     constexpr auto gui_dialogs_project_new           = "Create new project";
     constexpr auto gui_dialogs_project_new_accept    = "Create";
     constexpr auto gui_dialogs_project_new_alert     = "Create new project?";

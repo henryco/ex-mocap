@@ -7,6 +7,7 @@
 #include "../../../headers/imgui/gui_strings.h"
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/logic/logic_globals.h"
+#include "../../../headers/utils/file_utils.h"
 
 #include <simpfp.h>
 
@@ -47,9 +48,16 @@ namespace ex::gui {
                     save_path = std::filesystem::path(file);
                 }
 
-                if (std::filesystem::exists(save_path) && std::filesystem::is_regular_file(save_path)) {
+                if (ex::files::is_invalid_filename(save_path.filename().c_str()) ||
+                    ex::files::is_reserved_windows_name(save_path.filename().c_str())) {
+                    ImGui::OpenPopup(strings::gui_dialogs_project_save_error);
+                }
+
+                else if (std::filesystem::exists(save_path) && std::filesystem::is_regular_file(save_path)) {
                     ImGui::OpenPopup(strings::gui_dialogs_project_save_alert);
-                } else {
+                }
+
+                else {
                     state.project.project_path = file;
                     state.project.should_save  = true;
                     *open                      = false;
@@ -57,7 +65,10 @@ namespace ex::gui {
                 }
             }
 
-            if (show_yes_no_dialog(
+            if (show_alert_dialog(strings::gui_dialogs_project_save_error, strings::gui_dialogs_project_save_error_msg,
+                                  strings::gui_dialogs_project_save_error_ok)) {}
+
+            else if (show_yes_no_dialog(
                         strings::gui_dialogs_project_save_alert, strings::gui_dialogs_project_save_alert_msg,
                         strings::gui_dialogs_project_save_alert_yes, strings::gui_dialogs_project_save_alert_no)) {
                 state.project.project_path = file;
@@ -132,9 +143,16 @@ namespace ex::gui {
                     new_path = std::filesystem::path(file);
                 }
 
-                if (std::filesystem::exists(new_path) && std::filesystem::is_regular_file(new_path)) {
+                if (ex::files::is_invalid_filename(new_path.filename().c_str()) ||
+                    ex::files::is_reserved_windows_name(new_path.filename().c_str())) {
+                    ImGui::OpenPopup(strings::gui_dialogs_project_save_error);
+                }
+
+                else if (std::filesystem::exists(new_path) && std::filesystem::is_regular_file(new_path)) {
                     ImGui::OpenPopup(strings::gui_dialogs_project_save_alert);
-                } else {
+                }
+
+                else {
                     state.project.project_path  = file;
                     state.project.should_create = true;
                     *open                       = false;
@@ -142,7 +160,10 @@ namespace ex::gui {
                 }
             }
 
-            if (show_yes_no_dialog(strings::gui_dialogs_project_save_alert, strings::gui_dialogs_project_save_alert_msg,
+            if (show_alert_dialog(strings::gui_dialogs_project_save_error, strings::gui_dialogs_project_save_error_msg,
+                                  strings::gui_dialogs_project_save_error_ok)) {}
+
+            else if (show_yes_no_dialog(strings::gui_dialogs_project_save_alert, strings::gui_dialogs_project_save_alert_msg,
                                    strings::gui_dialogs_project_save_alert_yes,
                                    strings::gui_dialogs_project_save_alert_no)) {
                 state.project.project_path  = file;

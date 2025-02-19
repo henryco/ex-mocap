@@ -4,9 +4,10 @@
 
 #include "../../headers/utils/file_utils.h"
 
+#include <cctype>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 
 namespace ex::files {
 
@@ -45,6 +46,42 @@ namespace ex::files {
 
         file.close();
         return buffer;
+    }
+
+    bool is_invalid_filename(const char* filename) {
+        if (filename == nullptr || *filename == '\0')
+            return true;
+
+        static auto invalid_chars = "<>:\"/\\|?*";
+        for (const char* p = filename; *p; ++p) {
+            if (strchr(invalid_chars, *p))
+                return true;
+        }
+
+        return false;
+    }
+
+    bool is_reserved_windows_name(const char* filename) {
+        static const char* reserved_names[] = {
+            "CON", "PRN", "AUX", "NUL",
+            "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+            "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+        };
+
+        char name_only[256] = {};
+        const size_t len = strcspn(filename, ".");
+        strncpy(name_only, filename, len);
+        name_only[len] = '\0';
+
+        for (char* p = name_only; *p; ++p)
+            *p = static_cast<char>(toupper(*p));
+
+        for (const char* reserved : reserved_names) {
+            if (strcmp(name_only, reserved) == 0)
+                return true;
+        }
+
+        return false;
     }
 
 }

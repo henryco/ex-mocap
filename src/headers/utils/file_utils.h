@@ -11,6 +11,10 @@ namespace ex::files {
 
     unsigned char *read_binary_file(const char *path, long unsigned int *size);
 
+    bool is_invalid_filename(const char* filename);
+
+    bool is_reserved_windows_name(const char* filename);
+
 }
 
 #endif //FILE_UTILS_H
