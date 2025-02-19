@@ -32,13 +32,9 @@ namespace ex::gui {
         static char file[256];
         if (simpfp::ShowFileDialog(strings::gui_dialogs_project_save, open, min_size, true)) {
 
-            const char *postfix = nullptr;
-            if (static int idx; simpfp::FilterSelected(&idx)) {
-                if (filters_[idx] == EXTENSION_DEFAULT)
-                    postfix = ".exprj";
-                else
-                    postfix = "";
-            }
+            auto postfix = "";
+            if (static int idx; simpfp::FilterSelected(&idx))
+                postfix = filters_[idx] + 1;
 
             if (simpfp::FileAccepted(file, sizeof(file))) {
                 std::filesystem::path save_path(file);
@@ -127,13 +123,9 @@ namespace ex::gui {
         static char file[256];
         if (simpfp::ShowFileDialog(strings::gui_dialogs_project_new, open, min_size, true)) {
 
-            const char *postfix = nullptr;
-            if (static int idx; simpfp::FilterSelected(&idx)) {
-                if (filters_[idx] == EXTENSION_DEFAULT)
-                    postfix = ".exprj";
-                else
-                    postfix = "";
-            }
+            auto postfix = "";
+            if (static int idx; simpfp::FilterSelected(&idx))
+                postfix = filters_[idx] + 1;
 
             if (simpfp::FileAccepted(file, sizeof(file))) {
                 std::filesystem::path new_path(file);
