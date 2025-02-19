@@ -3,10 +3,6 @@
     git clone \
         --recurse-submodules \
         git@github.com:henryco/ex-mocap.git
-    
-    cd external/imgui
-    
-    git checkout docking
 ```
 
 ### Dependencies
