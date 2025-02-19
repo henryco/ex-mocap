@@ -5,8 +5,6 @@
 #include "../../headers/imgui/gui_globals.h"
 #include "../../headers/imgui/gui_strings.h"
 
-#include "../../headers/imgui/components/test_cmp.h"
-
 namespace ex::gui {
 
     GuiState &state() {
@@ -26,25 +24,6 @@ namespace ex::gui {
 
     actions::keys::Mappings &key_mappings() {
         static actions::keys::Mappings instance;
-        return instance;
-    }
-
-    const data::map<std::size_t, gui::GuiNodeComponent> &node_components() {
-        // TODO REPLACE WITH REAL COMPONENTS
-        static bool fist_time = true;
-        static data::map<std::size_t, gui::GuiNodeComponent> instance;
-
-        if (fist_time) {
-            instance.put(0, ex::gui::test::one::gui_mappers);
-            instance.put(1, ex::gui::test::tri::gui_mappers);
-            instance.put(2, ex::gui::test::two::gui_mappers);
-            instance.put(3, ex::gui::test::one::gui_mappers);
-            instance.put(4, ex::gui::test::tri::gui_mappers);
-            instance.put(5, ex::gui::test::two::gui_mappers);
-            instance.put(6, ex::gui::test::one::gui_mappers);
-            fist_time = false;
-        }
-
         return instance;
     }
 

@@ -13,7 +13,6 @@
 namespace ex::logic::globals {
 
     using id_type  = std::uint64_t;
-    using id_local = std::uint32_t;
 
     State &state();
 

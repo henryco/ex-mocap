@@ -15,6 +15,8 @@
 
 namespace ex::gui {
 
+    using id_type  = std::uint64_t;
+
     GuiState &state();
 
     logs::logger &logger();
@@ -23,7 +25,7 @@ namespace ex::gui {
 
     limbo::undo::history<ex::State> &undo_history();
 
-    const data::map<std::size_t, gui::GuiNodeComponent> &node_components();
+    const data::map<id_type, gui::GuiNodeComponent> &node_components();
 
 }
 
