@@ -14,59 +14,71 @@
 namespace work_tree::internals_ {
     static const auto &mappers_ = ex::gui::node_components();
 
-    using cached_data = ex::data::entry<std::uint64_t, ex::gui::GuiNodeComponent>;
+    struct cache_line {
+        ex::data::array<ex::gui::GuiNodeComponent> store_data  = 10;
+        ex::data::array<std::uint64_t>             store_id    = 10;
+        std::int32_t                               index       = 0;
+        bool                                       evicted     = false;
+        bool                                       initialized = false;
 
-    struct linear_cache {
-        ex::data::array<cached_data> store       = 10;
-        std::int32_t                 index       = 0;
-        bool                         mismatch    = false;
-        bool                         initialized = false;
+        const ex::gui::GuiNodeComponent &operator[](const std::uint64_t &id) {
+            if (initialized)
+                return store_data[index++];
 
-        const ex::gui::GuiNodeComponent &operator [] (const std::uint64_t &id) {
-            if (mismatch) {
+            auto &element = mappers_[id];
+            store_id.push(id);
+            store_data.push(element);
+            return element;
+        }
+
+        const ex::gui::GuiNodeComponent &operator()(const std::uint64_t &id) {
+            if (evicted) {
                 return mappers_[id];
             }
 
             if (!initialized) {
                 auto &element = mappers_[id];
-                store.push({ id, element });
+                store_id.push(id);
+                store_data.push(element);
                 return element;
             }
 
-            const auto &data = store[index++];
-            if (data.key != id) {
-                mismatch = true;
-                std::cerr << "Cache mismatch: " << data.key << " != " << id << '\n';
+            if (store_data.size >= index) {
+                evicted = true;
+                std::cerr << "Cache mismatch: cache line to small" << '\n';
                 return mappers_[id];
             }
 
-            return data.element;
+            const auto &fetched_id = store_id[index];
+            if (fetched_id != id) {
+                evicted = true;
+                std::cerr << "Cache mismatch: " << fetched_id << " != " << id << '\n';
+                return mappers_[id];
+            }
+
+            return store_data[index++];
         }
 
         void begin() {
-            if (mismatch) {
-                reset();
-                return;
-            }
+            evicted = false;
             index = 0;
         }
 
         void end() {
-            if (mismatch)
-                return;
             initialized = true;
+            if (evicted)
+                reset();
         }
 
         void reset() {
-            initialized = false;
-            mismatch    = false;
-            store.size  = 0;
-            index       = 0;
+            initialized     = false;
+            index           = 0;
+            store_data.size = 0;
+            store_id.size   = 0;
         }
-
     };
 
-    static linear_cache cache; // TODO
+    static cache_line cache; // TODO
 
 }
 
@@ -431,8 +443,6 @@ namespace ex::gui {
 
         int counter_i = counter;
 
-        std::cout << "c: " << counter_i << '\n';
-
         if (!(node->state >>= node_state::is_group)) {
             // Not a group just regular element
 
@@ -527,7 +537,8 @@ namespace ex::gui {
                 // Regular element but it has children
                 const auto next = node->children[0];
                 for (int i = 0, u = 0; i < next->children_n; i++) {
-                    counter_i = show_tree_node(state, gui, next->children[i], selected, active, menu_node, ref_node,
+                    counter_i = show_tree_node(state, gui, next->children[i],
+                        selected, active, menu_node, ref_node,
                                                disabled || disabled_ || dimmed, counter_i + 1, u);
                     u += !(next->children[i]->state >>= node_state::disabled);
                 }
@@ -637,7 +648,8 @@ namespace ex::gui {
                 int u = disabled ? 0 : 1;
                 if (node->children_n > 1) {
                     for (int i = 1; i < node->children_n; i++) {
-                        counter_i = show_tree_node(state, gui, node->children[i], selected, active, menu_node, ref_node,
+                        counter_i = show_tree_node(state, gui, node->children[i],
+                            selected, active, menu_node, ref_node,
                                                    disabled_, counter_i + 1, u);
                         u += !(node->children[i]->state >>= node_state::disabled);
                     }
@@ -653,7 +665,8 @@ namespace ex::gui {
         // Group with children, where the first element _HAS_ its own children
         const ImVec2 outer_start = brackets_start();
         for (int i = 0, u = 0; i < node->children_n; i++) {
-            counter_i = show_tree_node(state, gui, node->children[i], selected, active, menu_node, ref_node, disabled_,
+            counter_i = show_tree_node(state, gui, node->children[i],
+                selected, active, menu_node, ref_node, disabled_,
                                        counter_i + 1, u);
             u += !(node->children[i]->state >>= node_state::disabled);
         }
@@ -692,7 +705,6 @@ namespace ex::gui {
             const std::size_t  prev_menu   = last_menu;
             TreeNode          *active_node = nullptr;
 
-            std::cout << '\n';
             ImGui::Indent(10.f);
             for (int i = 0, p = 0; i < state.logic.work_tree->children_n; i++) {
                 p = show_tree_node(state, gui, state.logic.work_tree->children[i], &tree_state.selection,
