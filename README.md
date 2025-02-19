@@ -7,11 +7,13 @@
 
 ### Dependencies
 - [IconFontCppHeaders](https://github.com/juliettef/IconFontCppHeaders) (external/iconfontcppheaders)
+- [LucideIcons](https://github.com/lucide-icons/lucide) (external/lucide)
 - [OnnxRuntime](https://github.com/microsoft/onnxruntime) (external/onnxruntime)
 - [Argparse](https://github.com/p-ranav/argparse#positional-arguments) (external/argparse)
+- [Doctest](https://github.com/doctest/doctest) (external/doctest)
 - [SimpFp](https://github.com/henryco/simpfp) (external/simpfp)
 - [ImGui](https://github.com/ocornut/imgui) (external/imgui)
-- [Glm](https://github.com/g-truc/glm) (external/glm)
+- [GLM](https://github.com/g-truc/glm) (external/glm)
 - [Spdlog](https://github.com/gabime/spdlog)
 - [OpenCV](https://opencv.org/get-started)
 - [OpenCL](https://www.khronos.org/opencl/)
