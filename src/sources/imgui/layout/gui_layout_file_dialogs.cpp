@@ -11,9 +11,10 @@
 #include <simpfp.h>
 
 namespace ex::gui {
+    constexpr auto EXTENSION_DEFAULT = "*.exprj";
+    constexpr auto EXTENSION_ALL     = "*";
 
-    static const char *filters_[] = { "*.exprj", "*", nullptr };
-    // TODO FIXME COLUMN AND BUTTON SIZE FOR FILEPICKER
+    static const char *filters_[] = { EXTENSION_DEFAULT, EXTENSION_ALL, nullptr };
 
     void show_save_file_picker_(bool *open, ex::State &state) {
         if (open == nullptr || !*open)
@@ -30,13 +31,25 @@ namespace ex::gui {
         static char file[256];
         if (simpfp::ShowFileDialog(strings::gui_dialogs_project_save, open, min_size, true)) {
 
+            const char *postfix = nullptr;
+            if (static int idx; simpfp::FilterSelected(&idx)) {
+                if (filters_[idx] == EXTENSION_DEFAULT)
+                    postfix = ".exprj";
+                else
+                    postfix = "";
+            }
+
             if (simpfp::FileAccepted(file, sizeof(file))) {
-                const std::filesystem::path save_path(file);
+                std::filesystem::path save_path(file);
+
+                if (!save_path.has_extension() && (sizeof(file) - strlen(file) > strlen(postfix) + 1)) {
+                    std::strcat(file, postfix);
+                    save_path = std::filesystem::path(file);
+                }
 
                 if (std::filesystem::exists(save_path) && std::filesystem::is_regular_file(save_path)) {
                     ImGui::OpenPopup(strings::gui_dialogs_project_save_alert);
                 } else {
-                    // TODO ADD POSTFIX IF NOT PRESENT
                     state.project.project_path = file;
                     state.project.should_save  = true;
                     *open                      = false;
@@ -47,7 +60,6 @@ namespace ex::gui {
             if (show_yes_no_dialog(
                         strings::gui_dialogs_project_save_alert, strings::gui_dialogs_project_save_alert_msg,
                         strings::gui_dialogs_project_save_alert_yes, strings::gui_dialogs_project_save_alert_no)) {
-                // TODO ADD POSTFIX IF NOT PRESENT
                 state.project.project_path = file;
                 state.project.should_save  = true;
                 *open                      = false;
@@ -103,13 +115,26 @@ namespace ex::gui {
 
         static char file[256];
         if (simpfp::ShowFileDialog(strings::gui_dialogs_project_new, open, min_size, true)) {
+
+            const char *postfix = nullptr;
+            if (static int idx; simpfp::FilterSelected(&idx)) {
+                if (filters_[idx] == EXTENSION_DEFAULT)
+                    postfix = ".exprj";
+                else
+                    postfix = "";
+            }
+
             if (simpfp::FileAccepted(file, sizeof(file))) {
-                const std::filesystem::path new_path(file);
+                std::filesystem::path new_path(file);
+
+                if (!new_path.has_extension() && (sizeof(file) - strlen(file) > strlen(postfix) + 1)) {
+                    std::strcat(file, postfix);
+                    new_path = std::filesystem::path(file);
+                }
+
                 if (std::filesystem::exists(new_path) && std::filesystem::is_regular_file(new_path)) {
                     ImGui::OpenPopup(strings::gui_dialogs_project_save_alert);
-                }
-                else {
-                    // TODO ADD POSTFIX IF NOT PRESENT
+                } else {
                     state.project.project_path  = file;
                     state.project.should_create = true;
                     *open                       = false;
@@ -120,7 +145,6 @@ namespace ex::gui {
             if (show_yes_no_dialog(strings::gui_dialogs_project_save_alert, strings::gui_dialogs_project_save_alert_msg,
                                    strings::gui_dialogs_project_save_alert_yes,
                                    strings::gui_dialogs_project_save_alert_no)) {
-                // TODO ADD POSTFIX IF NOT PRESENT
                 state.project.project_path  = file;
                 state.project.should_create = true;
                 *open                       = false;

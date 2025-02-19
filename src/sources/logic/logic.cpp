@@ -97,7 +97,13 @@ namespace ex::main {
         reset_internal_state_(state);
         synchronize_(state);
         serialize_(state);
-        state.project.brand_new = true;
+
+        const auto str_pre        = std::string("ExMoCap - ");
+        const auto str_post       = std::string(state.project.project_path);
+        state.project.title       = (new std::string(str_pre + str_post))->c_str();
+        state.project.brand_new   = true;
+        state.project.has_changes = false;
+
         log->info("new project created: {}", state.project.project_path);
     }
 
@@ -106,7 +112,13 @@ namespace ex::main {
         auto bytes = io::bytes::ByteSerializer().serialize(&state);
         ex::files::write_binary_file(state.project.project_path, bytes.data, bytes.size);
         io::byte_array::free(bytes);
+
+        const auto str_pre        = std::string("ExMoCap - ");
+        const auto str_post       = std::string(state.project.project_path);
+        state.project.title       = (new std::string(str_pre + str_post))->c_str();
+        state.project.brand_new   = false;
         state.project.has_changes = false;
+
         log->info("serialization complete: {}", state.project.project_path);
     }
 
@@ -139,12 +151,12 @@ namespace ex::main {
         delete[] data;
 
         synchronize_(state);
-        state.project.has_changes = false;
 
-        const auto str_pre      = std::string("ExMoCap - ");
-        const auto str_post     = std::string(state.project.project_path);
-        state.project.title     = (new std::string(str_pre + str_post))->c_str();
-        state.project.brand_new = true;
+        const auto str_pre        = std::string("ExMoCap - ");
+        const auto str_post       = std::string(state.project.project_path);
+        state.project.title       = (new std::string(str_pre + str_post))->c_str();
+        state.project.brand_new   = true;
+        state.project.has_changes = false;
 
         log->info("deserialization complete: {}", state.project.project_path);
     }
