@@ -4,6 +4,7 @@
 [submodule "external/imgui"]
 	path = external/imgui
 	url = git@github.com:ocornut/imgui.git
+	branch = docking
 [submodule "external/onnxruntime"]
 	path = external/onnxruntime
 	url = git@github.com:microsoft/onnxruntime.git
