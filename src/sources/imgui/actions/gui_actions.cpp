@@ -82,6 +82,12 @@ namespace ex::gui::actions {
         undo_history().apply(&ex::logic::globals::state());
     }
 
+    void pin_unpin_layout_action() {
+        GuiState &gui      = ex::gui::state();
+        gui.view.docking   = !gui.view.docking;
+        gui.window.resized = true;
+    }
+
     void about_action() {
         // TODO
     }

@@ -31,6 +31,8 @@ namespace ex::gui::actions {
 
     void show_action_dialogs();
 
+    void pin_unpin_layout_action();
+
 }
 
 #endif //GUI_ACTIONS_H

@@ -43,14 +43,15 @@ namespace ex::gui {
     }
 
     void register_default_shortcuts_() {
-        static const auto &[file, history, work_tree] = key_mappings();
+        static const auto &[file, history, work_tree, layout] = key_mappings();
         actions::registry::set_action(file.create.key, &actions::new_action);
         actions::registry::set_action(file.open.key, &actions::open_action);
         actions::registry::set_action(file.save.key, &actions::save_action);
+        actions::registry::set_action(file.exit.key, &actions::exit_action);
         actions::registry::set_action(file.save_as.key, &actions::save_as_action);
         actions::registry::set_action(history.undo.key, &actions::undo_action);
         actions::registry::set_action(history.redo.key, &actions::redo_action);
-        actions::registry::set_action(file.exit.key, &actions::exit_action);
+        actions::registry::set_action(layout.pin.key, &actions::pin_unpin_layout_action);
     }
 
     void process_shortcuts_() {

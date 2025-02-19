@@ -37,7 +37,7 @@ namespace ex::gui {
         if (ImGui::BeginMenuBar()) {
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 6.0f));
 
-            const auto &[file, history, work_tree] = key_mappings();
+            const auto &[file, history, work_tree, layout] = key_mappings();
 
             if (ImGui::BeginMenu(strings::menu_top_file)) {
 
@@ -105,9 +105,9 @@ namespace ex::gui {
 
             if (ImGui::BeginMenu(strings::menu_top_view)) {
 
-                if (ImGui::MenuItem(strings::menu_top_view_unpin, nullptr, &gui.view.docking)) {
-                    gui.window.resized = true;
-                    logger()->debug("unpin windows: {}", gui.view.docking);
+                bool docked = gui.view.docking;
+                if (ImGui::MenuItem(strings::menu_top_view_unpin, layout.pin.label, &docked)) {
+                    actions::pin_unpin_layout_action();
                 }
 
                 ImGui::Separator();

@@ -37,6 +37,10 @@ namespace ex::gui::actions::keys {
             Op duplicate = { "C-d", ImGuiMod_Ctrl | ImGuiKey_D };
             Op deletion  = { "Delete", ImGuiKey_Delete };
         } work_tree;
+
+        struct {
+            Op pin = { "C-u", ImGuiMod_Ctrl | ImGuiKey_U };
+        } layout;
     };
 
 }
