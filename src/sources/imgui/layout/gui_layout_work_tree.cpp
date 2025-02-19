@@ -9,6 +9,66 @@
 #include "../../../headers/imgui/tree/gui_tree_menu.h"
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
 #include "../../../headers/logic/logic_globals.h"
+#include "../../../headers/utils/data_utils.h"
+
+namespace work_tree::internals_ {
+    static const auto &mappers_ = ex::gui::node_components();
+
+    using cached_data = ex::data::entry<std::uint64_t, ex::gui::GuiNodeComponent>;
+
+    struct linear_cache {
+        ex::data::array<cached_data> store       = 10;
+        std::int32_t                 index       = 0;
+        bool                         mismatch    = false;
+        bool                         initialized = false;
+
+        const ex::gui::GuiNodeComponent &operator [] (const std::uint64_t &id) {
+            if (mismatch) {
+                return mappers_[id];
+            }
+
+            if (!initialized) {
+                auto &element = mappers_[id];
+                store.push({ id, element });
+                return element;
+            }
+
+            const auto &data = store[index++];
+            if (data.key != id) {
+                mismatch = true;
+                std::cerr << "Cache mismatch: " << data.key << " != " << id << '\n';
+                return mappers_[id];
+            }
+
+            return data.element;
+        }
+
+        void begin() {
+            if (mismatch) {
+                reset();
+                return;
+            }
+            index = 0;
+        }
+
+        void end() {
+            if (mismatch)
+                return;
+            initialized = true;
+        }
+
+        void reset() {
+            initialized = false;
+            mismatch    = false;
+            store.size  = 0;
+            index       = 0;
+        }
+
+    };
+
+    static linear_cache cache; // TODO
+
+}
 
 namespace ex::gui {
 
@@ -371,6 +431,8 @@ namespace ex::gui {
 
         int counter_i = counter;
 
+        std::cout << "c: " << counter_i << '\n';
+
         if (!(node->state >>= node_state::is_group)) {
             // Not a group just regular element
 
@@ -630,6 +692,7 @@ namespace ex::gui {
             const std::size_t  prev_menu   = last_menu;
             TreeNode          *active_node = nullptr;
 
+            std::cout << '\n';
             ImGui::Indent(10.f);
             for (int i = 0, p = 0; i < state.logic.work_tree->children_n; i++) {
                 p = show_tree_node(state, gui, state.logic.work_tree->children[i], &tree_state.selection,
