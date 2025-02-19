@@ -161,8 +161,9 @@ namespace ex::gui::tree {
     }
 
     TreeNode *create_node_from_menu(State &state, GuiState &gui) {
-        for (int i = 0; i < tm::node_mappers_.entries.size; ++i) {
-            const auto &[type_id, mapper] = tm::node_mappers_.entries[i];
+        for (int i = 0; i < tm::node_mappers_.key_entries.size; ++i) {
+            const auto &type_id = tm::node_mappers_.key_entries[i];
+            const auto &mapper  = tm::node_mappers_.val_entries[i];
             ImGui::PushID(type_id);
             if (ImGui::MenuItem(mapper.get_node_name(gui, state) )) {
                 ImGui::PopID();

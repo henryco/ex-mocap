@@ -101,36 +101,38 @@ namespace ex::data {
 
     template<typename key_t, typename element_t>
     struct map { // linear time map, perfect for small data sets
-        array<entry<key_t, element_t>> entries;
+
+        array<key_t>     key_entries;
+        array<element_t> val_entries;
 
         map() = default;
 
-        map(int capacity): entries(capacity) {}
+        map(int capacity) : key_entries(capacity), val_entries(capacity) {}
 
         void put(const key_t &key, const element_t &element) {
-            for (int i = 0; i < entries.size; ++i) {
-                if (entries[i].key == key) {
-                    entries[i].element = element;
+            for (int i = 0; i < key_entries.size; ++i) {
+                if (key_entries[i] == key) {
+                    val_entries[i] = element;
                     return;
                 }
             }
-            entries.push({key, element});
+            key_entries.push(key);
+            val_entries.push(element);
         }
 
         element_t &operator [] (const key_t &key) {
-            for (int i = 0; i < entries.size; ++i) {
-                if (entries[i].key == key)
-                    return entries[i].element;
+            for (int i = 0; i < key_entries.size; ++i) {
+                if (key_entries[i] == key)
+                    return val_entries[i];
             }
             abort();
         }
 
         const element_t &operator [] (const key_t &key) const {
-            for (int i = 0; i < entries.size; ++i) {
-                if (entries[i].key == key)
-                    return entries[i].element;
+            for (int i = 0; i < key_entries.size; ++i) {
+                if (key_entries[i] == key)
+                    return val_entries[i];
             }
-
             abort();
         }
 
@@ -143,24 +145,25 @@ namespace ex::data {
         }
 
         bool contains(const key_t &key) const {
-            for (int i = 0; i < entries.size; ++i) {
-                if (entries[i].key == key)
+            for (int i = 0; i < key_entries.size; ++i) {
+                if (key_entries[i] == key)
                     return true;
             }
             return false;
         }
 
         void remove(const key_t &key) {
-            for (int i = 0; i < entries.size; ++i) {
-                if (entries[i].key == key) {
-                    entries.swap_remove(i);
+            for (int i = 0; i < key_entries.size; ++i) {
+                if (key_entries[i] == key) {
+                    key_entries.swap_remove(i);
+                    val_entries.swap_remove(i);
                     return;
                 }
             }
         }
 
         bool empty() const {
-            return entries.empty();
+            return key_entries.empty();
         }
     };
 

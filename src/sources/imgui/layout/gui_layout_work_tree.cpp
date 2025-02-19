@@ -3,7 +3,6 @@
 //
 
 #include <IconsLucide.h>
-#include <oneapi/tbb/partitioner.h>
 
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
@@ -16,19 +15,19 @@ namespace work_tree::internals_ {
     static const auto &mappers_ = ex::gui::node_components();
 
     struct cache_line {
-        ex::data::array<ex::gui::GuiNodeComponent> store_data  = 10;
-        ex::data::array<std::uint64_t>             store_id    = 10;
-        std::int32_t                               index       = 0;
-        bool                                       evicted     = false;
-        bool                                       initialized = false;
+        ex::data::array<const ex::gui::GuiNodeComponent *> store_data  = 10;
+        ex::data::array<std::uint64_t>              store_id    = 10;
+        std::int32_t                                index       = 0;
+        bool                                        evicted     = false;
+        bool                                        initialized = false;
 
         const ex::gui::GuiNodeComponent &operator[](const std::uint64_t &id) {
             if (initialized)
-                return store_data[index++];
+                return *store_data[index++];
 
-            auto &element = mappers_[id];
+            const auto &element = mappers_[id];
             store_id.push(id);
-            store_data.push(element);
+            store_data.push(&element);
             return element;
         }
 
@@ -38,26 +37,24 @@ namespace work_tree::internals_ {
             }
 
             if (!initialized) {
-                auto &element = mappers_[id];
+                const auto &element = mappers_[id];
                 store_id.push(id);
-                store_data.push(element);
+                store_data.push(&element);
                 return element;
             }
 
-            if (store_data.size >= index) {
+            if (store_data.size <= index) {
                 evicted = true;
-                std::cerr << "Cache mismatch: cache line to small" << '\n';
                 return mappers_[id];
             }
 
             const auto &fetched_id = store_id[index];
             if (fetched_id != id) {
                 evicted = true;
-                std::cerr << "Cache mismatch: " << fetched_id << " != " << id << '\n';
                 return mappers_[id];
             }
 
-            return store_data[index++];
+            return *store_data[index++];
         }
 
         void begin() {
@@ -461,10 +458,11 @@ namespace ex::gui {
 
             ImGui::PushID(node->id_local);
 
-            const auto &mapper       = wt::node_mappers_[node->id_node];
-            const bool  is_nested_   = node->children_n > 0;
-            const bool  is_selected_ = node->state >>= node_state::selected;
+//            const auto &mapper       = wt::node_mappers_[node->id_node];
+            const auto &mapper       = work_tree::internals_::cache(node->id_node);
 
+            const bool is_nested_   = node->children_n > 0;
+            const bool is_selected_ = node->state >>= node_state::selected;
             const bool open = mapper.draw_tree_node(gui, state, node, is_nested_, is_selected_);
 
             if (ImGui::IsItemHovered())
@@ -591,9 +589,10 @@ namespace ex::gui {
 
                 ImGui::PushID(first->id_local);
 
-                const auto &mapper       = wt::node_mappers_[first->id_node];
-                const bool  is_selected_ = first->state >>= node_state::selected;
+//                const auto &mapper       = wt::node_mappers_[first->id_node];
+                const auto &mapper       = work_tree::internals_::cache(first->id_node);
 
+                const bool is_selected_ = first->state >>= node_state::selected;
                 mapper.draw_tree_node(gui, state, first, false, is_selected_);
 
                 if (ImGui::IsItemHovered())
@@ -713,10 +712,12 @@ namespace ex::gui {
             TreeNode          *active_node = nullptr;
 
             ImGui::Indent(10.f);
+            work_tree::internals_::cache.begin();
             for (int i = 0, p = 0; i < state.logic.work_tree->children_n; i++) {
                 p = show_tree_node(state, gui, state.logic.work_tree->children[i], &tree_state.selection,
                     &active_node, &last_menu, &last_ref, false, p + 1, i);
             }
+            work_tree::internals_::cache.end();
             ImGui::Unindent(10.f);
 
             if (active_node != nullptr) {
