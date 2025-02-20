@@ -10,7 +10,7 @@ namespace ex::time {
         t0 = std::chrono::high_resolution_clock::now();
     }
 
-    void measure_avg::stop() {
+    bool measure_avg::stop() {
         const long elapsed = std::chrono::nanoseconds(std::chrono::high_resolution_clock::now() - t0).count();
 
         accumulated += elapsed;
@@ -20,10 +20,11 @@ namespace ex::time {
             avg_result = static_cast<double>(accumulated) / static_cast<double>(counter);
             accumulated = elapsed;
             counter = 1;
-            return;
+            return true;
         }
 
         avg_result = 0;
+        return false;
     }
 
     float measure_avg::result() const {

@@ -28,7 +28,7 @@ namespace ex::time {
 
         void start();
 
-        void stop();
+        bool stop();
 
         float result() const;
 

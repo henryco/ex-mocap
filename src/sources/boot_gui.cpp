@@ -7,6 +7,7 @@
 #include "../headers/logic/logic.h"
 #include "../headers/logic/logic_globals.h"
 #include "../headers/imgui/gui_globals.h"
+#include "../headers/utils/time_utils.h"
 #include "../headers/utils/gl_utils.h"
 #include "../headers/cl/cl_gl_interop.h"
 
@@ -144,6 +145,10 @@ namespace ex::boot {
         log->info("Initialization complete");
 
         while (true) {
+//            static ex::time::measure_avg timing = 1000;
+//            timing.start();
+            // ==========================================================
+
             if (gui.should_close())
                 break;
 
@@ -153,6 +158,10 @@ namespace ex::boot {
             update_history(state);
             update_title(state);
             update_gui(gui, state, window);
+
+            // ==========================================================
+//            if (timing.stop())
+//                std::cout << "avg_t: " << static_cast<int>(timing.result()) << std::endl;
         }
 
         if (state.cl.context != nullptr)
