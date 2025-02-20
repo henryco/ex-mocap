@@ -2,9 +2,9 @@
 // Created by xd on 17/12/24.
 //
 
+#include "../../headers/utils/time_utils.h"
 #include "../../headers/utils/data_utils.h"
 #include "../../headers/utils/file_utils.h"
-#include "../../headers/logic/components/c_camera.h"
 #include "../../headers/logic/io/byte_serializer.h"
 #include "../../headers/logic/logic_globals.h"
 #include "../../headers/logic/logic_state.h"
@@ -32,7 +32,7 @@ namespace internal_ {
         return &ptr_counter_map[id];
     }
 
-    static ex::data::cache_line cache(fetch_, 10);
+    static ex::data::cache_line cache = fetch_;
 }
 
 namespace ex::main {
@@ -201,25 +201,16 @@ namespace ex::main {
 
         bool rewire = state.logic.rewire;
 
-//        static long counter_avg = 0;
-//        static int  counter_i   = 0;
-//        const auto t0 = std::chrono::high_resolution_clock::now();
+//        static ex::time::measure_avg timing = 1000;
+//        timing.start();
 
         internal_::cache.begin();
-
         traverse_(state, state.logic.work_tree, &rewire, false);
-
         internal_::cache.end();
 
-//        const auto tt = std::chrono::nanoseconds(std::chrono::high_resolution_clock::now() - t0).count();
-//        counter_avg += tt;
-//        counter_i += 1;
-//        const float average_t = static_cast<float>(counter_avg) / static_cast<float>(counter_i);
-//        if (counter_i >= 1000) {
-//            std::cout << "t: " << average_t << '\n';
-//            counter_avg = tt;
-//            counter_i   = 1;
-//        }
+//        timing.stop();
+//        if (const float avg_t = timing.result())
+//            std::cout << "avg_t: " << avg_t << std::endl;
 
         static bool gc_run = false;
 

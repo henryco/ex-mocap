@@ -22,6 +22,13 @@ namespace ex::data {
             this->size = size;
         }
 
+        ~buffer() {
+            if (this->data != nullptr)
+                std::free(this->data);
+            this->data = nullptr;
+            this->size = 0;
+        }
+
         void allocate(const long &size) {
             if (size <= this->size)
                 return;
@@ -33,13 +40,6 @@ namespace ex::data {
                 this->data = static_cast<element_t *>(realloc(this->data, size * sizeof(element_t)));
                 this->size = size;
             }
-        }
-
-        ~buffer() {
-            if (this->data != nullptr)
-                std::free(this->data);
-            this->data = nullptr;
-            this->size = 0;
         }
     };
 

@@ -140,6 +140,7 @@ set(HEADER_FILES
         src/headers/imgui/actions/gui_actions_keymap.h
         src/headers/imgui/actions/gui_actions.h
         src/headers/utils/data_utils.h
+        src/headers/utils/time_utils.h
 )
 
 set(SOURCE_FILES
@@ -184,6 +185,7 @@ set(SOURCE_FILES
         src/sources/imgui/layout/gui_layout_alert_dialogs.cpp
         src/sources/logic/components/registry.cpp
         src/sources/imgui/components/registry.cpp
+        src/sources/utils/time_utils.cpp
 )
 
 # =================== OpenCL kernels generation =====================
