@@ -233,6 +233,7 @@ namespace ex::data {
 
         void reset() {
             initialized     = false;
+            evicted         = true;
             index           = 0;
             store_data.size = 0;
             store_id.size   = 0;
