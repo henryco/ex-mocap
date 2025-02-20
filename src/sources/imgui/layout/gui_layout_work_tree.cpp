@@ -14,69 +14,11 @@
 namespace work_tree::internals_ {
     static const auto &mappers_ = ex::gui::node_components();
 
-    struct cache_line {
-        ex::data::array<const ex::gui::GuiNodeComponent *> store_data  = 10;
-        ex::data::array<std::uint64_t>              store_id    = 10;
-        std::int32_t                                index       = 0;
-        bool                                        evicted     = false;
-        bool                                        initialized = false;
+    inline const ex::gui::GuiNodeComponent *fetch_(const std::uint64_t &key) {
+        return &mappers_[key];
+    }
 
-        const ex::gui::GuiNodeComponent &operator[](const std::uint64_t &id) {
-            if (initialized)
-                return *store_data[index++];
-
-            const auto &element = mappers_[id];
-            store_id.push(id);
-            store_data.push(&element);
-            return element;
-        }
-
-        const ex::gui::GuiNodeComponent &operator()(const std::uint64_t &id) {
-            if (evicted) {
-                return mappers_[id];
-            }
-
-            if (!initialized) {
-                const auto &element = mappers_[id];
-                store_id.push(id);
-                store_data.push(&element);
-                return element;
-            }
-
-            if (store_data.size <= index) {
-                evicted = true;
-                return mappers_[id];
-            }
-
-            const auto &fetched_id = store_id[index];
-            if (fetched_id != id) {
-                evicted = true;
-                return mappers_[id];
-            }
-
-            return *store_data[index++];
-        }
-
-        void begin() {
-            evicted = false;
-            index = 0;
-        }
-
-        void end() {
-            initialized = true;
-            if (evicted)
-                reset();
-        }
-
-        void reset() {
-            initialized     = false;
-            index           = 0;
-            store_data.size = 0;
-            store_id.size   = 0;
-        }
-    };
-
-    static cache_line cache; // TODO
+    static ex::data::cache_line cache (fetch_, 10);
 
 }
 
@@ -92,11 +34,7 @@ namespace ex::gui {
     constexpr auto col_purple = IM_COL32(255, 0, 255, 255);
     constexpr auto vec_purple = ImVec4(255, 0, 255, 255);
 
-    constexpr auto dnd_type = "node";
-
-    namespace wt {
-        const auto &node_mappers_ = node_components();
-    }
+    static constexpr auto dnd_type = "node";
 
     void highlight_border() {
         constexpr auto off       = 3.f;
@@ -458,8 +396,8 @@ namespace ex::gui {
 
             ImGui::PushID(node->id_local);
 
-//            const auto &mapper       = wt::node_mappers_[node->id_node];
-            const auto &mapper       = work_tree::internals_::cache(node->id_node);
+//            const auto &mapper       = work_tree::internals_::mappers_[node->id_node];
+            const auto &mapper       = *work_tree::internals_::cache(node->id_node);
 
             const bool is_nested_   = node->children_n > 0;
             const bool is_selected_ = node->state >>= node_state::selected;
@@ -589,8 +527,8 @@ namespace ex::gui {
 
                 ImGui::PushID(first->id_local);
 
-//                const auto &mapper       = wt::node_mappers_[first->id_node];
-                const auto &mapper       = work_tree::internals_::cache(first->id_node);
+//                const auto &mapper       = work_tree::internals_::mappers_[first->id_node];
+                const auto &mapper = *work_tree::internals_::cache(first->id_node);
 
                 const bool is_selected_ = first->state >>= node_state::selected;
                 mapper.draw_tree_node(gui, state, first, false, is_selected_);

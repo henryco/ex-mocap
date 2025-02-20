@@ -11,6 +11,7 @@ namespace ex::data {
 
     template<typename element_t>
     struct buffer {
+
         element_t *data = nullptr;
         long       size = 0;
 
@@ -44,6 +45,7 @@ namespace ex::data {
 
     template<typename element_t>
     struct array {
+
         element_t *data     = nullptr;
         int        size     = 0;
         int        capacity = 0;
@@ -164,6 +166,76 @@ namespace ex::data {
 
         bool empty() const {
             return key_entries.empty();
+        }
+    };
+
+    template<typename key_t, typename element_t>
+    struct cache_line {
+
+        using Functor = element_t(*)(const key_t&);
+
+        Functor supplier;
+
+        ex::data::array<element_t> store_data;
+        ex::data::array<key_t>     store_id;
+        unsigned int               index       = 0;
+        bool                       evicted     = false;
+        bool                       initialized = false;
+
+        cache_line() = delete;
+
+        cache_line(const Functor supplier, const int reserve = 10): supplier(supplier), store_data(reserve), store_id(reserve) {}
+
+        const element_t &operator [] (const key_t &id) {
+            if (initialized)
+                return store_data[index++];
+
+            store_id.push(id);
+            store_data.push(supplier(id));
+            return store_data[index];
+        }
+
+        element_t operator () (const key_t &id) {
+            if (evicted)
+                return supplier(id);
+
+            if (!initialized) {
+                const element_t &element = supplier(id);
+                store_id.push(id);
+                store_data.push(element);
+                return element;
+            }
+
+            if (index >= store_id.size) {
+                evicted = true;
+                return supplier(id);
+            }
+
+            if (store_id[index] != id) {
+                evicted = true;
+                return supplier(id);
+            }
+
+            return store_data[index++];
+        }
+
+        void begin() {
+            evicted = false;
+            index = 0;
+        }
+
+        void end() {
+            initialized = true;
+            if (evicted) {
+                reset();
+            }
+        }
+
+        void reset() {
+            initialized     = false;
+            index           = 0;
+            store_data.size = 0;
+            store_id.size   = 0;
         }
     };
 
