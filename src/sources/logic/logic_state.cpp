@@ -16,6 +16,8 @@ namespace ex::logic::state {
         return instance;
     }
 
+    static std::map<id_local, int> &counter_map_ = node_counter_();
+
     const std::map<id_local, limbo::nodes::BaseNode *> &node_storage() {
         return node_store_();
     }
@@ -31,7 +33,7 @@ namespace ex::logic::state {
         static auto &store = node_store_();
         if (!store.contains(id)) {
             store.emplace(id, node);
-            inc_node_counter(id);
+            counter_map_[id]++;
         }
     }
 
@@ -61,19 +63,12 @@ namespace ex::logic::state {
             counter.erase(id);
     }
 
-    void inc_node_counter(const id_local &id) {
-        static auto &counter = node_counter_();
-        if (counter.contains(id)) {
-            const auto v          = counter.at(id);
-            counter.at(id) = std::min(v + 1, 10000000);
-        }
-        else
-            counter.emplace(id, 1);
+    int &get_node_counter(const id_local &id) {
+        return counter_map_[id];
     }
 
     void cleanup_nodes() {
-        static auto &counter = node_counter_();
-        for (auto it = counter.begin(); it != counter.end(); /*nop*/) {
+        for (auto it = counter_map_.begin(); it != counter_map_.end(); /*nop*/) {
             const auto id_local = it->first;
             if (it->second <= 0) {
 
@@ -82,7 +77,7 @@ namespace ex::logic::state {
                     node_store_().erase(id_local);
                 }
 
-                it = counter.erase(it);
+                it = counter_map_.erase(it);
             } else {
                 it->second = 0;
                 ++it;

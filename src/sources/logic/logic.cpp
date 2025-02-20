@@ -2,15 +2,22 @@
 // Created by xd on 17/12/24.
 //
 
-#include <map>
-#include <ranges>
-
+#include "../../headers/utils/data_utils.h"
 #include "../../headers/utils/file_utils.h"
 #include "../../headers/logic/components/c_camera.h"
 #include "../../headers/logic/io/byte_serializer.h"
 #include "../../headers/logic/logic_globals.h"
 #include "../../headers/logic/logic_state.h"
 #include "../../headers/logic/logic.h"
+
+namespace internal_ {
+
+    inline int *fetch_(const std::uint32_t &id) {
+        return &ex::logic::state::get_node_counter(id);
+    }
+
+    static ex::data::cache_line cache(fetch_, 10);
+}
 
 namespace ex::main {
 
@@ -177,7 +184,26 @@ namespace ex::main {
         timestamp = now;
 
         bool rewire = state.logic.rewire;
+
+//        static long counter_avg = 0;
+//        static int  counter_i   = 0;
+//        const auto t0 = std::chrono::high_resolution_clock::now();
+
+        internal_::cache.begin();
+
         traverse_(state, state.logic.work_tree, &rewire, false);
+
+        internal_::cache.end();
+
+//        const auto tt = std::chrono::nanoseconds(std::chrono::high_resolution_clock::now() - t0).count();
+//        counter_avg += tt;
+//        counter_i += 1;
+//        const float average_t = static_cast<float>(counter_avg) / static_cast<float>(counter_i);
+//        if (counter_i >= 1000) {
+//            std::cout << "t: " << average_t << '\n';
+//            counter_avg = tt;
+//            counter_i   = 1;
+//        }
 
         static bool gc_run = false;
 
@@ -288,16 +314,19 @@ namespace ex::main {
         if ((node->state >>= node_state::is_group) || (node->state >>= node_state::is_link))
             return;
 
-        ex::logic::state::inc_node_counter(node->id_local);
+//        int &v_ref = ex::logic::state::get_node_counter(node->id_local);    // 1
+//        v_ref      = std::min(v_ref + 1, 10000000);
+
+        int *v_ref = internal_::cache(node->id_local);                      // 2
+        *v_ref     = std::min(*v_ref + 1, 10000000);
     }
 
     void Logic::rewire_(State &state) {
         log->debug("rewire");
 
         clock_.detach_all();
-        for (const auto &node: ex::logic::state::node_storage() | std::views::values) {
+        for (const auto &[_, node] : ex::logic::state::node_storage())
             node->detach_all_any();
-        }
 
         simple_list current = { state.logic.work_tree };
         build_tree_(state, state.logic.work_tree, nullptr, &current);

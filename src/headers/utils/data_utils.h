@@ -102,7 +102,7 @@ namespace ex::data {
     };
 
     template<typename key_t, typename element_t>
-    struct map { // linear time map, perfect for small data sets
+    struct map { // linear time map, perfect for small data sets ( < ~1000) due to cache locality
 
         array<key_t>     key_entries;
         array<element_t> val_entries;
@@ -172,23 +172,33 @@ namespace ex::data {
     template<typename key_t, typename element_t>
     struct cache_line {
 
+#define READY   (0)
+#define FRESH   (1 << 1)
+#define EVICTED (1 << 2)
+
         using Functor = element_t(*)(const key_t&);
 
         Functor supplier;
 
         ex::data::array<element_t> store_data;
         ex::data::array<key_t>     store_id;
-        unsigned int               index       = 0;
-        bool                       evicted     = false;
-        bool                       initialized = false;
+        unsigned char              status = FRESH;
+        unsigned int               index  = 0;
 
         cache_line() = delete;
 
-        cache_line(const Functor supplier, const int reserve = 10): supplier(supplier), store_data(reserve), store_id(reserve) {}
+        cache_line(const Functor supplier, const int reserve = 10) :
+            supplier(supplier), store_data(reserve), store_id(reserve) {
+        }
 
-        const element_t &operator [] (const key_t &id) {
-            if (initialized)
+        element_t &operator [] (const key_t &id) {
+            if (status == READY)
                 return store_data[index++];
+
+            if (status == EVICTED) {
+                store_data[0] = supplier(id);
+                return store_data[0];
+            }
 
             store_id.push(id);
             store_data.push(supplier(id));
@@ -196,10 +206,10 @@ namespace ex::data {
         }
 
         element_t operator () (const key_t &id) {
-            if (evicted)
+            if (status == EVICTED)
                 return supplier(id);
 
-            if (!initialized) {
+            if (status == FRESH) {
                 const element_t &element = supplier(id);
                 store_id.push(id);
                 store_data.push(element);
@@ -207,12 +217,12 @@ namespace ex::data {
             }
 
             if (index >= store_id.size) {
-                evicted = true;
+                status = EVICTED;
                 return supplier(id);
             }
 
             if (store_id[index] != id) {
-                evicted = true;
+                status = EVICTED;
                 return supplier(id);
             }
 
@@ -220,23 +230,27 @@ namespace ex::data {
         }
 
         void begin() {
-            evicted = false;
             index = 0;
         }
 
         void end() {
-            initialized = true;
-            if (evicted) {
-                reset();
+            if (status == EVICTED) {
+                evict();
+                status = FRESH;
+                return;
             }
+            status = READY;
+        }
+
+        void evict() {
+            store_data.size = 0;
+            store_id.size   = 0;
+            index           = 0;
+            status          = EVICTED;
         }
 
         void reset() {
-            initialized     = false;
-            evicted         = true;
-            index           = 0;
-            store_data.size = 0;
-            store_id.size   = 0;
+            evict();
         }
     };
 
