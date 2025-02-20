@@ -58,9 +58,8 @@ namespace ex::logic::state {
             delete base;
         }
 
-        static auto &counter = node_counter_();
-        if (counter.contains(id))
-            counter.erase(id);
+        if (counter_map_.contains(id))
+            counter_map_.erase(id);
     }
 
     int &get_node_counter(const id_local &id) {
