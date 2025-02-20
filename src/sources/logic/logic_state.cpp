@@ -24,7 +24,7 @@ namespace ex::logic::state {
         static auto &store = node_store_();
         if (!store.contains(id))
             return nullptr;
-        return store[id];
+        return store.at(id);
     }
 
     void store_node(const id_local &id, limbo::nodes::BaseNode *node) {
