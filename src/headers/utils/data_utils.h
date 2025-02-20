@@ -58,16 +58,16 @@ namespace ex::data {
             free(data);
         }
 
-        array(const int capacity) {
+        array(const int &capacity) {
             this->capacity = capacity;
             this->data     = static_cast<element_t *>(malloc(capacity * sizeof(element_t)));
         }
 
-        element_t &operator[](const int index) {
+        element_t &operator[](const int &index) {
             return data[index];
         }
 
-        const element_t &operator[](const int index) const {
+        const element_t &operator[](const int &index) const {
             return data[index];
         }
 
@@ -87,7 +87,7 @@ namespace ex::data {
             return size <= 0;
         }
 
-        void swap_remove(const int index) {
+        void swap_remove(const int &index) {
             const element_t tmp = data[index];
             data[index]         = data[size - 1];
             data[size - 1]      = tmp;
@@ -106,6 +106,9 @@ namespace ex::data {
 
         array<key_t>     key_entries;
         array<element_t> val_entries;
+
+        const int &capacity = key_entries.capacity;
+        const int &size     = key_entries.size;
 
         map() = default;
 
@@ -127,7 +130,9 @@ namespace ex::data {
                 if (key_entries[i] == key)
                     return val_entries[i];
             }
-            abort();
+            key_entries.push(key);
+            val_entries.push(element_t());
+            return val_entries[val_entries.size - 1];
         }
 
         const element_t &operator [] (const key_t &key) const {
@@ -162,6 +167,13 @@ namespace ex::data {
                     return;
                 }
             }
+        }
+
+        void remove_at_pos(const int &idx) {
+            if (idx >= key_entries.size || idx < 0)
+                return;
+            key_entries.swap_remove(idx);
+            val_entries.swap_remove(idx);
         }
 
         bool empty() const {

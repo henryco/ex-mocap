@@ -12,8 +12,24 @@
 
 namespace internal_ {
 
+    static ex::data::map<std::uint32_t, int> ptr_counter_map(10);
+
+    void cleanup_nodes() {
+        for (int i = 0; i < ptr_counter_map.size; /*nop*/) {
+            const uint32_t key         = ptr_counter_map.key_entries[i];
+            int           &ptr_counter = ptr_counter_map.val_entries[i];
+            if (ptr_counter <= 0) {
+                ex::logic::state::remove_node(key);
+                ptr_counter_map.remove_at_pos(i);
+            } else {
+                ptr_counter = 0;
+                ++i;
+            }
+        }
+    }
+
     inline int *fetch_(const std::uint32_t &id) {
-        return &ex::logic::state::get_node_counter(id);
+        return &ptr_counter_map[id];
     }
 
     static ex::data::cache_line cache(fetch_, 10);
@@ -237,6 +253,7 @@ namespace ex::main {
             !(node->state >>= node_state::is_link) &&
             !(node->state >>= node_state::is_group)) {
             ex::logic::state::remove_node(node->id_local);
+            internal_::ptr_counter_map.remove(node->id_local);
         }
 
         if (moved && !(node->state >>= node_state::is_link) && !(node->state >>= node_state::is_group)) {
@@ -305,6 +322,7 @@ namespace ex::main {
             if (!(node->state >>= node_state::is_group) && !(node->state >>= node_state::is_link)) {
                 const LogicNodeComponent &mappers = ex::logic::globals::node_components()[node->id_node];
                 ex::logic::state::store_node(node->id_local, mappers.instance(state, node));
+                internal_::ptr_counter_map[node->id_local]++;
             }
 
             node->state -= node_state::created;
@@ -314,7 +332,7 @@ namespace ex::main {
         if ((node->state >>= node_state::is_group) || (node->state >>= node_state::is_link))
             return;
 
-//        int &v_ref = ex::logic::state::get_node_counter(node->id_local);    // 1
+//        int &v_ref = internal_::ptr_counter_map[node->id_local];    // 1
 //        v_ref      = std::min(v_ref + 1, 10000000);
 
         int *v_ref = internal_::cache(node->id_local);                      // 2
@@ -381,7 +399,7 @@ namespace ex::main {
 
     void Logic::gc_(State &_) {
         log->debug("start node gc");
-        ex::logic::state::cleanup_nodes();
+        internal_::cleanup_nodes();
         log->debug("complete node gc");
     }
 
