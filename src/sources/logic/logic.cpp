@@ -233,10 +233,10 @@ namespace ex::main {
             gc_run = true;
 
             state.project.has_changes = true;
+            state.logic.dirty         = true;
         }
 
         state.logic.rewire = false;
-        state.logic.dirty  = rewire;
     }
 
     void Logic::mark_node_deleted_(State &state, TreeNode *node, const bool moved) {
@@ -320,8 +320,14 @@ namespace ex::main {
         if ((node->state >>= node_state::created) || fresh) {
 
             if (!(node->state >>= node_state::is_group) && !(node->state >>= node_state::is_link)) {
+
                 const LogicNodeComponent &mappers = ex::logic::globals::node_components()[node->id_node];
-                ex::logic::state::store_node(node->id_local, mappers.instance(state, node));
+                if (const auto node_ptr = ex::logic::state::get_node(node->id_local); node_ptr != nullptr) {
+                    if (node_ptr->get_id() != node->id_local)
+                        ex::logic::state::replace_node(node->id_local, mappers.instance(state, node));
+                } else
+                    ex::logic::state::store_node(node->id_local, mappers.instance(state, node));
+
                 internal_::ptr_counter_map[node->id_local]++;
             }
 
@@ -335,7 +341,7 @@ namespace ex::main {
 //        int &v_ref = internal_::ptr_counter_map[node->id_local];    // 1
 //        v_ref      = std::min(v_ref + 1, 10000000);
 
-        int *v_ref = internal_::cache(node->id_local);                      // 2
+        int *v_ref = internal_::cache(node->id_local);              // 2
         *v_ref     = std::min(*v_ref + 1, 10000000);
     }
 

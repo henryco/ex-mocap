@@ -31,6 +31,9 @@ namespace ex::gui::test {
         bool stored_bool = false;
         char stored_char = '\0';
     public:
+        NodeOne() {
+            std::cout << "CNTR 1\n";
+        }
 
         ~NodeOne() override {
             std::cout << "DSTR 1: " << local_id << '\n';
@@ -82,6 +85,10 @@ namespace ex::gui::test {
         bool stored_bool = false;
         char stored_char = '\0';
     public:
+        NodeTwo() {
+            std::cout << "CNTR 2\n";
+        }
+
         ~NodeTwo() override {
             std::cout << "DSTR 2: " << local_id << '\n';
         }
@@ -132,6 +139,10 @@ namespace ex::gui::test {
         bool stored_bool = false;
         char stored_char = '\0';
     public:
+        NodeTri() {
+            std::cout << "CNTR 3\n";
+        }
+
         ~NodeTri() override {
             std::cout << "DSTR 3: " << local_id << '\n';
         }
