@@ -92,10 +92,6 @@ namespace ex::gui {
 
     void show_menu_top_bar();
 
-    void show_left_pane();
-
-    void show_right_pane();
-
     void show_logs_pane();
 
     void show_work_tree();

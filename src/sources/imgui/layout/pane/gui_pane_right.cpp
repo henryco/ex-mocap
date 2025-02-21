@@ -1,28 +1,48 @@
 //
-// Created by xd on 02/12/24.
+// Created by henryco on 21/02/25.
 //
 
-#include "../../../headers/imgui/layout/gui_layout.h"
-#include "../../../headers/imgui/gui_globals.h"
-#include "../../../headers/logic/logic_globals.h"
+#include "../../../../headers/imgui/layout/pane/gui_pane_right.h"
+
+#include "../../../../headers/imgui/gui_globals.h"
+#include "../../../../headers/utils/gui_utils.h"
+
+#include <imgui_internal.h>
 
 namespace ex::gui {
 
-    void show_right_pane_header() {
-        State &state = ex::logic::globals::state();
-        GuiState &gui = ex::gui::state();
+    inline int dock_host_flag_(GuiState &gui) {
+        return 0 | ((gui.view.docking || gui.view.first_run) ? 0 : ImGuiDockNodeFlags_NoUndocking)
+#ifndef EXM_DISABLE_EXPERIMENTAL
+               | ((!gui.view.docking && !gui.view.first_run) ? ImGuiDockNodeFlags_NoWindowMenuButton : 0) |
+               ((gui.view.docking || gui.view.first_run) ? 0 : ImGuiDockNodeFlags_NoDocking) |
+               ImGuiDockNodeFlags_DockedWindowsInFocusRoute
+#endif
+                ;
+    }
+
+    inline int reset_flag_(GuiState &gui, const bool standalone = false) {
+        return gui.view.reset
+                       ? (ImGuiWindowFlags_NoSavedSettings | (standalone ? ImGuiWindowFlags_AlwaysAutoResize : 0))
+                       : 0;
+    }
+
+    void show_right_pane_header_() {
+        const GuiState &gui = ex::gui::state();
         ImGui::BeginChild("InnerRightHeader",
                 ImVec2((gui.re_size.inc_x || gui.window.resized) ? 0 : gui.view.pane_width_right, 28),
                 ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoDecoration);
         {
-            if (right_pane_menu == nullptr) ImGui::Dummy(ImVec2(10, 12));
-            else right_pane_menu(state, gui);
+//            if (right_pane_menu == nullptr)
+                ImGui::Dummy(ImVec2(10, 12));
+//            else right_pane_menu(state, gui);
             ImGui::Separator();
         }
         ImGui::EndChild();
     }
 
-    void show_right_dock_space(ex::State &state, GuiState &gui) {
+    void show_right_dock_space_() {
+        GuiState &gui = ex::gui::state();
         static bool first_time = true;
 
         ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.f, 0.f, 0.f, .0f));
@@ -34,7 +54,7 @@ namespace ex::gui {
                                   : 0;
 
         const int aux_flags = ImGuiDockNodeFlags_PassthruCentralNode
-                              | dock_host_flag(gui);
+                              | dock_host_flag_(gui);
 
         gui.docking.dock_right_id = ImGui::GetID("DockMainRight");
         ImGui::DockSpace(gui.docking.dock_right_id,
@@ -53,7 +73,6 @@ namespace ex::gui {
     }
 
     void show_right_pane() {
-        State &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
 
         if (!gui.view.show_right)
@@ -67,12 +86,12 @@ namespace ex::gui {
                           ImVec2((gui.re_size.inc_x || gui.window.resized) ? 0 : gui.view.pane_width_right, 0),
                           0
                                   | ImGuiChildFlags_Borders,
-                          reset_flag(gui));
+                          reset_flag_(gui));
         {
             style.WindowPadding = ImVec2(0, default_window_padding.y + 1);
-            show_right_pane_header();
+            show_right_pane_header_();
             style.WindowPadding = ImVec2(0, 0);
-            show_right_dock_space(state, gui);
+            show_right_dock_space_();
         }
 
         gui.view.pane_width_right = ImGui::GetWindowWidth();

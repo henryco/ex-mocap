@@ -3,6 +3,8 @@
 //
 
 #include "../../../headers/imgui/layout/gui_layout.h"
+#include "../../../headers/imgui/layout/pane/gui_pane_left.h"
+#include "../../../headers/imgui/layout/pane/gui_pane_right.h"
 #include "../../../headers/imgui/actions/gui_actions.h"
 #include "../../../headers/imgui/actions/gui_actions_registry.h"
 #include "../../../headers/imgui/gui_globals.h"
