@@ -47,6 +47,7 @@ namespace ex::gui {
                 ImVec2((gui.re_size.inc_x || gui.window.resized) ? 0 : gui.view.pane_width_right, 28),
                 ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoDecoration);
         {
+            ImGui::SameLine();
             if (pane::right_menu_draw_fn_ == nullptr)
                 ImGui::Dummy(ImVec2(10, 12));
             else
@@ -54,6 +55,8 @@ namespace ex::gui {
             ImGui::Separator();
         }
         ImGui::EndChild();
+
+        pane::right_menu_draw_fn_ = nullptr;
     }
 
     void show_right_dock_space_() {

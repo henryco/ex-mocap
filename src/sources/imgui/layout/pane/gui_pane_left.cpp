@@ -46,6 +46,7 @@ namespace ex::gui {
         ImGui::BeginChild("InnerLeftHeader", ImVec2(gui.view.pane_width_left, 28),
                 ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoDecoration);
         {
+            ImGui::SameLine();
             if (pane::left_menu_draw_fn_ == nullptr)
                 ImGui::Dummy(ImVec2(10, 12));
             else
@@ -53,6 +54,8 @@ namespace ex::gui {
             ImGui::Separator();
         }
         ImGui::EndChild();
+
+        pane::left_menu_draw_fn_ = nullptr;
     }
 
     void show_left_dock_space_() {

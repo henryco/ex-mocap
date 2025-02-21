@@ -5,6 +5,7 @@
 #include <IconsLucide.h>
 
 #include "../../../headers/imgui/gui_globals.h"
+#include "../../../headers/imgui/layout/pane/gui_pane.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/imgui/tree/gui_tree_menu.h"
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
@@ -679,6 +680,27 @@ namespace ex::gui {
         ImGui::EndChild();
     }
 
+    void draw_line_menu_() {
+        const GuiState &gui = ex::gui::state();
+        ImGui::Text("Line Menu");
+    }
+
+    void register_work_tree_menu_() {
+        const GuiState &gui = ex::gui::state();
+
+        if (ex::gui::window_withing_dock(gui.docking.dock_left_id)) {
+            pane::set_left_menu_fn(draw_line_menu_);
+            return;
+        }
+
+        if (ex::gui::window_withing_dock(gui.docking.dock_right_id)) {
+            pane::set_right_menu_fn(draw_line_menu_);
+            return;
+        }
+
+        draw_line_menu_();
+    }
+
     void show_work_tree() {
         GuiState &gui = ex::gui::state();
 
@@ -702,6 +724,7 @@ namespace ex::gui {
 
         docked = ex::gui::window_is_multi_docked();
         watch = watch_parent_dock(gui);
+        register_work_tree_menu_();
 
         ImGui::BeginChild("WorkTreeBox", ImVec2(0, 0), 0, ImGuiWindowFlags_NoDecoration);
         tree::show_context_menu_general();
