@@ -147,8 +147,8 @@ namespace ex::boot {
         log->info("Initialization complete");
 
         while (true) {
-//            static ex::time::measure_avg timing = 1000;
-//            timing.start();
+            static ex::time::measure_avg timing = 1000;
+            timing.start();
             // ==========================================================
 
             if (gui.should_close())
@@ -162,8 +162,8 @@ namespace ex::boot {
             update_gui(gui, state, window);
 
             // ==========================================================
-//            if (timing.stop())
-//                std::cout << "avg_t: " << static_cast<int>(timing.result()) << std::endl;
+            if (timing.stop())
+                state.metrics.frame_duration_ns = timing.result();
         }
 
         if (state.cl.context != nullptr)

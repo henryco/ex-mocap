@@ -85,7 +85,7 @@ namespace ex {
         bool        should_create = false;
     };
 
-    struct project_error {
+    struct error_state {
         const char *msg  = nullptr;
         uint64_t    code = 0;
     };
@@ -109,12 +109,18 @@ namespace ex {
         bool      dirty       = false;
     };
 
+    struct metrics_state {
+        float frame_duration_ns = 0.0f;
+        float logic_duration_ns = 0.0f;
+    };
+
     struct State {
         project_state project = {};
-        project_error error   = {};
         logic_state   logic   = {};
+        error_state   error   = {};
         cl_state      cl      = {};
         gl_state      gl      = {};
+        metrics_state metrics = {};
     };
 
     /** OR */

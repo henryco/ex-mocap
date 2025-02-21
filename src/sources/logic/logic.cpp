@@ -182,14 +182,14 @@ namespace ex::main {
         log->info("deserialization complete: {}", state.project.project_path);
     }
 
-    void Logic::process_(State &_) {
-//        static ex::time::measure_avg timing = 1000;
-//        timing.start();
+    void Logic::process_(State &state) {
+        static ex::time::measure_avg timing = 1000;
+        timing.start();
 
         clock_.next();
 
-//        if (timing.stop())
-//            std::cout << "avg_t: " << timing.result() << std::endl;
+        if (timing.stop())
+            state.metrics.logic_duration_ns = timing.result();
     }
 
     void Logic::synchronize_(State &state) {
@@ -205,15 +205,9 @@ namespace ex::main {
 
         bool rewire = state.logic.rewire;
 
-//        static ex::time::measure_avg timing = 1000;
-//        timing.start();
-
         internal_::cache.begin();
         traverse_(state, state.logic.work_tree, &rewire, false);
         internal_::cache.end();
-
-//        if (timing.stop())
-//            std::cout << "avg_t: " << timing.result() << std::endl;
 
         static bool gc_run = false;
 
