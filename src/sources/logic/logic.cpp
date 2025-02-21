@@ -185,7 +185,13 @@ namespace ex::main {
     }
 
     void Logic::process_(State &_) {
+//        static ex::time::measure_avg timing = 1000;
+//        timing.start();
+
         clock_.next();
+
+//        if (timing.stop())
+//            std::cout << "avg_t: " << timing.result() << std::endl;
     }
 
     void Logic::synchronize_(State &state) {
@@ -208,9 +214,8 @@ namespace ex::main {
         traverse_(state, state.logic.work_tree, &rewire, false);
         internal_::cache.end();
 
-//        timing.stop();
-//        if (const float avg_t = timing.result())
-//            std::cout << "avg_t: " << avg_t << std::endl;
+//        if (timing.stop())
+//            std::cout << "avg_t: " << timing.result() << std::endl;
 
         static bool gc_run = false;
 
