@@ -37,4 +37,30 @@ namespace ex::time {
         counter     = 0;
     }
 
+    bool fps_guard::step() {
+        if (duration > 0) {
+            const auto t1 = std::chrono::high_resolution_clock::now();
+            if (t1 - t0 < frame_duration_ns)
+                return false;
+            t0 = std::chrono::high_resolution_clock::now();
+        }
+        return true;
+    }
+
+    fps_guard &fps_guard::set_frame_duration(const unsigned int &duration_ns) {
+        if (duration_ns == duration)
+            return *this;
+        duration          = duration_ns;
+        frame_duration_ns = nanoseconds_t(duration);
+        return *this;
+    }
+
+    fps_guard &fps_guard::set_fps(const unsigned int &fps) {
+        return set_frame_duration(static_cast<unsigned int>((fps > 0) ? (1000000000.0 / fps) : 0));
+    }
+
+    fps_guard fps_guard::from_fps(const unsigned int &fps) {
+        return fps_guard(static_cast<unsigned int>((fps > 0) ? (1000000000.0 / fps) : 0));
+    }
+
 } // namespace ex::time

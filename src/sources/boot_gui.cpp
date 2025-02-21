@@ -16,18 +16,15 @@
 
 namespace ex::boot {
 
+#define DEFAULT_REFRESH_RATE 60
+
     const auto log = logs::get_logger("boot_gui");
 
     void framebuffer_size_callback(GLFWwindow *, const int width, const int height) {
         glViewport(0, 0, width, height);
     }
 
-    void gui_set_target_fps(State &state, const double fps) {
-        state.gl.target_fps = static_cast<int>(1000000000.0 / fps);
-    }
-
     GLFWwindow *init_gl_context(State &state) {
-        constexpr int DEFAULT_REFRESH_RATE = 60;
 
         if (!glfwInit()) {
             std::cerr << "Failed to initialize GLFW";
@@ -43,9 +40,9 @@ namespace ex::boot {
 
         int display_refresh_rate;
         const auto window = gl::create_window(state.project.title, &display_refresh_rate);
-        gui_set_target_fps(state, std::max(DEFAULT_REFRESH_RATE, display_refresh_rate));
 
         log->info("Window created");
+        state.gl.target_fps = std::max(DEFAULT_REFRESH_RATE, display_refresh_rate);
         state.gl.window = window;
 
         if (!window) {
@@ -112,13 +109,15 @@ namespace ex::boot {
     }
 
     inline void update_gui(const ex::gui::GUI &gui, State &state, GLFWwindow *window) {
-        if (state.gl.target_fps > 0) {
-            static auto t0 = std::chrono::high_resolution_clock::now();
-            const auto t1 = std::chrono::high_resolution_clock::now();
-            if (t1 - t0 < std::chrono::nanoseconds(state.gl.target_fps))
-                return;
-            t0 = std::chrono::high_resolution_clock::now();
+
+        static auto prev_target_fps = state.gl.target_fps;
+        static auto fps_guard = ex::time::fps_guard::from_fps(state.gl.target_fps);
+        if (prev_target_fps != state.gl.target_fps) {
+            prev_target_fps = state.gl.target_fps;
+            fps_guard.set_fps(state.gl.target_fps);
         }
+        if (!fps_guard.step())
+            return;
 
         gui.build(state);
         state.logic.dirty = false;

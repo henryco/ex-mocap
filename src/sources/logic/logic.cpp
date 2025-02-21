@@ -37,8 +37,6 @@ namespace internal_ {
 
 namespace ex::main {
 
-    #define update_threshold 1000
-
     void abort_(const char *msg) {
         std::cerr << msg << std::endl;
         std::abort();
@@ -195,15 +193,15 @@ namespace ex::main {
     }
 
     void Logic::synchronize_(State &state) {
-        const auto now = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-        static long timestamp = 0;
 
-        if (!state.logic.rewire) {
-            if (const auto elapsed = now - timestamp; elapsed < update_threshold)
-                return;
+        static auto prev_target_fps = state.gl.target_fps;
+        static auto fps_guard = ex::time::fps_guard::from_fps(state.gl.target_fps);
+        if (prev_target_fps != state.gl.target_fps) {
+            prev_target_fps = state.gl.target_fps;
+            fps_guard.set_fps(state.gl.target_fps);
         }
-
-        timestamp = now;
+        if (!fps_guard.step())
+            return;
 
         bool rewire = state.logic.rewire;
 
