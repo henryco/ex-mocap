@@ -113,6 +113,7 @@ namespace ex {
         float frame_duration_ns = 0.0f;
         float logic_duration_ns = 0.0f;
         float total_duration_ns = 0.0f;
+        bool  timing_enabled    = true;
     };
 
     struct State {

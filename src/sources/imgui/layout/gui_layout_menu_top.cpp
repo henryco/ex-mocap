@@ -16,6 +16,8 @@
 namespace ex::gui {
 
     void fps_metrics_(GuiState &gui) {
+        if (!gui.view.show_fps)
+            return;
         static const State &state = ex::logic::globals::state();
 
         const auto icon = gui.view.docking ? ICON_LC_PIN_OFF : ICON_LC_PIN;
@@ -62,7 +64,7 @@ namespace ex::gui {
     }
 
     void show_menu_top_bar() {
-        const State &state = ex::logic::globals::state();
+        State &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
 
         if (!gui.view.show_menu)
@@ -160,6 +162,11 @@ namespace ex::gui {
                 }
 
                 if (ImGui::MenuItem(strings::menu_top_view_metrics, nullptr, &gui.view.show_debug)) {
+                    gui.window.resized = true;
+                }
+
+                if (ImGui::MenuItem(strings::menu_top_view_fps, nullptr, &gui.view.show_fps)) {
+                    state.metrics.timing_enabled = gui.view.show_fps;
                     gui.window.resized = true;
                 }
 

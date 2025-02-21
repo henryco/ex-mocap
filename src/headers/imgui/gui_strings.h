@@ -30,6 +30,7 @@ namespace ex::gui::strings {
     constexpr auto menu_top_view_sidebar_right = "Sidebar Right";
     constexpr auto menu_top_view_logs          = "Logs";
     constexpr auto menu_top_view_metrics       = "Metrics";
+    constexpr auto menu_top_view_fps           = "Frame rate";
     constexpr auto menu_top_view_reset_layout  = "Reset layout";
 
     constexpr auto menu_top_help       = "Help";

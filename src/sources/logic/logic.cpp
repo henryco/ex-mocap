@@ -184,11 +184,12 @@ namespace ex::main {
 
     void Logic::process_(State &state) {
         static ex::time::measure_avg timing = 1000;
-        timing.start();
+        if (state.metrics.timing_enabled)
+            timing.start();
 
         clock_.next();
 
-        if (timing.stop())
+        if (state.metrics.timing_enabled && timing.stop())
             state.metrics.logic_duration_ns = timing.result();
     }
 

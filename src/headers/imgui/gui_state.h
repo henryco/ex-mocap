@@ -31,6 +31,7 @@ namespace ex::gui {
         bool show_left  = true;
         bool show_logs  = true;
         bool show_menu  = true;
+        bool show_fps   = true;
 
         bool highlight_logs = true;
         bool expanded_logs  = false;

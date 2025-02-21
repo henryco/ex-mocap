@@ -120,7 +120,8 @@ namespace ex::boot {
             return;
 
         static ex::time::measure_avg timing;
-        timing.start();
+        if (state.metrics.timing_enabled)
+            timing.start();
 
         gui.build(state);
         state.logic.dirty = false;
@@ -130,7 +131,7 @@ namespace ex::boot {
         gui.draw(0.f);
         glfwSwapBuffers(window);
 
-        if (timing.stop())
+        if (state.metrics.timing_enabled && timing.stop())
             state.metrics.frame_duration_ns = timing.result();
     }
 
@@ -154,7 +155,8 @@ namespace ex::boot {
 
         while (true) {
             static ex::time::measure_avg timing = 1000;
-            timing.start();
+            if (state.metrics.timing_enabled)
+                timing.start();
             // ==========================================================
 
             if (gui.should_close())
@@ -168,7 +170,7 @@ namespace ex::boot {
             update_gui(gui, state, window);
 
             // ==========================================================
-            if (timing.stop())
+            if (state.metrics.timing_enabled && timing.stop())
                 state.metrics.total_duration_ns = timing.result();
         }
 

@@ -69,7 +69,9 @@ namespace ex::gui {
 
     bool layout::build(ex::State &state) {
         GuiState &gui = ex::gui::state();
-        gui.re_size = {};
+
+        gui.view.show_fps = state.metrics.timing_enabled;
+        gui.re_size       = {};
 
         ImGui::GetStyle().TabRounding = 0.0f;
 
