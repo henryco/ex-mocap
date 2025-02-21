@@ -15,6 +15,37 @@
 
 namespace ex::gui {
 
+    void fps_metrics_(GuiState &gui) {
+        static const State &state = ex::logic::globals::state();
+
+        const auto icon = gui.view.docking ? ICON_LC_PIN_OFF : ICON_LC_PIN;
+
+        const float padding  = ImGui::GetStyle().FramePadding.x * 3 + ImGui::GetStyle().ItemSpacing.x * 1;
+        const float offset   = ImGui::CalcTextSize(icon).x + padding;
+        const float fps_size = ImGui::CalcTextSize("999+ FPS").x + padding;
+
+        ImGui::SameLine(ImGui::GetWindowWidth() - offset - fps_size);
+
+        const float fps_frame = 1000000000.0 / state.metrics.frame_duration_ns;
+        if (fps_frame > 999)
+            ImGui::Text("999+ FPS");
+        else
+            ImGui::Text("%d FPS", static_cast<int>(fps_frame));
+
+        if (ImGui::IsItemHovered()) {
+            const float fps_logic = 1000000000.0 / state.metrics.logic_duration_ns;
+            const float logic_ms  = state.metrics.logic_duration_ns / 1000000.0;
+            const float frame_ms  = state.metrics.frame_duration_ns / 1000000.0;
+            const float gui_ms    = ImGui::GetIO().DeltaTime * 1000.0;
+
+            ImGui::BeginTooltip();
+            ImGui::Text("Logic average: %06.3f ms/frame (%d FPS)", logic_ms, static_cast<int>(fps_logic));
+            ImGui::Text("Frame average: %06.3f ms/frame (%d FPS)", frame_ms, static_cast<int>(fps_frame));
+            ImGui::Text("GUI   average: %06.3f ms/frame (%d FPS)", gui_ms, static_cast<int>(ImGui::GetIO().Framerate));
+            ImGui::EndTooltip();
+        }
+    }
+
     void end_pin_button_(GuiState &gui) {
         const auto icon = gui.view.docking ? ICON_LC_PIN_OFF : ICON_LC_PIN;
         ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(icon).x
@@ -148,6 +179,7 @@ namespace ex::gui {
                 ImGui::EndMenu();
             }
 
+            fps_metrics_(gui);
             end_pin_button_(gui);
             ImGui::PopStyleVar();
             ImGui::EndMenuBar();
