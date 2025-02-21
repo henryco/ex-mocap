@@ -9,6 +9,8 @@
 
 namespace ex::time {
 
+#define NS_IN_SEC 1000000000.
+
     using time_point_t = std::chrono::time_point<std::chrono::system_clock>;
 
     struct measure_avg {
@@ -16,22 +18,29 @@ namespace ex::time {
         unsigned long accumulated = 0;
         unsigned long counter     = 0;
 
-        unsigned int measures_n;
-        time_point_t t0;
+        unsigned long adaptive_threshold;
+        unsigned int  measures_n;
+        time_point_t  t0;
 
-        float avg_result = 0;
+        double avg_result = 0;
 
         measure_avg() :
+        adaptive_threshold(NS_IN_SEC),
         measures_n(1) {}
 
         measure_avg(const unsigned int &measures_n) :
+        adaptive_threshold(NS_IN_SEC / measures_n),
+        measures_n(measures_n) {}
+
+        measure_avg(const unsigned int &measures_n, const double &measures_per_second) :
+        adaptive_threshold(NS_IN_SEC / measures_per_second),
         measures_n(measures_n) {}
 
         void start();
 
         bool stop();
 
-        float result() const;
+        double result() const;
 
         void reset();
     };

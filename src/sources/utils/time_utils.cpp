@@ -16,7 +16,7 @@ namespace ex::time {
         accumulated += elapsed;
         counter += 1;
 
-        if (counter >= measures_n) {
+        if (counter >= measures_n || elapsed >= adaptive_threshold) {
             avg_result = static_cast<double>(accumulated) / static_cast<double>(counter);
             accumulated = elapsed;
             counter = 1;
@@ -27,7 +27,7 @@ namespace ex::time {
         return false;
     }
 
-    float measure_avg::result() const {
+    double measure_avg::result() const {
         return avg_result;
     }
 
