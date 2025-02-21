@@ -54,6 +54,9 @@ namespace ex::gui::strings {
     constexpr auto gui_tree_menu_group_copy    = "Copy";
     constexpr auto gui_tree_menu_group_delete  = "Delete";
 
+    constexpr auto gui_tree_top_menu_expand_all   = " Expand All ";
+    constexpr auto gui_tree_top_menu_collapse_all = " Collapse All ";
+
     constexpr auto gui_tree_menu_node_new         = "New";
     constexpr auto gui_tree_menu_node_add_into    = "Add into";
     constexpr auto gui_tree_menu_node_add_after   = "Add After";

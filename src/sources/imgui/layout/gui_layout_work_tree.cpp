@@ -5,8 +5,9 @@
 #include <IconsLucide.h>
 
 #include "../../../headers/imgui/gui_globals.h"
-#include "../../../headers/imgui/layout/pane/gui_pane.h"
+#include "../../../headers/imgui/gui_strings.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
+#include "../../../headers/imgui/layout/pane/gui_pane.h"
 #include "../../../headers/imgui/tree/gui_tree_menu.h"
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
 #include "../../../headers/logic/logic_globals.h"
@@ -14,6 +15,25 @@
 
 namespace work_tree::internals_ {
     static const auto &mappers_ = ex::gui::node_components();
+
+    ex::TreeNode *create_node_from_menu(ex::State &state, ex::gui::GuiState &gui) {
+        for (int i = 0; i < mappers_.key_entries.size; ++i) {
+            const auto &type_id = mappers_.key_entries[i];
+            const auto &mapper  = mappers_.val_entries[i];
+            ImGui::PushID(type_id);
+            if (ImGui::MenuItem(mapper.get_node_name(gui, state) )) {
+                ImGui::PopID();
+                ex::TreeNode *new_node   = ex::TreeNode::create();
+                new_node->state      = ex::node_state::created;
+                new_node->children_n = 0;
+                new_node->id_node    = type_id;
+                new_node->name       = ex::gui::strings::gui_tree_menu_general_new;
+                return new_node;
+            }
+            ImGui::PopID();
+        }
+        return nullptr;
+    }
 
     inline const ex::gui::GuiNodeComponent *fetch_(const std::uint64_t &key) {
         return &mappers_[key];
@@ -680,13 +700,54 @@ namespace ex::gui {
         ImGui::EndChild();
     }
 
+    static bool force_ = false;
+
     void draw_line_menu_() {
-        const GuiState &gui = ex::gui::state();
-        ImGui::Text("Line Menu");
+        if (!force_) {
+            if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) ) {
+                ImGui::Dummy(ImVec2(10, 14));
+                return;
+            }
+        }
+
+        const float padding  = ImGui::GetStyle().FramePadding.x * 3 + ImGui::GetStyle().ItemSpacing.x * 1;
+        const float offset_1 = ImGui::CalcTextSize(ICON_LC_CHEVRONS_UP_DOWN).x + padding;
+        const float offset_2 = ImGui::CalcTextSize(ICON_LC_CHEVRONS_DOWN_UP).x + padding;
+
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 255));
+        ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(0, 0, 0, 255));
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 11.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+        ImGui::SameLine(ImGui::GetWindowWidth() - offset_2);
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 5);
+        if (ImGui::Button(ICON_LC_CHEVRONS_DOWN_UP)) {
+            // TODO
+        }
+        ImGui::PopStyleColor(3);
+        ImGui::PopStyleVar(2);
+        ex::gui::plain_tooltip(strings::gui_tree_top_menu_expand_all);
+
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 255));
+        ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(0, 0, 0, 255));
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 11.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+        ImGui::SameLine(ImGui::GetWindowWidth() - offset_2 - offset_1);
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 5);
+        if (ImGui::Button(ICON_LC_CHEVRONS_UP_DOWN)) {
+            // TODO
+        }
+        ImGui::PopStyleColor(3);
+        ImGui::PopStyleVar(2);
+        ex::gui::plain_tooltip(strings::gui_tree_top_menu_collapse_all);
     }
 
     void register_work_tree_menu_() {
         const GuiState &gui = ex::gui::state();
+
+        force_ = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows) ||
+                 ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
 
         if (ex::gui::window_withing_dock(gui.docking.dock_left_id)) {
             pane::set_left_menu_fn(draw_line_menu_);
@@ -699,6 +760,7 @@ namespace ex::gui {
         }
 
         draw_line_menu_();
+        ImGui::Separator();
     }
 
     void show_work_tree() {

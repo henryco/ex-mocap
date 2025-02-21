@@ -43,12 +43,12 @@ namespace ex::gui {
 
     void show_left_pane_header_() {
         const GuiState &gui = ex::gui::state();
-        ImGui::BeginChild("InnerLeftHeader", ImVec2(gui.view.pane_width_left, 28),
+        ImGui::BeginChild("InnerLeftHeader", ImVec2(gui.view.pane_width_left, 30),
                 ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoDecoration);
         {
             ImGui::SameLine();
             if (pane::left_menu_draw_fn_ == nullptr)
-                ImGui::Dummy(ImVec2(10, 12));
+                ImGui::Dummy(ImVec2(10, 14));
             else
                 pane::left_menu_draw_fn_();
             ImGui::Separator();

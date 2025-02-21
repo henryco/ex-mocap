@@ -44,12 +44,12 @@ namespace ex::gui {
     void show_right_pane_header_() {
         const GuiState &gui = ex::gui::state();
         ImGui::BeginChild("InnerRightHeader",
-                ImVec2((gui.re_size.inc_x || gui.window.resized) ? 0 : gui.view.pane_width_right, 28),
+                ImVec2((gui.re_size.inc_x || gui.window.resized) ? 0 : gui.view.pane_width_right, 30),
                 ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoDecoration);
         {
             ImGui::SameLine();
             if (pane::right_menu_draw_fn_ == nullptr)
-                ImGui::Dummy(ImVec2(10, 12));
+                ImGui::Dummy(ImVec2(10, 14));
             else
                 pane::right_menu_draw_fn_();
             ImGui::Separator();
