@@ -9,7 +9,7 @@
 
 namespace ex::gl {
 
-    GLFWwindow* create_window(const char* title);
+    GLFWwindow* create_window(const char* title, int *refresh_rate = nullptr);
 
     void set_window_title(GLFWwindow *window, const char* title);
 

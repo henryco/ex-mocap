@@ -8,7 +8,7 @@
 
 namespace ex::gl {
 
-    GLFWwindow *create_window(const char *title) {
+    GLFWwindow *create_window(const char *title, int *refresh_rate) {
         GLFWmonitor *primaryMonitor = glfwGetPrimaryMonitor();
         if (!primaryMonitor) {
             std::cerr << "Failed to get primary monitor\n";
@@ -31,6 +31,9 @@ namespace ex::gl {
         int monitorX, monitorY;
         glfwGetMonitorPos(primaryMonitor, &monitorX, &monitorY);
         glfwSetWindowPos(window, monitorX, monitorY);
+
+        if (refresh_rate != nullptr)
+            *refresh_rate = videoMode->refreshRate;
 
         return window;
     }

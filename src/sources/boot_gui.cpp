@@ -22,7 +22,13 @@ namespace ex::boot {
         glViewport(0, 0, width, height);
     }
 
+    void gui_set_target_fps(State &state, const double fps) {
+        state.gl.target_fps = static_cast<int>(1000000000.0 / fps);
+    }
+
     GLFWwindow *init_gl_context(State &state) {
+        constexpr int DEFAULT_REFRESH_RATE = 60;
+
         if (!glfwInit()) {
             std::cerr << "Failed to initialize GLFW";
             return nullptr;
@@ -35,7 +41,10 @@ namespace ex::boot {
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
-        const auto window = gl::create_window(state.project.title);
+        int display_refresh_rate;
+        const auto window = gl::create_window(state.project.title, &display_refresh_rate);
+        gui_set_target_fps(state, std::max(DEFAULT_REFRESH_RATE, display_refresh_rate));
+
         log->info("Window created");
         state.gl.window = window;
 
@@ -88,10 +97,6 @@ namespace ex::boot {
         state.cl.context = ocl_context;
     }
 
-    void gui_set_target_fps(State &state, const double fps) {
-        state.gl.target_fps = static_cast<int>(1000000000.0 / fps);
-    }
-
     inline void update_title(const State &state) {
         static const char *prev_title = state.project.title;
 
@@ -129,8 +134,6 @@ namespace ex::boot {
         State &state = ex::logic::globals::state();
         state.project.project_path = project_path;
         state.project.title        = "ExMoCap";
-
-        gui_set_target_fps(state, 60);
 
         log->info("Application context created");
 
