@@ -112,6 +112,7 @@ namespace ex {
     struct metrics_state {
         float frame_duration_ns = 0.0f;
         float logic_duration_ns = 0.0f;
+        float total_duration_ns = 0.0f;
     };
 
     struct State {

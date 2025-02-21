@@ -21,7 +21,8 @@ namespace ex::time {
 
         float avg_result = 0;
 
-        measure_avg() = delete;
+        measure_avg() :
+        measures_n(1) {}
 
         measure_avg(const unsigned int &measures_n) :
         measures_n(measures_n) {}

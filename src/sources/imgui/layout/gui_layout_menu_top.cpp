@@ -26,22 +26,25 @@ namespace ex::gui {
 
         ImGui::SameLine(ImGui::GetWindowWidth() - offset - fps_size);
 
-        const float fps_frame = 1000000000.0 / state.metrics.frame_duration_ns;
-        if (fps_frame > 999)
+        const float fps_total = 1000000000.0 / state.metrics.total_duration_ns;
+        if (fps_total > 999)
             ImGui::Text("999+ FPS");
         else
-            ImGui::Text("%d FPS", static_cast<int>(fps_frame));
+            ImGui::Text("%d FPS", static_cast<int>(fps_total));
 
         if (ImGui::IsItemHovered()) {
             const float fps_logic = 1000000000.0 / state.metrics.logic_duration_ns;
+            const float fps_frame = 1000000000.0 / state.metrics.frame_duration_ns;
+            const float total_ms  = state.metrics.total_duration_ns / 1000000.0;
             const float logic_ms  = state.metrics.logic_duration_ns / 1000000.0;
             const float frame_ms  = state.metrics.frame_duration_ns / 1000000.0;
             const float gui_ms    = ImGui::GetIO().DeltaTime * 1000.0;
 
             ImGui::BeginTooltip();
-            ImGui::Text("Logic average: %06.3f ms/frame (%d FPS)", logic_ms, static_cast<int>(fps_logic));
-            ImGui::Text("Frame average: %06.3f ms/frame (%d FPS)", frame_ms, static_cast<int>(fps_frame));
-            ImGui::Text("GUI   average: %06.3f ms/frame (%d FPS)", gui_ms, static_cast<int>(ImGui::GetIO().Framerate));
+            ImGui::Text("Total average: %08.4f ms/frame (%8d FPS)", total_ms, static_cast<int>(fps_total));
+            ImGui::Text("Logic average: %08.4f ms/frame (%8d FPS)", logic_ms, static_cast<int>(fps_logic));
+            ImGui::Text("Frame average: %08.4f ms/frame (%8d FPS)", frame_ms, static_cast<int>(fps_frame));
+            ImGui::Text("GUI   average: %08.4f ms/frame (%8d FPS)", gui_ms, static_cast<int>(ImGui::GetIO().Framerate));
             ImGui::EndTooltip();
         }
     }

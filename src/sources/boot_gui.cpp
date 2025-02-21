@@ -119,6 +119,9 @@ namespace ex::boot {
         if (!fps_guard.step())
             return;
 
+        static ex::time::measure_avg timing;
+        timing.start();
+
         gui.build(state);
         state.logic.dirty = false;
 
@@ -126,6 +129,9 @@ namespace ex::boot {
         glClear(GL_COLOR_BUFFER_BIT);
         gui.draw(0.f);
         glfwSwapBuffers(window);
+
+        if (timing.stop())
+            state.metrics.frame_duration_ns = timing.result();
     }
 
     int gui(int, char **, const char *project_path) {
@@ -163,7 +169,7 @@ namespace ex::boot {
 
             // ==========================================================
             if (timing.stop())
-                state.metrics.frame_duration_ns = timing.result();
+                state.metrics.total_duration_ns = timing.result();
         }
 
         if (state.cl.context != nullptr)
