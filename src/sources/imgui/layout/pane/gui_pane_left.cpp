@@ -3,12 +3,27 @@
 //
 
 #include "../../../../headers/imgui/layout/pane/gui_pane_left.h"
+#include "../../../../headers/imgui/layout/pane/gui_pane.h"
 #include "../../../../headers/imgui/gui_globals.h"
 #include "../../../../headers/utils/gui_utils.h"
 
 #include <imgui_internal.h>
 
 namespace ex::gui {
+
+    namespace pane {
+
+        static draw_fn left_menu_draw_fn_ = nullptr;
+
+        void set_left_menu_fn(const draw_fn &fn) {
+            left_menu_draw_fn_ = fn;
+        }
+
+        const draw_fn &get_left_menu_fn() {
+            return left_menu_draw_fn_;
+        }
+
+    }
 
     inline int dock_host_flag_(GuiState &gui) {
         return 0 | ((gui.view.docking || gui.view.first_run) ? 0 : ImGuiDockNodeFlags_NoUndocking)
@@ -31,9 +46,10 @@ namespace ex::gui {
         ImGui::BeginChild("InnerLeftHeader", ImVec2(gui.view.pane_width_left, 28),
                 ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoDecoration);
         {
-//            if (left_pane_menu == nullptr)
+            if (pane::left_menu_draw_fn_ == nullptr)
                 ImGui::Dummy(ImVec2(10, 12));
-//            else left_pane_menu(state, gui);
+            else
+                pane::left_menu_draw_fn_();
             ImGui::Separator();
         }
         ImGui::EndChild();

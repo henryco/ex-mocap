@@ -143,6 +143,7 @@ set(HEADER_FILES
         src/headers/utils/time_utils.h
         src/headers/imgui/layout/pane/gui_pane_left.h
         src/headers/imgui/layout/pane/gui_pane_right.h
+        src/headers/imgui/layout/pane/gui_pane.h
 )
 
 set(SOURCE_FILES

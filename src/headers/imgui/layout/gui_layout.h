@@ -10,7 +10,6 @@
 #include "../gui_state.h"
 
 #include <imgui_internal.h>
-
 #include <imgui.h>
 
 namespace ex::gui {
@@ -21,9 +20,6 @@ namespace ex::gui {
     static constexpr float offset_main_h = 8.f;
     static constexpr float offset_main_v = 23.f;
     static constexpr float offset_logs_v = 4.0f;
-
-    static void (*left_pane_menu)(State &state, GuiState &gui)  = nullptr;
-    static void (*right_pane_menu)(State &state, GuiState &gui) = nullptr;
 
     namespace layout {
         /**
