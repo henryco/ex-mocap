@@ -8,9 +8,6 @@
 [submodule "external/onnxruntime"]
 	path = external/onnxruntime
 	url = git@github.com:microsoft/onnxruntime.git
-[submodule "external/argparse"]
-	path = external/argparse
-	url = git@github.com:p-ranav/argparse.git
 [submodule "external/doctest"]
 	path = external/doctest
 	url = https://github.com/doctest/doctest.git

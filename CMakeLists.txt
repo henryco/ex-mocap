@@ -24,7 +24,6 @@ set(ONNXRUNTIME_ROOT external/onnxruntime-gpu-cuda12)
 include_directories(${ONNXRUNTIME_ROOT}/include)
 link_directories(${ONNXRUNTIME_ROOT}/lib)
 
-add_subdirectory(external/argparse)
 add_subdirectory(external/glm)
 
 set(CMAKE_C_COMPILER "clang-18")
@@ -236,7 +235,6 @@ set(LINK_TARGET
         OpenCL::OpenCL
         onnxruntime
         OpenGL::GL
-        argparse
         simpfp
         lucide
         ifcpph
