@@ -4,7 +4,6 @@
 #include <regex>
 #include <sstream>
 #include <iomanip>
-#include <vector>
 
 std::string XM_removeDirectoriesAndExtension(const std::string& filename) {
     size_t lastSlash = filename.find_last_of("/\\");

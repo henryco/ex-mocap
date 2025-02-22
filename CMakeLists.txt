@@ -212,13 +212,13 @@ endforeach ()
 add_custom_target(generate_cl_sources
         ALL DEPENDS ${GENERATED_CL_SOURCES})
 # ===================================================================
-add_library(in_house_gen INTERFACE)
+add_library(cmake_generated INTERFACE)
 configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/version.h.in
         ${CMAKE_BINARY_DIR}/exmotion_files/generated/include/ex_version.h
 )
 
-target_include_directories(in_house_gen INTERFACE
+target_include_directories(cmake_generated INTERFACE
         ${CMAKE_BINARY_DIR}/exmotion_files/generated/include)
 # ===================================================================
 
@@ -230,10 +230,10 @@ set(INCL_TARGET
 set(LINK_TARGET
         ${OpenCV_LIBS}
         ${CUDA_LIBRARIES}
+        cmake_generated
         spdlog::spdlog
         OpenCL::Headers
         OpenCL::OpenCL
-        in_house_gen
         onnxruntime
         OpenGL::GL
         argparse
