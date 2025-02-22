@@ -15,8 +15,10 @@ namespace ex::gui::test::one {
         return ICON_LC_COMPONENT " Component One";
     }
 
-    bool draw_tree_node(TreeNode *node, const bool nested, const bool selected) {
-        const std::string text = std::string(ICON_LC_COMPONENT) + " 1 " + std::string(node->name);
+    bool draw_tree_node(TreeNode *node, const bool nested, const bool selected, const bool collapse, const bool expand) {
+        const std::string text  = std::string(ICON_LC_COMPONENT) + " 1 " + std::string(node->name);
+        if (expand)   ImGui::SetNextItemOpen(true, ImGuiCond_Always);
+        if (collapse) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
         return generic_node(text.c_str(), false, selected, nested);
     }
 
@@ -52,8 +54,10 @@ namespace ex::gui::test::two {
         return ICON_LC_WAND_SPARKLES " Component Two";
     }
 
-    bool draw_tree_node(TreeNode *node, const bool nested, const bool selected) {
+    bool draw_tree_node(TreeNode *node, const bool nested, const bool selected, const bool collapse, const bool expand) {
         const std::string text = std::string(ICON_LC_WAND_SPARKLES) + " 2 " + std::string(node->name);
+        if (expand)   ImGui::SetNextItemOpen(true, ImGuiCond_Always);
+        if (collapse) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
         return generic_node(text.c_str(), false, selected, nested);
     }
 
@@ -92,7 +96,9 @@ namespace ex::gui::test::tri {
         return "Component Three";
     }
 
-    bool draw_tree_node(TreeNode *node, const bool nested, const bool selected) {
+    bool draw_tree_node(TreeNode *node, const bool nested, const bool selected, const bool collapse, const bool expand) {
+        if (expand)   ImGui::SetNextItemOpen(true, ImGuiCond_Always);
+        if (collapse) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
         return plain_node(node->name, true, selected, nested);
     }
 

@@ -20,11 +20,11 @@ namespace ex::gui {
     };
 
     struct GuiNodeComponent {
-        bool (*draw_tree_node)(TreeNode *node, bool nested, bool selected) = nullptr;
-        void (*draw_tree_menu)(TreeNode *node, bool nested, bool selected) = nullptr;
-        bool (*draw_node_window)(GuiNodeWindow *win)                       = nullptr;
-        const char *(*get_node_name)()                                     = nullptr;
-        const uint32_t (*get_dock_id)()                                    = nullptr;
+        bool (*draw_tree_node)(TreeNode *node, bool nested, bool selected, bool collapse, bool expand) = nullptr;
+        void (*draw_tree_menu)(TreeNode *node, bool nested, bool selected)                             = nullptr;
+        bool (*draw_node_window)(GuiNodeWindow *win)                                                   = nullptr;
+        const char *(*get_node_name)()                                                                 = nullptr;
+        const uint32_t (*get_dock_id)()                                                                = nullptr;
     };
 }
 

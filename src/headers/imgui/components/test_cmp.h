@@ -174,7 +174,7 @@ namespace ex::gui::test {
     };
 
     namespace one {
-        bool draw_tree_node(TreeNode *node, bool nested, bool selected);
+        bool draw_tree_node(TreeNode *node, bool nested, bool selected, bool collapse, bool expand);
         void draw_tree_menu(TreeNode *node, bool nested, bool selected);
         bool draw_node_window(GuiNodeWindow *window);
         const char *get_node_name();
@@ -186,7 +186,7 @@ namespace ex::gui::test {
     }
 
     namespace two {
-        bool draw_tree_node(TreeNode *node, bool nested, bool selected);
+        bool draw_tree_node(TreeNode *node, bool nested, bool selected, bool collapse, bool expand);
         void draw_tree_menu(TreeNode *node, bool nested, bool selected);
         bool draw_node_window(GuiNodeWindow *window);
         const char *get_node_name();
@@ -198,7 +198,7 @@ namespace ex::gui::test {
     }
 
     namespace tri {
-        bool draw_tree_node(TreeNode *node, bool nested, bool selected);
+        bool draw_tree_node(TreeNode *node, bool nested, bool selected, bool collapse, bool expand);
         void draw_tree_menu(TreeNode *node, bool nested, bool selected);
         bool draw_node_window(GuiNodeWindow *window);
         const char *get_node_name();
