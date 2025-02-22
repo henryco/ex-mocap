@@ -174,38 +174,38 @@ namespace ex::gui::test {
     };
 
     namespace one {
-        bool draw_tree_node(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
-        void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
-        bool draw_node_window(GuiState &gui, ex::State &state, GuiNodeWindow *window);
-        const char *get_node_name(GuiState &gui, ex::State &state);
+        bool draw_tree_node(TreeNode *node, bool nested, bool selected);
+        void draw_tree_menu(TreeNode *node, bool nested, bool selected);
+        bool draw_node_window(GuiNodeWindow *window);
+        const char *get_node_name();
         static constexpr GuiNodeComponent gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
 
-        limbo::nodes::BaseNode *instance(const State &state, TreeNode *from);
-        limbo::nodes::BaseNode *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *node);
+        limbo::nodes::BaseNode *instance(TreeNode *from);
+        limbo::nodes::BaseNode *relocate(TreeNode *tree, limbo::nodes::BaseNode *node);
         static constexpr LogicNodeComponent data_mappers = { instance, relocate };
     }
 
     namespace two {
-        bool draw_tree_node(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
-        void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
-        bool draw_node_window(GuiState &gui, ex::State &state, GuiNodeWindow *window);
-        const char *get_node_name(GuiState &gui, ex::State &state);
+        bool draw_tree_node(TreeNode *node, bool nested, bool selected);
+        void draw_tree_menu(TreeNode *node, bool nested, bool selected);
+        bool draw_node_window(GuiNodeWindow *window);
+        const char *get_node_name();
         static constexpr GuiNodeComponent gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
 
-        limbo::nodes::BaseNode *instance(const State &state, TreeNode *from);
-        limbo::nodes::BaseNode *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *node);
+        limbo::nodes::BaseNode *instance(TreeNode *from);
+        limbo::nodes::BaseNode *relocate(TreeNode *tree, limbo::nodes::BaseNode *node);
         static constexpr LogicNodeComponent data_mappers = { instance, relocate };
     }
 
     namespace tri {
-        bool draw_tree_node(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
-        void draw_tree_menu(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected);
-        bool draw_node_window(GuiState &gui, ex::State &state, GuiNodeWindow *window);
-        const char *get_node_name(GuiState &gui, ex::State &state);
+        bool draw_tree_node(TreeNode *node, bool nested, bool selected);
+        void draw_tree_menu(TreeNode *node, bool nested, bool selected);
+        bool draw_node_window(GuiNodeWindow *window);
+        const char *get_node_name();
         static constexpr GuiNodeComponent gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
 
-        limbo::nodes::BaseNode *instance(const State &state, TreeNode *from);
-        limbo::nodes::BaseNode *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *node);
+        limbo::nodes::BaseNode *instance(TreeNode *from);
+        limbo::nodes::BaseNode *relocate(TreeNode *tree, limbo::nodes::BaseNode *node);
         static constexpr LogicNodeComponent data_mappers = { instance, relocate };
     }
 

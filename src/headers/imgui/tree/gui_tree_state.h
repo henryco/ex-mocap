@@ -41,6 +41,9 @@ namespace ex::gui::tree {
         selection_node *selection = nullptr;
         node_buffer    *buffer    = nullptr;
 
+        bool force_collapse = false;
+        bool force_expand   = false;
+
         ~TreeState();
 
         static void reset(TreeState *state);

@@ -14,26 +14,8 @@
 #include "../../../headers/utils/data_utils.h"
 
 namespace work_tree::internals_ {
-    static const auto &mappers_ = ex::gui::node_components();
 
-    ex::TreeNode *create_node_from_menu(ex::State &state, ex::gui::GuiState &gui) {
-        for (int i = 0; i < mappers_.key_entries.size; ++i) {
-            const auto &type_id = mappers_.key_entries[i];
-            const auto &mapper  = mappers_.val_entries[i];
-            ImGui::PushID(type_id);
-            if (ImGui::MenuItem(mapper.get_node_name(gui, state) )) {
-                ImGui::PopID();
-                ex::TreeNode *new_node   = ex::TreeNode::create();
-                new_node->state      = ex::node_state::created;
-                new_node->children_n = 0;
-                new_node->id_node    = type_id;
-                new_node->name       = ex::gui::strings::gui_tree_menu_general_new;
-                return new_node;
-            }
-            ImGui::PopID();
-        }
-        return nullptr;
-    }
+    static const auto &mappers_ = ex::gui::node_components();
 
     inline const ex::gui::GuiNodeComponent *fetch_(const std::uint64_t &key) {
         return &mappers_[key];
@@ -72,7 +54,7 @@ namespace ex::gui {
         draw_list->AddLine(ImVec2(p_min.x, p_max.y), ImVec2(p_max.x, p_max.y), col_purple, 1.f);
     }
 
-    void drag_space(State &state, GuiState &gui, TreeNode *node, const GuiNodeComponent &node_mapper) {
+    void drag_space(TreeNode *node, const GuiNodeComponent &node_mapper) {
         if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_PayloadAutoExpire | ImGuiDragDropFlags_SourceNoHoldToOpenOthers)) {
             if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
                 ImGui::ClearActiveID();
@@ -80,7 +62,7 @@ namespace ex::gui {
                 ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
             } else {
                 ImGui::SetDragDropPayload(dnd_type, &node, sizeof(node));
-                node_mapper.draw_tree_node(gui, state, node, false, false);
+                node_mapper.draw_tree_node(node, false, false);
                 ImGui::EndDragDropSource();
             }
         }
@@ -422,7 +404,7 @@ namespace ex::gui {
 
             const bool is_nested_   = node->children_n > 0;
             const bool is_selected_ = node->state >>= node_state::selected;
-            const bool open = mapper.draw_tree_node(gui, state, node, is_nested_, is_selected_);
+            const bool open = mapper.draw_tree_node(node, is_nested_, is_selected_);
 
             if (ImGui::IsItemHovered())
                 *ref_node = (node->state >>= node_state::is_link) ? node->id_link : (-1);
@@ -441,7 +423,7 @@ namespace ex::gui {
             if (tree::selection_node::single(*selected)) {
                 menu_element = tree::show_context_menu_element(node, *menu_node == node->id_local,
                                                          node->children_n > 0, (node->state >>= node_state::selected));
-                drag_space(state, gui, node, mapper);
+                drag_space(node, mapper);
             } else {
                 tree::show_context_menu_group();
             }
@@ -552,7 +534,7 @@ namespace ex::gui {
                 const auto &mapper = *work_tree::internals_::cache(first->id_node);
 
                 const bool is_selected_ = first->state >>= node_state::selected;
-                mapper.draw_tree_node(gui, state, first, false, is_selected_);
+                mapper.draw_tree_node(first, false, is_selected_);
 
                 if (ImGui::IsItemHovered())
                     *ref_node = (first->state >>= node_state::is_link) ? first->id_link : (-1);
@@ -571,7 +553,7 @@ namespace ex::gui {
                 if (tree::selection_node::single(*selected)) {
                     menu_element = tree::show_context_menu_element(first, *menu_node == first->id_local, false,
                                                              first->state >>= node_state::selected);
-                    drag_space(state, gui, first, mapper);
+                    drag_space(first, mapper);
                 } else {
                     tree::show_context_menu_group();
                 }
@@ -703,39 +685,39 @@ namespace ex::gui {
     static bool force_ = false;
 
     void draw_line_menu_() {
-        if (!force_) {
-            if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) ) {
-                ImGui::Dummy(ImVec2(10, 14));
-                return;
-            }
+        if (!force_ && !ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
+            ImGui::Dummy(ImVec2(10, 14));
+            return;
         }
 
         const float padding  = ImGui::GetStyle().FramePadding.x * 3 + ImGui::GetStyle().ItemSpacing.x * 1;
         const float offset_1 = ImGui::CalcTextSize(ICON_LC_CHEVRONS_UP_DOWN).x + padding;
         const float offset_2 = ImGui::CalcTextSize(ICON_LC_CHEVRONS_DOWN_UP).x + padding;
 
-        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 255));
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 200));
         ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0, 0, 0, 0));
-        ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(0, 0, 0, 255));
+        ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(0, 0, 0, 200));
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 11.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
         ImGui::SameLine(ImGui::GetWindowWidth() - offset_2);
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 5);
         if (ImGui::Button(ICON_LC_CHEVRONS_DOWN_UP)) {
+            ex::gui::tree::state().force_expand = true;
             // TODO
         }
         ImGui::PopStyleColor(3);
         ImGui::PopStyleVar(2);
         ex::gui::plain_tooltip(strings::gui_tree_top_menu_expand_all);
 
-        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 255));
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 200));
         ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0, 0, 0, 0));
-        ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(0, 0, 0, 255));
+        ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(0, 0, 0, 200));
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 11.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
         ImGui::SameLine(ImGui::GetWindowWidth() - offset_2 - offset_1);
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 5);
         if (ImGui::Button(ICON_LC_CHEVRONS_UP_DOWN)) {
+            ex::gui::tree::state().force_collapse = true;
             // TODO
         }
         ImGui::PopStyleColor(3);
@@ -792,6 +774,8 @@ namespace ex::gui {
         tree::show_context_menu_general();
         work_tree_content();
         ImGui::EndChild();
+
+        // TODO
 
         ImGui::End();
         tree::show_inspected_node();

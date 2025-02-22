@@ -8,6 +8,7 @@
 #include "../../../extra/undo/undo_history.h"
 #include "../utils/log_utils.h"
 #include "../utils/data_utils.h"
+#include "../imgui/gui_state.h"
 #include "../state.h"
 
 #include "actions/gui_actions_keymap.h"

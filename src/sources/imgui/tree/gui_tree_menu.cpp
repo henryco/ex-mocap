@@ -160,12 +160,12 @@ namespace ex::gui::tree {
         }
     }
 
-    TreeNode *create_node_from_menu(State &state, GuiState &gui) {
+    TreeNode *create_node_from_menu() {
         for (int i = 0; i < tm::node_mappers_.key_entries.size; ++i) {
             const auto &type_id = tm::node_mappers_.key_entries[i];
             const auto &mapper  = tm::node_mappers_.val_entries[i];
             ImGui::PushID(type_id);
-            if (ImGui::MenuItem(mapper.get_node_name(gui, state) )) {
+            if (ImGui::MenuItem(mapper.get_node_name() )) {
                 ImGui::PopID();
                 TreeNode *new_node   = TreeNode::create();
                 new_node->state      = node_state::created;
@@ -260,8 +260,6 @@ namespace ex::gui::tree {
             return false;
 
         const auto &tree_state = ex::gui::tree::state();
-        State &state = ex::logic::globals::state();
-        GuiState &gui = ex::gui::state();
 
         static auto menu_id = "show_context_menu_element";
         static char name_buffer[64] = "";
@@ -289,12 +287,12 @@ namespace ex::gui::tree {
 
             if (ImGui::BeginMenu(strings::gui_tree_menu_node_new)) {
                 if (ImGui::BeginMenu(strings::gui_tree_menu_node_add_into)) {
-                    if (const auto new_node = create_node_from_menu(state, gui))
+                    if (const auto new_node = create_node_from_menu())
                         tree::add_into_node(node, new_node);
                     ImGui::EndMenu();
                 }
                 if (ImGui::BeginMenu(strings::gui_tree_menu_node_add_after)) {
-                    if (const auto new_node = create_node_from_menu(state, gui))
+                    if (const auto new_node = create_node_from_menu())
                         tree::add_after_node(node, new_node);
                     ImGui::EndMenu();
                 }
@@ -340,7 +338,7 @@ namespace ex::gui::tree {
                     tree::pick_inspected_node(node);
                 }
 
-                tm::node_mappers_[node->id_node].draw_tree_menu(gui, state, node, nested, selected);
+                tm::node_mappers_[node->id_node].draw_tree_menu(node, nested, selected);
 
                 if (ImGui::MenuItem(strings::gui_tree_menu_node_duplicate, key_mappings().work_tree.duplicate.label)) {
                     tree::duplicate_node(node);
@@ -408,8 +406,6 @@ namespace ex::gui::tree {
 
     bool show_context_menu_general() {
         const auto &tree_state = ex::gui::tree::state();
-        State      &state      = ex::logic::globals::state();
-        GuiState   &gui        = ex::gui::state();
 
         static auto menu_id = "show_context_menu_general";
 
@@ -426,7 +422,7 @@ namespace ex::gui::tree {
         if (ImGui::BeginPopup(menu_id)) {
 
             if (ImGui::BeginMenu(strings::gui_tree_menu_general_add)) {
-                if (const auto new_node = create_node_from_menu(state, gui))
+                if (const auto new_node = create_node_from_menu())
                     tree::add_node(new_node);
                 ImGui::EndMenu();
             }

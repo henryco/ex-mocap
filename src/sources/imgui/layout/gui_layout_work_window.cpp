@@ -135,7 +135,6 @@ namespace ex::gui {
 
     bool draw_window(Box &box) {
         static auto     &node_mappers_ = node_components();
-        static State    &state         = ex::logic::globals::state();
         static GuiState &gui           = ex::gui::state();
 
         const auto &mapper    = node_mappers_[box.window.node->id_node];
@@ -152,7 +151,7 @@ namespace ex::gui {
         bool show = true;
         bool *ptr = (node.pinned || !node.docked || gui.view.docking) ? &show : nullptr;
 
-        const uint32_t dock_id = (dock_id_fn == nullptr) ? gui.docking.dock_right_id : dock_id_fn(gui, state);
+        const uint32_t dock_id = (dock_id_fn == nullptr) ? gui.docking.dock_right_id : dock_id_fn();
 
         ex::gui::next_no_close();
         ImGui::SetNextWindowDockID(dock_id, gui.view.reset ? ImGuiCond_Always : ImGuiCond_Once);
@@ -160,7 +159,7 @@ namespace ex::gui {
         node.docked = ex::gui::window_is_docked();
         node.visible = watch_parent_dock_(gui);
 
-        const bool rendered = render_fn(gui, state, &box.window);
+        const bool rendered = render_fn(&box.window);
 
         ImGui::End();
 

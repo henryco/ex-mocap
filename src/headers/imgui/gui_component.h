@@ -6,7 +6,6 @@
 #define GUI_MAPPERS_H
 
 #include "../state.h"
-#include "gui_state.h"
 
 namespace ex::gui {
 
@@ -21,11 +20,11 @@ namespace ex::gui {
     };
 
     struct GuiNodeComponent {
-        bool (*draw_tree_node)(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected) = nullptr;
-        void (*draw_tree_menu)(GuiState &gui, ex::State &state, TreeNode *node, bool nested, bool selected) = nullptr;
-        bool (*draw_node_window)(GuiState &gui, ex::State &state, GuiNodeWindow *win)                       = nullptr;
-        const char *(*get_node_name)(GuiState &gui, ex::State &state)                                       = nullptr;
-        const uint32_t (*get_dock_id)(GuiState &gui, ex::State &state)                                      = nullptr;
+        bool (*draw_tree_node)(TreeNode *node, bool nested, bool selected) = nullptr;
+        void (*draw_tree_menu)(TreeNode *node, bool nested, bool selected) = nullptr;
+        bool (*draw_node_window)(GuiNodeWindow *win)                       = nullptr;
+        const char *(*get_node_name)()                                     = nullptr;
+        const uint32_t (*get_dock_id)()                                    = nullptr;
     };
 }
 

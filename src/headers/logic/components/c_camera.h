@@ -11,9 +11,9 @@
 #include "../logic_component.h"
 
 namespace ex::map::camera {
-    limbo::nodes::BaseNode            *instance(const State &state, TreeNode *from);
-    limbo::nodes::BaseNode            *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *node);
-    static constexpr LogicNodeComponent mappers = { instance };
+    limbo::nodes::BaseNode            *instance(TreeNode *from);
+    limbo::nodes::BaseNode            *relocate(TreeNode *tree, limbo::nodes::BaseNode *node);
+    static constexpr LogicNodeComponent mappers = { instance, relocate };
 }
 
 namespace ex::cmp {

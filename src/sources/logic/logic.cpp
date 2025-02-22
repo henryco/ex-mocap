@@ -249,7 +249,7 @@ namespace ex::main {
             const auto base = ex::logic::state::get_node(node->id_local);
             const auto r_func = ex::logic::globals::node_components()[node->id_node].relocate;
             if (r_func != nullptr) {
-                const auto new_one = r_func(state, node, base);
+                const auto new_one = r_func(node, base);
                 if (base != new_one) {
                     ex::logic::state::replace_node(node->id_local, new_one);
                 }
@@ -313,9 +313,9 @@ namespace ex::main {
                 const LogicNodeComponent &mappers = ex::logic::globals::node_components()[node->id_node];
                 if (const auto node_ptr = ex::logic::state::get_node(node->id_local); node_ptr != nullptr) {
                     if (node_ptr->get_id() != node->id_local)
-                        ex::logic::state::replace_node(node->id_local, mappers.instance(state, node));
+                        ex::logic::state::replace_node(node->id_local, mappers.instance(node));
                 } else
-                    ex::logic::state::store_node(node->id_local, mappers.instance(state, node));
+                    ex::logic::state::store_node(node->id_local, mappers.instance(node));
 
                 internal_::ptr_counter_map[node->id_local]++;
             }

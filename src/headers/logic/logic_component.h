@@ -12,8 +12,8 @@ namespace ex {
     namespace ln = limbo::nodes;
 
     struct LogicNodeComponent {
-        ln::BaseNode *(*instance)(const ex::State &state, ex::TreeNode *from)                     = nullptr;
-        ln::BaseNode *(*relocate)(const ex::State &state, ex::TreeNode *tree, ln::BaseNode *node) = nullptr;
+        ln::BaseNode *(*instance)(ex::TreeNode *from)                     = nullptr;
+        ln::BaseNode *(*relocate)(ex::TreeNode *tree, ln::BaseNode *node) = nullptr;
     };
 
 }

@@ -4,6 +4,7 @@
 
 #include "../../../headers/logic/components/c_camera.h"
 #include "../../../headers/logic/logic_component.h"
+#include "../../../headers/logic/logic_globals.h"
 
 namespace ex::cmp {
 
@@ -45,13 +46,14 @@ namespace ex::cmp {
 
 namespace ex::map::camera {
 
-    limbo::nodes::BaseNode *instance(const State &state, TreeNode *from) {
+    limbo::nodes::BaseNode *instance(TreeNode *from) {
+        const State            &state = ex::logic::globals::state();
         limbo::nodes::BaseNode *node = new cmp::CameraNode(state.cl.context, state.cl.device);
         node->set_id(from->id_local);
         return node;
     }
 
-    limbo::nodes::BaseNode *relocate(const State &state, TreeNode *tree, limbo::nodes::BaseNode *self) {
+    limbo::nodes::BaseNode *relocate(TreeNode *tree, limbo::nodes::BaseNode *self) {
         return self;
     }
 
