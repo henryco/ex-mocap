@@ -2,8 +2,6 @@
 // Created by xd on 02/12/24.
 //
 
-#include <IconsLucide.h>
-
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/gui_strings.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
@@ -12,6 +10,8 @@
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
 #include "../../../headers/logic/logic_globals.h"
 #include "../../../headers/utils/data_utils.h"
+
+#include <IconsLucide.h>
 
 namespace work_tree::internals_ {
 
@@ -688,8 +688,10 @@ namespace ex::gui {
     static bool force_ = false;
 
     void draw_line_menu_() {
-        // TODO FIXME
-        if (!force_ && !ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
+
+        if (!force_ &&
+            !ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) &&
+            !ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) {
             ImGui::Dummy(ImVec2(10, 14));
             return;
         }
