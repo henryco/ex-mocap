@@ -143,6 +143,7 @@ set(HEADER_FILES
         src/headers/imgui/layout/pane/gui_pane_left.h
         src/headers/imgui/layout/pane/gui_pane_right.h
         src/headers/imgui/layout/pane/gui_pane.h
+        src/headers/imgui/layout/display/gui_display.h
 )
 
 set(SOURCE_FILES
@@ -188,6 +189,7 @@ set(SOURCE_FILES
         src/sources/utils/time_utils.cpp
         src/sources/imgui/layout/pane/gui_pane_left.cpp
         src/sources/imgui/layout/pane/gui_pane_right.cpp
+        src/sources/imgui/layout/display/gui_display.cpp
 )
 
 # =================== OpenCL kernels generation =====================

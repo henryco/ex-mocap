@@ -19,10 +19,7 @@ namespace ex::gui {
         float pane_width_left     = 350.0f;
         float pane_width_right    = 350.0f;
         float pane_height_bottom  = 200.0f;
-        float pane_height_content = 0.f;
 
-        float main_width  = 0.f;
-        float main_height = 0.f;
         float main_free_x = 0.f;
         float main_free_y = 0.f;
 

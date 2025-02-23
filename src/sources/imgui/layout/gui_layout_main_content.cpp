@@ -2,16 +2,15 @@
 // Created by xd on 02/12/24.
 //
 
-#include <IconsLucide.h>
+#include "../../../headers/imgui/layout/display/gui_display.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
-
 #include "../../../headers/imgui/gui_globals.h"
 
 namespace ex::gui {
 
     void show_content() {
         GuiState &gui = ex::gui::state();
-        const auto old_height = gui.view.pane_height_content;
+        static float old_height = 0;
 
         ImGui::BeginChild("ContentBox",
                           content_size(gui),
@@ -21,28 +20,20 @@ namespace ex::gui {
                                   | ((gui.re_size.inc_y || gui.window.resized) ? ImGuiChildFlags_AutoResizeY : 0),
                           reset_flag(gui)
         );
-        if (ImGui::BeginTabBar("MainTabs")) {
-            if (ImGui::BeginTabItem("Tab 1")) {
-                ImGui::Text("Content for Tab 1");
-                ImGui::Text(ICON_LC_SETTINGS " icon " ICON_LC_SETTINGS_2);
-                ImGui::EndTabItem();
-            }
-            if (ImGui::BeginTabItem("Tab 2")) {
-                ImGui::Text("Content for Tab 2");
-                ImGui::EndTabItem();
-            }
-            ImGui::EndTabBar();
-        }
-        gui.view.pane_height_content = ImGui::GetWindowHeight();
+
+        display::show_display();
+
+        const float curr_height = ImGui::GetWindowHeight();
         ImGui::EndChild();
 
-        gui.re_size.inc_y = (!gui.re_size.inc_y) && (old_height != gui.view.pane_height_content);
+        gui.re_size.inc_y = (!gui.re_size.inc_y) && (old_height != curr_height);
+        old_height = curr_height;
     }
 
     void show_main_container() {
         GuiState &gui = ex::gui::state();
-        const auto old_width = gui.view.main_width;
-        const auto old_height = gui.view.main_height;
+
+        static float old_width, old_height = 0;
 
         ImGui::BeginChild("MainContainer",
                           main_size(gui),
@@ -60,12 +51,15 @@ namespace ex::gui {
             show_logs_pane();
         }
 
-        gui.view.main_width = ImGui::GetWindowWidth();
-        gui.view.main_height = ImGui::GetWindowHeight();
-        ImGui::EndChild();
+        const float main_width  = ImGui::GetWindowWidth();
+        const float main_height = ImGui::GetWindowHeight();
 
-        gui.re_size.inc_x = (!gui.re_size.inc_x) && (old_width != gui.view.main_width);
-        gui.re_size.inc_y = (!gui.re_size.inc_y) && (old_height != gui.view.main_height);
+        gui.re_size.inc_x = (!gui.re_size.inc_x) && (old_width != main_width);
+        gui.re_size.inc_y = (!gui.re_size.inc_y) && (old_height != main_height);
+        old_width         = main_width;
+        old_height        = main_height;
+
+        ImGui::EndChild();
     }
 
 }
