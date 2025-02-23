@@ -12,6 +12,14 @@
 
 namespace ex::gui::display {
 
+    ImGuiWindowClass create_display_dock_host_class_() {
+        ImGuiWindowClass class_;
+        class_.ClassId = 111777111;
+        class_.DockingAllowUnclassed = false;
+        class_.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoCloseButton;
+        return class_;
+    }
+
     inline int dock_host_flag_(GuiState &gui) {
         return 0 | (gui.view.docking ? 0 : (ImGuiDockNodeFlags_NoDocking | ImGuiDockNodeFlags_NoUndocking))
 #ifndef EXM_DISABLE_EXPERIMENTAL
@@ -19,6 +27,8 @@ namespace ex::gui::display {
 #endif
                 ;
     }
+
+    static const ImGuiWindowClass display_dock_host_class_ = create_display_dock_host_class_();
 
     void show_display() {
         GuiState &gui = ex::gui::state();
@@ -30,34 +40,24 @@ namespace ex::gui::display {
         ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.f, 0.f, 0.f, .0f));
 
         gui.docking.dock_main_id = ImGui::GetID("DockMainDisplay");
-        ImGui::DockSpace(gui.docking.dock_main_id,
-                         ImVec2(0.0f, 0.0f),
-                         ImGuiDockNodeFlags_None
-                                 | aux_flags
-                                 | flags
-        );
+        ImGui::DockSpace(
+            gui.docking.dock_main_id,
+            ImVec2(0.0f, 0.0f),
+            ImGuiDockNodeFlags_None | aux_flags | flags,
+            &display_dock_host_class_);
 
         docking_empty = ex::gui::is_docking_empty(gui.docking.dock_main_id);
 
         ImGui::PopStyleColor();
 
-//        const auto node = ImGui::DockBuilderGetNode(gui.docking.dock_main_id);
-//        ImGui::Begin("debug window");
-//        ImGui::DebugNodeDockNode(node, "debug");
-//        ImGui::End();
-
-        ImGuiWindowClass window_class_1;
-        window_class_1.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoCloseButton;
-        ImGui::SetNextWindowClass(&window_class_1);
+        ImGui::SetNextWindowClass(&display_dock_host_class_);
         ImGui::SetNextWindowDockID(gui.docking.dock_main_id, gui.view.reset ? ImGuiCond_Always : ImGuiCond_Once);
         ImGui::Begin("Window 1");
         ImGui::Text("Content for Window 1: %d", docking_empty);
         ImGui::Text(ICON_LC_SETTINGS " icon " ICON_LC_SETTINGS_2);
         ImGui::End();
 
-        ImGuiWindowClass window_class_2;
-        window_class_1.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoCloseButton;
-        ImGui::SetNextWindowClass(&window_class_2);
+        ImGui::SetNextWindowClass(&display_dock_host_class_);
         ImGui::SetNextWindowDockID(gui.docking.dock_main_id, gui.view.reset ? ImGuiCond_Always : ImGuiCond_Once);
         ImGui::Begin("Window 2");
         ImGui::Text("Content for Window 2: %d", docking_empty);
