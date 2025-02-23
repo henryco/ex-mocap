@@ -57,9 +57,11 @@ namespace ex::gui {
 
     bool is_docking_empty(const ImGuiID &id) {
         const auto node = ImGui::DockBuilderGetNode(id);
-        if (!node || node->VisibleWindow == nullptr)
+        if (!node)
             return true;
-        return false;
+        if (node->VisibleWindow != nullptr)
+            return node->VisibleWindow->ParentWindow != node->HostWindow;
+        return true;
     }
 
     bool plain_close_button() {
