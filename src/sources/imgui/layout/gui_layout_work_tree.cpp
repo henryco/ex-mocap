@@ -708,7 +708,6 @@ namespace ex::gui {
         ImGui::SameLine(ImGui::GetWindowWidth() - offset_2);
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 5);
         if (ImGui::Button(ICON_LC_CHEVRONS_DOWN_UP)) {
-            std::cout << "Button Collapse\n";
             tree::TreeState &node_state = ex::gui::tree::state();
             node_state.force_collapse   = true;
             node_state.force_expand     = false;
@@ -725,7 +724,6 @@ namespace ex::gui {
         ImGui::SameLine(ImGui::GetWindowWidth() - offset_2 - offset_1);
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 5);
         if (ImGui::Button(ICON_LC_CHEVRONS_UP_DOWN)) {
-            std::cout << "Button Expand\n";
             tree::TreeState &node_state = ex::gui::tree::state();
             node_state.force_expand     = true;
             node_state.force_collapse   = false;
