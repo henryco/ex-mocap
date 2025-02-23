@@ -12,8 +12,8 @@
 
 namespace ex::gui::display {
 
-    inline int dock_host_flag_(GuiState &) {
-        return 0
+    inline int dock_host_flag_(GuiState &gui) {
+        return 0 | (gui.view.docking ? 0 : (ImGuiDockNodeFlags_NoDocking | ImGuiDockNodeFlags_NoUndocking))
 #ifndef EXM_DISABLE_EXPERIMENTAL
                    | ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoCloseButton
 #endif
