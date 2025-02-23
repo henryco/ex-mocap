@@ -13,6 +13,8 @@ namespace ex::gui {
         unsigned int dock_left_bot_id = 0;
 
         unsigned int dock_right_id = 0;
+
+        unsigned int dock_main_id  = 0;
     };
 
     struct View {

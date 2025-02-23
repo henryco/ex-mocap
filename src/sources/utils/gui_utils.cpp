@@ -57,9 +57,9 @@ namespace ex::gui {
 
     bool is_docking_empty(const ImGuiID &id) {
         const auto node = ImGui::DockBuilderGetNode(id);
-        if (!node)
+        if (!node || node->VisibleWindow == nullptr)
             return true;
-        return (node->Windows.empty() && !node->ChildNodes[0] && !node->ChildNodes[1]);
+        return false;
     }
 
     bool plain_close_button() {
