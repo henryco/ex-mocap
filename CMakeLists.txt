@@ -174,7 +174,7 @@ set(SOURCE_FILES
         src/sources/logic/nodes/components/c_camera.cpp
         src/sources/logic/logic.cpp
         src/sources/state.cpp
-        src/sources/imgui/components/test_cmp.cpp
+        src/sources/imgui/nodes/components/test_cmp.cpp
         src/sources/imgui/tree/gui_tree_menu.cpp
         src/sources/imgui/layout/gui_layout_work_window.cpp
         src/sources/imgui/layout/gui_layout_node_inspector.cpp
@@ -190,12 +190,12 @@ set(SOURCE_FILES
         src/sources/imgui/actions/gui_actions.cpp
         src/sources/imgui/layout/gui_layout_alert_dialogs.cpp
         src/sources/logic/nodes/components/registry.cpp
-        src/sources/imgui/components/registry.cpp
+        src/sources/imgui/nodes/components/registry.cpp
         src/sources/utils/time_utils.cpp
         src/sources/imgui/layout/pane/gui_pane_left.cpp
         src/sources/imgui/layout/pane/gui_pane_right.cpp
         src/sources/imgui/display/gui_display.cpp
-        src/sources/imgui/outputs/registry.cpp
+        src/sources/imgui/nodes/outputs/registry.cpp
         src/sources/logic/nodes/outputs/registry.cpp
         src/sources/logic/logic_mappers.cpp
 )

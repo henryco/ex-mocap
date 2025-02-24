@@ -2,11 +2,11 @@
 // Created by xd on 2/19/25.
 //
 
-#include "../../../headers/imgui/gui_globals.h"
+#include "../../../../headers/imgui/gui_globals.h"
 
 
 // TODO REPLACE WITH REAL COMPONENTS
-#include "../../../headers/imgui/nodes/components/test_cmp.h"
+#include "../../../../headers/imgui/nodes/components/test_cmp.h"
 // TODO REPLACE WITH REAL COMPONENTS
 
 
