@@ -8,12 +8,12 @@
 #include "../../cl/ocl_interop.h"
 #include "../../core/camera.h"
 #include "../../core/image_protocol.h"
-#include "../components.h"
+#include "../nodes.h"
 
 namespace ex::map::camera {
     limbo::nodes::BaseNode            *instance(TreeNode *from);
     limbo::nodes::BaseNode            *relocate(TreeNode *tree, limbo::nodes::BaseNode *node);
-    static constexpr LogicNodeComponent mappers = { instance, relocate };
+    static constexpr NodeMapper mappers = { instance, relocate };
 }
 
 namespace ex::cmp {

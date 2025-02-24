@@ -7,8 +7,8 @@
 namespace ex::logic {
 
     namespace internal__ {
-        inline const data::map<id_type, ex::LogicNodeComponent> &instance_mappers_map_() {
-            static data::map<id_type, ex::LogicNodeComponent> instance;
+        inline const data::map<id_type, ex::NodeMapper> &instance_mappers_map_() {
+            static data::map<id_type, ex::NodeMapper> instance;
 
             static const auto &out_map = ex::logic::mappers::node_outputs();
             for (int i = 0; i < out_map.size; i++)
@@ -22,8 +22,8 @@ namespace ex::logic {
         }
     }
 
-    const data::map<id_type, ex::LogicNodeComponent> &node_mappers() {
-        static const data::map<id_type, ex::LogicNodeComponent> &instance = internal__::instance_mappers_map_();
+    const data::map<id_type, ex::NodeMapper> &node_mappers() {
+        static const data::map<id_type, ex::NodeMapper> &instance = internal__::instance_mappers_map_();
         return instance;
     }
 

@@ -5,7 +5,7 @@
 #ifndef EX_MOTION_LOGIC_MAPPERS_H
 #define EX_MOTION_LOGIC_MAPPERS_H
 
-#include "../nodes/components.h"
+#include "../nodes/nodes.h"
 #include "../utils/data_utils.h"
 
 namespace ex::logic {
@@ -14,12 +14,12 @@ namespace ex::logic {
     /**
      * Sum of node_outputs and node_components
      */
-    const data::map<id_type, ex::LogicNodeComponent> &node_mappers();
+    const data::map<id_type, ex::NodeMapper> &node_mappers();
 
     namespace mappers {
-        const data::map<id_type, ex::LogicNodeComponent> &node_outputs();
+        const data::map<id_type, ex::NodeMapper> &node_outputs();
 
-        const data::map<id_type, ex::LogicNodeComponent> &node_components();
+        const data::map<id_type, ex::NodeMapper> &node_components();
     }
 
 }

@@ -3,8 +3,8 @@
 //
 
 #include "../../../headers/nodes/components/c_camera.h"
-#include "../../../headers/nodes/components.h"
 #include "../../../headers/logic/logic_globals.h"
+#include "../../../headers/nodes/nodes.h"
 
 namespace ex::cmp {
 

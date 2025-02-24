@@ -6,7 +6,7 @@
 #define TEST_CMP_H
 
 #include "../../../extra/nodes/nodes.h"
-#include "../../nodes/components.h"
+#include "../../nodes/nodes.h"
 #include "../gui_component.h"
 
 namespace ex::gui::test {
@@ -182,7 +182,7 @@ namespace ex::gui::test {
 
         limbo::nodes::BaseNode *instance(TreeNode *from);
         limbo::nodes::BaseNode *relocate(TreeNode *tree, limbo::nodes::BaseNode *node);
-        static constexpr LogicNodeComponent data_mappers = { instance, relocate };
+        static constexpr NodeMapper data_mappers = { instance, relocate };
     }
 
     namespace two {
@@ -194,7 +194,7 @@ namespace ex::gui::test {
 
         limbo::nodes::BaseNode *instance(TreeNode *from);
         limbo::nodes::BaseNode *relocate(TreeNode *tree, limbo::nodes::BaseNode *node);
-        static constexpr LogicNodeComponent data_mappers = { instance, relocate };
+        static constexpr NodeMapper data_mappers = { instance, relocate };
     }
 
     namespace tri {
@@ -206,7 +206,7 @@ namespace ex::gui::test {
 
         limbo::nodes::BaseNode *instance(TreeNode *from);
         limbo::nodes::BaseNode *relocate(TreeNode *tree, limbo::nodes::BaseNode *node);
-        static constexpr LogicNodeComponent data_mappers = { instance, relocate };
+        static constexpr NodeMapper data_mappers = { instance, relocate };
     }
 
 }
