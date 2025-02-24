@@ -8,7 +8,7 @@
 #include "../../cl/ocl_interop.h"
 #include "../../core/camera.h"
 #include "../../core/image_protocol.h"
-#include "../logic_component.h"
+#include "../components.h"
 
 namespace ex::map::camera {
     limbo::nodes::BaseNode            *instance(TreeNode *from);

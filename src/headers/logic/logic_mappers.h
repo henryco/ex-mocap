@@ -5,7 +5,7 @@
 #ifndef EX_MOTION_LOGIC_MAPPERS_H
 #define EX_MOTION_LOGIC_MAPPERS_H
 
-#include "logic_component.h"
+#include "../nodes/components.h"
 #include "../utils/data_utils.h"
 
 namespace ex::logic {

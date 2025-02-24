@@ -119,9 +119,9 @@ set(HEADER_FILES
         src/headers/cl/ocl_interop_ext.h
         src/headers/imgui/layout/gui_layout.h
         src/headers/core/camera.h
-        src/headers/logic/nodes/c_camera.h
+        src/headers/nodes/components/c_camera.h
         src/headers/logic/logic.h
-        src/headers/logic/logic_component.h
+        src/headers/nodes/components.h
         src/headers/core/image_protocol.h
         src/headers/imgui/gui_component.h
         src/headers/imgui/gui_state.h
@@ -146,7 +146,7 @@ set(HEADER_FILES
         src/headers/imgui/display/gui_display.h
         src/headers/display/display.h
         src/headers/imgui/display/imp.h
-        src/headers/logic/outputs/display.h
+        src/headers/nodes/outputs/display.h
         src/headers/imgui/outputs/display.h
         src/headers/logic/logic_mappers.h
 )
@@ -171,7 +171,7 @@ set(SOURCE_FILES
         src/sources/imgui/layout/gui_layout_history.cpp
         src/sources/imgui/layout/gui_layout_main_content.cpp
         src/sources/core/camera.cpp
-        src/sources/logic/nodes/c_camera.cpp
+        src/sources/nodes/components/c_camera.cpp
         src/sources/logic/logic.cpp
         src/sources/state.cpp
         src/sources/imgui/nodes/test_cmp.cpp
@@ -189,14 +189,14 @@ set(SOURCE_FILES
         src/sources/imgui/actions/gui_actions_registry.cpp
         src/sources/imgui/actions/gui_actions.cpp
         src/sources/imgui/layout/gui_layout_alert_dialogs.cpp
-        src/sources/logic/nodes/registry.cpp
+        src/sources/nodes/components/registry.cpp
         src/sources/imgui/nodes/registry.cpp
         src/sources/utils/time_utils.cpp
         src/sources/imgui/layout/pane/gui_pane_left.cpp
         src/sources/imgui/layout/pane/gui_pane_right.cpp
         src/sources/imgui/display/gui_display.cpp
         src/sources/imgui/outputs/registry.cpp
-        src/sources/logic/outputs/registry.cpp
+        src/sources/nodes/outputs/registry.cpp
         src/sources/logic/logic_mappers.cpp
 )
 

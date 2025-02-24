@@ -6,7 +6,7 @@
 #define TEST_CMP_H
 
 #include "../../../extra/nodes/nodes.h"
-#include "../../logic/logic_component.h"
+#include "../../nodes/components.h"
 #include "../gui_component.h"
 
 namespace ex::gui::test {

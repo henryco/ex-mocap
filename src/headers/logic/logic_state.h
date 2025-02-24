@@ -6,7 +6,7 @@
 #define LOGIC_STATE_H
 
 #include <map>
-#include "logic_component.h"
+#include "../nodes/components.h"
 
 namespace ex::logic::state {
 
