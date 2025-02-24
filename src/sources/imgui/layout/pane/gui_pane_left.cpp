@@ -71,8 +71,7 @@ namespace ex::gui {
                                   ? ImGuiDockNodeFlags_NoDockingSplit
                                   : 0;
 
-        const int aux_flags = ImGuiDockNodeFlags_PassthruCentralNode
-                              | dock_host_flag_(gui);
+        const int aux_flags = ImGuiDockNodeFlags_PassthruCentralNode | dock_host_flag_(gui) | ImGuiDockNodeFlags_NoCloseButton;
 
         gui.docking.dock_left_id = ImGui::GetID("DockMainLeft");
         ImGui::DockSpace(gui.docking.dock_left_id,
