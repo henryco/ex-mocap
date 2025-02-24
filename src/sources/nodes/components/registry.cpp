@@ -11,8 +11,8 @@
 namespace ex::logic::mappers {
 
     namespace internal_ {
-        inline const data::map<id_type, ex::NodeMapper> &instance_cmp_map_() {
-            static data::map<id_type, ex::NodeMapper> instance;
+        inline const data::map<id_type, NodeMapper> &instance_cmp_map_() {
+            static data::map<id_type, NodeMapper> instance;
             // TODO REPLACE WITH REAL COMPONENTS
             instance.put(ex::gui::test::NodeOne::get_node_id(), ex::gui::test::one::data_mappers);
             instance.put(ex::gui::test::NodeTwo::get_node_id(), ex::gui::test::two::data_mappers);
@@ -29,8 +29,8 @@ namespace ex::logic::mappers {
         }
     }
 
-    const data::map<id_type, ex::NodeMapper> &node_components() {
-        static const data::map<id_type, ex::NodeMapper> &instance = internal_::instance_cmp_map_();
+    const data::map<id_type, NodeMapper> &node_components() {
+        static const data::map<id_type, NodeMapper> &instance = internal_::instance_cmp_map_();
         return instance;
     }
 }

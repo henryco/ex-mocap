@@ -121,7 +121,7 @@ set(HEADER_FILES
         src/headers/core/camera.h
         src/headers/logic/components/c_camera.h
         src/headers/logic/logic.h
-        src/headers/logic/nodes.h
+        src/headers/logic/logic_nodes.h
         src/headers/core/image_protocol.h
         src/headers/imgui/gui_component.h
         src/headers/imgui/gui_state.h

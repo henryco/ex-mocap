@@ -4,7 +4,7 @@
 
 #include "../../../headers/logic/components/c_camera.h"
 #include "../../../headers/logic/logic_globals.h"
-#include "../../../headers/logic/nodes.h"
+#include "../../../headers/logic/logic_nodes.h"
 
 namespace ex::cmp {
 

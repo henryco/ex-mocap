@@ -8,7 +8,7 @@
 #include "../../../extra/nodes/nodes.h"
 #include "../state.h"
 
-namespace ex {
+namespace ex::logic {
     namespace ln = limbo::nodes;
 
     struct NodeMapper {

@@ -323,7 +323,7 @@ namespace ex::main {
 
             if (!(node->state >>= node_state::is_group) && !(node->state >>= node_state::is_link)) {
 
-                const NodeMapper &mappers = ex::logic::node_mappers()[node->id_node];
+                const logic::NodeMapper &mappers = ex::logic::node_mappers()[node->id_node];
                 if (const auto node_ptr = ex::logic::state::get_node(node->id_local); node_ptr != nullptr) {
                     if (node_ptr->get_id() != node->id_local)
                         ex::logic::state::replace_node(node->id_local, mappers.instance(node));
