@@ -5,7 +5,7 @@
 #ifndef EX_IMGUI_NODE_COMPONENTS_H
 #define EX_IMGUI_NODE_COMPONENTS_H
 
-#include "../state.h"
+#include "../../state.h"
 
 namespace ex::gui {
 

@@ -7,7 +7,7 @@
 
 #include "../../../extra/nodes/nodes.h"
 #include "../../../logic/nodes/logic_nodes.h"
-#include "../../gui_nodes.h"
+#include "../gui_nodes.h"
 
 namespace ex::gui::test {
 

@@ -12,7 +12,7 @@
 #include "../state.h"
 
 #include "actions/gui_actions_keymap.h"
-#include "gui_nodes.h"
+#include "nodes/gui_nodes.h"
 
 namespace ex::gui {
 
