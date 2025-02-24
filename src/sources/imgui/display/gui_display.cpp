@@ -2,15 +2,16 @@
 // Created by xd on 2/23/25.
 //
 
-#include "../../../../headers/imgui/layout/display/gui_display.h"
-#include "../../../../headers/imgui/gui_globals.h"
-#include "../../../../headers/utils/gui_utils.h"
+#include "../../../headers/imgui/display/gui_display.h"
+#include "../../../headers/imgui/display/imp.h"
+#include "../../../headers/imgui/gui_globals.h"
+#include "../../../headers/utils/gui_utils.h"
 
 #include <imgui_internal.h>
 
 #include <IconsLucide.h>
 
-namespace ex::gui::display::exporting {
+namespace ex::display::imp::imgui {
 
     void add_output(const char *name, const int width, const int height, const int channels, const int depth) {
         // TODO

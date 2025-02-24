@@ -10,6 +10,8 @@
 #include "../headers/utils/time_utils.h"
 #include "../headers/utils/glfw_utils.h"
 #include "../headers/cl/cl_gl_interop.h"
+#include "../headers/display/display.h"
+#include "../headers/imgui/display/imp.h"
 
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -94,6 +96,12 @@ namespace ex::boot {
         state.cl.context = ocl_context;
     }
 
+    void init_gui_display() {
+        ex::display::io.add_output = ex::display::imp::imgui::add_output;
+        ex::display::io.remove_output = ex::display::imp::imgui::remove_output;
+        // TODO
+    }
+
     inline void update_title(const State &state) {
         static const char *prev_title = state.project.title;
 
@@ -148,6 +156,9 @@ namespace ex::boot {
 
         const auto gui = ex::gui::GUI(window);
         log->info("ImGUI context created");
+
+        init_gui_display();
+        log->info("Gui display implementation provided");
 
         auto logic = main::create_logic(state);
 

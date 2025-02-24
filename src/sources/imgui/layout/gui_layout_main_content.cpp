@@ -2,7 +2,7 @@
 // Created by xd on 02/12/24.
 //
 
-#include "../../../headers/imgui/layout/display/gui_display.h"
+#include "../../../headers/imgui/display/gui_display.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/imgui/gui_globals.h"
 
