@@ -6,7 +6,7 @@
 #include "../../../headers/imgui/tree/gui_tree_menu.h"
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
 #include "../../../headers/imgui/gui_globals.h"
-#include "../../../headers/imgui/gui_strings.h"
+#include "../../../headers/imgui/strings/gui_strings.h"
 #include "../../../headers/imgui/gui_mappers.h"
 
 namespace ex::gui::tree {

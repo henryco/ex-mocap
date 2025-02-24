@@ -3,7 +3,7 @@
 //
 
 #include "../../headers/imgui/gui_globals.h"
-#include "../../headers/imgui/gui_strings.h"
+#include "../../headers/imgui/strings/gui_strings.h"
 
 namespace ex::gui {
 

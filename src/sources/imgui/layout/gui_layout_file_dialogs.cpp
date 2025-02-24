@@ -4,7 +4,7 @@
 
 #include "../../../headers/imgui/actions/gui_actions.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
-#include "../../../headers/imgui/gui_strings.h"
+#include "../../../headers/imgui/strings/gui_strings.h"
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/logic/logic_globals.h"
 #include "../../../headers/utils/file_utils.h"

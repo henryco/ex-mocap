@@ -4,7 +4,7 @@
 
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/gui_mappers.h"
-#include "../../../headers/imgui/gui_strings.h"
+#include "../../../headers/imgui/strings/gui_strings.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/imgui/layout/pane/gui_pane.h"
 #include "../../../headers/imgui/tree/gui_tree_menu.h"

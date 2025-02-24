@@ -134,7 +134,7 @@ set(HEADER_FILES
         src/headers/logic/logic_globals.h
         src/headers/imgui/tree/gui_tree_state.h
         src/headers/imgui/tree/gui_tree_menu.h
-        src/headers/imgui/gui_strings.h
+        src/headers/imgui/strings/gui_strings.h
         src/headers/imgui/actions/gui_actions_registry.h
         src/headers/imgui/actions/gui_actions_keymap.h
         src/headers/imgui/actions/gui_actions.h
