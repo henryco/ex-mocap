@@ -20,6 +20,8 @@ namespace ex::logic::globals {
 
     const data::map<id_type, ex::LogicNodeComponent> &node_components();
 
+    const data::map<id_type, ex::LogicNodeComponent> &node_outputs();
+
 }
 
 #endif //LOGIC_GLOBALS_H

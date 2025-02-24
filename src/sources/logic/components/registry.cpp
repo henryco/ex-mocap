@@ -13,6 +13,11 @@
 namespace ex::logic::internal_ {
     inline const data::map<globals::id_type, ex::LogicNodeComponent> &instance_cmp_map_() {
         static data::map<globals::id_type, ex::LogicNodeComponent> instance;
+
+        auto &out_map = ex::logic::globals::node_outputs();
+        for (int i = 0; i < out_map.size; i++)
+            instance.put(out_map.key_entries[i], out_map.val_entries[i]);
+
         // TODO REPLACE WITH REAL COMPONENTS
         instance.put(ex::gui::test::NodeOne::get_node_id(), ex::gui::test::one::data_mappers);
         instance.put(ex::gui::test::NodeTwo::get_node_id(), ex::gui::test::two::data_mappers);

@@ -28,6 +28,8 @@ namespace ex::gui {
 
     const data::map<id_type, gui::GuiNodeComponent> &node_components();
 
+    const data::map<id_type, gui::GuiNodeComponent> &node_outputs();
+
 }
 
 #endif //GUI_GLOBALS_H

@@ -192,6 +192,8 @@ set(SOURCE_FILES
         src/sources/imgui/layout/pane/gui_pane_left.cpp
         src/sources/imgui/layout/pane/gui_pane_right.cpp
         src/sources/imgui/display/gui_display.cpp
+        src/sources/imgui/outputs/registry.cpp
+        src/sources/logic/outputs/registry.cpp
 )
 
 # =================== OpenCL kernels generation =====================
