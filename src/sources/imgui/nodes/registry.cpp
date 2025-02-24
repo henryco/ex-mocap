@@ -11,8 +11,8 @@
 
 
 namespace ex::gui::internal_ {
-    inline const data::map<id_type, gui::GuiNodeComponent> &instance_cmp_map_() {
-        static data::map<id_type, gui::GuiNodeComponent> instance;
+    inline const data::map<id_type, gui::GuiNodeMapper> &instance_cmp_map_() {
+        static data::map<id_type, gui::GuiNodeMapper> instance;
 
         static const auto &out_map = ex::gui::node_outputs();
         for (int i = 0; i < out_map.size; i++)
@@ -32,8 +32,8 @@ namespace ex::gui::internal_ {
 }
 
 namespace ex::gui {
-    const data::map<id_type, gui::GuiNodeComponent> &node_components() {
-        static const data::map<id_type, gui::GuiNodeComponent> &instance = internal_::instance_cmp_map_();
+    const data::map<id_type, gui::GuiNodeMapper> &node_components() {
+        static const data::map<id_type, gui::GuiNodeMapper> &instance = internal_::instance_cmp_map_();
         return instance;
     }
 }

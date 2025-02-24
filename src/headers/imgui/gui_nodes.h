@@ -19,7 +19,7 @@ namespace ex::gui {
         bool pinned = false;
     };
 
-    struct GuiNodeComponent {
+    struct GuiNodeMapper {
         bool (*draw_tree_node)(TreeNode *node, bool nested, bool selected, bool collapse, bool expand) = nullptr;
         void (*draw_tree_menu)(TreeNode *node, bool nested, bool selected)                             = nullptr;
         bool (*draw_node_window)(GuiNodeWindow *win)                                                   = nullptr;

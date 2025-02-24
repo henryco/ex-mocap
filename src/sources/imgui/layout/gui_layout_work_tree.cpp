@@ -17,7 +17,7 @@ namespace work_tree::internals_ {
 
     static const auto &mappers_ = ex::gui::node_components();
 
-    inline const ex::gui::GuiNodeComponent *fetch_(const std::uint64_t &key) {
+    inline const ex::gui::GuiNodeMapper *fetch_(const std::uint64_t &key) {
         return &mappers_[key];
     }
 
@@ -54,7 +54,7 @@ namespace ex::gui {
         draw_list->AddLine(ImVec2(p_min.x, p_max.y), ImVec2(p_max.x, p_max.y), col_purple, 1.f);
     }
 
-    void drag_space(TreeNode *node, const GuiNodeComponent &node_mapper) {
+    void drag_space(TreeNode *node, const GuiNodeMapper &node_mapper) {
         if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_PayloadAutoExpire | ImGuiDragDropFlags_SourceNoHoldToOpenOthers)) {
             if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
                 ImGui::ClearActiveID();
