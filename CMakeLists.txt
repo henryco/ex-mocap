@@ -125,7 +125,7 @@ set(HEADER_FILES
         src/headers/core/image_protocol.h
         src/headers/imgui/gui_nodes.h
         src/headers/imgui/gui_state.h
-        src/headers/imgui/nodes/test_cmp.h
+        src/headers/imgui/components/test_cmp.h
         src/headers/imgui/tree/gui_tree_ops.h
         src/headers/imgui/gui_globals.h
         src/headers/logic/logic_state.h

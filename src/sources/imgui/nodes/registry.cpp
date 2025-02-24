@@ -6,7 +6,7 @@
 
 
 // TODO REPLACE WITH REAL COMPONENTS
-#include "../../../headers/imgui/nodes/test_cmp.h"
+#include "../../../headers/imgui/components/test_cmp.h"
 // TODO REPLACE WITH REAL COMPONENTS
 
 
