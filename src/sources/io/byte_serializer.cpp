@@ -4,6 +4,7 @@
 
 #include "../../../extra/bytebox/byte_box.h"
 #include "../../headers/io/byte_serializer.h"
+#include "../../headers/logic/logic_mappers.h"
 #include "../../headers/logic/logic_globals.h"
 #include "../../headers/logic/logic_state.h"
 #include "../../headers/state.h"
@@ -136,10 +137,10 @@ namespace ex::io::bytes {
         if (to->state >>= node_state::is_group)
             return;
 
-        if (!ex::logic::globals::node_components().contains(to->id_node))
+        if (!ex::logic::node_mappers().contains(to->id_node))
             return;
 
-        const auto mappers = ex::logic::globals::node_components()[to->id_node];
+        const auto mappers = ex::logic::node_mappers()[to->id_node];
         const auto instance = mappers.instance(to);
         ex::logic::state::store_node(to->id_local, instance);
     }

@@ -2,21 +2,23 @@
 // Created by xd on 2/24/25.
 //
 
-#include "../../../headers/logic/logic_globals.h"
+#include "../../../headers/logic/logic_mappers.h"
 
-namespace ex::logic::internal_ {
-    inline const data::map<globals::id_type, ex::LogicNodeComponent> &instance_out_map_() {
-        static data::map<globals::id_type, ex::LogicNodeComponent> instance;
-        // TODO
-        // instance.put(0, ex::gui::test::one::data_mappers);
-        // TODO
-        return instance;
+namespace ex::logic::mappers {
+
+    namespace internal_ {
+        inline const data::map<id_type, ex::LogicNodeComponent> &instance_out_map_() {
+            static data::map<id_type, ex::LogicNodeComponent> instance;
+            // TODO
+            // instance.put(0, ex::gui::test::one::data_mappers);
+            // TODO
+            return instance;
+        }
     }
-}
 
-namespace ex::logic::globals {
     const data::map<id_type, ex::LogicNodeComponent> &node_outputs() {
         static const data::map<id_type, ex::LogicNodeComponent> &instance = internal_::instance_out_map_();
         return instance;
     }
+
 }

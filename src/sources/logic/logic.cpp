@@ -7,6 +7,7 @@
 #include "../../headers/utils/file_utils.h"
 #include "../../headers/io/byte_serializer.h"
 #include "../../headers/logic/logic_globals.h"
+#include "../../headers/logic/logic_mappers.h"
 #include "../../headers/logic/logic_state.h"
 #include "../../headers/logic/logic.h"
 
@@ -21,7 +22,7 @@ namespace internal_ {
             if (ptr_counter <= 0) {
 
                 if (const auto base = ex::logic::state::get_node(key)) {
-                    if (const auto d_func = ex::logic::globals::node_components()[base->get_type_id()].destroy)
+                    if (const auto d_func = ex::logic::node_mappers()[base->get_type_id()].destroy)
                         d_func(nullptr, base);
                 }
 
@@ -249,7 +250,7 @@ namespace ex::main {
             !(node->state >>= node_state::is_group)) {
 
             if (const auto base = ex::logic::state::get_node(node->id_local)) {
-                if (const auto d_func = ex::logic::globals::node_components()[node->id_node].destroy)
+                if (const auto d_func = ex::logic::node_mappers()[node->id_node].destroy)
                     d_func(node, base);
             }
 
@@ -259,7 +260,7 @@ namespace ex::main {
 
         if (moved && !(node->state >>= node_state::is_link) && !(node->state >>= node_state::is_group)) {
             const auto base = ex::logic::state::get_node(node->id_local);
-            const auto r_func = ex::logic::globals::node_components()[node->id_node].relocate;
+            const auto r_func = ex::logic::node_mappers()[node->id_node].relocate;
             if (r_func != nullptr) {
                 const auto new_one = r_func(node, base);
                 if (base != new_one) {
@@ -322,7 +323,7 @@ namespace ex::main {
 
             if (!(node->state >>= node_state::is_group) && !(node->state >>= node_state::is_link)) {
 
-                const LogicNodeComponent &mappers = ex::logic::globals::node_components()[node->id_node];
+                const LogicNodeComponent &mappers = ex::logic::node_mappers()[node->id_node];
                 if (const auto node_ptr = ex::logic::state::get_node(node->id_local); node_ptr != nullptr) {
                     if (node_ptr->get_id() != node->id_local)
                         ex::logic::state::replace_node(node->id_local, mappers.instance(node));
