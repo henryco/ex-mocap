@@ -3,6 +3,7 @@
 //
 
 #include "../../../headers/imgui/gui_globals.h"
+#include "../../../headers/imgui/gui_mappers.h"
 #include "../../../headers/imgui/gui_strings.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/imgui/layout/pane/gui_pane.h"
@@ -15,7 +16,7 @@
 
 namespace work_tree::internals_ {
 
-    static const auto &mappers_ = ex::gui::node_components();
+    static const auto &mappers_ = ex::gui::node_mappers();
 
     inline const ex::gui::GuiNodeMapper *fetch_(const std::uint64_t &key) {
         return &mappers_[key];

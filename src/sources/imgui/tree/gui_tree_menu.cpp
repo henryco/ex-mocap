@@ -2,20 +2,19 @@
 // Created by xd on 17/01/25.
 //
 
-#include "../../../headers/imgui/tree/gui_tree_menu.h"
 #include "../../../headers/imgui/actions/gui_actions_registry.h"
+#include "../../../headers/imgui/tree/gui_tree_menu.h"
+#include "../../../headers/imgui/tree/gui_tree_ops.h"
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/gui_strings.h"
-#include "../../../headers/imgui/tree/gui_tree_ops.h"
-#include "../../../headers/logic/logic_globals.h"
+#include "../../../headers/imgui/gui_mappers.h"
 
 namespace ex::gui::tree {
 
     namespace tm {
-        const auto &node_mappers_ = node_components();
-        const auto &node_outputs_ = node_outputs();
+        const auto &node_mappers_ = ex::gui::mappers::node_components();
+        const auto &node_outputs_ = ex::gui::mappers::node_outputs();
     }
-
 
     void remove_actions_() {
         const auto &mappings = key_mappings();

@@ -149,6 +149,7 @@ set(HEADER_FILES
         src/headers/logic/nodes/outputs/display.h
         src/headers/imgui/nodes/outputs/display.h
         src/headers/logic/logic_mappers.h
+        src/headers/imgui/gui_mappers.h
 )
 
 set(SOURCE_FILES
@@ -198,6 +199,7 @@ set(SOURCE_FILES
         src/sources/imgui/nodes/outputs/registry.cpp
         src/sources/logic/nodes/outputs/registry.cpp
         src/sources/logic/logic_mappers.cpp
+        src/sources/imgui/gui_mappers.cpp
 )
 
 # =================== OpenCL kernels generation =====================

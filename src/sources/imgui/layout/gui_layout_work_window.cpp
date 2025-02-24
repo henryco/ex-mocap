@@ -3,6 +3,7 @@
 //
 
 #include "../../../headers/imgui/gui_globals.h"
+#include "../../../headers/imgui/gui_mappers.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/logic/logic_globals.h"
 #include "../../../headers/utils/data_utils.h"
@@ -134,7 +135,7 @@ namespace ex::gui {
     }
 
     bool draw_window(Box &box) {
-        static auto     &node_mappers_ = node_components();
+        static auto     &node_mappers_ = node_mappers();
         static GuiState &gui           = ex::gui::state();
 
         const auto &mapper    = node_mappers_[box.window.node->id_node];
@@ -171,7 +172,7 @@ namespace ex::gui {
     }
 
     void show_work_window() {
-        static auto     &node_mappers_ = node_components();
+        static auto     &node_mappers_ = node_mappers();
         static State    &state         = ex::logic::globals::state();
 
         static ex::data::array<Box> windows_(5);
