@@ -14,6 +14,7 @@ namespace ex {
     struct LogicNodeComponent {
         ln::BaseNode *(*instance)(ex::TreeNode *from)                     = nullptr;
         ln::BaseNode *(*relocate)(ex::TreeNode *tree, ln::BaseNode *node) = nullptr;
+        void (*destroy)(ex::TreeNode *tree, ln::BaseNode *node)           = nullptr;
     };
 
 }
