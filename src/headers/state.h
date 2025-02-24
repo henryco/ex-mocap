@@ -12,8 +12,6 @@
 
 namespace ex {
 
-//    constexpr
-
     namespace state::uuid {
         std::uint32_t generate_id_inc();
         std::uint32_t get_last_id();
@@ -32,7 +30,8 @@ namespace ex {
         warning   = 1 << 7,
         created   = 1 << 8,
         selected  = 1 << 9,
-        connected = 1 << 10
+        connected = 1 << 10,
+        is_output = 1 << 11
     };
 
     struct TreeNode {
