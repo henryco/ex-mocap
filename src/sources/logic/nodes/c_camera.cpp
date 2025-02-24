@@ -2,7 +2,7 @@
 // Created by xd on 15/12/24.
 //
 
-#include "../../../headers/logic/components/c_camera.h"
+#include "../../../headers/logic/nodes/c_camera.h"
 #include "../../../headers/logic/logic_component.h"
 #include "../../../headers/logic/logic_globals.h"
 
