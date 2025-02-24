@@ -2,8 +2,8 @@
 // Created by xd on 19/12/24.
 //
 
-#ifndef MAPPERS_H
-#define MAPPERS_H
+#ifndef EX_LOGIC_NODE_COMPONENT_H
+#define EX_LOGIC_NODE_COMPONENT_H
 
 #include "../../../extra/nodes/nodes.h"
 #include "../state.h"
@@ -19,4 +19,4 @@ namespace ex {
 
 }
 
-#endif //MAPPERS_H
+#endif //EX_LOGIC_NODE_COMPONENT_H

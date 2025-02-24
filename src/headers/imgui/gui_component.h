@@ -2,8 +2,8 @@
 // Created by xd on 02/01/25.
 //
 
-#ifndef GUI_MAPPERS_H
-#define GUI_MAPPERS_H
+#ifndef EX_IMGUI_NODE_COMPONENTS_H
+#define EX_IMGUI_NODE_COMPONENTS_H
 
 #include "../state.h"
 
@@ -28,4 +28,4 @@ namespace ex::gui {
     };
 }
 
-#endif //GUI_MAPPERS_H
+#endif //EX_IMGUI_NODE_COMPONENTS_H

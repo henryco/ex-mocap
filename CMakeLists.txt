@@ -146,6 +146,8 @@ set(HEADER_FILES
         src/headers/imgui/display/gui_display.h
         src/headers/display/display.h
         src/headers/imgui/display/imp.h
+        src/headers/logic/outputs/display.h
+        src/headers/imgui/outputs/display.h
 )
 
 set(SOURCE_FILES
