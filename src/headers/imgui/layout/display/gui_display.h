@@ -9,6 +9,14 @@ namespace ex::gui::display {
 
     void show_display();
 
+    namespace exporting {
+        void add_output(const char *, int w, int h, int channels, int depth);
+
+        void remove_output(const char *);
+
+        // TODO
+    }
+
 }
 
 #endif //GUI_DISPLAY_H

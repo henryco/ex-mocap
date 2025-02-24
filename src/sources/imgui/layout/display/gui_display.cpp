@@ -10,6 +10,18 @@
 
 #include <IconsLucide.h>
 
+namespace ex::gui::display::exporting {
+
+    void add_output(const char *name, const int width, const int height, const int channels, const int depth) {
+        // TODO
+    }
+
+    void remove_output(const char *name) {
+        // TODO
+    }
+
+}
+
 namespace ex::gui::display {
 
     void debug_node_host_(ImGuiDockNode *dock_host_node) {
