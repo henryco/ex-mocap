@@ -5,9 +5,9 @@
 #ifndef C_CAMERA_H
 #define C_CAMERA_H
 
-#include "../../cl/ocl_interop.h"
-#include "../../core/camera.h"
-#include "../../core/image_protocol.h"
+#include "../../../cl/ocl_interop.h"
+#include "../../../core/camera.h"
+#include "../../../core/image_protocol.h"
 #include "../logic_nodes.h"
 
 namespace ex::map::camera {

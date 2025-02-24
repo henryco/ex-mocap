@@ -6,7 +6,7 @@
 #define EX_MOTION_LOGIC_MAPPERS_H
 
 #include "../utils/data_utils.h"
-#include "logic_nodes.h"
+#include "nodes/logic_nodes.h"
 
 namespace ex::logic {
     using id_type  = std::uint64_t;

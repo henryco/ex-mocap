@@ -119,9 +119,9 @@ set(HEADER_FILES
         src/headers/cl/ocl_interop_ext.h
         src/headers/imgui/layout/gui_layout.h
         src/headers/core/camera.h
-        src/headers/logic/components/c_camera.h
+        src/headers/logic/nodes/components/c_camera.h
         src/headers/logic/logic.h
-        src/headers/logic/logic_nodes.h
+        src/headers/logic/nodes/logic_nodes.h
         src/headers/core/image_protocol.h
         src/headers/imgui/gui_nodes.h
         src/headers/imgui/gui_state.h
@@ -146,7 +146,7 @@ set(HEADER_FILES
         src/headers/imgui/display/gui_display.h
         src/headers/display/display.h
         src/headers/imgui/display/imp.h
-        src/headers/logic/outputs/display.h
+        src/headers/logic/nodes/outputs/display.h
         src/headers/imgui/outputs/display.h
         src/headers/logic/logic_mappers.h
 )

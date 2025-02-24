@@ -2,9 +2,9 @@
 // Created by xd on 15/12/24.
 //
 
-#include "../../../headers/logic/components/c_camera.h"
+#include "../../../headers/logic/nodes/components/c_camera.h"
 #include "../../../headers/logic/logic_globals.h"
-#include "../../../headers/logic/logic_nodes.h"
+#include "../../../headers/logic/nodes/logic_nodes.h"
 
 namespace ex::cmp {
 
