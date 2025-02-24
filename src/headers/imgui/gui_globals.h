@@ -26,10 +26,12 @@ namespace ex::gui {
 
     limbo::undo::history<ex::State> &undo_history();
 
-    const data::map<id_type, gui::GuiNodeComponent> &node_components();
-
     const data::map<id_type, gui::GuiNodeComponent> &node_outputs();
 
+    /**
+     * Offset by N node_outputs
+     */
+    const data::map<id_type, gui::GuiNodeComponent> &node_components();
 }
 
 #endif //GUI_GLOBALS_H

@@ -44,6 +44,7 @@ namespace ex::gui::strings {
 
     constexpr auto gui_tree_menu_general_add   = "Add new node";
     constexpr auto gui_tree_menu_general_new   = "New node";
+    constexpr auto gui_tree_menu_general_out   = "New output";
     constexpr auto gui_tree_menu_general_paste = "Paste node";
 
     constexpr auto gui_tree_menu_group         = "Group";

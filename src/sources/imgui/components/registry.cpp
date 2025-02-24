@@ -13,6 +13,11 @@
 namespace ex::gui::internal_ {
     inline const data::map<id_type, gui::GuiNodeComponent> &instance_cmp_map_() {
         static data::map<id_type, gui::GuiNodeComponent> instance;
+
+        static const auto &out_map = ex::gui::node_outputs();
+        for (int i = 0; i < out_map.size; i++)
+            instance.put(out_map.key_entries[i], out_map.val_entries[i]);
+
         // TODO REPLACE WITH REAL COMPONENTS
         instance.put(0, ex::gui::test::one::gui_mappers);
         instance.put(1, ex::gui::test::tri::gui_mappers);

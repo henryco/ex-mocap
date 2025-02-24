@@ -14,7 +14,7 @@ namespace ex::logic::internal_ {
     inline const data::map<globals::id_type, ex::LogicNodeComponent> &instance_cmp_map_() {
         static data::map<globals::id_type, ex::LogicNodeComponent> instance;
 
-        auto &out_map = ex::logic::globals::node_outputs();
+        static const auto &out_map = ex::logic::globals::node_outputs();
         for (int i = 0; i < out_map.size; i++)
             instance.put(out_map.key_entries[i], out_map.val_entries[i]);
 

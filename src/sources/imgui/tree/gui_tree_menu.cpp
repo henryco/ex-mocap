@@ -13,6 +13,7 @@ namespace ex::gui::tree {
 
     namespace tm {
         const auto &node_mappers_ = node_components();
+        const auto &node_outputs_ = node_outputs();
     }
 
 
@@ -161,7 +162,28 @@ namespace ex::gui::tree {
     }
 
     TreeNode *create_node_from_menu() {
-        for (int i = 0; i < tm::node_mappers_.key_entries.size; ++i) {
+
+        int offset = 0;
+        for (; offset < tm::node_outputs_.key_entries.size; offset++) {
+            const auto &type_id = tm::node_outputs_.key_entries[offset];
+            const auto &mapper  = tm::node_outputs_.val_entries[offset];
+            ImGui::PushID(type_id);
+            if (ImGui::MenuItem(mapper.get_node_name())) {
+                ImGui::PopID();
+                TreeNode *new_node   = TreeNode::create();
+                new_node->state      = node_state::created | node_state::is_output;
+                new_node->children_n = 0;
+                new_node->id_node    = type_id;
+                new_node->name       = strings::gui_tree_menu_general_out;
+                return new_node;
+            }
+            ImGui::PopID();
+        }
+
+        if (offset > 0)
+            ImGui::Separator();
+
+        for (int i = offset; i < tm::node_mappers_.key_entries.size; ++i) {
             const auto &type_id = tm::node_mappers_.key_entries[i];
             const auto &mapper  = tm::node_mappers_.val_entries[i];
             ImGui::PushID(type_id);

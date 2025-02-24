@@ -18,9 +18,12 @@ namespace ex::logic::globals {
 
     logs::logger &logger();
 
-    const data::map<id_type, ex::LogicNodeComponent> &node_components();
-
     const data::map<id_type, ex::LogicNodeComponent> &node_outputs();
+
+    /**
+     * Offset by N node_outputs
+     */
+    const data::map<id_type, ex::LogicNodeComponent> &node_components();
 
 }
 
