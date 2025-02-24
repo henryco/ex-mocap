@@ -92,11 +92,8 @@ namespace ex::gui::display {
         const auto dock_host_node = ImGui::DockBuilderGetNode(gui.docking.dock_main_id);
         dock_host_node->LocalFlags |= ImGuiDockNodeFlags_NoDockingSplit;
 
-        // TODO remove
         draw_displays_(dock_host_node->HostWindow, &docking_empty);
-        debug_node_host_(dock_host_node);
-        // TODO remove
-
+//        debug_node_host_(dock_host_node);
     }
 
 }
