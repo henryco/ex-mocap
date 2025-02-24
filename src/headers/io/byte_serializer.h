@@ -5,7 +5,7 @@
 #ifndef BYTE_SERIALIZER_H
 #define BYTE_SERIALIZER_H
 
-#include "../../../extra/nodes/nodes.h"
+#include "../../extra/nodes/nodes.h"
 #include <cstdint>
 
 namespace ex::io {

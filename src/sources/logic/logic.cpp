@@ -5,7 +5,7 @@
 #include "../../headers/utils/time_utils.h"
 #include "../../headers/utils/data_utils.h"
 #include "../../headers/utils/file_utils.h"
-#include "../../headers/logic/io/byte_serializer.h"
+#include "../../headers/io/byte_serializer.h"
 #include "../../headers/logic/logic_globals.h"
 #include "../../headers/logic/logic_state.h"
 #include "../../headers/logic/logic.h"

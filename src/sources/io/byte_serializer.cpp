@@ -3,10 +3,10 @@
 //
 
 #include "../../../extra/bytebox/byte_box.h"
-#include "../../../headers/logic/io/byte_serializer.h"
-#include "../../../headers/logic/logic_globals.h"
-#include "../../../headers/logic/logic_state.h"
-#include "../../../headers/state.h"
+#include "../../headers/io/byte_serializer.h"
+#include "../../headers/logic/logic_globals.h"
+#include "../../headers/logic/logic_state.h"
+#include "../../headers/state.h"
 
 #include <cstring>
 #include <ex_version.h>

@@ -129,7 +129,7 @@ set(HEADER_FILES
         src/headers/imgui/tree/gui_tree_ops.h
         src/headers/imgui/gui_globals.h
         src/headers/logic/logic_state.h
-        src/headers/logic/io/byte_serializer.h
+        src/headers/io/byte_serializer.h
         src/headers/utils/file_utils.h
         src/headers/logic/logic_globals.h
         src/headers/imgui/tree/gui_tree_state.h
@@ -176,7 +176,7 @@ set(SOURCE_FILES
         src/sources/imgui/gui_globals.cpp
         src/sources/imgui/tree/gui_tree_ops.cpp
         src/sources/logic/logic_state.cpp
-        src/sources/logic/io/byte_serializer.cpp
+        src/sources/io/byte_serializer.cpp
         src/sources/utils/file_utils.cpp
         src/sources/logic/logic_globals.cpp
         src/sources/imgui/tree/gui_tree_state.cpp
