@@ -108,7 +108,7 @@ set(HEADER_FILES
         src/headers/boot.h
 
         src/headers/imgui/gui.h
-        src/headers/utils/gl_utils.h
+        src/headers/utils/glfw_utils.h
         src/headers/utils/log_utils.h
         src/headers/utils/gui_utils.h
         src/headers/cl/cl_gl_interop.h
@@ -152,7 +152,7 @@ set(SOURCE_FILES
         src/sources/boot_gui.cpp
         src/sources/boot_terminal.cpp
         src/sources/imgui/layout/gui_layout.cpp
-        src/sources/utils/gl_utils.cpp
+        src/sources/utils/glfw_utils.cpp
         src/sources/utils/log_utils.cpp
         src/sources/utils/gui_utils.cpp
         src/sources/cl/cl_gl_interop.cpp

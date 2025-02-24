@@ -2,8 +2,8 @@
 // Created by henryco on 26/11/24.
 //
 
-#ifndef GL_UTILS_H
-#define GL_UTILS_H
+#ifndef GLFW_UTILS_H
+#define GLFW_UTILS_H
 
 #include <GLFW/glfw3.h>
 
@@ -15,4 +15,4 @@ namespace ex::gl {
 
 }
 
-#endif //GL_UTILS_H
+#endif //GLFW_UTILS_H

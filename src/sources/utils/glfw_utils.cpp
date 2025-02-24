@@ -2,7 +2,7 @@
 // Created by henryco on 26/11/24.
 //
 
-#include "../../headers/utils/gl_utils.h"
+#include "../../headers/utils/glfw_utils.h"
 
 #include <iostream>
 

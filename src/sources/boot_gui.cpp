@@ -8,7 +8,7 @@
 #include "../headers/logic/logic_globals.h"
 #include "../headers/imgui/gui_globals.h"
 #include "../headers/utils/time_utils.h"
-#include "../headers/utils/gl_utils.h"
+#include "../headers/utils/glfw_utils.h"
 #include "../headers/cl/cl_gl_interop.h"
 
 #include <GLFW/glfw3.h>
