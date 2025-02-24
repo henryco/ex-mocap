@@ -19,6 +19,12 @@ namespace internal_ {
             const uint32_t key         = ptr_counter_map.key_entries[i];
             int           &ptr_counter = ptr_counter_map.val_entries[i];
             if (ptr_counter <= 0) {
+
+                if (const auto base = ex::logic::state::get_node(key)) {
+                    if (const auto d_func = ex::logic::globals::node_components()[base->get_type_id()].destroy)
+                        d_func(nullptr, base);
+                }
+
                 ex::logic::state::remove_node(key);
                 ptr_counter_map.remove_at_pos(i);
             } else {
@@ -241,6 +247,12 @@ namespace ex::main {
         if (!moved &&
             !(node->state >>= node_state::is_link) &&
             !(node->state >>= node_state::is_group)) {
+
+            if (const auto base = ex::logic::state::get_node(node->id_local)) {
+                if (const auto d_func = ex::logic::globals::node_components()[node->id_node].destroy)
+                    d_func(node, base);
+            }
+
             ex::logic::state::remove_node(node->id_local);
             internal_::ptr_counter_map.remove(node->id_local);
         }
