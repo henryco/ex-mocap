@@ -392,6 +392,7 @@ namespace ex::gui {
             const bool reference = node->state >>= node_state::is_link;
             const bool connected = (node->state >>= node_state::connected) || reference || n <= 0;
             const bool symlinked = *ref_node > 0 && *ref_node == node->id_local;
+            const bool observer  = node->state >>= node_state::is_output;
             const bool disabled  = node->state >>= node_state::disabled;
             const bool dimmed    = node->state >>= node_state::dimmed;
 
@@ -459,6 +460,10 @@ namespace ex::gui {
                 ImGui::TableNextColumn();
                 ImGui::TextDisabled(ICON_LC_LINK);
             }
+            else if (observer && connected) {
+                ImGui::TableNextColumn();
+                ImGui::TextDisabled(ICON_LC_ARROW_RIGHT);
+            }
             else if (ImGui::IsItemHovered()) {
                 ImGui::TableNextColumn();
                 if (!connected)
@@ -523,6 +528,7 @@ namespace ex::gui {
         const bool symlinked = *ref_node > 0 && *ref_node == first->id_local;
         const bool reference = first->state >>= node_state::is_link;
         const bool disabled  = first->state >>= node_state::disabled;
+        const bool observer  = first->state >>= node_state::is_output;
         const bool dimmed    = first->state >>= node_state::dimmed;
 
         if (first->children_n <= 0) {
@@ -583,6 +589,10 @@ namespace ex::gui {
                 else if (reference) {
                     ImGui::TableNextColumn();
                     ImGui::TextDisabled(ICON_LC_LINK);
+                }
+                else if (observer) {
+                    ImGui::TableNextColumn();
+                    ImGui::TextDisabled(ICON_LC_ARROW_RIGHT);
                 }
                 else if (ImGui::IsItemHovered()) {
                     ImGui::TableNextColumn();
