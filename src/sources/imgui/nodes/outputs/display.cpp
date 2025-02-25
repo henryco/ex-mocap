@@ -20,7 +20,11 @@ namespace ex::gui::node::out::display {
     bool draw_tree_node(TreeNode *n, const bool nested, const bool selected, const bool collapse, const bool expand) {
         char out_name[128]{};
         sprintf(out_name, "%s %s", ICON_LC_PICTURE_IN_PICTURE_2, n->name);
-        return plain_node(out_name, false, selected, nested, expand, collapse);
+        return generic_node(out_name, false, selected, nested, expand, collapse);
+    }
+
+    void update_tree_node(TreeNode *node) {
+        // TODO
     }
 
     bool draw_node_window(GuiNodeWindow *window) {

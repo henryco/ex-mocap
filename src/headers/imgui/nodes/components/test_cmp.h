@@ -178,7 +178,7 @@ namespace ex::gui::test {
         void draw_tree_menu(TreeNode *node, bool nested, bool selected);
         bool draw_node_window(GuiNodeWindow *window);
         const char *get_node_name();
-        static constexpr GuiNodeMapper gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
+        static constexpr GuiNodeMapper gui_mappers = { draw_tree_node, draw_tree_menu, nullptr, draw_node_window, get_node_name };
 
         limbo::nodes::BaseNode *instance(TreeNode *from);
         limbo::nodes::BaseNode *relocate(TreeNode *tree, limbo::nodes::BaseNode *node);
@@ -190,7 +190,7 @@ namespace ex::gui::test {
         void draw_tree_menu(TreeNode *node, bool nested, bool selected);
         bool draw_node_window(GuiNodeWindow *window);
         const char *get_node_name();
-        static constexpr GuiNodeMapper gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
+        static constexpr GuiNodeMapper gui_mappers = { draw_tree_node, draw_tree_menu, nullptr, draw_node_window, get_node_name };
 
         limbo::nodes::BaseNode *instance(TreeNode *from);
         limbo::nodes::BaseNode *relocate(TreeNode *tree, limbo::nodes::BaseNode *node);
@@ -202,7 +202,7 @@ namespace ex::gui::test {
         void draw_tree_menu(TreeNode *node, bool nested, bool selected);
         bool draw_node_window(GuiNodeWindow *window);
         const char *get_node_name();
-        static constexpr GuiNodeMapper gui_mappers = { draw_tree_node, draw_tree_menu, draw_node_window, get_node_name };
+        static constexpr GuiNodeMapper gui_mappers = { draw_tree_node, draw_tree_menu, nullptr, draw_node_window, get_node_name };
 
         limbo::nodes::BaseNode *instance(TreeNode *from);
         limbo::nodes::BaseNode *relocate(TreeNode *tree, limbo::nodes::BaseNode *node);
