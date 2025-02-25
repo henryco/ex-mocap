@@ -24,6 +24,7 @@ namespace ex::gui::node::out::display {
     }
 
     void update_tree_node(TreeNode *node) {
+        std::cout << "update display tree node\n";
         // TODO
     }
 

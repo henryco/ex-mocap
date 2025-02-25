@@ -4,11 +4,16 @@
 
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
 #include "../../../headers/imgui/gui_globals.h"
+#include "../../../headers/imgui/gui_mappers.h"
 #include "../../../headers/imgui/strings/gui_strings.h"
 #include "../../../headers/logic/logic_globals.h"
 #include "../../../headers/utils/data_utils.h"
 
 namespace ex::gui::tree {
+
+    namespace i_ {
+        const auto &mappers_ = ex::gui::node_mappers();
+    }
 
     struct Snapshot {
         TreeNode *work_tree   = nullptr;
@@ -395,20 +400,30 @@ namespace ex::gui::tree {
 
         TreeState::reset(tree::state());
 
+        const auto &upd_fn = i_::mappers_[node->id_node].update_tree_node;
+        if (upd_fn != nullptr)
+            upd_fn(node);
+
         undo_history().push(strings::gui_tree_ops_history_node_renamed,
-        new std::function([id_local, og_name] (State *s) {
+        new std::function([id_local, og_name, upd_fn] (State *s) {
             TreeState::reset(tree::state());
             const auto f_node = s->logic.work_tree->find_node(id_local);
             if (f_node == nullptr)
                 throw std::runtime_error("Cannot find original node");
             f_node->name = og_name;
+
+            if (upd_fn != nullptr)
+                upd_fn(f_node);
         }),
-        new std::function([id_local, new_name] (State *s) {
+        new std::function([id_local, new_name, upd_fn] (State *s) {
             TreeState::reset(tree::state());
             const auto f_node = s->logic.work_tree->find_node(id_local);
             if (f_node == nullptr)
                 throw std::runtime_error("Cannot find original node");
             f_node->name = new_name;
+
+            if (upd_fn != nullptr)
+                upd_fn(f_node);
         }));
     }
 
@@ -939,10 +954,14 @@ namespace ex::gui::tree {
 
         TreeState::reset(tree::state());
 
+        const auto &upd_fn = i_::mappers_[node->id_node].update_tree_node;
+        if (upd_fn != nullptr)
+            upd_fn(node);
+
         state.logic.rewire = true;
 
         undo_history().push(strings::gui_tree_ops_history_node_enabled,
-        new std::function([id_l = node->id_local, og_state] (ex::State *s) {
+        new std::function([id_l = node->id_local, og_state, upd_fn] (ex::State *s) {
             TreeState::reset(tree::state());
             s->logic.rewire = true;
             const auto f_node = s->logic.work_tree->find_node(id_l);
@@ -950,20 +969,29 @@ namespace ex::gui::tree {
                 throw std::runtime_error("Cannot find original node");
             f_node->state -= node_state::disabled;
             f_node->state |= (og_state & node_state::disabled);
+
+            if (upd_fn != nullptr)
+                upd_fn(f_node);
         }),
-        new std::function([id_l = node->id_local] (ex::State *s) {
+        new std::function([id_l = node->id_local, upd_fn] (ex::State *s) {
             TreeState::reset(tree::state());
             s->logic.rewire = true;
             const auto f_node = s->logic.work_tree->find_node(id_l);
             if (f_node == nullptr)
                 throw std::runtime_error("Cannot find original node");
             f_node->state -= node_state::disabled;
+
+            if (upd_fn != nullptr)
+                upd_fn(f_node);
         }));
     }
 
     void disable_node(TreeNode *node) {
         const auto og_state = node->state;
         node->state |= node_state::disabled;
+
+        if (const auto &upd_fn = i_::mappers_[node->id_node].update_tree_node)
+            upd_fn(node);
 
         State &state = ex::logic::globals::state();
 
@@ -979,6 +1007,9 @@ namespace ex::gui::tree {
                 throw std::runtime_error("Cannot find original node");
             f_node->state -= node_state::disabled;
             f_node->state |= (og_state & node_state::disabled);
+
+            if (const auto &upd_fn = i_::mappers_[f_node->id_node].update_tree_node)
+                upd_fn(f_node);
         }),
         new std::function([id_l = node->id_local] (ex::State *s) {
             TreeState::reset(tree::state());
@@ -987,6 +1018,9 @@ namespace ex::gui::tree {
             if (f_node == nullptr)
                 throw std::runtime_error("Cannot find original node");
             f_node->state |= node_state::disabled;
+
+            if (const auto &upd_fn = i_::mappers_[f_node->id_node].update_tree_node)
+                upd_fn(f_node);
         }));
     }
 
@@ -999,6 +1033,9 @@ namespace ex::gui::tree {
         while (head != nullptr) {
             og_map.put(head->selected->id_local, head->selected->state);
             head->selected->state -= node_state::disabled;
+
+            if (const auto &upd_fn = i_::mappers_[head->selected->id_node].update_tree_node)
+                upd_fn(head->selected);
             head = head->next;
         }
 
@@ -1020,6 +1057,9 @@ namespace ex::gui::tree {
                     throw std::runtime_error("Cannot find original node");
                 f_node->state -= node_state::disabled;
                 f_node->state |= (v & node_state::disabled);
+
+                if (const auto &upd_fn = i_::mappers_[f_node->id_node].update_tree_node)
+                    upd_fn(f_node);
             }
         }),
         new std::function([og_state = og_map](ex::State *s) {
@@ -1031,6 +1071,9 @@ namespace ex::gui::tree {
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
                 f_node->state -= node_state::disabled;
+
+                if (const auto &upd_fn = i_::mappers_[f_node->id_node].update_tree_node)
+                    upd_fn(f_node);
             }
         }));
     }
@@ -1044,6 +1087,10 @@ namespace ex::gui::tree {
         while (head != nullptr) {
             og_map.put(head->selected->id_local, head->selected->state);
             head->selected->state |= node_state::disabled;
+
+            if (const auto &upd_fn = i_::mappers_[head->selected->id_node].update_tree_node)
+                upd_fn(head->selected);
+
             head = head->next;
         }
 
@@ -1064,6 +1111,9 @@ namespace ex::gui::tree {
                     throw std::runtime_error("Cannot find original node");
                 f_node->state -= node_state::disabled;
                 f_node->state |= (v & node_state::disabled);
+
+                if (const auto &upd_fn = i_::mappers_[f_node->id_node].update_tree_node)
+                    upd_fn(f_node);
             }
             TreeState::reset(tree::state());
         }),
@@ -1075,6 +1125,9 @@ namespace ex::gui::tree {
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
                 f_node->state |= node_state::disabled;
+
+                if (const auto &upd_fn = i_::mappers_[f_node->id_node].update_tree_node)
+                    upd_fn(f_node);
             }
             TreeState::reset(tree::state());
         }));
