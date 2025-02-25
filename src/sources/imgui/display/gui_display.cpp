@@ -5,20 +5,45 @@
 #include "../../../headers/imgui/display/gui_display.h"
 #include "../../../headers/imgui/display/imp.h"
 #include "../../../headers/imgui/gui_globals.h"
+#include "../../../headers/utils/data_utils.h"
 #include "../../../headers/utils/gui_utils.h"
 
 #include <imgui_internal.h>
-
-#include <IconsLucide.h>
+#include <iostream>
 
 namespace ex::display::imp::imgui {
 
-    void add_output(const char *name, const int width, const int height, const int channels, const int depth) {
-        // TODO
+    static unsigned int id_counter = 0;
+
+    struct display_window_t {
+        const char *name;
+        const char *uuid;
+        int         width;
+        int         height;
+        int         channels;
+        int         depth;
+    };
+
+    static ex::data::map<unsigned int, display_window_t> display_map_(10);
+
+    unsigned int add_output(const char *name, const int width, const int height, const int channels, const int depth) {
+        const auto new_id = ++id_counter;
+        const auto uuid = new char[strlen(name) + 24];
+        sprintf(uuid, "%s##display/%03d", name, new_id);
+
+        std::cout << "display: " << uuid << '\n';
+
+        display_map_.put(new_id, { name, uuid, width, height, channels, depth });
+        return new_id;
     }
 
-    void remove_output(const char *name) {
-        // TODO
+    void remove_output(const unsigned int id) {
+        if (!display_map_.contains(id))
+            return;
+        const auto &d_ref = display_map_[id];
+        if (d_ref.uuid != nullptr)
+            delete[] d_ref.uuid;
+        display_map_.remove(id);
     }
 
 }
@@ -50,36 +75,35 @@ namespace ex::gui::display {
 
     static const ImGuiWindowClass display_dock_host_class_ = create_display_dock_host_class_();
 
+    bool draw_display(const ImGuiWindow *host_window, const ex::display::imp::imgui::display_window_t &disp) {
+        static const GuiState &gui = ex::gui::state();
+        ImGui::SetNextWindowClass(&display_dock_host_class_);
+        ImGui::SetNextWindowDockID(gui.docking.dock_main_id, gui.view.reset ? ImGuiCond_Always : ImGuiCond_Once);
+
+        if (ImGui::Begin(disp.uuid)) {
+            ImGui::Text("%s", disp.name);
+            // TODO
+        }
+
+        if (const ImGuiWindow *curr = ImGui::GetCurrentWindow()) {
+            if (curr->ParentWindow == host_window) {
+                ImGui::End();
+                return true;
+            }
+        }
+
+        ImGui::End();
+        return false;
+    }
 
     void draw_displays_(const ImGuiWindow *host_window, bool *docking_empty) {
-        static const GuiState &gui = ex::gui::state();
-
+        namespace edii = ex::display::imp::imgui;
         bool docked = false;
 
-        ImGui::SetNextWindowClass(&display_dock_host_class_);
-        ImGui::SetNextWindowDockID(gui.docking.dock_main_id, gui.view.reset ? ImGuiCond_Always : ImGuiCond_Once);
-        if (ImGui::Begin("Window 1")) {
-            ImGui::Text("Content for Window 1: %d", *docking_empty);
-            ImGui::Text(ICON_LC_SETTINGS " icon " ICON_LC_SETTINGS_2);
-        }
-
-        if (const ImGuiWindow *curr = ImGui::GetCurrentWindow()) {
-            if (curr->ParentWindow == host_window)
+        for (int i = 0; i < edii::display_map_.size; i++) {
+            if (draw_display(host_window, edii::display_map_.val_entries[i]))
                 docked = true;
         }
-        ImGui::End();
-
-        ImGui::SetNextWindowClass(&display_dock_host_class_);
-        ImGui::SetNextWindowDockID(gui.docking.dock_main_id, gui.view.reset ? ImGuiCond_Always : ImGuiCond_Once);
-        if (ImGui::Begin("Window 2")) {
-            ImGui::Text("Content for Window 2: %d", *docking_empty);
-        }
-
-        if (const ImGuiWindow *curr = ImGui::GetCurrentWindow()) {
-            if (curr->ParentWindow == host_window)
-                docked = true;
-        }
-        ImGui::End();
 
         *docking_empty = !docked;
     }

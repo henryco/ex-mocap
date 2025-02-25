@@ -18,6 +18,7 @@ namespace ex::logic::node::out {
                                ln::ReactiveOutAnyCallback
     {
         const char  *display_n = nullptr;
+        unsigned int display_i = 0;
         unsigned int display_w = 0;
         unsigned int display_h = 0;
         unsigned int display_c = 3;

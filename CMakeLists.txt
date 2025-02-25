@@ -202,6 +202,7 @@ set(SOURCE_FILES
         src/sources/logic/logic_mappers.cpp
         src/sources/imgui/gui_mappers.cpp
         src/sources/imgui/nodes/outputs/display.cpp
+        src/sources/display/display.cpp
 )
 
 # =================== OpenCL kernels generation =====================

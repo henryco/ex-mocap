@@ -4,6 +4,7 @@
 
 #include "../../../../headers/logic/nodes/outputs/display.h"
 #include "../../../../headers/imgui/nodes/outputs/display.h"
+#include "../../../../headers/imgui/strings/gui_strings.h"
 #include "../../../../headers/imgui/gui_globals.h"
 #include "../../../../headers/utils/gui_utils.h"
 #include "imgui.h"
@@ -17,7 +18,9 @@ namespace ex::gui::node::out::display {
     }
 
     bool draw_tree_node(TreeNode *n, const bool nested, const bool selected, const bool collapse, const bool expand) {
-        return plain_node(n->name, true, selected, nested, expand, collapse);
+        char out_name[128]{};
+        sprintf(out_name, "%s %s", ICON_LC_PICTURE_IN_PICTURE_2, n->name);
+        return plain_node(out_name, false, selected, nested, expand, collapse);
     }
 
     bool draw_node_window(GuiNodeWindow *window) {
@@ -27,7 +30,7 @@ namespace ex::gui::node::out::display {
     }
 
     const char *get_node_name() {
-        return ICON_LC_COMPONENT " Display";
+        return strings::node_output_display_name;
     }
 
 } // namespace ex::gui::node::out::display

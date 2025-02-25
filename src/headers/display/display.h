@@ -8,12 +8,12 @@
 namespace ex::display {
 
     struct IO {
-        void (*add_output)(const char *, int w, int h, int channels, int depth) = nullptr;
-        void (*remove_output)(const char *)                                     = nullptr;
+        unsigned int (*add_output)(const char *, int w, int h, int channels, int depth) = nullptr;
+        void (*remove_output)(unsigned int)                                             = nullptr;
         // TODO
     };
 
-    static IO io;
+    extern IO &io;
 
 }
 

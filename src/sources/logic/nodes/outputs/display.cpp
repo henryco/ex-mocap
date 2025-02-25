@@ -7,8 +7,10 @@
 
 namespace ex::logic::node::out {
 
-    ln::BaseNode *DisplayOutputNode::instance(TreeNode *) {
-        return new DisplayOutputNode();
+    ln::BaseNode *DisplayOutputNode::instance(TreeNode *n) {
+        const auto node = new DisplayOutputNode();
+        node->register_image(n->name, 0, 0);
+        return node;
     }
 
     ln::BaseNode *DisplayOutputNode::relocate(TreeNode *, ln::BaseNode *node) {
@@ -21,8 +23,8 @@ namespace ex::logic::node::out {
 
     void DisplayOutputNode::register_image(const char *name, const uint w, const uint h, const uint channels,
                                            const uint bit_depth) {
-        if (display_n != nullptr)
-            ex::display::io.remove_output(display_n);
+        if (display_i != 0)
+            ex::display::io.remove_output(display_i);
 
         display_n = name;
         display_w = w;
@@ -30,7 +32,7 @@ namespace ex::logic::node::out {
         display_c = channels;
         display_d = bit_depth;
 
-        ex::display::io.add_output(display_n, display_w, display_h, display_c, display_d);
+        display_i = ex::display::io.add_output(display_n, display_w, display_h, display_c, display_d);
     }
 
     DisplayOutputNode::DisplayOutputNode() {
@@ -39,8 +41,8 @@ namespace ex::logic::node::out {
 
     DisplayOutputNode::~DisplayOutputNode() {
         std::cout << "DSTR DisplayOutputNode::DisplayOutputNode()\n";
-        if (display_n != nullptr)
-            ex::display::io.remove_output(display_n);
+        if (display_i != 0)
+            ex::display::io.remove_output(display_i);
     }
 
     bool DisplayOutputNode::on_input(proto::image data, int input_index, int output_index, int clock_i,
