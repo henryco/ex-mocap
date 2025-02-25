@@ -44,9 +44,9 @@ namespace ex::gui {
 
     int window_reset_flags(bool reset, bool standalone);
 
-    bool generic_node(const char *name, bool bullet, bool selected = false, bool nested = false);
+    bool generic_node(const char *name, bool bullet, bool selected = false, bool nested = false, bool expand = false, bool collapse = false);
 
-    bool plain_node(const char *name, bool bullet, bool selected = false, bool nested = false);
+    bool plain_node(const char *name, bool bullet, bool selected = false, bool nested = false, bool expand = false, bool collapse = false);
 
     bool show_yes_no_dialog(const char *title, const char *msg, const char *yes, const char *no);
 

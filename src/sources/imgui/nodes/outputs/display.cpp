@@ -16,11 +16,8 @@ namespace ex::gui::node::out::display {
         return ex::logic::node::out::DisplayOutputNode::get_node_id();
     }
 
-    bool draw_tree_node(TreeNode *node, const bool nested, const bool selected, const bool collapse,
-                        const bool expand) {
-        if (expand)   ImGui::SetNextItemOpen(true, ImGuiCond_Always);
-        if (collapse) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
-        return plain_node(node->name, true, selected, nested);
+    bool draw_tree_node(TreeNode *n, const bool nested, const bool selected, const bool collapse, const bool expand) {
+        return plain_node(n->name, true, selected, nested, expand, collapse);
     }
 
     bool draw_node_window(GuiNodeWindow *window) {

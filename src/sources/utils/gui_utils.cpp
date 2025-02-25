@@ -195,7 +195,10 @@ namespace ex::gui {
         draw_list->AddTriangleFilled(p7, p5, p6, color_1);
     }
 
-    bool generic_node(const char *name, const bool bullet, const bool selected, const bool nested) {
+    bool generic_node(const char *name, const bool bullet, const bool selected, const bool nested, const bool expand, const bool collapse) {
+        if (expand)   ImGui::SetNextItemOpen(true, ImGuiCond_Always);
+        if (collapse) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
+
         constexpr auto tree_bull_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
         constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
         const auto c_flag = tree_node_flags | (selected ? ImGuiTreeNodeFlags_Selected : 0);
@@ -209,7 +212,10 @@ namespace ex::gui {
         return open;
     }
 
-    bool plain_node(const char *name, const bool bullet, const bool selected, const bool nested) {
+    bool plain_node(const char *name, const bool bullet, const bool selected, const bool nested, const bool expand, const bool collapse) {
+        if (expand)   ImGui::SetNextItemOpen(true, ImGuiCond_Always);
+        if (collapse) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
+
         constexpr auto tree_bull_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
         constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
         const auto c_flag = tree_node_flags | (selected ? ImGuiTreeNodeFlags_Selected : 0);
