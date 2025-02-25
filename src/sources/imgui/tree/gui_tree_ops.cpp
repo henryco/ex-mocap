@@ -6,8 +6,7 @@
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/strings/gui_strings.h"
 #include "../../../headers/logic/logic_globals.h"
-#include <ranges>
-#include <map>
+#include "../../../headers/utils/data_utils.h"
 
 namespace ex::gui::tree {
 
@@ -995,10 +994,10 @@ namespace ex::gui::tree {
         if (selection == nullptr)
             return;
 
-        std::map<std::size_t, node_state> og_map;
+        ex::data::map<std::size_t, node_state> og_map;
         auto head = selection->root;
         while (head != nullptr) {
-            og_map.emplace(head->selected->id_local, head->selected->state);
+            og_map.put(head->selected->id_local, head->selected->state);
             head->selected->state -= node_state::disabled;
             head = head->next;
         }
@@ -1012,7 +1011,10 @@ namespace ex::gui::tree {
         new std::function([og_state = og_map](ex::State *s) {
             TreeState::reset(tree::state());
             s->logic.rewire = true;
-            for (const auto &[k, v] : og_state) {
+            for (int j = 0; j < og_state.size; j++) {
+                const auto &k = og_state.key_entries[j];
+                const auto &v = og_state.val_entries[j];
+
                 const auto f_node = s->logic.work_tree->find_node(k);
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
@@ -1023,7 +1025,8 @@ namespace ex::gui::tree {
         new std::function([og_state = og_map](ex::State *s) {
             TreeState::reset(tree::state());
             s->logic.rewire = true;
-            for (const auto &k : std::views::keys(og_state)) {
+            for (int ik = 0; ik < og_state.size; ik++) {
+                const auto &k = og_state.key_entries[ik];
                 const auto f_node = s->logic.work_tree->find_node(k);
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
@@ -1036,10 +1039,10 @@ namespace ex::gui::tree {
         if (selection == nullptr)
             return;
 
-        std::map<std::size_t, node_state> og_map;
+        ex::data::map<std::size_t, node_state> og_map;
         auto head = selection->root;
         while (head != nullptr) {
-            og_map.emplace(head->selected->id_local, head->selected->state);
+            og_map.put(head->selected->id_local, head->selected->state);
             head->selected->state |= node_state::disabled;
             head = head->next;
         }
@@ -1052,7 +1055,10 @@ namespace ex::gui::tree {
         undo_history().push(strings::gui_tree_ops_history_select_disabled,
         new std::function([og_state = og_map](ex::State *s) {
             s->logic.rewire = true;
-            for (const auto &[k, v] : og_state) {
+            for (int j = 0; j < og_state.size; j++) {
+                const auto &k = og_state.key_entries[j];
+                const auto &v = og_state.val_entries[j];
+
                 const auto f_node = s->logic.work_tree->find_node(k);
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");
@@ -1063,7 +1069,8 @@ namespace ex::gui::tree {
         }),
         new std::function([og_state = og_map](ex::State *s) {
             s->logic.rewire = true;
-            for (const auto &k : std::views::keys(og_state)) {
+            for (int ik = 0; ik < og_state.size; ik++) {
+                const auto &k = og_state.key_entries[ik];
                 const auto f_node = s->logic.work_tree->find_node(k);
                 if (f_node == nullptr)
                     throw std::runtime_error("Cannot find original node");

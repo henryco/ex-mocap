@@ -24,7 +24,7 @@ namespace ex::data {
 
         ~buffer() {
             if (this->data != nullptr)
-                std::free(this->data);
+                free(this->data);
             this->data = nullptr;
             this->size = 0;
         }
@@ -40,6 +40,53 @@ namespace ex::data {
                 this->data = static_cast<element_t *>(realloc(this->data, size * sizeof(element_t)));
                 this->size = size;
             }
+        }
+
+        buffer(const buffer &other) : size(other.size) {
+            if (other.size <= 0) {
+                data = nullptr;
+                return;
+            }
+            data = static_cast<element_t *>(malloc(other.size * sizeof(element_t)));
+            memcpy(data, other.data, other.size * sizeof(element_t));
+        }
+
+        buffer(buffer &&other) noexcept : size(other.size) {
+            this->data = other.data;
+            other.data = nullptr;
+        }
+
+        buffer &operator = (const buffer &other) {
+            if (this == &other)
+                return *this;
+
+            if (data != nullptr)
+                free(data); // can use realloc...
+
+            size = other.size;
+
+            if (other.size <= 0) {
+                data = nullptr;
+                return *this;
+            }
+
+            data = static_cast<element_t *>(malloc(other.size * sizeof(element_t)));
+            memcpy(data, other.data, other.size * sizeof(element_t));
+
+            return *this;
+        }
+
+        buffer &operator = (buffer &&other) noexcept {
+            if (this == &other)
+                return *this;
+
+            if (this->data != nullptr)
+                free(this->data);
+
+            this->data = other.data;
+            this->size = other.size;
+            other.data = nullptr;
+            return *this;
         }
     };
 
@@ -93,6 +140,63 @@ namespace ex::data {
             data[size - 1]      = tmp;
             size                = (size > 0) ? (size - 1) : 0;
         }
+
+        array(const array &other) : size(other.size), capacity(other.capacity) {
+            if (other.capacity <= 0) {
+                data = nullptr;
+                return;
+            }
+
+            data = static_cast<element_t *>(malloc(other.capacity * sizeof(element_t)));
+
+            if (other.size <= 0)
+                return;
+
+            memcpy(data, other.data, other.size * sizeof(element_t));
+        }
+
+        array(array &&other) noexcept : size(other.size), capacity(other.capacity) {
+            this->data = other.data;
+            other.data = nullptr;
+        }
+
+        array &operator = (const array &other) {
+            if (this == &other)
+                return *this;
+
+            if (data != nullptr)
+                free(data);
+
+            size     = other.size;
+            capacity = other.capacity;
+
+            if (other.capacity <= 0) {
+                data = nullptr;
+                return *this;
+            }
+
+            data = static_cast<element_t *>(malloc(other.capacity * sizeof(element_t)));
+
+            if (other.size <= 0)
+                return *this;
+
+            memcpy(data, other.data, other.size * sizeof(element_t));
+            return *this;
+        }
+
+        array &operator = (array &&other) noexcept {
+            if (this == &other)
+                return *this;
+
+            if (this->data != nullptr)
+                free(this->data);
+
+            this->data     = other.data;
+            this->size     = other.size;
+            this->capacity = other.capacity;
+            other.data     = nullptr;
+            return *this;
+        }
     };
 
     template<typename key_t, typename element_t>
@@ -112,7 +216,32 @@ namespace ex::data {
 
         map() = default;
 
+        ~map() = default;
+
         map(int capacity) : key_entries(capacity), val_entries(capacity) {}
+
+        map(const map &src) : key_entries(src.key_entries), val_entries(src.val_entries) {}
+
+        map(map &&src) noexcept :
+            key_entries(static_cast<array<key_t> &&>(src.key_entries)),
+            val_entries(static_cast<array<element_t> &&>(src.val_entries)) {
+        }
+
+        map &operator = (const map &other) {
+            if (this == &other)
+                return *this;
+            key_entries = other.key_entries;
+            val_entries = other.val_entries;
+            return *this;
+        }
+
+        map &operator = (map &&other) noexcept {
+            if (this == &other)
+                return *this;
+            key_entries = static_cast<array<key_t> &&>(other.key_entries);
+            val_entries = static_cast<array<element_t> &&>(other.val_entries);
+            return *this;
+        }
 
         void put(const key_t &key, const element_t &element) {
             for (int i = 0; i < key_entries.size; ++i) {
