@@ -31,10 +31,19 @@ namespace ex::gui {
          */
         const char *(*get_node_preview)()                                                              = nullptr;
 
+        /**
+         * TreeNode view in work-tree
+         */
         bool (*draw_tree_node)(TreeNode *node, bool nested, bool selected, bool collapse, bool expand) = nullptr;
 
+        /**
+         * TreeNode context menu
+         */
         void (*draw_tree_menu)(TreeNode *node, bool nested, bool selected)                             = nullptr;
 
+        /**
+         * Window content (main content)
+         */
         bool (*draw_node_window)(GuiNodeWindow *win)                                                   = nullptr;
 
         /**
