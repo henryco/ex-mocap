@@ -85,7 +85,7 @@ namespace ex::gui::display {
         ImGui::SetNextWindowClass(&display_dock_host_class_);
         ImGui::SetNextWindowDockID(gui.docking.dock_main_id, gui.view.reset ? ImGuiCond_Always : ImGuiCond_Once);
 
-        if (ImGui::Begin(disp.uuid)) {
+        if (ImGui::Begin(disp.uuid, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
             ImGui::Text("%s", disp.name);
             // TODO
         }
