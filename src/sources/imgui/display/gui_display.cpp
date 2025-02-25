@@ -31,10 +31,8 @@ namespace ex::display::imp::imgui {
         const auto uuid   = new char[strlen(name) + 24];
         const auto label  = new char[strlen(name) + 1];
 
-        sprintf(uuid, "%s##display/%03d", name, new_id);
+        sprintf(uuid, "%s##display/%d", name, new_id);
         strcpy(label, name);
-
-        std::cout << "display: " << uuid << '\n';
 
         display_map_.put(new_id, { label, uuid, width, height, channels, depth });
         return new_id;

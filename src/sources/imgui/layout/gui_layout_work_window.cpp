@@ -10,7 +10,6 @@
 #include "../../../headers/utils/gui_utils.h"
 
 #include <cstring>
-#include <string>
 
 namespace ex::gui {
 
@@ -99,11 +98,8 @@ namespace ex::gui {
     };
 
     void gen_uuid(GuiNodeWindow &window) {
-        const auto s_uuid =
-                std::string(std::string(window.node->name) + "##" + std::to_string(window.node->id_local) + "/" +
-                            std::to_string(window.node->id_node));
-        const auto buffer = new char[s_uuid.size() + 1];
-        strcpy(buffer, s_uuid.c_str());
+        const auto buffer = new char[strlen(window.node->name) + 64];
+        sprintf(buffer, "%s##window/%d/%lu", window.node->name, window.node->id_local, window.node->id_node);
         if (window.uuid != nullptr)
             delete window.uuid;
         window.uuid = buffer;
