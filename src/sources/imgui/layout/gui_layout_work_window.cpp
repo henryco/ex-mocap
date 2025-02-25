@@ -149,6 +149,11 @@ namespace ex::gui {
         if (node.visible != nullptr && !(*node.visible))
             return false;
 
+        if (node.name != node.node->name) {
+            node.name = node.node->name;
+            gen_uuid(node);
+        }
+
         bool show = true;
         bool *ptr = (node.pinned || !node.docked || gui.view.docking) ? &show : nullptr;
 

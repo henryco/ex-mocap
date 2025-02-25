@@ -415,10 +415,12 @@ namespace ex::gui::tree {
         if (ImGui::BeginPopup("rename-popup")) {
             ImGui::Text(strings::gui_tree_menu_node_edit_name);
             ImGui::InputText("##edit", name_buffer, IM_ARRAYSIZE(name_buffer));
+            ImGui::BeginDisabled(strlen(name_buffer) <= 3);
             if (ImGui::Button(strings::gui_tree_menu_node_edit_apply)) {
                 tree::rename_node(node, name_buffer);
                 ImGui::CloseCurrentPopup();
             }
+            ImGui::EndDisabled();
             ImGui::EndPopup();
         } else if (rename_popup) {
             ImGui::OpenPopup("rename-popup");
