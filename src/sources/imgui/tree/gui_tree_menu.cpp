@@ -14,6 +14,7 @@ namespace ex::gui::tree {
     namespace tm {
         const auto &node_mappers_ = ex::gui::mappers::node_components();
         const auto &node_outputs_ = ex::gui::mappers::node_outputs();
+        const auto &mappers_      = ex::gui::node_mappers();
     }
 
     void remove_actions_() {
@@ -359,7 +360,9 @@ namespace ex::gui::tree {
                     tree::pick_inspected_node(node);
                 }
 
-                tm::node_mappers_[node->id_node].draw_tree_menu(node, nested, selected);
+                const auto &menu_fn = tm::mappers_[node->id_node].draw_tree_menu;
+                if (menu_fn != nullptr)
+                    menu_fn(node, nested, selected);
 
                 if (ImGui::MenuItem(strings::gui_tree_menu_node_duplicate, key_mappings().work_tree.duplicate.label)) {
                     tree::duplicate_node(node);

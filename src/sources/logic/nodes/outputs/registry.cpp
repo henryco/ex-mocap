@@ -3,15 +3,17 @@
 //
 
 #include "../../../../headers/logic/logic_mappers.h"
+#include "../../../../headers/logic/nodes/outputs/display.h"
 
 namespace ex::logic::mappers {
 
     namespace internal_ {
         inline const data::map<id_type, NodeMapper> &instance_out_map_() {
             static data::map<id_type, NodeMapper> instance;
-            // TODO
-            // instance.put(0, ex::gui::test::one::data_mappers);
-            // TODO
+
+            using display_t = ex::logic::node::out::DisplayOutputNode;
+            instance.put(display_t::get_node_id(), { display_t::instance, display_t::relocate, display_t::destroy });
+
             return instance;
         }
     }
