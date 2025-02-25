@@ -412,6 +412,10 @@ namespace ex::main {
     }
 
     void Logic::build_tree_(State &state, TreeNode *node, TreeNode *previous, simple_list *group_list) {
+
+        // TODO IS_OUTPUT
+        // TODO FIXME NULL REF BUG
+
         if (node == nullptr || group_list == nullptr || (node->state >>= node_state::deleted))
             return;
 
