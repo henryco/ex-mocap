@@ -6,6 +6,7 @@
 #define EX_GUI_DISPLAY_IMP_H
 
 namespace ex::display::imp::imgui {
+
     unsigned int add_output(const char *, int w, int h, int channels, int depth);
 
     void remove_output(unsigned int);

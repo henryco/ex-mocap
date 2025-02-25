@@ -5,8 +5,8 @@
 #ifndef LOGIC_STATE_H
 #define LOGIC_STATE_H
 
-#include <map>
 #include "nodes/logic_nodes.h"
+#include <map>
 
 namespace ex::logic::state {
 

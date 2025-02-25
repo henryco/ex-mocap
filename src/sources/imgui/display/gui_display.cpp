@@ -28,12 +28,15 @@ namespace ex::display::imp::imgui {
 
     unsigned int add_output(const char *name, const int width, const int height, const int channels, const int depth) {
         const auto new_id = ++id_counter;
-        const auto uuid = new char[strlen(name) + 24];
+        const auto uuid   = new char[strlen(name) + 24];
+        const auto label  = new char[strlen(name) + 1];
+
         sprintf(uuid, "%s##display/%03d", name, new_id);
+        strcpy(label, name);
 
         std::cout << "display: " << uuid << '\n';
 
-        display_map_.put(new_id, { name, uuid, width, height, channels, depth });
+        display_map_.put(new_id, { label, uuid, width, height, channels, depth });
         return new_id;
     }
 
@@ -43,6 +46,8 @@ namespace ex::display::imp::imgui {
         const auto &d_ref = display_map_[id];
         if (d_ref.uuid != nullptr)
             delete[] d_ref.uuid;
+        if (d_ref.name != nullptr)
+            delete[] d_ref.name;
         display_map_.remove(id);
     }
 

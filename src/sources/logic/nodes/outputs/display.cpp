@@ -35,6 +35,13 @@ namespace ex::logic::node::out {
         display_i = ex::display::io.add_output(display_n, display_w, display_h, display_c, display_d);
     }
 
+    void DisplayOutputNode::rename_image(const char *name) {
+        if (display_i != 0)
+            ex::display::io.remove_output(display_i);
+        display_n = name;
+        display_i = ex::display::io.add_output(display_n, display_w, display_h, display_c, display_d);
+    }
+
     DisplayOutputNode::DisplayOutputNode() {
         std::cout << "CNST DisplayOutputNode::DisplayOutputNode()\n";
     }

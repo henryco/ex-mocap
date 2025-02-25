@@ -30,6 +30,8 @@ namespace ex::logic::node::out {
 
         void register_image(const char *name, uint w, uint h, uint channels = 3, uint bit_depth = 8);
 
+        void rename_image(const char *name);
+
         bool on_input(proto::image data, int input_index, int output_index, int clock_i,
                       limbo::nodes::Output<proto::image> *io) override;
 

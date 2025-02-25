@@ -32,8 +32,8 @@ namespace ex::logic::state {
         static auto &store = node_store_();
         if (store.contains(id)) {
             const auto base = store.at(id);
-            store.erase(id);
             base->detach_all_any();
+            store.erase(id);
             delete base;
         }
         if (!store.contains(id))
@@ -44,8 +44,8 @@ namespace ex::logic::state {
         static auto &store = node_store_();
         if (store.contains(id)) {
             const auto base = store.at(id);
-            store.erase(id);
             base->detach_all_any();
+            store.erase(id);
             delete base;
         }
     }

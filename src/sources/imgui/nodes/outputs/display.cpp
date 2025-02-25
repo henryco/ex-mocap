@@ -6,6 +6,7 @@
 #include "../../../../headers/imgui/nodes/outputs/display.h"
 #include "../../../../headers/imgui/strings/gui_strings.h"
 #include "../../../../headers/imgui/gui_globals.h"
+#include "../../../../headers/logic/logic_state.h"
 #include "../../../../headers/utils/gui_utils.h"
 #include "imgui.h"
 
@@ -14,7 +15,8 @@
 namespace ex::gui::node::out::display {
 
     unsigned long int get_node_type_id() {
-        return ex::logic::node::out::DisplayOutputNode::get_node_id();
+        namespace elno = ex::logic::node::out;
+        return elno::DisplayOutputNode::get_node_id();
     }
 
     bool draw_tree_node(TreeNode *n, const bool nested, const bool selected, const bool collapse, const bool expand) {
@@ -24,8 +26,13 @@ namespace ex::gui::node::out::display {
     }
 
     void update_tree_node(TreeNode *node) {
-        std::cout << "update display tree node\n";
-        // TODO
+        if (node == nullptr)
+            return;
+
+        namespace elno = ex::logic::node::out;
+        if (const auto base = dynamic_cast<elno::DisplayOutputNode *>(ex::logic::state::get_node(node->id_local))) {
+            base->rename_image(node->name);
+        }
     }
 
     bool draw_node_window(GuiNodeWindow *window) {
