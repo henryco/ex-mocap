@@ -60,7 +60,6 @@ namespace ex::gui::test {
 
         float on_output(float *null_ptr, const int output_index, int clock_i, Input<float> *io) override {
             const float o = (1 * stored_float) + output_index + 2;
-//            std::cout << "out_1[" << get_id() << "]: " << o << '\n';
             return o;
         }
     };
@@ -114,7 +113,6 @@ namespace ex::gui::test {
 
         float on_output(float *null_ptr, const int output_index, int clock_i, Input<float> *io) override {
             const float o = (3 * stored_float) + output_index + 3;
-//            std::cout << "out_2[" << get_id() << "]: " << o << '\n';
             return o;
         }
     };
@@ -168,7 +166,6 @@ namespace ex::gui::test {
 
         float on_output(float *null_ptr, const int output_index, int clock_i, Input<float> *io) override {
             const float o = (2 * stored_float) + output_index + 4;
-//            std::cout << "out_3[" << get_id() << "]: " << o << '\n';
             return o;
         }
     };
@@ -177,9 +174,10 @@ namespace ex::gui::test {
         bool draw_tree_node(TreeNode *node, bool nested, bool selected, bool collapse, bool expand);
         void draw_tree_menu(TreeNode *node, bool nested, bool selected);
         bool draw_node_window(GuiNodeWindow *window);
+        const char *get_node_preview();
         const char *get_node_name();
-        static constexpr GuiNodeMapper gui_mappers = { draw_tree_node, draw_tree_menu, nullptr, draw_node_window, get_node_name };
-
+        static constexpr GuiNodeMapper gui_mappers = { get_node_name, get_node_preview, draw_tree_node, draw_tree_menu,
+                                                       draw_node_window };
         limbo::nodes::BaseNode *instance(TreeNode *from);
         limbo::nodes::BaseNode *relocate(TreeNode *tree, limbo::nodes::BaseNode *node);
         static constexpr logic::NodeMapper data_mappers = { instance, relocate };
@@ -189,9 +187,10 @@ namespace ex::gui::test {
         bool draw_tree_node(TreeNode *node, bool nested, bool selected, bool collapse, bool expand);
         void draw_tree_menu(TreeNode *node, bool nested, bool selected);
         bool draw_node_window(GuiNodeWindow *window);
+        const char *get_node_preview();
         const char *get_node_name();
-        static constexpr GuiNodeMapper gui_mappers = { draw_tree_node, draw_tree_menu, nullptr, draw_node_window, get_node_name };
-
+        static constexpr GuiNodeMapper gui_mappers = { get_node_name, get_node_preview, draw_tree_node, draw_tree_menu,
+                                                       draw_node_window };
         limbo::nodes::BaseNode *instance(TreeNode *from);
         limbo::nodes::BaseNode *relocate(TreeNode *tree, limbo::nodes::BaseNode *node);
         static constexpr logic::NodeMapper data_mappers = { instance, relocate };
@@ -201,9 +200,10 @@ namespace ex::gui::test {
         bool draw_tree_node(TreeNode *node, bool nested, bool selected, bool collapse, bool expand);
         void draw_tree_menu(TreeNode *node, bool nested, bool selected);
         bool draw_node_window(GuiNodeWindow *window);
+        const char *get_node_preview();
         const char *get_node_name();
-        static constexpr GuiNodeMapper gui_mappers = { draw_tree_node, draw_tree_menu, nullptr, draw_node_window, get_node_name };
-
+        static constexpr GuiNodeMapper gui_mappers = { get_node_name, get_node_preview, draw_tree_node, draw_tree_menu,
+                                                       draw_node_window };
         limbo::nodes::BaseNode *instance(TreeNode *from);
         limbo::nodes::BaseNode *relocate(TreeNode *tree, limbo::nodes::BaseNode *node);
         static constexpr logic::NodeMapper data_mappers = { instance, relocate };

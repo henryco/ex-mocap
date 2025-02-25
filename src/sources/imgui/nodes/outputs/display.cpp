@@ -37,8 +37,18 @@ namespace ex::gui::node::out::display {
 
     bool draw_node_window(GuiNodeWindow *window) {
         const GuiState &gui = ex::gui::state();
-        ImGui::Text("This window 1: %d | %d | %d", window->docked, window->pinned, gui.view.docking);
+        ImGui::Text("Display: %d | %d | %d", window->docked, window->pinned, gui.view.docking);
         return true;
+    }
+
+    const char *get_node_preview() {
+        static char  out_name[128];
+        static char *name = nullptr;
+        if (name == nullptr) {
+            name = out_name;
+            sprintf(name, "%s %s", ICON_LC_PICTURE_IN_PICTURE_2, strings::node_output_display_name);
+        }
+        return name;
     }
 
     const char *get_node_name() {

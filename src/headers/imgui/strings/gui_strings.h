@@ -135,7 +135,7 @@ namespace ex::gui::strings {
     constexpr auto gui_dialogs_alert_error     = "Error";
     constexpr auto gui_dialogs_alert_error_yes = "OK";
 
-    constexpr auto node_output_display_name = ICON_LC_PICTURE_IN_PICTURE_2 " Display";
+    constexpr auto node_output_display_name = "Display";
 }
 
 #endif //GUI_STRINGS_H

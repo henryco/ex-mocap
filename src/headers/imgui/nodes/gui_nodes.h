@@ -20,11 +20,31 @@ namespace ex::gui {
     };
 
     struct GuiNodeMapper {
-        bool (*draw_tree_node)(TreeNode *node, bool nested, bool selected, bool collapse, bool expand) = nullptr;
-        void (*draw_tree_menu)(TreeNode *node, bool nested, bool selected)                             = nullptr;
-        void (*update_tree_node)(TreeNode *node)                                                       = nullptr;
-        bool (*draw_node_window)(GuiNodeWindow *win)                                                   = nullptr;
+
+        /**
+         * Node name
+         */
         const char *(*get_node_name)()                                                                 = nullptr;
+
+        /**
+         * Preview to be shown in context menu / drag & drop / etc.
+         */
+        const char *(*get_node_preview)()                                                              = nullptr;
+
+        bool (*draw_tree_node)(TreeNode *node, bool nested, bool selected, bool collapse, bool expand) = nullptr;
+
+        void (*draw_tree_menu)(TreeNode *node, bool nested, bool selected)                             = nullptr;
+
+        bool (*draw_node_window)(GuiNodeWindow *win)                                                   = nullptr;
+
+        /**
+         * Callback when TreeNode is updated
+         */
+        void (*update_tree_node)(TreeNode *node)                                                       = nullptr;
+
+        /**
+         * Default dock id
+         */
         const uint32_t (*get_dock_id)()                                                                = nullptr;
     };
 }

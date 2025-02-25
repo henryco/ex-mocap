@@ -12,6 +12,10 @@
 
 namespace ex::gui::test::one {
     const char *get_node_name() {
+        return "Component One";
+    }
+
+    const char *get_node_preview() {
         return ICON_LC_COMPONENT " Component One";
     }
 
@@ -51,6 +55,10 @@ namespace ex::gui::test::one {
 
 namespace ex::gui::test::two {
     const char *get_node_name() {
+        return "Component Two";
+    }
+
+    const char *get_node_preview() {
         return ICON_LC_WAND_SPARKLES " Component Two";
     }
 
@@ -93,6 +101,10 @@ namespace ex::gui::test::tri {
     constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
 
     const char *get_node_name() {
+        return "Component Three";
+    }
+
+    const char *get_node_preview() {
         return "Component Three";
     }
 

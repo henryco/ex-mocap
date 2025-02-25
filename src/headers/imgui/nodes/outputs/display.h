@@ -14,9 +14,18 @@ namespace ex::gui::node::out::display {
     bool draw_tree_node(TreeNode *node, bool nested, bool selected, bool collapse, bool expand);
     bool draw_node_window(GuiNodeWindow *window);
     void update_tree_node(TreeNode *node);
+    const char *get_node_preview();
     const char *get_node_name();
 
-    static constexpr GuiNodeMapper gui_mappers = { draw_tree_node, nullptr, update_tree_node, draw_node_window, get_node_name };
+    static constexpr GuiNodeMapper gui_mappers = {
+        get_node_name,
+        get_node_preview,
+        draw_tree_node,
+        nullptr,
+        draw_node_window,
+        update_tree_node,
+        nullptr
+    };
 
 }
 

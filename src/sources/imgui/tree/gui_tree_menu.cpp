@@ -162,19 +162,19 @@ namespace ex::gui::tree {
     }
 
     TreeNode *create_node_from_menu() {
-
         int offset = 0;
         for (; offset < tm::node_outputs_.key_entries.size; offset++) {
             const auto &type_id = tm::node_outputs_.key_entries[offset];
             const auto &mapper  = tm::node_outputs_.val_entries[offset];
+            const char *label = mapper.get_node_preview ? mapper.get_node_preview() : mapper.get_node_name();
             ImGui::PushID(type_id);
-            if (ImGui::MenuItem(mapper.get_node_name())) {
+            if (ImGui::MenuItem(label)) {
                 ImGui::PopID();
                 TreeNode *new_node   = TreeNode::create();
                 new_node->state      = node_state::created | node_state::is_output;
-                new_node->children_n = 0;
+                new_node->name       = mapper.get_node_name();
                 new_node->id_node    = type_id;
-                new_node->name       = strings::gui_tree_menu_general_out;
+                new_node->children_n = 0;
                 return new_node;
             }
             ImGui::PopID();
@@ -186,14 +186,15 @@ namespace ex::gui::tree {
         for (int i = offset; i < tm::node_mappers_.key_entries.size; ++i) {
             const auto &type_id = tm::node_mappers_.key_entries[i];
             const auto &mapper  = tm::node_mappers_.val_entries[i];
+            const char *label = mapper.get_node_preview ? mapper.get_node_preview() : mapper.get_node_name();
             ImGui::PushID(type_id);
-            if (ImGui::MenuItem(mapper.get_node_name() )) {
+            if (ImGui::MenuItem(label)) {
                 ImGui::PopID();
                 TreeNode *new_node   = TreeNode::create();
+                new_node->name       = mapper.get_node_name();
                 new_node->state      = node_state::created;
-                new_node->children_n = 0;
                 new_node->id_node    = type_id;
-                new_node->name       = strings::gui_tree_menu_general_new;
+                new_node->children_n = 0;
                 return new_node;
             }
             ImGui::PopID();
