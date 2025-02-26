@@ -5,8 +5,8 @@
 #ifndef EX_MOTION_GRAPH_H
 #define EX_MOTION_GRAPH_H
 
+#include "../data/data_utils.h"
 #include <cstring>
-//#include <cstdio>
 
 namespace limbo::graph {
 
@@ -83,54 +83,53 @@ namespace limbo::graph {
         };
 
         struct port_dispatcher : virtual IODescriptor {
+            ex::data::array<Description> in_descriptions_;
+            ex::data::array<Description> out_descriptions_;
+            bool freeze_ = false;
 
-//            std::vector<Description> in_descriptions_;
-//            std::vector<Description> out_descriptions_;
-//            bool freeze_ = false;
-//
-//            ~port_dispatcher() override = default;
-//
-//            void register_in_descriptor(const Description &descriptor) {
-//                const std::size_t type_ = descriptor.type_id;
-//                const int         index = descriptor.index;
-//                for (int i = in_descriptions_.size() - 1; i >= 0; i--) {
-//                    if (in_descriptions_[i].type_id < type_) {
-//                        in_descriptions_.insert(in_descriptions_.begin() + i + 1, descriptor);
-//                        return;
-//                    }
-//                    if (in_descriptions_[i].type_id == type_ && in_descriptions_[i].index <= index) {
-//                        in_descriptions_.insert(in_descriptions_.begin() + i + 1, descriptor);
-//                        return;
-//                    }
-//                }
-//                in_descriptions_.insert(in_descriptions_.begin(), descriptor);
-//            }
-//
-//            void register_out_descriptor(const Description &descriptor) {
-//                const std::size_t type_ = descriptor.type_id;
-//                const int         index = descriptor.index;
-//                for (int i = out_descriptions_.size() - 1; i >= 0; i--) {
-//                    if (out_descriptions_[i].type_id < type_) {
-//                        out_descriptions_.insert(out_descriptions_.begin() + i + 1, descriptor);
-//                        return;
-//                    }
-//                    if (out_descriptions_[i].type_id == type_ && out_descriptions_[i].index <= index) {
-//                        out_descriptions_.insert(out_descriptions_.begin() + i + 1, descriptor);
-//                        return;
-//                    }
-//                }
-//                out_descriptions_.insert(out_descriptions_.begin(), descriptor);
-//            }
-//
-//            const Description * const describe_inputs(int *o_inputs_number) const override {
-//                *o_inputs_number = in_descriptions_.size();
-//                return in_descriptions_.data();
-//            }
-//
-//            const Description * const describe_outputs(int *o_outputs_number) const override {
-//                *o_outputs_number = out_descriptions_.size();
-//                return out_descriptions_.data();
-//            }
+            ~port_dispatcher() override = default;
+
+            void register_in_descriptor(const Description &descriptor) {
+                const std::size_t type_ = descriptor.type_id;
+                const int         index = descriptor.index;
+                for (int i = in_descriptions_.size() - 1; i >= 0; i--) {
+                    if (in_descriptions_[i].type_id < type_) {
+                        in_descriptions_.insert(i + 1, descriptor);
+                        return;
+                    }
+                    if (in_descriptions_[i].type_id == type_ && in_descriptions_[i].index <= index) {
+                        in_descriptions_.insert(i + 1, descriptor);
+                        return;
+                    }
+                }
+                in_descriptions_.insert(0, descriptor);
+            }
+
+            void register_out_descriptor(const Description &descriptor) {
+                const std::size_t type_ = descriptor.type_id;
+                const int         index = descriptor.index;
+                for (int i = out_descriptions_.size() - 1; i >= 0; i--) {
+                    if (out_descriptions_[i].type_id < type_) {
+                        out_descriptions_.insert(i + 1, descriptor);
+                        return;
+                    }
+                    if (out_descriptions_[i].type_id == type_ && out_descriptions_[i].index <= index) {
+                        out_descriptions_.insert(i + 1, descriptor);
+                        return;
+                    }
+                }
+                out_descriptions_.insert(0, descriptor);
+            }
+
+            const Description * const describe_inputs(int *o_inputs_number) const override {
+                *o_inputs_number = in_descriptions_.size();
+                return in_descriptions_.data();
+            }
+
+            const Description * const describe_outputs(int *o_outputs_number) const override {
+                *o_outputs_number = out_descriptions_.size();
+                return out_descriptions_.data();
+            }
         };
 
         template<typename T, int index, bool input, bool aux, string_literal name>

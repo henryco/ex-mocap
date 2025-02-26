@@ -119,6 +119,26 @@ namespace ex::data {
             return data[index];
         }
 
+        element_t &front() {
+            return data[0];
+        }
+
+        const element_t &front() const {
+            return data[0];
+        }
+
+        element_t &back() {
+            return data[size - 1];
+        }
+
+        const element_t &back() const {
+            return data[size - 1];
+        }
+
+        void insert(const int index, const element_t &value) {
+            // TODO
+        }
+
         void push(const element_t &value) {
             if (size >= capacity) {
                 capacity = capacity > 0 ? (2 * capacity) : 2;
@@ -133,6 +153,12 @@ namespace ex::data {
 
         bool empty() const {
             return size <= 0;
+        }
+
+        void swap(const int index_1, const int index_2) {
+            const element_t tmp = data[index_1];
+            data[index_1]       = data[index_2];
+            data[index_2]       = tmp;
         }
 
         void swap_remove(const int &index) {
