@@ -258,6 +258,7 @@ namespace limbo::graph {
     struct BaseNode : virtual IO, virtual io::IODescriptor, virtual GenericDataPtr {
 
         // Basically arena allocation --------------------------
+        // TODO ONE MORE ALLOCATOR REQUIRED (BUFFER)
         inline static ex::data::array<io_node> allocator_ = 10;
         static void allocator_free(const int n = 10) {
             allocator_.clean();
@@ -354,6 +355,16 @@ namespace limbo::graph {
 
         void out(const int in_idx, const int out_idx, const int clock_i, void *data, std::size_t *size) override {
             // TODO
+            for (int i = 0; i < connections.size; ++i) {
+                io_node *connection = connections[i];
+                if (connection == nullptr)
+                    continue;
+                if (connection->clock_i == clock_i && connection->cache_ptr != nullptr) {
+                    // TODO
+                }
+
+                connection->clock_i = clock_i;
+            }
         }
 
         void in(const int in_idx, const int out_idx, const int clock_i, const void *data, const std::size_t size) override {

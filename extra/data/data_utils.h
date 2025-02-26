@@ -33,7 +33,7 @@ namespace ex::data {
         void allocate(const long &size) {
             if (size <= this->size)
                 return;
-            if (this->size <= 0) {
+            if (this->size <= 0 || this->data == nullptr) {
                 this->data = static_cast<element_t *>(malloc(size * sizeof(element_t)));
                 this->size = size;
             }
