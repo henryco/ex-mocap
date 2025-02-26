@@ -18,7 +18,7 @@ namespace limbo::graph {
 
         virtual const char *get_node_name() const = 0;
 
-        virtual void out(int in_idx, int out_idx, int clock_i, void *data, std::size_t* size) = 0;
+        virtual void out(int in_idx, int out_idx, int clock_i, void *data, std::size_t *size) = 0;
 
         virtual void in(int in_idx, int out_idx, int clock_i, const void *data, std::size_t size) = 0;
     };
@@ -67,48 +67,41 @@ namespace limbo::graph {
 
         template<typename T>
         Description describe_io(const int index, const char *name, const bool aux = false) {
-            return {
-                .type_id = typeid(T).hash_code(),
-                .index = index,
-                .aux = aux,
-                .name = name
-            };
+            return { .type_id = typeid(T).hash_code(), .index = index, .aux = aux, .name = name };
         }
 
         struct InputDescriptor {
 
-            virtual ~InputDescriptor () = default;
+            virtual ~InputDescriptor() = default;
 
             /**
              * Guarantee of data being sorted ASC by type and then by index
              * @param o_inputs_number size of the array returned
              * @return raw (pointer) array
              */
-            virtual Description const * const describe_inputs(int *o_inputs_number) const = 0;
+            virtual Description const *const describe_inputs(int *o_inputs_number) const = 0;
         };
 
         struct OutputDescriptor {
 
-            virtual ~OutputDescriptor () = default;
+            virtual ~OutputDescriptor() = default;
 
             /**
              * Guarantee of data being sorted ASC by type and then by index
              * @param o_outputs_number size of the array returned
              * @return raw (pointer) array
              */
-            virtual Description const * const describe_outputs(int *o_outputs_number) const = 0;
+            virtual Description const *const describe_outputs(int *o_outputs_number) const = 0;
         };
 
-        struct IODescriptor : virtual InputDescriptor,
-                              virtual OutputDescriptor
-        {
+        struct IODescriptor : virtual InputDescriptor, virtual OutputDescriptor {
             ~IODescriptor() override = default;
         };
 
         struct port_dispatcher : virtual IODescriptor {
             ex::data::array<Description> in_descriptions_;
             ex::data::array<Description> out_descriptions_;
-            bool freeze_ = false;
+            bool                         freeze_ = false;
 
             ~port_dispatcher() override = default;
 
@@ -146,12 +139,12 @@ namespace limbo::graph {
                 out_descriptions_.insert(0, descriptor);
             }
 
-            const Description * const describe_inputs(int *o_inputs_number) const override {
+            const Description *const describe_inputs(int *o_inputs_number) const override {
                 *o_inputs_number = in_descriptions_.size();
                 return in_descriptions_.data();
             }
 
-            const Description * const describe_outputs(int *o_outputs_number) const override {
+            const Description *const describe_outputs(int *o_outputs_number) const override {
                 *o_outputs_number = out_descriptions_.size();
                 return out_descriptions_.data();
             }
@@ -183,22 +176,23 @@ namespace limbo::graph {
 
             template<typename T, int index, string_literal name>
             struct out : virtual descriptor<T, index, false, true, name> {};
-        }
+        } // namespace aux
 
-    }
+    } // namespace io
 
     namespace id {
 
         template<string_literal name_>
         struct name : virtual IO {
 
-            static constexpr std::size_t FNV_OFFSET_BASIS = (sizeof(std::size_t) == 4) ? 2166136261u : 14695981039346656037ull;
-            static constexpr std::size_t FNV_PRIME =  (sizeof(std::size_t) == 4) ? 16777619u : 1099511628211ull;
+            static constexpr std::size_t FNV_OFFSET_BASIS =
+                    (sizeof(std::size_t) == 4) ? 2166136261u : 14695981039346656037ull;
+            static constexpr std::size_t FNV_PRIME = (sizeof(std::size_t) == 4) ? 16777619u : 1099511628211ull;
 
             static constexpr std::size_t fnv1aHash() {
                 constexpr auto name__ = name_.value;
-                auto           str   = static_cast<const char *>(name__);
-                std::size_t hash = FNV_OFFSET_BASIS;
+                auto           str    = static_cast<const char *>(name__);
+                std::size_t    hash   = FNV_OFFSET_BASIS;
                 while (*str) {
                     hash ^= static_cast<std::size_t>(*str);
                     hash *= FNV_PRIME;
@@ -220,18 +214,25 @@ namespace limbo::graph {
 
             const char *get_node_name() const override {
                 constexpr auto name__ = name_.value;
-                static auto str = static_cast<const char *>(name__);
+                static auto    str    = static_cast<const char *>(name__);
                 return str;
             }
         };
 
-    }
+    } // namespace id
 
-    struct BaseNode : virtual IO,
-                      virtual io::IODescriptor,
-                      virtual GenericDataPtr
-    {
-        std::size_t id_ = -1;
+    struct io_node {
+        IO            *node_ptr;
+        std::size_t    cache_size;
+        void          *cache_ptr;
+        unsigned int   clock_i;
+        unsigned short index_out;
+        unsigned short index_in;
+    };
+
+    struct BaseNode : virtual IO, virtual io::IODescriptor, virtual GenericDataPtr {
+        ex::data::array<io_node> connections_ = 5;
+        std::size_t              id_          = 0;
 
         ~BaseNode() override = default;
 
@@ -244,14 +245,13 @@ namespace limbo::graph {
         }
 
         void out(const int in_idx, const int out_idx, const int clock_i, void *data, std::size_t *size) override {
-
         }
 
-        void in(const int in_idx, const int out_idx, const int clock_i, const void *data, const std::size_t size) override {
-
+        void in(const int in_idx, const int out_idx, const int clock_i, const void *data,
+                const std::size_t size) override {
         }
     };
 
-}
+}// namespace limbo::graph
 
 #endif //EX_MOTION_GRAPH_H
