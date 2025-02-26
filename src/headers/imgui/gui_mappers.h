@@ -6,7 +6,7 @@
 #define GUI_MAPPERS_H
 
 #include "nodes/gui_nodes.h"
-#include "../utils/data_utils.h"
+#include "../../extra/data/data_utils.h"
 
 namespace ex::gui {
     using id_type  = std::uint64_t;

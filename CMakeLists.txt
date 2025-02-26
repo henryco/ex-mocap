@@ -82,6 +82,11 @@ set(EXTRA_FILES
 
         # undo history
         extra/undo/undo_history.h
+
+        # data utils
+        extra/data/data_utils.h
+
+        # graph (nodes)
         extra/graph/graph.h
 )
 
@@ -139,7 +144,6 @@ set(HEADER_FILES
         src/headers/imgui/actions/gui_actions_registry.h
         src/headers/imgui/actions/gui_actions_keymap.h
         src/headers/imgui/actions/gui_actions.h
-        src/headers/utils/data_utils.h
         src/headers/utils/time_utils.h
         src/headers/imgui/layout/pane/gui_pane_left.h
         src/headers/imgui/layout/pane/gui_pane_right.h

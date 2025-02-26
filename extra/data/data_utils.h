@@ -2,10 +2,11 @@
 // Created by henryco on 14/02/25.
 //
 
-#ifndef DATA_UTILS_H
-#define DATA_UTILS_H
+#ifndef EX_LIMBO_DATA_UTILS_H
+#define EX_LIMBO_DATA_UTILS_H
 
 #include <cstdlib>
+#include <string.h>
 
 namespace ex::data {
 
@@ -397,4 +398,4 @@ namespace ex::data {
 
 }
 
-#endif //DATA_UTILS_H
+#endif //EX_LIMBO_DATA_UTILS_H

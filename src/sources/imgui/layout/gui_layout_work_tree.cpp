@@ -2,6 +2,7 @@
 // Created by xd on 02/12/24.
 //
 
+#include "../../../extra/data/data_utils.h"
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/gui_mappers.h"
 #include "../../../headers/imgui/strings/gui_strings.h"
@@ -10,7 +11,6 @@
 #include "../../../headers/imgui/tree/gui_tree_menu.h"
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
 #include "../../../headers/logic/logic_globals.h"
-#include "../../../headers/utils/data_utils.h"
 
 #include <IconsLucide.h>
 
