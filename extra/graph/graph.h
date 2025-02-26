@@ -90,6 +90,7 @@ namespace limbo::graph {
             ~port_dispatcher() override = default;
 
             void register_in_descriptor(const Description &descriptor) {
+                // O(n^2) time, but its often very small array (<10)
                 const std::size_t type_ = descriptor.type_id;
                 const int         index = descriptor.index;
                 for (int i = in_descriptions_.size() - 1; i >= 0; i--) {
@@ -106,6 +107,7 @@ namespace limbo::graph {
             }
 
             void register_out_descriptor(const Description &descriptor) {
+                // O(n^2) time, but its often very small array (<10)
                 const std::size_t type_ = descriptor.type_id;
                 const int         index = descriptor.index;
                 for (int i = out_descriptions_.size() - 1; i >= 0; i--) {

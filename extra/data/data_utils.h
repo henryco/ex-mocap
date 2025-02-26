@@ -135,8 +135,26 @@ namespace ex::data {
             return data[size - 1];
         }
 
+        /**
+         * This method functionally works as your arena-memory-allocator
+         */
+        element_t &create() {
+            if (size >= capacity) {
+                capacity = capacity > 0 ? (2 * capacity) : 2;
+                data     = static_cast<element_t *>(realloc(data, capacity * sizeof(element_t)));
+            }
+            data[size++] = element_t();
+            return data[size - 1];
+        }
+
         void insert(const int index, const element_t &value) {
-            // TODO
+            if (size >= capacity) {
+                capacity = capacity > 0 ? (2 * capacity) : 2;
+                data     = static_cast<element_t *>(realloc(data, capacity * sizeof(element_t)));
+            }
+            memmove(data + index + 1, data + index, (size - index) * sizeof(element_t));
+            data[index] = value;
+            size++;
         }
 
         void push(const element_t &value) {
