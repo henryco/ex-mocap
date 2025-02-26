@@ -6,7 +6,7 @@
 #define EX_LIMBO_DATA_UTILS_H
 
 #include <cstdlib>
-#include <string.h>
+#include <cstring>
 
 namespace ex::data {
 
