@@ -259,8 +259,11 @@ namespace limbo::graph {
 
         // Basically arena allocation --------------------------
         inline static ex::data::array<io_node> allocator_ = 10;
-        static void allocator_free() {
+        static void allocator_free(const int n = 10) {
             allocator_.clean();
+            if (n >= 0) {
+                allocator_.reserve(n);
+            }
         }
         // -----------------------------------------------------
 
