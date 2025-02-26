@@ -60,6 +60,7 @@ namespace limbo::graph {
 
         struct Description {
             std::size_t type_id;
+            std::size_t type_size;
             int         index;
             bool        aux;
             const char *name;
@@ -67,7 +68,9 @@ namespace limbo::graph {
 
         template<typename T>
         Description describe_io(const int index, const char *name, const bool aux = false) {
-            return { .type_id = typeid(T).hash_code(), .index = index, .aux = aux, .name = name };
+            return {
+                .type_id = typeid(T).hash_code(), .type_size = sizeof(T), .index = index, .aux = aux, .name = name
+            };
         }
 
         struct InputDescriptor {
@@ -80,6 +83,8 @@ namespace limbo::graph {
              * @return raw (pointer) array
              */
             virtual Description const *const describe_inputs(int *o_inputs_number) const = 0;
+
+            virtual Description const *const describe_input(int index) const = 0;
         };
 
         struct OutputDescriptor {
@@ -92,6 +97,8 @@ namespace limbo::graph {
              * @return raw (pointer) array
              */
             virtual Description const *const describe_outputs(int *o_outputs_number) const = 0;
+
+            virtual Description const *const describe_output(int index) const = 0;
         };
 
         struct IODescriptor : virtual InputDescriptor, virtual OutputDescriptor {
@@ -104,6 +111,22 @@ namespace limbo::graph {
             bool                         freeze_ = false;
 
             ~port_dispatcher() override = default;
+
+            const Description *const describe_input(const int index) const override {
+                for (int i = 0; i < in_descriptions_.size(); ++i) {
+                    if (in_descriptions_[i].index == index)
+                        return &in_descriptions_[i];
+                }
+                return nullptr;
+            }
+
+            const Description *const describe_output(const int index) const override {
+                for (int i = 0; i < out_descriptions_.size(); ++i) {
+                    if (out_descriptions_[i].index == index)
+                        return &out_descriptions_[i];
+                }
+                return nullptr;
+            }
 
             void register_in_descriptor(const Description &descriptor) {
                 // O(n^2) time, but its often very small array (<10)
@@ -221,18 +244,28 @@ namespace limbo::graph {
 
     } // namespace id
 
+    struct BaseNode;
+
     struct io_node {
-        IO            *node_ptr;
-        std::size_t    cache_size;
+        BaseNode      *node_ptr;
         void          *cache_ptr;
+        std::size_t    cache_size;
         unsigned int   clock_i;
         unsigned short index_out;
         unsigned short index_in;
     };
 
     struct BaseNode : virtual IO, virtual io::IODescriptor, virtual GenericDataPtr {
-        ex::data::array<io_node> connections_ = 5;
-        std::size_t              id_          = 0;
+
+        // Basically arena allocation --------------------------
+        inline static ex::data::array<io_node> allocator_ = 10;
+        static void allocator_free() {
+            allocator_.clean();
+        }
+        // -----------------------------------------------------
+
+        ex::data::array<io_node *> connections = 5;
+        std::size_t                id_         = 0;
 
         ~BaseNode() override = default;
 
@@ -240,15 +273,88 @@ namespace limbo::graph {
             id_ = id;
         }
 
+        void attach(BaseNode *node, const int index_in, const int index_out) {
+            const auto input = this->describe_input(index_in);
+            if (input == nullptr)
+                return;
+
+            io_node &ref   = allocator_.create();
+            ref.node_ptr   = node;
+            ref.cache_ptr  = nullptr;
+            ref.cache_size = input->type_size;
+            ref.clock_i    = 0;
+            ref.index_in   = index_in;
+            ref.index_out  = index_out;
+            connections.push(&ref);
+        }
+
+        void detach(const BaseNode *node, const int index_in, const int index_out) {
+            for (int i = 0; i < connections.size; ++i) {
+                if (io_node *ref = connections[i];
+                    ref->node_ptr == node && ref->index_in == index_in && ref->index_out == index_out) {
+                    if (ref->cache_ptr != nullptr)
+                        free(ref->cache_ptr);
+                    ref->cache_ptr = nullptr;
+                    connections.swap_remove(i--);
+                }
+            }
+        }
+
+        void detach_io(const BaseNode *node) {
+            for (int i = 0; i < connections.size; ++i) {
+                if (io_node *ref = connections[i]; ref->node_ptr == node) {
+                    if (ref->cache_ptr != nullptr)
+                        free(ref->cache_ptr);
+                    ref->cache_ptr = nullptr;
+                    connections.swap_remove(i--);
+                }
+            }
+        }
+
+        void detach_inputs(const int index_in) {
+            for (int i = 0; i < connections.size; ++i) {
+                if (io_node *ref = connections[i]; ref->index_in == index_in) {
+                    if (ref->cache_ptr != nullptr)
+                        free(ref->cache_ptr);
+                    ref->cache_ptr = nullptr;
+                    connections.swap_remove(i--);
+                }
+            }
+        }
+
+        void detach_outputs(const int index_out) {
+            for (int i = 0; i < connections.size; ++i) {
+                if (io_node *ref = connections[i]; ref->index_out == index_out) {
+                    if (ref->cache_ptr != nullptr)
+                        free(ref->cache_ptr);
+                    ref->cache_ptr = nullptr;
+                    connections.swap_remove(i--);
+                }
+            }
+        }
+
+        void detach_all() {
+            for (int i = 0; i < connections.size; ++i) {
+                if (io_node *ref = connections[i]) {
+                    if (ref->cache_ptr != nullptr)
+                        free(ref->cache_ptr);
+                    ref->cache_ptr = nullptr;
+                    ref->node_ptr->detach_all();
+                }
+                connections.swap_remove(i--);
+            }
+        }
+
         const std::size_t get_id() const override {
             return id_;
         }
 
         void out(const int in_idx, const int out_idx, const int clock_i, void *data, std::size_t *size) override {
+            // TODO
         }
 
-        void in(const int in_idx, const int out_idx, const int clock_i, const void *data,
-                const std::size_t size) override {
+        void in(const int in_idx, const int out_idx, const int clock_i, const void *data, const std::size_t size) override {
+            // TODO
         }
     };
 

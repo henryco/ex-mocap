@@ -135,22 +135,50 @@ namespace ex::data {
             return data[size - 1];
         }
 
+        void clean() {
+            size     = 0;
+            capacity = 0;
+            if (data == nullptr)
+                return;
+            free(data);
+        }
+
+        void reserve(const int n) {
+            if (n <= capacity)
+                return;
+
+            capacity = n;
+
+            if (data == nullptr)
+                data = static_cast<element_t *>(malloc(capacity * sizeof(element_t)));
+            else
+                data = static_cast<element_t *>(realloc(data, capacity * sizeof(element_t)));
+        }
+
         /**
          * This method functionally works as your arena-memory-allocator
          */
-        element_t &create() {
+        element_t &create(const element_t &e = element_t()) {
             if (size >= capacity) {
                 capacity = capacity > 0 ? (2 * capacity) : 2;
-                data     = static_cast<element_t *>(realloc(data, capacity * sizeof(element_t)));
+
+                if (data == nullptr)
+                    data = static_cast<element_t *>(malloc(capacity * sizeof(element_t)));
+                else
+                    data = static_cast<element_t *>(realloc(data, capacity * sizeof(element_t)));
             }
-            data[size++] = element_t();
+            data[size++] = e;
             return data[size - 1];
         }
 
         void insert(const int index, const element_t &value) {
             if (size >= capacity) {
                 capacity = capacity > 0 ? (2 * capacity) : 2;
-                data     = static_cast<element_t *>(realloc(data, capacity * sizeof(element_t)));
+
+                if (data == nullptr)
+                    data = static_cast<element_t *>(malloc(capacity * sizeof(element_t)));
+                else
+                    data = static_cast<element_t *>(realloc(data, capacity * sizeof(element_t)));
             }
             memmove(data + index + 1, data + index, (size - index) * sizeof(element_t));
             data[index] = value;
@@ -160,7 +188,11 @@ namespace ex::data {
         void push(const element_t &value) {
             if (size >= capacity) {
                 capacity = capacity > 0 ? (2 * capacity) : 2;
-                data     = static_cast<element_t *>(realloc(data, capacity * sizeof(element_t)));
+
+                if (data == nullptr)
+                    data = static_cast<element_t *>(malloc(capacity * sizeof(element_t)));
+                else
+                    data = static_cast<element_t *>(realloc(data, capacity * sizeof(element_t)));
             }
             data[size++] = value;
         }
