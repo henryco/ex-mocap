@@ -6,19 +6,42 @@
 #define EX_MOTION_GRAPH_H
 
 #include "../data/data_utils.h"
-#include <cstring>
 
 namespace limbo::graph {
 
     struct IO {
-
         virtual ~IO() = default;
-
-        virtual const std::size_t get_type_id() const = 0;
 
         virtual const std::size_t get_id() const = 0;
 
+        virtual const std::size_t get_type_id() const = 0;
+
         virtual const char *get_node_name() const = 0;
+
+        virtual void out(int in_idx, int out_idx, int clock_i, void *data, std::size_t* size) = 0;
+
+        virtual void in(int in_idx, int out_idx, int clock_i, const void *data, std::size_t size) = 0;
+    };
+
+    struct GenericDataPtr {
+
+        virtual ~GenericDataPtr() = default;
+
+        virtual void *get_generic_data_ptr() {
+            return nullptr;
+        }
+    };
+
+    template<typename T>
+    struct State : virtual GenericDataPtr {
+
+        ~State() override = default;
+
+        virtual T *get() = 0;
+
+        void *get_generic_data_ptr() override {
+            return static_cast<void *>(this->get());
+        }
     };
 
     template<std::size_t N>
@@ -203,6 +226,31 @@ namespace limbo::graph {
         };
 
     }
+
+    struct BaseNode : virtual IO,
+                      virtual io::IODescriptor,
+                      virtual GenericDataPtr
+    {
+        std::size_t id_ = -1;
+
+        ~BaseNode() override = default;
+
+        void set_id(const std::size_t id) {
+            id_ = id;
+        }
+
+        const std::size_t get_id() const override {
+            return id_;
+        }
+
+        void out(const int in_idx, const int out_idx, const int clock_i, void *data, std::size_t *size) override {
+
+        }
+
+        void in(const int in_idx, const int out_idx, const int clock_i, const void *data, const std::size_t size) override {
+
+        }
+    };
 
 }
 
