@@ -82,6 +82,7 @@ set(EXTRA_FILES
 
         # undo history
         extra/undo/undo_history.h
+        extra/graph/graph.h
 )
 
 set(PLATFORM_FILES
