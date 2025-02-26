@@ -59,18 +59,22 @@ namespace limbo::graph {
     namespace io {
 
         struct Description {
-            std::size_t type_id;
-            std::size_t type_size;
-            int         index;
-            bool        aux;
-            const char *name;
+            const char  *name;
+            std::size_t  type_id;
+            unsigned int size;
+            unsigned int align;
+            unsigned int index;
+            bool         aux;
         };
 
         template<typename T>
         Description describe_io(const int index, const char *name, const bool aux = false) {
-            return {
-                .type_id = typeid(T).hash_code(), .type_size = sizeof(T), .index = index, .aux = aux, .name = name
-            };
+            return { .name    = name,
+                     .type_id = typeid(T).hash_code(),
+                     .size    = sizeof(T),
+                     .align   = alignof(T),
+                     .index   = index,
+                     .aux     = aux };
         }
 
         struct InputDescriptor {
@@ -249,7 +253,8 @@ namespace limbo::graph {
     struct io_node {
         BaseNode      *node_ptr;
         void          *cache_ptr;
-        std::size_t    cache_size;
+        unsigned int   cache_size;
+        unsigned int   cache_align;
         unsigned int   clock_i;
         unsigned short index_out;
         unsigned short index_in;
@@ -258,13 +263,13 @@ namespace limbo::graph {
     struct BaseNode : virtual IO, virtual io::IODescriptor, virtual GenericDataPtr {
 
         // Basically arena allocation --------------------------
-        // TODO ONE MORE ALLOCATOR REQUIRED (BUFFER)
         inline static ex::data::array<io_node> allocator_ = 10;
-        static void allocator_free(const int n = 10) {
+        inline static ex::data::arena          arena_     = 64;
+        static void allocator_free(const int n = 10, const int b = 64) {
             allocator_.clean();
-            if (n >= 0) {
-                allocator_.reserve(n);
-            }
+            arena_.clean();
+            if (n >= 0) allocator_.reserve(n);
+            if (b >= 0) arena_.reserve(64);
         }
         // -----------------------------------------------------
 
@@ -282,13 +287,14 @@ namespace limbo::graph {
             if (input == nullptr)
                 return;
 
-            io_node &ref   = allocator_.create();
-            ref.node_ptr   = node;
-            ref.cache_ptr  = nullptr;
-            ref.cache_size = input->type_size;
-            ref.clock_i    = 0;
-            ref.index_in   = index_in;
-            ref.index_out  = index_out;
+            io_node &ref    = allocator_.create();
+            ref.node_ptr    = node;
+            ref.cache_ptr   = nullptr;
+            ref.cache_size  = input->size;
+            ref.cache_align = input->align;
+            ref.clock_i     = 0;
+            ref.index_in    = index_in;
+            ref.index_out   = index_out;
             connections.push(&ref);
         }
 
