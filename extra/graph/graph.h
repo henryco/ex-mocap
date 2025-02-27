@@ -263,17 +263,19 @@ namespace limbo::graph {
         unsigned int data_size;
     };
 
-    struct BaseNode : virtual IO, virtual io::IODescriptor, virtual GenericDataPtr {
-
-        using assignment_fn_t = void (*)(int output_idx, const void *src_ptr, void *dst_ptr);
-
+    struct allocator {
         // Memory allocator ------------------------------------
-        inline static ex::data::arena arena_ = 64;
-        static void allocator_free(const int b = 64) {
+        inline static ex::data::arena arena_ = 1024;
+        static void allocator_free(const int b = 1024) {
             arena_.clean();
             if (b >= 0) arena_.reserve(b);
         }
         // -----------------------------------------------------
+    };
+
+    struct BaseNode : virtual IO, virtual io::IODescriptor, virtual GenericDataPtr {
+
+        using assignment_fn_t = void (*)(int output_idx, const void *src_ptr, void *dst_ptr);
 
         virtual void on_input(int in_idx,int out_idx, int clock_i, const void *data) = 0;
 
@@ -307,8 +309,8 @@ namespace limbo::graph {
             const auto outputs = this->describe_outputs(&size);
             for (int i = 0; i < size; ++i) {
                 const auto &output = outputs[i];
-                io_data    *csf    = arena_.allocate<io_data>();
-                csf->data_ptr      = arena_.allocate(output.size, output.align);
+                io_data    *csf    = allocator::arena_.allocate<io_data>();
+                csf->data_ptr      = allocator::arena_.allocate(output.size, output.align);
                 csf->data_size     = output.size;
                 cache_map.put(output.index, csf);
             }
@@ -316,7 +318,7 @@ namespace limbo::graph {
             const auto inputs = this->describe_inputs(&size);
             for (int i = 0; i < size; ++i) {
                 const auto &input = inputs[i];
-                stack_map.put(input.index, arena_.allocate(input.size, input.align));
+                stack_map.put(input.index, allocator::arena_.allocate(input.size, input.align));
             }
         }
 
@@ -333,7 +335,7 @@ namespace limbo::graph {
             if (input == nullptr)
                 return;
 
-            io_node *ref   = arena_.allocate<io_node>();
+            io_node *ref   = allocator::arena_.allocate<io_node>();
             ref->node_ptr  = node;
             ref->index_in  = this_index_in;
             ref->index_out = other_index_out;
