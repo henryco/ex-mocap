@@ -455,11 +455,19 @@ namespace ex::data {
         }
 
         element_t &at(const key_t &key) {
-            return this->operator[](key);
+            for (int i = 0; i < key_entries.size; ++i) {
+                if (key_entries[i] == key)
+                    return val_entries[i];
+            }
+            abort();
         }
 
         const element_t &at(const key_t &key) const {
-            return this->operator[](key);
+            for (int i = 0; i < key_entries.size; ++i) {
+                if (key_entries[i] == key)
+                    return val_entries[i];
+            }
+            abort();
         }
 
         element_t at_or_default(const key_t &key, const element_t &default_value = element_t()) const {
@@ -497,6 +505,18 @@ namespace ex::data {
 
         bool empty() const {
             return key_entries.empty();
+        }
+
+        void clean() {
+            key_entries.clean();
+            val_entries.clean();
+        }
+
+        void reserve(const int n) {
+            if (n <= capacity)
+                return;
+            key_entries.reserve(n);
+            val_entries.reserve(n);
         }
     };
 

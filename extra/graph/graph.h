@@ -265,7 +265,7 @@ namespace limbo::graph {
 
     struct BaseNode : virtual IO, virtual io::IODescriptor, virtual GenericDataPtr {
 
-        using assignment_fn_t = void (*)(int out_idx, const void *src_ptr, void *dst_ptr);
+        using assignment_fn_t = void (*)(int output_idx, const void *src_ptr, void *dst_ptr);
 
         // Memory allocator ------------------------------------
         inline static ex::data::arena arena_ = 64;
@@ -275,8 +275,13 @@ namespace limbo::graph {
         }
         // -----------------------------------------------------
 
+        virtual void on_input(int in_idx,int out_idx, int clock_i, const void *data) = 0;
+
+        virtual void on_output(int in_idx, int out_idx, int clock_i, void *data) = 0;
+
         assignment_fn_t                  assignment_fn_ = nullptr;
         ex::data::map<ushort, io_data *> cache_map      = 5;
+        ex::data::map<ushort, void *>    stack_map      = 5;
         ex::data::array<io_node *>       connections    = 5;
         unsigned int                     clock_i        = 0;
         std::size_t                      id_            = 0;
@@ -284,15 +289,34 @@ namespace limbo::graph {
         ~BaseNode() override = default;
 
         BaseNode() {
+            reallocate(false);
+        }
+
+        void reallocate(const bool cleanup = true) {
+            if (cleanup) {
+                cache_map.clean();
+                stack_map.clean();
+                connections.clean();
+                cache_map.reserve(5);
+                stack_map.reserve(5);
+                connections.reserve(5);
+            }
+
             int size;
-            // ReSharper disable once CppAbstractVirtualFunctionCallInCtor
-            const auto outputs = this->describe_inputs(&size);
+
+            const auto outputs = this->describe_outputs(&size);
             for (int i = 0; i < size; ++i) {
                 const auto &output = outputs[i];
                 io_data    *csf    = arena_.allocate<io_data>();
                 csf->data_ptr      = arena_.allocate(output.size, output.align);
                 csf->data_size     = output.size;
                 cache_map.put(output.index, csf);
+            }
+
+            const auto inputs = this->describe_inputs(&size);
+            for (int i = 0; i < size; ++i) {
+                const auto &input = inputs[i];
+                stack_map.put(input.index, arena_.allocate(input.size, input.align));
             }
         }
 
@@ -359,25 +383,20 @@ namespace limbo::graph {
             return id_;
         }
 
-        virtual void on_input(int in_idx,int out_idx, int clock_i, const void *data) = 0;
-
-        virtual void on_output(int in_idx, int out_idx, int clock_i, void *data) = 0;
-
         void out(const int in_idx, const int out_idx, const int clock_i, void *data) final {
 
-            const io_data *cache_ptr = cache_map.at_or_default(out_idx, nullptr);
-            if (cache_ptr == nullptr)
-                return;
+            const io_data *cache_ptr = cache_map.at(out_idx);
 
-            if (this->clock_i == clock_i && cache_ptr->data_ptr != nullptr) {
+            if (this->clock_i == clock_i) {
                 assign_(out_idx, cache_ptr->data_ptr, data, cache_ptr->data_size);
                 return;
             }
 
             for (int i = 0; i < connections.size; ++i) {
                 if (const io_node *connection = connections[i]) {
-                    // TODO
-                    connection->node_ptr->out(connection->index_in, connection->index_out, clock_i, data);
+                    void *const stack_ptr = stack_map.at(connection->index_in);
+                    connection->node_ptr->out(connection->index_in, connection->index_out, clock_i, stack_ptr);
+                    on_input(connection->index_in, connection->index_out, clock_i, stack_ptr);
                 }
             }
 
