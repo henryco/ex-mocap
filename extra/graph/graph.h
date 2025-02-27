@@ -262,14 +262,13 @@ namespace limbo::graph {
 
     struct BaseNode : virtual IO, virtual io::IODescriptor, virtual GenericDataPtr {
 
-        // Basically arena allocation --------------------------
-        inline static ex::data::array<io_node> allocator_ = 10;
-        inline static ex::data::arena          arena_     = 64;
-        static void allocator_free(const int n = 10, const int b = 64) {
-            allocator_.clean();
+        using should_cache_t = bool;
+
+        // Memory allocator ------------------------------------
+        inline static ex::data::arena arena_ = 64;
+        static void allocator_free(const int b = 64) {
             arena_.clean();
-            if (n >= 0) allocator_.reserve(n);
-            if (b >= 0) arena_.reserve(64);
+            if (b >= 0) arena_.reserve(b);
         }
         // -----------------------------------------------------
 
@@ -287,23 +286,21 @@ namespace limbo::graph {
             if (input == nullptr)
                 return;
 
-            io_node &ref    = allocator_.create();
-            ref.node_ptr    = node;
-            ref.cache_ptr   = nullptr;
-            ref.cache_size  = input->size;
-            ref.cache_align = input->align;
-            ref.clock_i     = 0;
-            ref.index_in    = index_in;
-            ref.index_out   = index_out;
-            connections.push(&ref);
+            io_node *ref     = arena_.allocate<io_node>();
+            ref->node_ptr    = node;
+            ref->cache_ptr   = nullptr;
+            ref->cache_size  = input->size;
+            ref->cache_align = input->align;
+            ref->clock_i     = 0;
+            ref->index_in    = index_in;
+            ref->index_out   = index_out;
+            connections.push(ref);
         }
 
         void detach(const BaseNode *node, const int index_in, const int index_out) {
             for (int i = 0; i < connections.size; ++i) {
                 if (io_node *ref = connections[i];
                     ref->node_ptr == node && ref->index_in == index_in && ref->index_out == index_out) {
-                    if (ref->cache_ptr != nullptr)
-                        free(ref->cache_ptr);
                     ref->cache_ptr = nullptr;
                     connections.swap_remove(i--);
                 }
@@ -313,8 +310,6 @@ namespace limbo::graph {
         void detach_io(const BaseNode *node) {
             for (int i = 0; i < connections.size; ++i) {
                 if (io_node *ref = connections[i]; ref->node_ptr == node) {
-                    if (ref->cache_ptr != nullptr)
-                        free(ref->cache_ptr);
                     ref->cache_ptr = nullptr;
                     connections.swap_remove(i--);
                 }
@@ -324,8 +319,6 @@ namespace limbo::graph {
         void detach_inputs(const int index_in) {
             for (int i = 0; i < connections.size; ++i) {
                 if (io_node *ref = connections[i]; ref->index_in == index_in) {
-                    if (ref->cache_ptr != nullptr)
-                        free(ref->cache_ptr);
                     ref->cache_ptr = nullptr;
                     connections.swap_remove(i--);
                 }
@@ -335,8 +328,6 @@ namespace limbo::graph {
         void detach_outputs(const int index_out) {
             for (int i = 0; i < connections.size; ++i) {
                 if (io_node *ref = connections[i]; ref->index_out == index_out) {
-                    if (ref->cache_ptr != nullptr)
-                        free(ref->cache_ptr);
                     ref->cache_ptr = nullptr;
                     connections.swap_remove(i--);
                 }
@@ -346,8 +337,6 @@ namespace limbo::graph {
         void detach_all() {
             for (int i = 0; i < connections.size; ++i) {
                 if (io_node *ref = connections[i]) {
-                    if (ref->cache_ptr != nullptr)
-                        free(ref->cache_ptr);
                     ref->cache_ptr = nullptr;
                     ref->node_ptr->detach_all();
                 }
@@ -359,21 +348,25 @@ namespace limbo::graph {
             return id_;
         }
 
-        void out(const int in_idx, const int out_idx, const int clock_i, void *data, std::size_t *size) override {
+
+        void out(const int in_idx, const int out_idx, const int clock_i, void *data, std::size_t *size) final {
             // TODO
             for (int i = 0; i < connections.size; ++i) {
                 io_node *connection = connections[i];
+
                 if (connection == nullptr)
                     continue;
+
                 if (connection->clock_i == clock_i && connection->cache_ptr != nullptr) {
                     // TODO
                 }
+
 
                 connection->clock_i = clock_i;
             }
         }
 
-        void in(const int in_idx, const int out_idx, const int clock_i, const void *data, const std::size_t size) override {
+        void in(const int in_idx, const int out_idx, const int clock_i, const void *data, const std::size_t size) final {
             // TODO
         }
     };
