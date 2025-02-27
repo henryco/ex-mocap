@@ -5,7 +5,11 @@
 #ifndef EX_MOTION_GRAPH_H
 #define EX_MOTION_GRAPH_H
 
+#include <iterator>
+
+
 #include "../data/data_utils.h"
+#include "glm/ext/matrix_int2x2_sized.hpp"
 
 namespace limbo::graph {
 
@@ -18,9 +22,7 @@ namespace limbo::graph {
 
         virtual const char *get_node_name() const = 0;
 
-        virtual void out(int in_idx, int out_idx, int clock_i, void *data, std::size_t *size) = 0;
-
-        virtual void in(int in_idx, int out_idx, int clock_i, const void *data, std::size_t size) = 0;
+        virtual void out(int in_idx, int out_idx, int clock_i, void *data) = 0;
     };
 
     struct GenericDataPtr {
@@ -264,7 +266,7 @@ namespace limbo::graph {
 
     struct BaseNode : virtual IO, virtual io::IODescriptor, virtual GenericDataPtr {
 
-        using should_cache_t = bool;
+        using assignment_fn_t = void (*)(int out_idx, const void *src_ptr, void *dst_ptr);
 
         // Memory allocator ------------------------------------
         inline static ex::data::arena arena_ = 64;
@@ -274,10 +276,11 @@ namespace limbo::graph {
         }
         // -----------------------------------------------------
 
-        ex::data::map<unsigned short, io_cache *> cache_map   = 5;
-        ex::data::array<io_node *>                connections = 5;
-        unsigned int                              clock_i     = 0;
-        std::size_t                               id_         = 0;
+        assignment_fn_t                   assignment_fn_ = nullptr;
+        ex::data::map<ushort, io_cache *> cache_map      = 5;
+        ex::data::array<io_node *>        connections    = 5;
+        unsigned int                      clock_i        = 0;
+        std::size_t                       id_            = 0;
 
         ~BaseNode() override = default;
 
@@ -293,6 +296,10 @@ namespace limbo::graph {
                 csf->cache_align   = output.align;
                 cache_map.put(output.index, csf);
             }
+        }
+
+        void set_assignment_function(const assignment_fn_t fn) {
+            this->assignment_fn_ = fn;
         }
 
         void set_id(const std::size_t id) {
@@ -354,31 +361,44 @@ namespace limbo::graph {
             return id_;
         }
 
-        std::size_t curr_cache_size_ = 0;
-        virtual void cache(int out_idx, const void *data_ptr, void *cache_ptr) {
-            memcpy(cache_ptr, data_ptr, curr_cache_size_);
-        }
-
         virtual void on_input(int in_idx,int out_idx, int clock_i, const void *data) = 0;
 
-        virtual should_cache_t on_output(int in_idx, int out_idx, int clock_i, void *data, std::size_t *size) = 0;
+        virtual void on_output(int in_idx, int out_idx, int clock_i, void *data) = 0;
 
-        void out(const int in_idx, const int out_idx, const int clock_i, void *data, std::size_t *size) final {
+        void out(const int in_idx, const int out_idx, const int clock_i, void *data) final {
+
+            io_cache *cache_ptr = cache_map.at_or_default(out_idx, nullptr);
+            if (cache_ptr == nullptr)
+                return;
+
+            if (this->clock_i == clock_i && cache_ptr->cache_ptr != nullptr) {
+                assign_(out_idx, cache_ptr->cache_ptr, data, cache_ptr->cache_size);
+                return;
+            }
 
             for (int i = 0; i < connections.size; ++i) {
-                io_node *connection = connections[i];
-
-                if (connection == nullptr)
-                    continue;
-
-
-
+                if (const io_node *connection = connections[i]) {
+                    // TODO
+                    connection->node_ptr->out(connection->index_in, connection->index_out, clock_i, data);
+                }
             }
+
+            if (cache_ptr->cache_ptr == nullptr) {
+                cache_ptr->cache_ptr = arena_.allocate(cache_ptr->cache_size, cache_ptr->cache_align);
+            }
+
+            on_output(in_idx, out_idx, clock_i, data);
+            assign_(out_idx, data, cache_ptr->cache_ptr, cache_ptr->cache_size);
 
             this->clock_i = clock_i;
         }
 
-        void in(const int in_idx, const int out_idx, const int clock_i, const void *data, const std::size_t size) final {
+        void assign_(const int out_idx, const void *src_ptr, void *dst_ptr, const std::size_t size) {
+            if (assignment_fn_ != nullptr) {
+                assignment_fn_(out_idx, src_ptr, dst_ptr);
+                return;
+            }
+            memcpy(dst_ptr, src_ptr, size);
         }
     };
 

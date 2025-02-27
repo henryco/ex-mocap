@@ -462,6 +462,14 @@ namespace ex::data {
             return this->operator[](key);
         }
 
+        element_t at_or_default(const key_t &key, const element_t &default_value = element_t()) const {
+            for (int i = 0; i < key_entries.size; ++i) {
+                if (key_entries[i] == key)
+                    return val_entries[i];
+            }
+            return default_value;
+        }
+
         bool contains(const key_t &key) const {
             for (int i = 0; i < key_entries.size; ++i) {
                 if (key_entries[i] == key)
