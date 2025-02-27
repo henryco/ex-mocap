@@ -261,7 +261,6 @@ namespace limbo::graph {
     struct io_cache {
         void        *cache_ptr;
         unsigned int cache_size;
-        unsigned int cache_align;
     };
 
     struct BaseNode : virtual IO, virtual io::IODescriptor, virtual GenericDataPtr {
@@ -291,9 +290,8 @@ namespace limbo::graph {
             for (int i = 0; i < size; ++i) {
                 const auto &output = outputs[i];
                 io_cache   *csf    = arena_.allocate<io_cache>();
-                csf->cache_ptr     = nullptr;
+                csf->cache_ptr     = arena_.allocate(output.size, output.align);
                 csf->cache_size    = output.size;
-                csf->cache_align   = output.align;
                 cache_map.put(output.index, csf);
             }
         }
@@ -381,10 +379,6 @@ namespace limbo::graph {
                     // TODO
                     connection->node_ptr->out(connection->index_in, connection->index_out, clock_i, data);
                 }
-            }
-
-            if (cache_ptr->cache_ptr == nullptr) {
-                cache_ptr->cache_ptr = arena_.allocate(cache_ptr->cache_size, cache_ptr->cache_align);
             }
 
             on_output(in_idx, out_idx, clock_i, data);
