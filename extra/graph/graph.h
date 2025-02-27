@@ -383,6 +383,16 @@ namespace limbo::graph {
             return id_;
         }
 
+        void pull(const int clock_i) {
+            for (int i = 0; i < connections.size; ++i) {
+                if (const io_node *connection = connections[i]) {
+                    void *const stack_ptr = stack_map.at(connection->index_in);
+                    connection->node_ptr->out(connection->index_in, connection->index_out, clock_i, stack_ptr);
+                    on_input(connection->index_in, connection->index_out, clock_i, stack_ptr);
+                }
+            }
+        }
+
         void out(const int in_idx, const int out_idx, const int clock_i, void *data) final {
 
             const io_data *cache_ptr = cache_map.at(out_idx);
@@ -406,12 +416,45 @@ namespace limbo::graph {
             this->clock_i = clock_i;
         }
 
-        void assign_(const int out_idx, const void *src_ptr, void *dst_ptr, const std::size_t size) {
+        void assign_(const int out_idx, const void *src_ptr, void *dst_ptr, const std::size_t size) const {
             if (assignment_fn_ != nullptr) {
                 assignment_fn_(out_idx, src_ptr, dst_ptr);
                 return;
             }
             memcpy(dst_ptr, src_ptr, size);
+        }
+    };
+
+    struct clock : virtual IO {
+
+        ex::data::array<BaseNode *> connections = 5;
+        unsigned int                clock_i     = 0;
+
+        ~clock() override = default;
+
+        void reset() {
+            detach_all();
+            clock_i = 0;
+        }
+
+        void attach(BaseNode *node) {
+            if (!connections.contains(node))
+                connections.push(node);
+        }
+
+        void detach(BaseNode *node) {
+            connections.remove_element(node);
+        }
+
+        void detach_all() {
+            connections.clean();
+            connections.reserve(5);
+        }
+
+        void pull() {
+            clock_i = (clock_i > INT16_MAX) ? 0 : (clock_i + 1);
+            for (int i = 0; i < connections.size; ++i)
+                connections[i]->pull(clock_i);
         }
     };
 

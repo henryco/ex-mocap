@@ -310,6 +310,23 @@ namespace ex::data {
             return size <= 0;
         }
 
+        bool contains(const element_t &value) const {
+            for (int i = 0; i < size; ++i) {
+                if (data[i] == value)
+                    return true;
+            }
+            return false;
+        }
+
+        void remove_element(const element_t &value) {
+            for (int i = 0; i < size; ++i) {
+                if (data[i] == value) {
+                    swap_remove(i);
+                    return;
+                }
+            }
+        }
+
         void swap(const int index_1, const int index_2) {
             const element_t tmp = data[index_1];
             data[index_1]       = data[index_2];
