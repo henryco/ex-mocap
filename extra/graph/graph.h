@@ -258,9 +258,9 @@ namespace limbo::graph {
         unsigned short index_in;
     };
 
-    struct io_cache {
-        void        *cache_ptr;
-        unsigned int cache_size;
+    struct io_data {
+        void        *data_ptr;
+        unsigned int data_size;
     };
 
     struct BaseNode : virtual IO, virtual io::IODescriptor, virtual GenericDataPtr {
@@ -275,11 +275,11 @@ namespace limbo::graph {
         }
         // -----------------------------------------------------
 
-        assignment_fn_t                   assignment_fn_ = nullptr;
-        ex::data::map<ushort, io_cache *> cache_map      = 5;
-        ex::data::array<io_node *>        connections    = 5;
-        unsigned int                      clock_i        = 0;
-        std::size_t                       id_            = 0;
+        assignment_fn_t                  assignment_fn_ = nullptr;
+        ex::data::map<ushort, io_data *> cache_map      = 5;
+        ex::data::array<io_node *>       connections    = 5;
+        unsigned int                     clock_i        = 0;
+        std::size_t                      id_            = 0;
 
         ~BaseNode() override = default;
 
@@ -289,9 +289,9 @@ namespace limbo::graph {
             const auto outputs = this->describe_inputs(&size);
             for (int i = 0; i < size; ++i) {
                 const auto &output = outputs[i];
-                io_cache   *csf    = arena_.allocate<io_cache>();
-                csf->cache_ptr     = arena_.allocate(output.size, output.align);
-                csf->cache_size    = output.size;
+                io_data    *csf    = arena_.allocate<io_data>();
+                csf->data_ptr      = arena_.allocate(output.size, output.align);
+                csf->data_size     = output.size;
                 cache_map.put(output.index, csf);
             }
         }
@@ -365,12 +365,12 @@ namespace limbo::graph {
 
         void out(const int in_idx, const int out_idx, const int clock_i, void *data) final {
 
-            io_cache *cache_ptr = cache_map.at_or_default(out_idx, nullptr);
+            const io_data *cache_ptr = cache_map.at_or_default(out_idx, nullptr);
             if (cache_ptr == nullptr)
                 return;
 
-            if (this->clock_i == clock_i && cache_ptr->cache_ptr != nullptr) {
-                assign_(out_idx, cache_ptr->cache_ptr, data, cache_ptr->cache_size);
+            if (this->clock_i == clock_i && cache_ptr->data_ptr != nullptr) {
+                assign_(out_idx, cache_ptr->data_ptr, data, cache_ptr->data_size);
                 return;
             }
 
@@ -382,7 +382,7 @@ namespace limbo::graph {
             }
 
             on_output(in_idx, out_idx, clock_i, data);
-            assign_(out_idx, data, cache_ptr->cache_ptr, cache_ptr->cache_size);
+            assign_(out_idx, data, cache_ptr->data_ptr, cache_ptr->data_size);
 
             this->clock_i = clock_i;
         }
