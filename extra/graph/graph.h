@@ -5,13 +5,14 @@
 #ifndef EX_MOTION_GRAPH_H
 #define EX_MOTION_GRAPH_H
 
-#include <iterator>
-
-
 #include "../data/data_utils.h"
-#include "glm/ext/matrix_int2x2_sized.hpp"
+#include <typeinfo>
 
 namespace limbo::graph {
+
+    struct BaseNode;
+
+    struct Clock;
 
     struct IO {
         virtual ~IO() = default;
@@ -53,7 +54,8 @@ namespace limbo::graph {
         std::size_t size;
 
         constexpr string_literal(const char (&str)[N]) {
-            memcpy(value, str, N);
+            for (int i = 0; i < N; i++)
+                value[i] = str[i];
             size = sizeof(value);
         }
     };
@@ -75,7 +77,7 @@ namespace limbo::graph {
                      .type_id = typeid(T).hash_code(),
                      .size    = sizeof(T),
                      .align   = alignof(T),
-                     .index   = index,
+                     .index   = static_cast<unsigned int>(index),
                      .aux     = aux };
         }
 
@@ -119,7 +121,7 @@ namespace limbo::graph {
             ~port_dispatcher() override = default;
 
             const Description *const describe_input(const int index) const override {
-                for (int i = 0; i < in_descriptions_.size(); ++i) {
+                for (int i = 0; i < in_descriptions_.size; ++i) {
                     if (in_descriptions_[i].index == index)
                         return &in_descriptions_[i];
                 }
@@ -127,7 +129,7 @@ namespace limbo::graph {
             }
 
             const Description *const describe_output(const int index) const override {
-                for (int i = 0; i < out_descriptions_.size(); ++i) {
+                for (int i = 0; i < out_descriptions_.size; ++i) {
                     if (out_descriptions_[i].index == index)
                         return &out_descriptions_[i];
                 }
@@ -138,7 +140,7 @@ namespace limbo::graph {
                 // O(n^2) time, but its often very small array (<10)
                 const std::size_t type_ = descriptor.type_id;
                 const int         index = descriptor.index;
-                for (int i = in_descriptions_.size() - 1; i >= 0; i--) {
+                for (int i = in_descriptions_.size - 1; i >= 0; i--) {
                     if (in_descriptions_[i].type_id < type_) {
                         in_descriptions_.insert(i + 1, descriptor);
                         return;
@@ -155,7 +157,7 @@ namespace limbo::graph {
                 // O(n^2) time, but its often very small array (<10)
                 const std::size_t type_ = descriptor.type_id;
                 const int         index = descriptor.index;
-                for (int i = out_descriptions_.size() - 1; i >= 0; i--) {
+                for (int i = out_descriptions_.size - 1; i >= 0; i--) {
                     if (out_descriptions_[i].type_id < type_) {
                         out_descriptions_.insert(i + 1, descriptor);
                         return;
@@ -249,8 +251,6 @@ namespace limbo::graph {
         };
 
     } // namespace id
-
-    struct BaseNode;
 
     struct io_node {
         BaseNode      *node_ptr;
@@ -428,14 +428,15 @@ namespace limbo::graph {
         }
     };
 
-    struct clock final: virtual IO {
+    struct Clock final: virtual IO {
 
+#define EX_INT16_MAX 32767
 #define CLOCK_INIT_CAP 64
 
         ex::data::array<BaseNode *> connections = { CLOCK_INIT_CAP, allocator::allocate };
         unsigned int                clock_i     = 0;
 
-        ~clock() override = default;
+        ~Clock() override = default;
 
         const std::size_t get_id() const override {
             return 0;
@@ -474,7 +475,7 @@ namespace limbo::graph {
         }
 
         void pull() {
-            clock_i = (clock_i > INT16_MAX) ? 0 : (clock_i + 1);
+            clock_i = (clock_i > EX_INT16_MAX) ? 0 : (clock_i + 1);
             for (int i = 0; i < connections.size; ++i)
                 connections[i]->pull(clock_i);
         }
