@@ -267,14 +267,24 @@ namespace limbo::graph {
         // Memory allocator ------------------------------------
         inline static ex::data::arena arena_ = 1024;
 
-        static void allocator_free(const int b = 1024) {
-            arena_.clean();
-            if (b >= 0) arena_.reserve(b);
+        static void *allocate(const std::size_t size_new_b, const std::size_t alignment_b) {
+            return arena_.allocate(size_new_b, alignment_b);
         }
 
-        static void *allocate(const std::size_t size, const std::size_t alignment) {
-            return arena_.allocate(size, alignment);
+        static void *reallocate(const std::size_t size_old_b, const std::size_t size_new_b,
+                                const std::size_t alignment_b, void *ptr) {
+            void *const new_data = arena_.allocate(size_new_b, alignment_b);
+            memcpy(new_data, ptr, size_old_b);
+            return new_data;
         }
+
+        static void free(const int size_new_b = 1024) {
+            arena_.clean();
+            if (size_new_b >= 0)
+                arena_.reserve(size_new_b);
+        }
+
+        inline static ex::data::allocator arena = { &allocate, &reallocate, nullptr };
         // -----------------------------------------------------
     };
 
@@ -289,9 +299,9 @@ namespace limbo::graph {
         virtual void on_output(int in_idx, int out_idx, int clock_i, void *data) = 0;
 
         assignment_fn_t                assignment_fn_ = nullptr;
-        ex::data::map<ushort, io_data> cache_map      = { NODE_INIT_CAP, allocator::allocate };
-        ex::data::map<ushort, void *>  stack_map      = { NODE_INIT_CAP, allocator::allocate };
-        ex::data::array<io_node>       connections    = { NODE_INIT_CAP, allocator::allocate };
+        ex::data::map<ushort, io_data> cache_map      = { NODE_INIT_CAP, allocator::arena };
+        ex::data::map<ushort, void *>  stack_map      = { NODE_INIT_CAP, allocator::arena };
+        ex::data::array<io_node>       connections    = { NODE_INIT_CAP, allocator::arena };
         unsigned int                   clock_i        = 0;
         std::size_t                    id_            = 0;
 
@@ -433,7 +443,7 @@ namespace limbo::graph {
 #define EX_INT16_MAX 32767
 #define CLOCK_INIT_CAP 64
 
-        ex::data::array<BaseNode *> connections = { CLOCK_INIT_CAP, allocator::allocate };
+        ex::data::array<BaseNode *> connections = { CLOCK_INIT_CAP, allocator::arena };
         unsigned int                clock_i     = 0;
 
         ~Clock() override = default;

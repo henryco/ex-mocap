@@ -10,18 +10,45 @@
 
 namespace ex::data {
 
-    using allocator_fn_t = void *(*)(std::size_t size, std::size_t alignment);
+    inline void *default_malloc_(std::size_t size_new_b, std::size_t alignment_b);
+    inline void *default_realloc_(std::size_t size_old_b, std::size_t size_new_b, std::size_t alignment_b, void *ptr);
+    inline void default_free_(void *ptr);
 
-    template <typename T>
-    T *malloc_(const allocator_fn_t fn, const std::size_t n) {
-        return static_cast<T *>(fn(n * sizeof(T), alignof(T)));
+    using malloc_fn_t  = void *(*) (std::size_t size_new_b, std::size_t alignment_b);
+    using realloc_fn_t = void *(*) (std::size_t size_old_b, std::size_t size_new_b, std::size_t alignment_b, void *ptr);
+    using free_fn_t    = void  (*) (void *ptr);
+
+    struct allocator {
+        malloc_fn_t  malloc  = &default_malloc_;
+        realloc_fn_t realloc = &default_realloc_;
+        free_fn_t    free    = &default_free_;
+    };
+
+    void *default_malloc_(const std::size_t size_new_b, std::size_t) {
+        return ::malloc(size_new_b);
+    }
+
+    void *default_realloc_(std::size_t, const std::size_t size_new_b, std::size_t, void *ptr) {
+        return ::realloc(ptr, size_new_b);
+    }
+
+    void default_free_(void *ptr) {
+        ::free(ptr);
     }
 
     template <typename T>
-    T *realloc_(const allocator_fn_t fn, T *const ptr, const std::size_t n, const std::size_t new_n) {
-        T* new_data = malloc_<T>(fn, new_n);
-        memcpy(new_data, ptr, n * sizeof(T));
-        return new_data;
+    T *malloc_(const allocator &allocator, const std::size_t new_n) {
+        return static_cast<T *>(allocator.malloc(new_n * sizeof(T), alignof(T)));
+    }
+
+    template <typename T>
+    T *realloc_(const allocator &allocator, T *const ptr, const std::size_t old_n, const std::size_t new_n) {
+        return static_cast<T *>(allocator.realloc(old_n * sizeof(T), new_n * sizeof(T), alignof(T), ptr));
+    }
+
+    inline void free_(const allocator &allocator, void *ptr) {
+        if (allocator.free != nullptr && ptr != nullptr)
+            allocator.free(ptr);
     }
 
     struct arena {
@@ -132,32 +159,26 @@ namespace ex::data {
     template<typename element_t>
     struct buffer {
 
-        allocator_fn_t allocator_fn = nullptr;
+        allocator allocator_;
 
         element_t *data = nullptr;
         long       size = 0;
 
         buffer() = default;
 
-        buffer(const allocator_fn_t allocator_fn) : allocator_fn(allocator_fn) {
+        buffer(const allocator &allocator_) : allocator_(allocator_) {
         }
 
-        buffer(const long &size) {
-            this->data = static_cast<element_t *>(malloc(size * sizeof(element_t)));
-            this->size = size;
+        buffer(const long &size) : size(size) {
+            this->data = malloc_<element_t>(allocator_, size);
         }
 
-        buffer(const long &size, const allocator_fn_t allocator_fn) : allocator_fn(allocator_fn) {
-            if (allocator_fn != nullptr)
-                this->data = malloc_<element_t>(allocator_fn, size);
-            else
-                this->data = static_cast<element_t *>(malloc(size * sizeof(element_t)));
-            this->size = size;
+        buffer(const long &size, const allocator &allocator_) : allocator_(allocator_), size(size) {
+            this->data = malloc_<element_t>(allocator_, size);
         }
 
         ~buffer() {
-            if (this->data != nullptr && allocator_fn == nullptr)
-                free(this->data);
+            free_(allocator_, data);
             this->data = nullptr;
             this->size = 0;
         }
@@ -167,37 +188,27 @@ namespace ex::data {
                 return;
 
             if (this->size <= 0 || this->data == nullptr) {
-                if (allocator_fn == nullptr)
-                    this->data = static_cast<element_t *>(malloc(size * sizeof(element_t)));
-                else
-                    this->data = malloc_<element_t>(allocator_fn, size);
+                this->data = malloc_<element_t>(allocator_, size);
                 this->size = size;
             }
 
             else {
-                if (allocator_fn == nullptr)
-                    this->data = static_cast<element_t *>(realloc(this->data, size * sizeof(element_t)));
-                else
-                    this->data = realloc_<element_t>(allocator_fn, this->data, this->size, size);
+                this->data = realloc_<element_t>(allocator_, this->data, this->size, size);
                 this->size = size;
             }
         }
 
-        buffer(const buffer &other) : allocator_fn(other.allocator_fn), size(other.size) {
+        buffer(const buffer &other) : allocator_(other.allocator_), size(other.size) {
             if (other.size <= 0) {
                 data = nullptr;
                 return;
             }
 
-            if (other.allocator_fn == nullptr)
-                data = static_cast<element_t *>(malloc(other.size * sizeof(element_t)));
-            else
-                data = malloc_<element_t>(other.allocator_fn, other.size);
-
+            data = malloc_<element_t>(other.allocator_, other.size);
             memcpy(data, other.data, other.size * sizeof(element_t));
         }
 
-        buffer(buffer &&other) noexcept : allocator_fn(other.allocator_fn), size(other.size) {
+        buffer(buffer &&other) noexcept : allocator_(other.allocator_), size(other.size) {
             this->data = other.data;
             other.data = nullptr;
         }
@@ -206,22 +217,17 @@ namespace ex::data {
             if (this == &other)
                 return *this;
 
-            if (data != nullptr && allocator_fn == nullptr)
-                free(data); // can use realloc...
+            free_(allocator_, data);
 
-            allocator_fn = other.allocator_fn;
-            size         = other.size;
+            allocator_ = other.allocator_;
+            size       = other.size;
 
             if (other.size <= 0) {
                 data = nullptr;
                 return *this;
             }
 
-            if (allocator_fn == nullptr)
-                data = static_cast<element_t *>(malloc(other.size * sizeof(element_t)));
-            else
-                data = malloc_<element_t>(allocator_fn, other.size);
-
+            data = malloc_<element_t>(other.allocator_, other.size);
             memcpy(data, other.data, other.size * sizeof(element_t));
 
             return *this;
@@ -231,13 +237,12 @@ namespace ex::data {
             if (this == &other)
                 return *this;
 
-            if (this->data != nullptr && allocator_fn == nullptr)
-                free(this->data);
+            free_(allocator_, data);
 
-            this->allocator_fn = other.allocator_fn;
-            this->data = other.data;
-            this->size = other.size;
-            other.data = nullptr;
+            this->allocator_ = other.allocator_;
+            this->size       = other.size;
+            this->data       = other.data;
+            other.data       = nullptr;
             return *this;
         }
     };
@@ -245,7 +250,7 @@ namespace ex::data {
     template<typename element_t>
     struct array {
 
-        allocator_fn_t allocator_fn = nullptr;
+        allocator allocator_;
 
         element_t *data     = nullptr;
         int        size     = 0;
@@ -253,26 +258,18 @@ namespace ex::data {
 
         array() = default;
 
-        array(const allocator_fn_t allocator_fn) : allocator_fn(allocator_fn) {}
+        array(const allocator &allocator_) : allocator_(allocator_) {}
 
         ~array() {
-            if (data == nullptr || allocator_fn != nullptr)
-                return;
-            free(data);
+            free_(allocator_, data);
         }
 
-        array(const int &capacity) {
-            this->capacity = capacity;
-            this->data     = static_cast<element_t *>(malloc(capacity * sizeof(element_t)));
+        array(const int &capacity) : capacity(capacity) {
+            data = malloc_<element_t>(allocator_, capacity);
         }
 
-        array(const int &capacity, const allocator_fn_t allocator_fn) : allocator_fn(allocator_fn) {
-            this->capacity = capacity;
-
-            if (allocator_fn != nullptr)
-                this->data = malloc_<element_t>(allocator_fn, capacity);
-            else
-                this->data = static_cast<element_t *>(malloc(capacity * sizeof(element_t)));
+        array(const int &capacity, const allocator &allocator_) : allocator_(allocator_), capacity(capacity) {
+            data = malloc_<element_t>(allocator_, capacity);
         }
 
         element_t &operator[](const int &index) {
@@ -302,28 +299,17 @@ namespace ex::data {
         void clean() {
             size     = 0;
             capacity = 0;
-            if (data == nullptr || allocator_fn != nullptr)
-                return;
-            free(data);
+            free_(allocator_, data);
         }
 
         void reserve(const int n) {
             if (n <= capacity)
                 return;
 
-            if (data == nullptr) {
-                if (allocator_fn == nullptr)
-                    data = static_cast<element_t *>(malloc(n * sizeof(element_t)));
-                else
-                    data = malloc_<element_t>(allocator_fn, n);
-            }
-
-            else {
-                if (allocator_fn == nullptr)
-                    data = static_cast<element_t *>(realloc(data, n * sizeof(element_t)));
-                else
-                    data = realloc_<element_t>(allocator_fn, data, capacity, n);
-            }
+            if (data == nullptr)
+                data = malloc_<element_t>(allocator_, n);
+            else
+                data = realloc_<element_t>(allocator_, data, capacity, n);
 
             capacity = n;
         }
@@ -333,19 +319,10 @@ namespace ex::data {
                 const int old_cap = capacity;
                 capacity = capacity > 0 ? (2 * capacity) : 2;
 
-                if (data == nullptr) {
-                    if (allocator_fn == nullptr)
-                        data = static_cast<element_t *>(malloc(capacity * sizeof(element_t)));
-                    else
-                        data = malloc_<element_t>(allocator_fn, capacity);
-                }
-
-                else {
-                    if (allocator_fn == nullptr)
-                        data = static_cast<element_t *>(realloc(data, capacity * sizeof(element_t)));
-                    else
-                        data = realloc_<element_t>(allocator_fn, data, old_cap, capacity);
-                }
+                if (data == nullptr)
+                    data = malloc_<element_t>(allocator_, capacity);
+                else
+                    data = realloc_<element_t>(allocator_, data, old_cap, capacity);
             }
             memmove(data + index + 1, data + index, (size - index) * sizeof(element_t));
             data[index] = value;
@@ -357,19 +334,10 @@ namespace ex::data {
                 const int old_cap = capacity;
                 capacity = capacity > 0 ? (2 * capacity) : 2;
 
-                if (data == nullptr) {
-                    if (allocator_fn == nullptr)
-                        data = static_cast<element_t *>(malloc(capacity * sizeof(element_t)));
-                    else
-                        data = malloc_<element_t>(allocator_fn, capacity);
-                }
-
-                else {
-                    if (allocator_fn == nullptr)
-                        data = static_cast<element_t *>(realloc(data, capacity * sizeof(element_t)));
-                    else
-                        data = realloc_<element_t>(allocator_fn, data, old_cap, capacity);
-                }
+                if (data == nullptr)
+                    data = malloc_<element_t>(allocator_, capacity);
+                else
+                    data = realloc_<element_t>(allocator_, data, old_cap, capacity);
             }
             data[size++] = value;
         }
@@ -412,16 +380,13 @@ namespace ex::data {
             size                = (size > 0) ? (size - 1) : 0;
         }
 
-        array(const array &other) : allocator_fn(other.allocator_fn), size(other.size), capacity(other.capacity) {
+        array(const array &other) : allocator_(other.allocator_), size(other.size), capacity(other.capacity) {
             if (other.capacity <= 0) {
                 data = nullptr;
                 return;
             }
 
-            if (other.allocator_fn == nullptr)
-                data = static_cast<element_t *>(malloc(other.capacity * sizeof(element_t)));
-            else
-                data = malloc_<element_t>(other.allocator_fn, other.capacity);
+            data = malloc_<element_t>(other.allocator_, other.capacity);
 
             if (other.size <= 0)
                 return;
@@ -429,7 +394,7 @@ namespace ex::data {
             memcpy(data, other.data, other.size * sizeof(element_t));
         }
 
-        array(array &&other) noexcept : allocator_fn(other.allocator_fn), size(other.size), capacity(other.capacity) {
+        array(array &&other) noexcept : allocator_(other.allocator_), size(other.size), capacity(other.capacity) {
             this->data = other.data;
             other.data = nullptr;
         }
@@ -438,22 +403,18 @@ namespace ex::data {
             if (this == &other)
                 return *this;
 
-            if (data != nullptr && allocator_fn == nullptr)
-                free(data);
+            free_(allocator_, data);
 
-            size     = other.size;
-            capacity = other.capacity;
-            allocator_fn = other.allocator_fn;
+            size       = other.size;
+            capacity   = other.capacity;
+            allocator_ = other.allocator_;
 
             if (other.capacity <= 0) {
                 data = nullptr;
                 return *this;
             }
 
-            if (allocator_fn == nullptr)
-                data = static_cast<element_t *>(malloc(other.capacity * sizeof(element_t)));
-            else
-                data = malloc_<element_t>(allocator_fn, other.capacity);
+            data = malloc_<element_t>(other.allocator_, other.capacity);
 
             if (other.size <= 0)
                 return *this;
@@ -466,14 +427,13 @@ namespace ex::data {
             if (this == &other)
                 return *this;
 
-            if (this->data != nullptr && allocator_fn == nullptr)
-                free(this->data);
+            free_(allocator_, data);
 
-            this->data     = other.data;
-            this->size     = other.size;
-            this->capacity = other.capacity;
-            this->allocator_fn = other.allocator_fn;
-            other.data     = nullptr;
+            this->data       = other.data;
+            this->size       = other.size;
+            this->capacity   = other.capacity;
+            this->allocator_ = other.allocator_;
+            other.data       = nullptr;
             return *this;
         }
     };
@@ -497,16 +457,16 @@ namespace ex::data {
 
         map() = default;
 
-        map(const allocator_fn_t allocator_fn) :
-            key_entries(allocator_fn), val_entries(allocator_fn) {
+        map(const allocator &allocator_) :
+            key_entries(allocator_), val_entries(allocator_) {
         }
 
         map(int capacity) :
             key_entries(capacity), val_entries(capacity) {
         }
 
-        map(int capacity, const allocator_fn_t allocator_fn) :
-            key_entries(capacity, allocator_fn), val_entries(capacity, allocator_fn) {
+        map(int capacity, const allocator &allocator_) :
+            key_entries(capacity, allocator_), val_entries(capacity, allocator_) {
         }
 
         map(const map &src) :
