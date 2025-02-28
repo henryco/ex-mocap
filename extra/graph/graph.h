@@ -428,7 +428,7 @@ namespace limbo::graph {
         }
     };
 
-    struct clock : virtual IO {
+    struct clock final: virtual IO {
 
 #define CLOCK_INIT_CAP 64
 
@@ -436,6 +436,23 @@ namespace limbo::graph {
         unsigned int                clock_i     = 0;
 
         ~clock() override = default;
+
+        const std::size_t get_id() const override {
+            return 0;
+        }
+
+        const std::size_t get_type_id() const override {
+            return 0;
+        }
+
+        const char *get_node_name() const override {
+            return "clock";
+        }
+
+        void out(int, int, const int clock_i, void *) override {
+            this->clock_i = clock_i;
+            pull();
+        }
 
         void reset() {
             detach_all();

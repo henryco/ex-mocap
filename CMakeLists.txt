@@ -302,7 +302,8 @@ target_compile_definitions(${PROJECT_NAME}
 # ====================== TESTS (OPTIONAL) ===========================
 if (ENABLE_TESTS)
     set(TEST_SOURCES
-            src/tests/test_io.cpp)
+            src/tests/test_io.cpp
+            src/tests/test_graph.cpp)
 
     add_executable(tests
             ${RESULT_SOURCES}
