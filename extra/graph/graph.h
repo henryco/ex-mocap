@@ -266,9 +266,14 @@ namespace limbo::graph {
     struct allocator {
         // Memory allocator ------------------------------------
         inline static ex::data::arena arena_ = 1024;
+
         static void allocator_free(const int b = 1024) {
             arena_.clean();
             if (b >= 0) arena_.reserve(b);
+        }
+
+        static void *allocate(const std::size_t size, const std::size_t alignment) {
+            return arena_.allocate(size, alignment);
         }
         // -----------------------------------------------------
     };
@@ -281,12 +286,12 @@ namespace limbo::graph {
 
         virtual void on_output(int in_idx, int out_idx, int clock_i, void *data) = 0;
 
-        assignment_fn_t                  assignment_fn_ = nullptr;
-        ex::data::map<ushort, io_data *> cache_map      = 5;
-        ex::data::map<ushort, void *>    stack_map      = 5;
-        ex::data::array<io_node *>       connections    = 5;
-        unsigned int                     clock_i        = 0;
-        std::size_t                      id_            = 0;
+        assignment_fn_t                assignment_fn_ = nullptr;
+        ex::data::map<ushort, io_data> cache_map      = { 32, allocator::allocate };
+        ex::data::map<ushort, void *>  stack_map      = { 32, allocator::allocate };
+        ex::data::array<io_node>       connections    = { 32, allocator::allocate };
+        unsigned int                   clock_i        = 0;
+        std::size_t                    id_            = 0;
 
         ~BaseNode() override = default;
 
@@ -299,9 +304,9 @@ namespace limbo::graph {
                 cache_map.clean();
                 stack_map.clean();
                 connections.clean();
-                cache_map.reserve(5);
-                stack_map.reserve(5);
-                connections.reserve(5);
+                cache_map.reserve(32);
+                stack_map.reserve(32);
+                connections.reserve(32);
             }
 
             int size;
@@ -309,10 +314,10 @@ namespace limbo::graph {
             const auto outputs = this->describe_outputs(&size);
             for (int i = 0; i < size; ++i) {
                 const auto &output = outputs[i];
-                io_data    *csf    = allocator::arena_.allocate<io_data>();
-                csf->data_ptr      = allocator::arena_.allocate(output.size, output.align);
-                csf->data_size     = output.size;
-                cache_map.put(output.index, csf);
+                cache_map.put(output.index, {
+                    allocator::arena_.allocate(output.size, output.align),
+                    output.size
+                });
             }
 
             const auto inputs = this->describe_inputs(&size);
@@ -334,49 +339,42 @@ namespace limbo::graph {
             const auto input = this->describe_input(this_index_in);
             if (input == nullptr)
                 return;
-
-            io_node *ref   = allocator::arena_.allocate<io_node>();
-            ref->node_ptr  = node;
-            ref->index_in  = this_index_in;
-            ref->index_out = other_index_out;
-
-            connections.push(ref);
+            connections.push({ node, static_cast<ushort>(other_index_out), static_cast<ushort>(this_index_in) });
         }
 
         void detach(const BaseNode *node, const int index_in, const int index_out) {
             for (int i = 0; i < connections.size; ++i) {
-                if (const io_node *ref = connections[i];
-                    ref->node_ptr == node && ref->index_in == index_in && ref->index_out == index_out)
+                if (const io_node &ref = connections[i];
+                    ref.node_ptr == node && ref.index_in == index_in && ref.index_out == index_out)
                     connections.swap_remove(i--);
             }
         }
 
         void detach_io(const BaseNode *node) {
             for (int i = 0; i < connections.size; ++i) {
-                if (const io_node *ref = connections[i]; ref->node_ptr == node)
+                if (const io_node &ref = connections[i]; ref.node_ptr == node)
                     connections.swap_remove(i--);
             }
         }
 
         void detach_inputs(const int index_in) {
             for (int i = 0; i < connections.size; ++i) {
-                if (const io_node *ref = connections[i]; ref->index_in == index_in)
+                if (const io_node &ref = connections[i]; ref.index_in == index_in)
                     connections.swap_remove(i--);
             }
         }
 
         void detach_outputs(const int index_out) {
             for (int i = 0; i < connections.size; ++i) {
-                if (const io_node *ref = connections[i]; ref->index_out == index_out)
+                if (const io_node &ref = connections[i]; ref.index_out == index_out)
                     connections.swap_remove(i--);
             }
         }
 
         void detach_all() {
             for (int i = 0; i < connections.size; ++i) {
-                if (const io_node *ref = connections[i]) {
-                    ref->node_ptr->detach_all();
-                }
+                const io_node &ref = connections[i];
+                ref.node_ptr->detach_all();
                 connections.swap_remove(i--);
             }
         }
@@ -387,33 +385,31 @@ namespace limbo::graph {
 
         void pull(const int clock_i) {
             for (int i = 0; i < connections.size; ++i) {
-                if (const io_node *connection = connections[i]) {
-                    void *const stack_ptr = stack_map.at(connection->index_in);
-                    connection->node_ptr->out(connection->index_in, connection->index_out, clock_i, stack_ptr);
-                    on_input(connection->index_in, connection->index_out, clock_i, stack_ptr);
-                }
+                const io_node &connection = connections[i];
+                void *const stack_ptr = stack_map.at(connection.index_in);
+                connection.node_ptr->out(connection.index_in, connection.index_out, clock_i, stack_ptr);
+                on_input(connection.index_in, connection.index_out, clock_i, stack_ptr);
             }
         }
 
         void out(const int in_idx, const int out_idx, const int clock_i, void *data) final {
 
-            const io_data *cache_ptr = cache_map.at(out_idx);
+            const io_data &cache_ptr = cache_map.at(out_idx);
 
             if (this->clock_i == clock_i) {
-                assign_(out_idx, cache_ptr->data_ptr, data, cache_ptr->data_size);
+                assign_(out_idx, cache_ptr.data_ptr, data, cache_ptr.data_size);
                 return;
             }
 
             for (int i = 0; i < connections.size; ++i) {
-                if (const io_node *connection = connections[i]) {
-                    void *const stack_ptr = stack_map.at(connection->index_in);
-                    connection->node_ptr->out(connection->index_in, connection->index_out, clock_i, stack_ptr);
-                    on_input(connection->index_in, connection->index_out, clock_i, stack_ptr);
-                }
+                const io_node &connection = connections[i];
+                void *const stack_ptr = stack_map.at(connection.index_in);
+                connection.node_ptr->out(connection.index_in, connection.index_out, clock_i, stack_ptr);
+                on_input(connection.index_in, connection.index_out, clock_i, stack_ptr);
             }
 
             on_output(in_idx, out_idx, clock_i, data);
-            assign_(out_idx, data, cache_ptr->data_ptr, cache_ptr->data_size);
+            assign_(out_idx, data, cache_ptr.data_ptr, cache_ptr.data_size);
 
             this->clock_i = clock_i;
         }
@@ -429,7 +425,7 @@ namespace limbo::graph {
 
     struct clock : virtual IO {
 
-        ex::data::array<BaseNode *> connections = 5;
+        ex::data::array<BaseNode *> connections = { 32, allocator::allocate };
         unsigned int                clock_i     = 0;
 
         ~clock() override = default;
@@ -450,7 +446,7 @@ namespace limbo::graph {
 
         void detach_all() {
             connections.clean();
-            connections.reserve(5);
+            connections.reserve(32);
         }
 
         void pull() {
