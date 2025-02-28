@@ -5,6 +5,7 @@
 #include <iostream>
 #include <doctest/doctest.h>
 #include "../../extra/graph/graph.h"
+#include "../../src/headers/utils/time_utils.h"
 
 struct node_test_one final : limbo::graph::BaseNode,
                              limbo::graph::id::name<"node_test_one">,
@@ -92,7 +93,7 @@ void rec_build(limbo::graph::BaseNode *parent, const int width, const int max_de
         limbo::graph::BaseNode *child;
         if (i < 0.3 * width)
             child = new node_test_one();
-        else if (i < 0.75 * width)
+        else if (i < 0.66 * width)
             child = new node_test_two();
         else
             child = new node_test_tri();
@@ -109,12 +110,24 @@ void rec_build(limbo::graph::BaseNode *parent, const int width, const int max_de
 TEST_CASE("Graph node test") {
 
     limbo::graph::BaseNode *root = new node_test_one();
-    rec_build(root, 5, 10);
+    rec_build(root, 4, 2);
 
     std::cout << "total: " << counter_ << std::endl;
 
     limbo::graph::Clock clock;
     clock.attach(root);
+
+    ex::time::measure_avg measure = 10;
+    for (int i = 0; i < 100000; i++) {
+        measure.start();
+
+        clock.pull();
+
+        if (measure.stop())
+            std::cout << "avg: " << measure.result() << std::endl;
+    }
+
+    std::cout << "finished" << std::endl;
 
     // TODO
 }
