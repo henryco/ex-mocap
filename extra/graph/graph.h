@@ -265,7 +265,9 @@ namespace limbo::graph {
 
     struct allocator {
         // Memory allocator ------------------------------------
-        inline static ex::data::arena arena_ = 1024;
+#define DEFAULT_ARENA_SIZE_B 1024
+
+        inline static ex::data::arena arena_ = DEFAULT_ARENA_SIZE_B;
 
         static void *allocate(const std::size_t size_new_b, const std::size_t alignment_b) {
             return arena_.allocate(size_new_b, alignment_b);
@@ -278,7 +280,7 @@ namespace limbo::graph {
             return new_data;
         }
 
-        static void free(const int size_new_b = 1024) {
+        static void free(const int size_new_b = DEFAULT_ARENA_SIZE_B) {
             arena_.clean();
             if (size_new_b >= 0)
                 arena_.reserve(size_new_b);
