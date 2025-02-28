@@ -280,6 +280,8 @@ namespace limbo::graph {
 
     struct BaseNode : virtual IO, virtual io::IODescriptor, virtual GenericDataPtr {
 
+#define NODE_INIT_CAP 64
+
         using assignment_fn_t = void (*)(int output_idx, const void *src_ptr, void *dst_ptr);
 
         virtual void on_input(int in_idx,int out_idx, int clock_i, const void *data) = 0;
@@ -287,9 +289,9 @@ namespace limbo::graph {
         virtual void on_output(int in_idx, int out_idx, int clock_i, void *data) = 0;
 
         assignment_fn_t                assignment_fn_ = nullptr;
-        ex::data::map<ushort, io_data> cache_map      = { 32, allocator::allocate };
-        ex::data::map<ushort, void *>  stack_map      = { 32, allocator::allocate };
-        ex::data::array<io_node>       connections    = { 32, allocator::allocate };
+        ex::data::map<ushort, io_data> cache_map      = { NODE_INIT_CAP, allocator::allocate };
+        ex::data::map<ushort, void *>  stack_map      = { NODE_INIT_CAP, allocator::allocate };
+        ex::data::array<io_node>       connections    = { NODE_INIT_CAP, allocator::allocate };
         unsigned int                   clock_i        = 0;
         std::size_t                    id_            = 0;
 
@@ -304,9 +306,9 @@ namespace limbo::graph {
                 cache_map.clean();
                 stack_map.clean();
                 connections.clean();
-                cache_map.reserve(32);
-                stack_map.reserve(32);
-                connections.reserve(32);
+                cache_map.reserve(NODE_INIT_CAP);
+                stack_map.reserve(NODE_INIT_CAP);
+                connections.reserve(NODE_INIT_CAP);
             }
 
             int size;
@@ -339,7 +341,10 @@ namespace limbo::graph {
             const auto input = this->describe_input(this_index_in);
             if (input == nullptr)
                 return;
-            connections.push({ node, static_cast<ushort>(other_index_out), static_cast<ushort>(this_index_in) });
+            connections.push(
+                    { node,
+                        static_cast<unsigned short>(other_index_out),
+                        static_cast<unsigned short>(this_index_in) });
         }
 
         void detach(const BaseNode *node, const int index_in, const int index_out) {
@@ -425,7 +430,9 @@ namespace limbo::graph {
 
     struct clock : virtual IO {
 
-        ex::data::array<BaseNode *> connections = { 32, allocator::allocate };
+#define CLOCK_INIT_CAP 64
+
+        ex::data::array<BaseNode *> connections = { CLOCK_INIT_CAP, allocator::allocate };
         unsigned int                clock_i     = 0;
 
         ~clock() override = default;
@@ -446,7 +453,7 @@ namespace limbo::graph {
 
         void detach_all() {
             connections.clean();
-            connections.reserve(32);
+            connections.reserve(CLOCK_INIT_CAP);
         }
 
         void pull() {
