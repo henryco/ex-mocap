@@ -300,17 +300,26 @@ namespace limbo::graph {
 
         virtual void on_output(int in_idx, int out_idx, int clock_i, void *data) = 0;
 
+        virtual void on_init() { /*NOP*/ }
+
         assignment_fn_t                assignment_fn_ = nullptr;
         ex::data::map<ushort, io_data> cache_map      = { NODE_INIT_CAP, allocator::arena };
         ex::data::map<ushort, void *>  stack_map      = { NODE_INIT_CAP, allocator::arena };
         ex::data::array<io_node>       connections    = { NODE_INIT_CAP, allocator::arena };
-        unsigned int                   clock_i        = 0;
         std::size_t                    id_            = 0;
+        unsigned int                   clock_i        = 0;
+        bool                           initialized_   = false;
 
         ~BaseNode() override = default;
 
-        BaseNode() {
+        BaseNode() = default;
+
+        void initialize() {
+            if (initialized_)
+                return;
             reallocate(false);
+            on_init();
+            initialized_ = true;
         }
 
         void reallocate(const bool cleanup = true) {
@@ -350,6 +359,7 @@ namespace limbo::graph {
         }
 
         void attach(BaseNode *node, const int this_index_in, const int other_index_out) {
+            node->initialize();
             const auto input = this->describe_input(this_index_in);
             if (input == nullptr)
                 return;
@@ -367,7 +377,7 @@ namespace limbo::graph {
             }
         }
 
-        void detach_io(const BaseNode *node) {
+        void detach_node(const BaseNode *node) {
             for (int i = 0; i < connections.size; ++i) {
                 if (const io_node &ref = connections[i]; ref.node_ptr == node)
                     connections.swap_remove(i--);
@@ -473,6 +483,7 @@ namespace limbo::graph {
         }
 
         void attach(BaseNode *node) {
+            node->initialize();
             if (!connections.contains(node))
                 connections.push(node);
         }
