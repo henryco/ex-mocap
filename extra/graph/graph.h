@@ -323,9 +323,9 @@ namespace limbo::graph {
                 connections.reserve(NODE_INIT_CAP);
             }
 
-            int size;
+            int size = 0;
 
-            const auto outputs = this->describe_outputs(&size);
+            const auto outputs = describe_outputs(&size);
             for (int i = 0; i < size; ++i) {
                 const auto &output = outputs[i];
                 cache_map.put(output.index, {
@@ -334,7 +334,7 @@ namespace limbo::graph {
                 });
             }
 
-            const auto inputs = this->describe_inputs(&size);
+            const auto inputs = describe_inputs(&size);
             for (int i = 0; i < size; ++i) {
                 const auto &input = inputs[i];
                 stack_map.put(input.index, allocator::arena_.allocate(input.size, input.align));
