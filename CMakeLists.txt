@@ -78,18 +78,18 @@ set(EXTRA_FILES
         extra/bytebox/byte_box.cpp
 
         # nodes
-        extra/nodes/nodes.h
+#        extra/nodes/nodes.h
 
         # undo history
         extra/undo/undo_history.h
 
         # data utils
         extra/data/data_utils.h
+        extra/data/datalloc.h
+        extra/data/arenalloc.h
 
         # graph (nodes)
         extra/graph/graph.h
-        extra/data/datalloc.h
-        extra/data/arenalloc.h
 )
 
 set(PLATFORM_FILES
@@ -158,6 +158,7 @@ set(HEADER_FILES
         src/headers/logic/logic_mappers.h
         src/headers/imgui/gui_mappers.h
         src/sources/logic/nodes/outputs/display.cpp
+        src/headers/io/serializer.h
 )
 
 set(SOURCE_FILES

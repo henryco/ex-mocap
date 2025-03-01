@@ -9,8 +9,10 @@
 #include "../../headers/logic/logic_state.h"
 #include "../../headers/state.h"
 
-#include <cstring>
 #include <ex_version.h>
+
+#include <cstring>
+#include <iostream>
 
 namespace ex::io::err {
     void abort(const char *msg) {
@@ -221,16 +223,17 @@ namespace ex::io::bytes {
             // write tree node data
             out::object(buffer, TYPE_NODE_OBJ, sizeof(tree_node_1), serial);
 
-            if (const auto serializable = dynamic_cast<limbo::nodes::Serialization<ByteSerializer> *>(
-                        ex::logic::state::get_node(node->id_local));
-                serializable != nullptr)
-            {
-                if (const auto serialized = serializable->serialize(); !serialized.empty()) {
-                    // write base node data
-                    out::object(buffer, TYPE_NODE_DAT, serialized.size, serialized.data);
-                    garbage_collector.tmp_2.push(serialized);
-                }
-            }
+            // TODO
+//            if (const auto serializable = dynamic_cast<limbo::graph::Serialization<ByteSerializer> *>(
+//                        ex::logic::state::get_node(node->id_local));
+//                serializable != nullptr)
+//            {
+//                if (const auto serialized = serializable->serialize(); !serialized.empty()) {
+//                    // write base node data
+//                    out::object(buffer, TYPE_NODE_DAT, serialized.size, serialized.data);
+//                    garbage_collector.tmp_2.push(serialized);
+//                }
+//            }
 
             if (node->children_n <= 0 || node->children == nullptr) {
                 out::end_array(buffer);
@@ -336,11 +339,10 @@ namespace ex::io::bytes {
                     if (base_node == nullptr)
                         continue;
 
-                    const auto serializable = dynamic_cast<limbo::nodes::Serialization<ByteSerializer> *>(base_node);
-                    if (serializable == nullptr)
-                        continue;
-
-                    serializable->deserialize(byte_array::from(data + i, obj_size_b));
+                    // TODO
+//                    const auto serializable = dynamic_cast<limbo::graph::Serialization<ByteSerializer> *>(base_node);
+//                    if (serializable != nullptr)
+//                        serializable->deserialize(byte_array::from(data + i, obj_size_b));
                 }
             }
 

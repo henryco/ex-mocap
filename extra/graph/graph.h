@@ -339,15 +339,18 @@ namespace limbo::graph {
             id_ = id;
         }
 
-        void attach(BaseNode *node, const int this_index_in, const int other_index_out) {
+        bool attach(BaseNode *node, const int this_index_in, const int other_index_out) {
+            if (node == nullptr)
+                return false;
             node->initialize();
             const auto input = this->describe_input(this_index_in);
             if (input == nullptr)
-                return;
+                return false;
             connections.push(
                     { node,
                         static_cast<unsigned short>(other_index_out),
                         static_cast<unsigned short>(this_index_in) });
+            return true;
         }
 
         void detach(const BaseNode *node, const int index_in, const int index_out) {
@@ -463,10 +466,17 @@ namespace limbo::graph {
             clock_i = 0;
         }
 
-        void attach(BaseNode *node) {
+        bool attach(BaseNode *node) {
+            if (node == nullptr)
+                return false;
+
             node->initialize();
-            if (!connections.contains(node))
+            if (!connections.contains(node)) {
                 connections.push(node);
+                return true;
+            }
+
+            return false;
         }
 
         void detach(BaseNode *node) {

@@ -10,7 +10,7 @@
 
 namespace ex::gui::tree {
 
-    static limbo::nodes::BaseNode *inspected_base  = nullptr;
+    static limbo::graph::BaseNode *inspected_base  = nullptr;
     static TreeNode               *inspected_node  = nullptr;
     static bool                    inspection_open = false;
     static long                    inspection_id   = -1;
@@ -80,16 +80,20 @@ namespace ex::gui::tree {
         ImGui::TextDisabled("---");
         ImGui::TextDisabled("");
 
-        const auto connections = inspected_base->list_connections();
-        auto head = connections;
-        while (head != nullptr) {
-            const auto io = dynamic_cast<limbo::nodes::NodeDescriptor *>(head->io_ptr);
+        if (inspected_base == nullptr) {
+            ImGui::End();
+            return;
+        }
+
+        const auto connections = inspected_base->connections;
+        for (int i = 0; i < connections.size; ++i) {
+            auto &head = connections[i];
+            const auto io = dynamic_cast<limbo::graph::IO *>(head.node_ptr);
             if (io != nullptr) {
-                ImGui::Text("* %d -> %d [%lu] [%s]", head->index_in, head->index_out, head->io_ptr->get_id(), io->get_node_name());
+                ImGui::Text("* %d -> %d [%lu] [%s]", head.index_in, head.index_out, head.node_ptr->get_id(), io->get_node_name());
             } else {
-                ImGui::Text("* %d -> %d [%lu] [-]", head->index_in, head->index_out, head->io_ptr->get_id());
+                ImGui::Text("* %d -> %d [%lu] [-]", head.index_in, head.index_out, head.node_ptr->get_id());
             }
-            head = head->next;
         }
 
         ImGui::End();

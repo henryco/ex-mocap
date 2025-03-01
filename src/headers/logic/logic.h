@@ -5,7 +5,7 @@
 #ifndef LOGIC_H
 #define LOGIC_H
 
-#include "../../../extra/nodes/nodes.h"
+#include "../../../extra/graph/graph.h"
 #include "../utils/log_utils.h"
 #include "../state.h"
 
@@ -26,7 +26,7 @@ namespace ex::main {
 
     class Logic {
     private:
-        limbo::nodes::clock clock_;
+        limbo::graph::Clock clock_;
 
     public:
         static inline const auto log = logs::get_logger("logic");

@@ -13,13 +13,13 @@ namespace ex::logic::state {
     using id_type  = std::uint64_t;
     using id_local = std::uint32_t;
 
-    const std::map<id_local, limbo::nodes::BaseNode *> &node_storage();
+    const std::map<id_local, limbo::graph::BaseNode *> &node_storage();
 
-    limbo::nodes::BaseNode *get_node(const id_local &);
+    limbo::graph::BaseNode *get_node(const id_local &);
 
-    void store_node(const id_local &, limbo::nodes::BaseNode *);
+    void store_node(const id_local &, limbo::graph::BaseNode *);
 
-    void replace_node(const id_local &, limbo::nodes::BaseNode *);
+    void replace_node(const id_local &, limbo::graph::BaseNode *);
 
     void remove_node(const id_local &);
 

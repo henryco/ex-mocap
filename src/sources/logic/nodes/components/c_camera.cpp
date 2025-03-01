@@ -22,9 +22,12 @@ namespace ex::cmp {
         return &camera_;
     }
 
-    proto::image CameraNode::on_output(proto::image *_, const int __, const int clock_i, limbo::nodes::Input<proto::image> *io) {
-        capture_frame(clock_i);
-        return last_frame_;
+    void CameraNode::on_input(int in_idx, int out_idx, int clock_i, const void *data) {
+        // TODO
+    }
+
+    void CameraNode::on_output(int in_idx, int out_idx, int clock_i, void *data) {
+        // TODO
     }
 
     void CameraNode::capture_frame(const int clock_i) {
@@ -46,14 +49,14 @@ namespace ex::cmp {
 
 namespace ex::map::camera {
 
-    limbo::nodes::BaseNode *instance(TreeNode *from) {
+    limbo::graph::BaseNode *instance(TreeNode *from) {
         const State            &state = ex::logic::globals::state();
-        limbo::nodes::BaseNode *node = new cmp::CameraNode(state.cl.context, state.cl.device);
+        limbo::graph::BaseNode *node = new cmp::CameraNode(state.cl.context, state.cl.device);
         node->set_id(from->id_local);
         return node;
     }
 
-    limbo::nodes::BaseNode *relocate(TreeNode *tree, limbo::nodes::BaseNode *self) {
+    limbo::graph::BaseNode *relocate(TreeNode *, limbo::graph::BaseNode *self) {
         return self;
     }
 

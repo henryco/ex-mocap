@@ -5,6 +5,8 @@
 #include "../../../../headers/logic/nodes/outputs/display.h"
 #include "../../../../headers/display/display.h"
 
+#include <iostream>
+
 namespace ex::logic::node::out {
 
     ln::BaseNode *DisplayOutputNode::instance(TreeNode *n) {
@@ -42,8 +44,12 @@ namespace ex::logic::node::out {
         display_i = ex::display::io.add_output(display_n, display_w, display_h, display_c, display_d);
     }
 
-    DisplayOutputNode::DisplayOutputNode() {
-        std::cout << "CNST DisplayOutputNode::DisplayOutputNode()\n";
+    void DisplayOutputNode::on_input(int in_idx, int out_idx, int clock_i, const void *data) {
+        // TODO
+    }
+
+    void DisplayOutputNode::on_output(int in_idx, int out_idx, int clock_i, void *data) {
+        // TODO
     }
 
     DisplayOutputNode::~DisplayOutputNode() {
@@ -52,17 +58,8 @@ namespace ex::logic::node::out {
             ex::display::io.remove_output(display_i);
     }
 
-    bool DisplayOutputNode::on_input(proto::image data, int input_index, int output_index, int clock_i,
-                                     limbo::nodes::Output<proto::image> *io) {
-        return true;
-    }
-
-    void *DisplayOutputNode::out_any(int output_index, int clock_i, std::size_t *size) {
-        return nullptr;
-    }
-
-    void *DisplayOutputNode::out_any(int output_index, int clock_i, std::size_t *size, IN *io) {
-        return nullptr;
+    DisplayOutputNode::DisplayOutputNode() {
+        std::cout << "CNST DisplayOutputNode::DisplayOutputNode()\n";
     }
 
 } // namespace ex::logic::node::out

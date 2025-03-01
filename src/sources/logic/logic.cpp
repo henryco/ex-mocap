@@ -2,14 +2,16 @@
 // Created by xd on 17/12/24.
 //
 
+#include "../../headers/logic/logic.h"
 #include "../../extra/data/data_utils.h"
-#include "../../headers/utils/time_utils.h"
-#include "../../headers/utils/file_utils.h"
 #include "../../headers/io/byte_serializer.h"
 #include "../../headers/logic/logic_globals.h"
 #include "../../headers/logic/logic_mappers.h"
 #include "../../headers/logic/logic_state.h"
-#include "../../headers/logic/logic.h"
+#include "../../headers/utils/file_utils.h"
+#include "../../headers/utils/time_utils.h"
+
+#include <iostream>
 
 namespace internal_ {
 
@@ -61,7 +63,7 @@ namespace ex::main {
     }
 
     void Logic::reset_internal_state_(State &state) {
-        clock_.detach_all();
+        clock_.reset();
 
         if (state.logic.work_tree != nullptr)
             delete state.logic.work_tree;
@@ -194,7 +196,7 @@ namespace ex::main {
         if (state.metrics.timing_enabled)
             timing.start();
 
-        clock_.next();
+        clock_.pull();
 
         if (state.metrics.timing_enabled && timing.stop())
             state.metrics.logic_duration_ns = timing.result();
@@ -352,7 +354,7 @@ namespace ex::main {
 
         clock_.detach_all();
         for (const auto &[_, node] : ex::logic::state::node_storage())
-            node->detach_all_any();
+            node->detach_all();
 
         simple_list current = { state.logic.work_tree };
         build_tree_(state, state.logic.work_tree, nullptr, &current);
@@ -383,7 +385,8 @@ namespace ex::main {
             if (output.aux)
                 continue;
 
-            if (clock_.attach(base_node, output.index)) {
+            if (clock_.attach(base_node)) {
+                std::cout << "main attached: " << base_node->get_id() << std::endl;
                 log->debug("Node {} [{}][{}] (main) attached to clock",
                     base_node->get_node_name(), node->id_local, output.index);
                 return;
@@ -395,7 +398,8 @@ namespace ex::main {
             if (!output.aux)
                 continue;
 
-            if (clock_.attach(base_node, output.index)) {
+            if (clock_.attach(base_node)) {
+                std::cout << "aux attached: " << base_node->get_id() << std::endl;
                 log->debug("Node {} [{}][{}] (aux) attached to clock",
                     base_node->get_node_name(), node->id_local, output.index);
                 return;
@@ -519,7 +523,7 @@ namespace ex::main {
 
             const int  idx_in   = inputs[i].index;
             const int  idx_out  = outputs[k].index;
-            const bool attached = node_dst->attach_any(node_src, idx_out, idx_in);
+            const bool attached = node_dst->attach(node_src, idx_in, idx_out);
 
             if (!attached) {
                 log->warn("Cannot connect nodes: [{}]: {} -> [{}]: {}",

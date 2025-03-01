@@ -5,11 +5,11 @@
 #ifndef EX_LOGIC_NODE_COMPONENT_H
 #define EX_LOGIC_NODE_COMPONENT_H
 
-#include "../../../../extra/nodes/nodes.h"
+#include "../../../../extra/graph/graph.h"
 #include "../../state.h"
 
 namespace ex::logic {
-    namespace ln = limbo::nodes;
+    namespace ln = limbo::graph;
 
     struct NodeMapper {
         ln::BaseNode *(*instance)(ex::TreeNode *from)                     = nullptr;

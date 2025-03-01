@@ -9,13 +9,11 @@
 #include "../logic_nodes.h"
 
 namespace ex::logic::node::out {
-    namespace ln = limbo::nodes;
+    namespace ln = limbo::graph;
 
-    struct DisplayOutputNode : ln::Node<DisplayOutputNode>,
-                               ln::id::name<"display_output_node">,
-                               ln::io::in<proto::image, 1, "Image to display">,
-                               ln::ReactiveIn<proto::image>,
-                               ln::ReactiveOutAnyCallback
+    struct DisplayOutputNode final : limbo::graph::BaseNode,
+                                     limbo::graph::id::name<"display_output_node">,
+                                     limbo::graph::io::in<proto::image, 1, "Image to display">
     {
         const char  *display_n = nullptr;
         unsigned int display_i = 0;
@@ -24,24 +22,21 @@ namespace ex::logic::node::out {
         unsigned int display_c = 3;
         unsigned int display_d = 8;
 
-        static ln::BaseNode *instance(TreeNode *from);
-        static ln::BaseNode *relocate(TreeNode *tree, ln::BaseNode *node);
-        static void          destroy(TreeNode *tree, ln::BaseNode *node);
+        static limbo::graph::BaseNode *instance(TreeNode *from);
+        static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
+        static void          destroy(TreeNode *tree, limbo::graph::BaseNode *node);
 
         void register_image(const char *name, uint w, uint h, uint channels = 3, uint bit_depth = 8);
 
         void rename_image(const char *name);
 
-        bool on_input(proto::image data, int input_index, int output_index, int clock_i,
-                      limbo::nodes::Output<proto::image> *io) override;
+        void on_input(int in_idx, int out_idx, int clock_i, const void *data) override;
 
-        void *out_any(int output_index, int clock_i, std::size_t *size) override;
-
-        void *out_any(int output_index, int clock_i, std::size_t *size, IN *io) override;
-
-        DisplayOutputNode();
+        void on_output(int in_idx, int out_idx, int clock_i, void *data) override;
 
         ~DisplayOutputNode() override;
+
+        DisplayOutputNode();
     };
 
 }
