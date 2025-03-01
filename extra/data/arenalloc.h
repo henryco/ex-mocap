@@ -150,6 +150,7 @@ namespace ex::data::memory::arena {
 
     static void *reallocate(void *instance, const std::size_t size_old_b, const std::size_t size_new_b,
                             const std::size_t alignment_b, void *ptr) {
+        // TODO FIXME
         void *const new_data = allocate(instance, size_new_b, alignment_b);
         memcpy(new_data, ptr, size_old_b);
         return new_data;
