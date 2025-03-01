@@ -5,44 +5,9 @@
 #ifndef EX_LIMBO_DATA_UTILS_H
 #define EX_LIMBO_DATA_UTILS_H
 
-#include <cstdlib>
-#include <cstring>
+#include "datalloc.h"
 
 namespace ex::data {
-
-    using malloc_fn_t  = void *(*) (void *instance, std::size_t size_new_b, std::size_t alignment_b);
-    using realloc_fn_t = void *(*) (void *instance, std::size_t size_old_b, std::size_t size_new_b, std::size_t alignment_b, void *ptr);
-    using watch_fn_t   = void  (*) (void *instance, long int ptr_offset);
-    using free_fn_t    = void  (*) (void *instance, void *ptr);
-    using reg_fn_t     = void  (*) (void *ptr, watch_fn_t watch_fn);
-
-    inline void *default_malloc_(void *instance, std::size_t size_new_b, std::size_t alignment_b);
-    inline void *default_realloc_(void *instance, std::size_t size_old_b, std::size_t size_new_b, std::size_t alignment_b, void *ptr);
-    inline void default_free_(void *instance, void *ptr);
-    inline void default_reg_(void *ptr, watch_fn_t watch_fn);
-
-    struct allocator {
-        malloc_fn_t  malloc      = &default_malloc_;
-        realloc_fn_t realloc     = &default_realloc_;
-        free_fn_t    free        = &default_free_;
-        reg_fn_t     add_watcher = &default_reg_;
-        reg_fn_t     del_watcher = &default_reg_;
-    };
-
-    void *default_malloc_(void *, const std::size_t size_new_b, std::size_t) {
-        return ::malloc(size_new_b);
-    }
-
-    void *default_realloc_(void *, std::size_t, const std::size_t size_new_b, std::size_t, void *ptr) {
-        return ::realloc(ptr, size_new_b);
-    }
-
-    void default_free_(void *, void *ptr) {
-        ::free(ptr);
-    }
-
-    inline void default_reg_(void *, watch_fn_t) {
-    }
 
     template <typename T>
     T *malloc_(void *this_, const allocator &allocator, const std::size_t new_n) {
@@ -60,15 +25,13 @@ namespace ex::data {
     }
 
     inline void add_watcher_(const allocator &allocator, void *ptr, const watch_fn_t fn) {
-        if (allocator.add_watcher == nullptr)
-            return;
-        allocator.add_watcher(ptr, fn);
+        if (allocator.add_watcher != nullptr)
+            allocator.add_watcher(ptr, fn);
     }
 
     inline void del_watcher_(const allocator &allocator, void *ptr, const watch_fn_t fn) {
-        if (allocator.del_watcher == nullptr)
-            return;
-        allocator.del_watcher(ptr, fn);
+        if (allocator.del_watcher != nullptr)
+            allocator.del_watcher(ptr, fn);
     }
 
     struct arena {

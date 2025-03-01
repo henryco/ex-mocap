@@ -263,63 +263,9 @@ namespace limbo::graph {
         unsigned int data_size;
     };
 
-    struct mem_allocator {
-        // Memory allocator ------------------------------------
-#define DEFAULT_ARENA_SIZE_B (1048576)
-
-        inline static ex::data::arena arena_ = DEFAULT_ARENA_SIZE_B;
-        inline static ex::data::map<void *, ex::data::watch_fn_t> watchers_ = 10;
-
-        static void *allocate(void *instance, const std::size_t size_new_b, const std::size_t alignment_b) {
-
-            const void *old_data_ptr = arena_.data;
-            void *const allocated    = arena_.allocate(size_new_b, alignment_b);
-            const void *new_data_ptr = arena_.data;
-
-            if (old_data_ptr == new_data_ptr)
-                return allocated;
-
-            const long int offset = reinterpret_cast<unsigned long int>(new_data_ptr) -
-                                    reinterpret_cast<unsigned long int>(old_data_ptr);
-
-            if (offset == 0)
-                return allocated;
-
-            for (int i = 0; i < watchers_.size; ++i) {
-                void *that = watchers_.key_entries[i];
-                if (that == instance)
-                    continue;
-                if (const auto fn = watchers_.val_entries[i])
-                    fn(that, offset);
-            }
-
-            return allocated;
-        }
-
-        static void *reallocate(void *instance, const std::size_t size_old_b, const std::size_t size_new_b,
-                                const std::size_t alignment_b, void *ptr) {
-            void *const new_data = allocate(instance, size_new_b, alignment_b);
-            memcpy(new_data, ptr, size_old_b);
-            return new_data;
-        }
-
-        static void free(const int size_new_b = DEFAULT_ARENA_SIZE_B) {
-            arena_.clean();
-            if (size_new_b >= 0)
-                arena_.reserve(size_new_b);
-        }
-
-        static void add_watcher(void *instance, const ex::data::watch_fn_t fn) {
-            watchers_.put(instance, fn);
-        }
-
-        static void del_watcher(void *instance, ex::data::watch_fn_t) {
-            watchers_.remove(instance);
-        }
-
-        inline static ex::data::allocator arena = { &allocate, &reallocate, nullptr, &add_watcher, &del_watcher };
-        inline static ex::data::allocator allocator = arena;
-        // -----------------------------------------------------
+    struct memory {
+        /* Default allocator */
+        inline static ex::data::allocator allocator;
     };
 
     struct BaseNode : virtual IO, virtual io::IODescriptor, virtual GenericDataPtr {
@@ -335,9 +281,9 @@ namespace limbo::graph {
         virtual void on_init() { /*NOP*/ }
 
         assignment_fn_t                assignment_fn_ = nullptr;
-        ex::data::map<ushort, io_data> cache_map      = { NODE_INIT_CAP, mem_allocator::allocator };
-        ex::data::map<ushort, void *>  stack_map      = { NODE_INIT_CAP, mem_allocator::allocator };
-        ex::data::array<io_node>       connections    = { NODE_INIT_CAP, mem_allocator::allocator };
+        ex::data::map<ushort, io_data> cache_map      = { NODE_INIT_CAP, memory::allocator };
+        ex::data::map<ushort, void *>  stack_map      = { NODE_INIT_CAP, memory::allocator };
+        ex::data::array<io_node>       connections    = { NODE_INIT_CAP, memory::allocator };
         std::size_t                    id_            = 0;
         unsigned int                   clock_i        = 0;
         bool                           initialized_   = false;
@@ -356,6 +302,12 @@ namespace limbo::graph {
 
         void reallocate(const bool cleanup = true) {
             if (cleanup) {
+
+                for (int i = 0; i < cache_map.size; ++i)
+                    ::free(cache_map.val_entries[i].data_ptr);
+                for (int i = 0; i < stack_map.size; ++i)
+                    ::free(stack_map.val_entries[i]);
+
                 cache_map.clean();
                 stack_map.clean();
                 connections.clean();
@@ -369,18 +321,13 @@ namespace limbo::graph {
             const auto outputs = describe_outputs(&size);
             for (int i = 0; i < size; ++i) {
                 const auto &output = outputs[i];
-                // TODO FIXME
-                cache_map.put(output.index, {
-                    mem_allocator::arena_.allocate(output.size, output.align),
-                    output.size
-                });
+                cache_map.put(output.index, { ::malloc(output.size), output.size });
             }
 
             const auto inputs = describe_inputs(&size);
             for (int i = 0; i < size; ++i) {
                 const auto &input = inputs[i];
-                // TODO FIXME
-                stack_map.put(input.index, mem_allocator::arena_.allocate(input.size, input.align));
+                stack_map.put(input.index, ::malloc(input.size));
             }
         }
 
@@ -489,7 +436,7 @@ namespace limbo::graph {
 #define EX_INT16_MAX 32767
 #define CLOCK_INIT_CAP 64
 
-        ex::data::array<BaseNode *> connections = { CLOCK_INIT_CAP, mem_allocator::allocator };
+        ex::data::array<BaseNode *> connections = { CLOCK_INIT_CAP, memory::allocator };
         unsigned int                clock_i     = 0;
 
         ~Clock() override = default;

@@ -88,6 +88,8 @@ set(EXTRA_FILES
 
         # graph (nodes)
         extra/graph/graph.h
+        extra/data/datalloc.h
+        extra/data/arenalloc.h
 )
 
 set(PLATFORM_FILES

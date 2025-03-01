@@ -5,6 +5,7 @@
 #include <iostream>
 #include <doctest/doctest.h>
 #include "../../extra/graph/graph.h"
+#include "../../extra/data/arenalloc.h"
 #include "../../src/headers/utils/time_utils.h"
 
 struct node_test_one final : limbo::graph::BaseNode,
@@ -109,27 +110,33 @@ void rec_build(limbo::graph::BaseNode *parent, const int width, const int max_de
 
 TEST_CASE("Graph node test") {
 
-//    limbo::graph::mem_allocator::allocator = {};
+    limbo::graph::memory::allocator = ex::data::memory::arena::allocator;
 
     limbo::graph::BaseNode *root = new node_test_one();
-    rec_build(root, 3, 3);
+    rec_build(root, 4, 3);
 
     std::cout << "total: " << counter_ << std::endl;
 
     limbo::graph::Clock clock;
     clock.attach(root);
 
+    unsigned long int avg = 0;
+    double counter = 0.;
     ex::time::measure_avg measure = 100;
     for (int i = 0; i < 100000; i++) {
         measure.start();
 
         clock.pull();
 
-        if (measure.stop())
-            std::cout << "avg: " << measure.result() << '\n';
+        if (measure.stop()) {
+            std::cout << "time: " << measure.result() << '\n';
+            avg += measure.result();
+            counter++;
+        }
     }
 
-    std::cout << "heap: " << limbo::graph::mem_allocator::arena_.offset << std::endl;
+    std::cout << "avg: " << (avg / counter) << '\n';
+    std::cout << "heap: " << limbo::graph::memory::allocator.size() << std::endl;
     std::cout << "finished" << std::endl;
 
     // TODO
