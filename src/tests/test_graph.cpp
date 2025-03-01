@@ -117,15 +117,15 @@ TEST_CASE("Graph node test") {
     limbo::graph::Clock clock;
     clock.attach(root);
 
-//    ex::time::measure_avg measure = 10;
-//    for (int i = 0; i < 100000; i++) {
-//        measure.start();
-//
-//        clock.pull();
-//
-//        if (measure.stop())
-//            std::cout << "avg: " << measure.result() << std::endl;
-//    }
+    ex::time::measure_avg measure = 100;
+    for (int i = 0; i < 100000; i++) {
+        measure.start();
+
+        clock.pull();
+
+        if (measure.stop())
+            std::cout << "avg: " << measure.result() << std::endl;
+    }
 
     std::cout << "finished" << std::endl;
 
