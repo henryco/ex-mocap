@@ -7,6 +7,114 @@
 
 #include "data_utils.h"
 
+namespace ex::data {
+
+    struct arena {
+
+        void       *data     = nullptr;
+        std::size_t offset   = 0;
+        std::size_t capacity = 0;
+
+        arena() = default;
+
+        ~arena() {
+            if (data == nullptr)
+                return;
+            free(data);
+        }
+
+        arena(const std::size_t &reserve) {
+            expand(reserve);
+        }
+
+        void reserve(const std::size_t n) {
+            if (n <= capacity)
+                return;
+
+            capacity = n;
+
+            if (data == nullptr)
+                data = malloc(capacity);
+            else
+                data = realloc(data, capacity);
+        }
+
+        void expand(const std::size_t n) {
+            reserve(capacity + n);
+        }
+
+        void clean() {
+            offset   = 0;
+            capacity = 0;
+            if (data == nullptr)
+                return;
+            free(data);
+        }
+
+        template<typename T>
+        T *allocate() {
+            std::size_t padding = 0;
+
+            if (offset % alignof(T) != 0)
+                padding = alignof(T) - (offset % alignof(T));
+
+            const std::size_t required = padding + sizeof(T);
+            const std::size_t remains  = capacity - offset;
+
+            if (required > remains)
+                expand(capacity + required);
+
+            offset += required;
+
+            return reinterpret_cast<T *>(static_cast<unsigned char *>(data) + offset - sizeof(T));
+        }
+
+        void *allocate(const std::size_t size, const std::size_t alignment = 0) {
+            const std::size_t align   = alignment != 0 ? alignment : size;
+            std::size_t       padding = 0;
+
+            if (offset % align != 0)
+                padding = align - (offset % align);
+
+            const std::size_t required = padding + size;
+            const std::size_t remains  = capacity - offset;
+
+            if (required > remains)
+                expand(capacity + required);
+
+            offset += required;
+
+            return static_cast<unsigned char *>(data) + offset - size;
+        }
+
+        arena(const arena &other) = delete;
+
+        arena &operator = (const arena &other) = delete;
+
+        arena(arena &&other) noexcept :
+            offset(other.offset), capacity(other.capacity) {
+            this->data = other.data;
+            other.data = nullptr;
+        }
+
+        arena &operator = (arena &&other) noexcept {
+            if (this == &other)
+                return *this;
+
+            if (this->data != nullptr)
+                free(this->data);
+
+            this->data     = other.data;
+            this->offset   = other.offset;
+            this->capacity = other.capacity;
+
+            other.data = nullptr;
+            return *this;
+        }
+    };
+
+}
+
 namespace ex::data::memory::arena {
 
 #define DEFAULT_ARENA_SIZE_B 1048576

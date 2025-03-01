@@ -110,7 +110,7 @@ void rec_build(limbo::graph::BaseNode *parent, const int width, const int max_de
 
 TEST_CASE("Graph node test") {
 
-    limbo::graph::memory::allocator = ex::data::memory::arena::allocator;
+//    limbo::graph::memory::allocator = ex::data::memory::arena::allocator;
 
     limbo::graph::BaseNode *root = new node_test_one();
     rec_build(root, 4, 3);
