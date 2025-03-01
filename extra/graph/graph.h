@@ -263,7 +263,7 @@ namespace limbo::graph {
         unsigned int data_size;
     };
 
-    struct allocator {
+    struct mem_allocator {
         // Memory allocator ------------------------------------
 #define DEFAULT_ARENA_SIZE_B (1048576)
 
@@ -318,6 +318,7 @@ namespace limbo::graph {
         }
 
         inline static ex::data::allocator arena = { &allocate, &reallocate, nullptr, &add_watcher, &del_watcher };
+        inline static ex::data::allocator allocator = arena;
         // -----------------------------------------------------
     };
 
@@ -334,9 +335,9 @@ namespace limbo::graph {
         virtual void on_init() { /*NOP*/ }
 
         assignment_fn_t                assignment_fn_ = nullptr;
-        ex::data::map<ushort, io_data> cache_map      = { NODE_INIT_CAP, allocator::arena };
-        ex::data::map<ushort, void *>  stack_map      = { NODE_INIT_CAP, allocator::arena };
-        ex::data::array<io_node>       connections    = { NODE_INIT_CAP, allocator::arena };
+        ex::data::map<ushort, io_data> cache_map      = { NODE_INIT_CAP, mem_allocator::allocator };
+        ex::data::map<ushort, void *>  stack_map      = { NODE_INIT_CAP, mem_allocator::allocator };
+        ex::data::array<io_node>       connections    = { NODE_INIT_CAP, mem_allocator::allocator };
         std::size_t                    id_            = 0;
         unsigned int                   clock_i        = 0;
         bool                           initialized_   = false;
@@ -368,8 +369,9 @@ namespace limbo::graph {
             const auto outputs = describe_outputs(&size);
             for (int i = 0; i < size; ++i) {
                 const auto &output = outputs[i];
+                // TODO FIXME
                 cache_map.put(output.index, {
-                    allocator::arena_.allocate(output.size, output.align),
+                    mem_allocator::arena_.allocate(output.size, output.align),
                     output.size
                 });
             }
@@ -377,7 +379,8 @@ namespace limbo::graph {
             const auto inputs = describe_inputs(&size);
             for (int i = 0; i < size; ++i) {
                 const auto &input = inputs[i];
-                stack_map.put(input.index, allocator::arena_.allocate(input.size, input.align));
+                // TODO FIXME
+                stack_map.put(input.index, mem_allocator::arena_.allocate(input.size, input.align));
             }
         }
 
@@ -486,7 +489,7 @@ namespace limbo::graph {
 #define EX_INT16_MAX 32767
 #define CLOCK_INIT_CAP 64
 
-        ex::data::array<BaseNode *> connections = { CLOCK_INIT_CAP, allocator::arena };
+        ex::data::array<BaseNode *> connections = { CLOCK_INIT_CAP, mem_allocator::allocator };
         unsigned int                clock_i     = 0;
 
         ~Clock() override = default;
