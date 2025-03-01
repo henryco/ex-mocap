@@ -119,8 +119,8 @@ namespace ex::data::memory::arena {
 
 #define DEFAULT_ARENA_SIZE_B 1048576
 
-    inline static ex::data::arena arena_ = DEFAULT_ARENA_SIZE_B;
-    inline static ex::data::map<void *, ex::data::watch_fn_t> watchers_ = 10;
+    inline static ex::data::arena                   arena_    = DEFAULT_ARENA_SIZE_B;
+    inline static ex::data::map<void *, watch_fn_t> watchers_ = 10;
 
     static void *allocate(void *instance, const std::size_t size_new_b, const std::size_t alignment_b) {
 
@@ -161,11 +161,11 @@ namespace ex::data::memory::arena {
             arena_.reserve(size_new_b);
     }
 
-    static void add_watcher(void *instance, const ex::data::watch_fn_t fn) {
+    static void add_watcher(void *instance, const watch_fn_t fn) {
         watchers_.put(instance, fn);
     }
 
-    static void del_watcher(void *instance, ex::data::watch_fn_t) {
+    static void del_watcher(void *instance, watch_fn_t) {
         watchers_.remove(instance);
     }
 
