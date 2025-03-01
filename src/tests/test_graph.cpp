@@ -110,7 +110,7 @@ void rec_build(limbo::graph::BaseNode *parent, const int width, const int max_de
 TEST_CASE("Graph node test") {
 
     limbo::graph::BaseNode *root = new node_test_one();
-    rec_build(root, 4, 2);
+    rec_build(root, 3, 3);
 
     std::cout << "total: " << counter_ << std::endl;
 
@@ -124,9 +124,10 @@ TEST_CASE("Graph node test") {
         clock.pull();
 
         if (measure.stop())
-            std::cout << "avg: " << measure.result() << std::endl;
+            std::cout << "avg: " << measure.result() << '\n';
     }
 
+    std::cout << "heap: " << limbo::graph::allocator::arena_.offset << std::endl;
     std::cout << "finished" << std::endl;
 
     // TODO

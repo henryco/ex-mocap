@@ -442,7 +442,6 @@ namespace limbo::graph {
         }
 
         void pull(const int clock_i) {
-            // TODO FIXME
             for (int i = 0; i < connections.size; ++i) {
                 const io_node &connection = connections[i];
                 void *const stack_ptr = stack_map.at(connection.index_in);
@@ -461,7 +460,6 @@ namespace limbo::graph {
             }
 
             for (int i = 0; i < connections.size; ++i) {
-                // TODO FIXME
                 const io_node &connection = connections[i];
                 void *const stack_ptr = stack_map.at(connection.index_in);
                 connection.node_ptr->out(connection.index_in, connection.index_out, clock_i, stack_ptr);
