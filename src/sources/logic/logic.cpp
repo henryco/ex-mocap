@@ -352,7 +352,7 @@ namespace ex::main {
     void Logic::rewire_(State &state) {
         log->debug("rewire");
 
-        clock_.detach_all();
+        clock_.reset();
         for (const auto &[_, node] : ex::logic::state::node_storage())
             node->detach_all();
 

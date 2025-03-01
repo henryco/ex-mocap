@@ -204,9 +204,9 @@ namespace ex::data {
         }
 
         void clean() {
+            free_(this, allocator_, data);
             size     = 0;
             capacity = 0;
-            free_(this, allocator_, data);
         }
 
         void reserve(const int n) {
