@@ -144,7 +144,9 @@ namespace ex::data::memory::arena {
     }
 
     inline void free(const block_id_t ptr) {
-        memory_block &block = block_.at(ptr);
+        memory_block &block       = block_.at(ptr);
+        const int     block_index = block_.index_at(ptr);
+
         block.freed = true;
 
         if ((block.padding_b + block.size_b) % alignment == 0) {

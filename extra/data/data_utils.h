@@ -448,6 +448,14 @@ namespace ex::data {
             abort();
         }
 
+        int index_at(const key_t &key) const {
+            for (int i = 0; i < key_entries.size; ++i) {
+                if (key_entries[i] == key)
+                    return i;;
+            }
+            return -1;
+        }
+
         element_t &at(const key_t &key) {
             for (int i = 0; i < key_entries.size; ++i) {
                 if (key_entries[i] == key)

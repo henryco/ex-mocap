@@ -34,15 +34,15 @@ namespace ex::gui::test {
         }
 
         ~NodeOne() override {
-            std::cout << "DSTR 1: " << id_ << '\n';
+            std::cout << "DSTR 1: " << id_ << std::endl;
         }
 
         void on_input(int in_idx, int out_idx, int clock_i, const void *data) override {
-
+            std::cout << "in1: " << id_ << std::endl;
         }
 
         void on_output(int in_idx, int out_idx, int clock_i, void *data) override {
-
+            std::cout << "out1: " << id_ << std::endl;
         }
     };
 
@@ -67,15 +67,15 @@ namespace ex::gui::test {
         }
 
         ~NodeTwo() override {
-            std::cout << "DSTR 2: " << id_ << '\n';
+            std::cout << "DSTR 2: " << id_ << std::endl;
         }
 
         void on_input(int in_idx, int out_idx, int clock_i, const void *data) override {
-
+            std::cout << "in2: " << id_ << std::endl;
         }
 
         void on_output(int in_idx, int out_idx, int clock_i, void *data) override {
-
+            std::cout << "in2: " << id_ << std::endl;
         }
     };
 
@@ -100,15 +100,15 @@ namespace ex::gui::test {
         }
 
         ~NodeTri() override {
-            std::cout << "DSTR 3: " << id_ << '\n';
+            std::cout << "DSTR 3: " << id_ << std::endl;
         }
 
         void on_input(int in_idx, int out_idx, int clock_i, const void *data) override {
-
+            std::cout << "in3: " << id_ << std::endl;
         }
 
         void on_output(int in_idx, int out_idx, int clock_i, void *data) override {
-
+            std::cout << "in3: " << id_ << std::endl;
         }
 
     };
