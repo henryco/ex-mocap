@@ -118,15 +118,33 @@ namespace ex::data {
 namespace ex::data::memory::arena {
 
 #define DEFAULT_ARENA_SIZE_B 1048576
+#define DEFAULT_META_STACK_SIZE_B 10
 
     inline static ex::data::arena                   arena_      = DEFAULT_ARENA_SIZE_B;
-    inline static ex::data::map<void *, watch_fn_t> watchers_   = 10;
+    inline static ex::data::map<void *, ulong>      stack_      = DEFAULT_META_STACK_SIZE_B;
+    inline static ex::data::map<void *, watch_fn_t> watchers_   = DEFAULT_META_STACK_SIZE_B;
     inline static void                             *last_caller = nullptr;
+    inline static long                              alignment   = 1;
+
+    static void calc_alignment(const long align_b) {
+        const long max = alignment > align_b ? alignment : align_b;
+        const long min = alignment > align_b ? align_b : alignment;
+        alignment      = (max % min == 0) ? max : (max * min);
+    }
+
+    static void defrag() {
+        // TODO
+    }
 
     static void *allocate(void *instance, const std::size_t size_new_b, const std::size_t alignment_b) {
+        calc_alignment(alignment_b);
+
         const void *old_data_ptr = arena_.data;
         void *const allocated    = arena_.allocate(size_new_b, alignment_b);
         const void *new_data_ptr = arena_.data;
+
+        if (!stack_.contains(instance))
+            stack_.put(instance, reinterpret_cast<unsigned long int>(allocated));
 
         last_caller = instance;
 
@@ -138,6 +156,13 @@ namespace ex::data::memory::arena {
 
         if (offset == 0)
             return allocated;
+
+        for (int i = 0; i < stack_.size; ++i) {
+            const void *that = stack_.key_entries[i];
+            if (that == instance)
+                continue;
+            stack_.val_entries[i] += offset;
+        }
 
         for (int i = 0; i < watchers_.size; ++i) {
             void *that = watchers_.key_entries[i];
@@ -152,17 +177,23 @@ namespace ex::data::memory::arena {
 
     static void *reallocate(void *instance, const std::size_t size_old_b, const std::size_t size_new_b,
                             const std::size_t alignment_b, void *ptr) {
+        calc_alignment(alignment_b);
 
         const void *old_data_ptr = arena_.data;
         void *const allocated    = arena_.allocate(size_new_b, alignment_b);
         const void *new_data_ptr = arena_.data;
 
-        if (instance != last_caller)
+        if (instance != last_caller) {
+            stack_.remove(instance);
             memcpy(allocated, ptr, size_old_b);
+            stack_.put(instance, reinterpret_cast<unsigned long int>(allocated));
+            defrag();
+        }
+
+        if (!stack_.contains(instance))
+            stack_.put(instance, reinterpret_cast<unsigned long int>(allocated));
 
         last_caller = instance;
-
-        // TODO: GAP MANAGEMENT (de-fragmentation)
 
         if (old_data_ptr == new_data_ptr)
             return allocated;
@@ -172,6 +203,13 @@ namespace ex::data::memory::arena {
 
         if (offset == 0)
             return allocated;
+
+        for (int i = 0; i < stack_.size; ++i) {
+            const void *that = stack_.key_entries[i];
+            if (that == instance)
+                continue;
+            stack_.val_entries[i] += offset;
+        }
 
         for (int i = 0; i < watchers_.size; ++i) {
             void *that = watchers_.key_entries[i];
@@ -185,9 +223,12 @@ namespace ex::data::memory::arena {
     }
 
     static void free(const int size_new_b = DEFAULT_ARENA_SIZE_B) {
+        alignment = 1;
         arena_.clean();
+        stack_.clean();
         if (size_new_b >= 0)
             arena_.reserve(size_new_b);
+        stack_.reserve(DEFAULT_META_STACK_SIZE_B);
     }
 
     static void add_watcher(void *instance, const watch_fn_t fn) {
