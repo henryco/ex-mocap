@@ -10,17 +10,17 @@
 
 namespace ex::data {
 
-    using malloc_fn_t  = void *(*) (void *instance, std::size_t size_new_b, std::size_t alignment_b);
-    using realloc_fn_t = void *(*) (void *instance, std::size_t size_old_b, std::size_t size_new_b, std::size_t alignment_b, void *ptr);
+    using malloc_fn_t  = void *(*) (std::size_t size_new_b, std::size_t alignment_b);
+    using realloc_fn_t = void *(*) (void *ptr, std::size_t size_new_b);
     using watch_fn_t   = void  (*) (void *instance, long int ptr_offset);
-    using free_fn_t    = void  (*) (void *instance, void *ptr, std::size_t size_b);
     using reg_fn_t     = void  (*) (void *ptr, watch_fn_t watch_fn);
+    using free_fn_t    = void  (*) (void *ptr);
     using size_fn_t    = long  (*) ();
 
-    inline void *default_malloc_(void *instance, std::size_t size_new_b, std::size_t alignment_b);
-    inline void *default_realloc_(void *instance, std::size_t size_old_b, std::size_t size_new_b, std::size_t alignment_b, void *ptr);
-    inline void default_free_(void *instance, void *ptr, std::size_t size_b);
-    inline void default_reg_(void *ptr, watch_fn_t watch_fn);
+    inline void *default_malloc_(std::size_t size_new_b, std::size_t alignment_b);
+    inline void *default_realloc_(void *ptr, std::size_t size_new_b);
+    inline void default_reg_(void *watcher, watch_fn_t watch_fn);
+    inline void default_free_(void *ptr);
     inline long default_size_();
 
     struct allocator {
@@ -32,15 +32,15 @@ namespace ex::data {
         size_fn_t    size        = &default_size_;
     };
 
-    void *default_malloc_(void *, const std::size_t size_new_b, std::size_t) {
+    void *default_malloc_(const std::size_t size_new_b, std::size_t) {
         return ::malloc(size_new_b);
     }
 
-    void *default_realloc_(void *, std::size_t, const std::size_t size_new_b, std::size_t, void *ptr) {
+    void *default_realloc_(void *ptr, const std::size_t size_new_b) {
         return ::realloc(ptr, size_new_b);
     }
 
-    void default_free_(void *, void *ptr, std::size_t) {
+    void default_free_(void *ptr) {
         ::free(ptr);
     }
 

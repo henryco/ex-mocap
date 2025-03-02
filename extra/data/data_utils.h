@@ -10,28 +10,28 @@
 namespace ex::data {
 
     template <typename T>
-    T *malloc_(void *this_, const allocator &allocator, const std::size_t new_n) {
-        return static_cast<T *>(allocator.malloc(this_, new_n * sizeof(T), alignof(T)));
+    T *malloc_(void *, const allocator &allocator, const std::size_t size_n) {
+        return static_cast<T *>(allocator.malloc(size_n * sizeof(T), alignof(T)));
     }
 
     template <typename T>
-    T *realloc_(void *this_, const allocator &allocator, T *const ptr, const std::size_t old_n, const std::size_t new_n) {
-        return static_cast<T *>(allocator.realloc(this_, old_n * sizeof(T), new_n * sizeof(T), alignof(T), ptr));
+    T *realloc_(void *, const allocator &allocator, T *const ptr, const std::size_t size_n) {
+        return static_cast<T *>(allocator.realloc(ptr, size_n * sizeof(T)));
     }
 
-    inline void free_(void *this_, const allocator &allocator, void *ptr, const std::size_t size_b) {
+    inline void free_(void *, const allocator &allocator, void *ptr) {
         if (allocator.free != nullptr && ptr != nullptr)
-            allocator.free(this_, ptr, size_b);
+            allocator.free(ptr);
     }
 
-    inline void add_watcher_(const allocator &allocator, void *ptr, const watch_fn_t fn) {
+    inline void add_watcher_(const allocator &allocator, void *watcher, const watch_fn_t fn) {
         if (allocator.add_watcher != nullptr)
-            allocator.add_watcher(ptr, fn);
+            allocator.add_watcher(watcher, fn);
     }
 
-    inline void del_watcher_(const allocator &allocator, void *ptr, const watch_fn_t fn) {
+    inline void del_watcher_(const allocator &allocator, void *watcher, const watch_fn_t fn) {
         if (allocator.del_watcher != nullptr)
-            allocator.del_watcher(ptr, fn);
+            allocator.del_watcher(watcher, fn);
     }
 
     template<typename element_t>
@@ -62,7 +62,7 @@ namespace ex::data {
 
         ~buffer() {
             del_watcher_(allocator_, this, &watch_allocator);
-            free_(this, allocator_, data, size);
+            free_(this, allocator_, data);
             this->data = nullptr;
             this->size = 0;
         }
@@ -77,7 +77,7 @@ namespace ex::data {
             }
 
             else {
-                this->data = realloc_<element_t>(this, allocator_, this->data, this->size, size);
+                this->data = realloc_<element_t>(this, allocator_, this->data, size);
                 this->size = size;
             }
         }
@@ -105,7 +105,7 @@ namespace ex::data {
                 return *this;
 
             del_watcher_(allocator_, this, &watch_allocator);
-            free_(this, allocator_, data, size);
+            free_(this, allocator_, data);
 
             allocator_ = other.allocator_;
             size       = other.size;
@@ -130,7 +130,7 @@ namespace ex::data {
             del_watcher_(other.allocator_, &other, &watch_allocator);
             del_watcher_(allocator_, this, &watch_allocator);
 
-            free_(this, allocator_, data, size);
+            free_(this, allocator_, data);
 
             this->allocator_ = other.allocator_;
             this->size       = other.size;
@@ -166,7 +166,7 @@ namespace ex::data {
 
         ~array() {
             del_watcher_(allocator_, this, &watch_allocator);
-            free_(this, allocator_, data, capacity);
+            free_(this, allocator_, data);
         }
 
         array(const int &capacity) : capacity(capacity) {
@@ -204,7 +204,7 @@ namespace ex::data {
         }
 
         void clean() {
-            free_(this, allocator_, data, capacity);
+            free_(this, allocator_, data);
             size     = 0;
             capacity = 0;
         }
@@ -216,20 +216,19 @@ namespace ex::data {
             if (data == nullptr)
                 data = malloc_<element_t>(this, allocator_, n);
             else
-                data = realloc_<element_t>(this, allocator_, data, capacity, n);
+                data = realloc_<element_t>(this, allocator_, data, n);
 
             capacity = n;
         }
 
         void insert(const int index, const element_t &value) {
             if (size >= capacity) {
-                const int old_cap = capacity;
                 capacity = capacity > 0 ? (2 * capacity) : 2;
 
                 if (data == nullptr)
                     data = malloc_<element_t>(this, allocator_, capacity);
                 else
-                    data = realloc_<element_t>(this, allocator_, data, old_cap, capacity);
+                    data = realloc_<element_t>(this, allocator_, data, capacity);
             }
             memmove(data + index + 1, data + index, (size - index) * sizeof(element_t));
             data[index] = value;
@@ -238,13 +237,12 @@ namespace ex::data {
 
         void push(const element_t &value) {
             if (size >= capacity) {
-                const int old_cap = capacity;
                 capacity = capacity > 0 ? (2 * capacity) : 2;
 
                 if (data == nullptr)
                     data = malloc_<element_t>(this, allocator_, capacity);
                 else
-                    data = realloc_<element_t>(this, allocator_, data, old_cap, capacity);
+                    data = realloc_<element_t>(this, allocator_, data, capacity);
             }
             data[size++] = value;
         }
@@ -320,7 +318,7 @@ namespace ex::data {
                 return *this;
 
             del_watcher_(allocator_, this, &watch_allocator);
-            free_(this, allocator_, data, capacity);
+            free_(this, allocator_, data);
 
             size       = other.size;
             capacity   = other.capacity;
@@ -347,7 +345,7 @@ namespace ex::data {
 
             del_watcher_(other.allocator_, &other, &watch_allocator);
             del_watcher_(allocator_, this, &watch_allocator);
-            free_(this, allocator_, data, capacity);
+            free_(this, allocator_, data);
 
             this->data       = other.data;
             this->size       = other.size;

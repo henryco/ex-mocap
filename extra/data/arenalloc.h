@@ -117,14 +117,25 @@ namespace ex::data {
 
 namespace ex::data::memory::arena {
 
+    using watch_id_t = void *;
+    using block_id_t = void *;
+
+    struct memory_block {
+        u_int32_t size;
+        u_int16_t alignment;
+        u_int8_t  padding;
+        u_int8_t  freed;
+    };
+
 #define DEFAULT_ARENA_SIZE_B 1048576
 #define DEFAULT_META_STACK_SIZE_B 10
 
-    inline static ex::data::arena                   arena_      = DEFAULT_ARENA_SIZE_B;
-    inline static ex::data::map<void *, ulong>      freed_      = DEFAULT_META_STACK_SIZE_B;
-    inline static ex::data::map<void *, watch_fn_t> watchers_   = DEFAULT_META_STACK_SIZE_B;
-    inline static void                             *last_caller = nullptr;
-    inline static long                              alignment   = 1;
+    inline static ex::data::arena                         arena_ = DEFAULT_ARENA_SIZE_B;
+    inline static ex::data::map<watch_id_t, watch_fn_t>   watch_ = DEFAULT_META_STACK_SIZE_B;
+    inline static ex::data::map<block_id_t, memory_block> block_ = DEFAULT_META_STACK_SIZE_B;
+
+    inline static long free_offset = 0;
+    inline static long alignment   = 1;
 
     static void calc_alignment(const long align_b) {
         const long max = alignment > align_b ? alignment : align_b;
@@ -132,20 +143,32 @@ namespace ex::data::memory::arena {
         alignment      = (max % min == 0) ? max : (max * min);
     }
 
-    static void free(void *, void *ptr, const std::size_t size) {
-        freed_.put(ptr, size);
+    static void free(const block_id_t ptr) {
+        memory_block &block = block_.at(ptr);
+        block.freed = true;
 
         // TODO
     }
 
-    static void *allocate(void *instance, const std::size_t size_new_b, const std::size_t alignment_b) {
+    static block_id_t allocate(const std::size_t size_new_b, const std::size_t alignment_b) {
+        if (size_new_b == 0 || alignment_b == 0)
+            abort();
+
         calc_alignment(alignment_b);
 
         const void *old_data_ptr = arena_.data;
-        void *const allocated    = arena_.allocate(size_new_b, alignment_b);
+        const long  old_offset   = arena_.offset;
+        void       *allocated    = arena_.allocate(size_new_b, alignment_b);
+        const long  new_offset   = arena_.offset;
         const void *new_data_ptr = arena_.data;
 
-        last_caller = instance;
+        block_.remove(allocated);
+        block_.put(allocated, {
+            .size      = static_cast<u_int32_t>(size_new_b),
+            .alignment = static_cast<u_int16_t>(alignment_b),
+            .padding   = static_cast<u_int8_t>((new_offset - old_offset - size_new_b)),
+            .freed     = static_cast<u_int8_t>(false),
+        });
 
         if (old_data_ptr == new_data_ptr)
             return allocated;
@@ -156,31 +179,49 @@ namespace ex::data::memory::arena {
         if (offset == 0)
             return allocated;
 
-        for (int i = 0; i < watchers_.size; ++i) {
-            void *that = watchers_.key_entries[i];
-            if (that == instance)
-                continue;
-            if (const auto fn = watchers_.val_entries[i])
-                fn(that, offset);
+        for (int i = 0; i < watch_.size; ++i) {
+            if (const auto fn = watch_.val_entries[i])
+                fn(watch_.key_entries[i], offset);
         }
 
         return allocated;
     }
 
-    static void *reallocate(void *instance, const std::size_t size_old_b, const std::size_t size_new_b,
-                            const std::size_t alignment_b, void *ptr) {
-        calc_alignment(alignment_b);
+    static block_id_t reallocate(const block_id_t ptr, const std::size_t size_new_b) {
+        if (size_new_b == 0)
+            abort();
+
+        memory_block &old_block = block_.at(ptr);
 
         const void *old_data_ptr = arena_.data;
-        void *const allocated    = arena_.allocate(size_new_b, alignment_b);
+        const long  old_offset   = arena_.offset;
+        void       *allocated    = arena_.allocate(size_new_b, old_block.alignment);
+        const long  new_offset   = arena_.offset;
         const void *new_data_ptr = arena_.data;
 
-        if (instance != last_caller) {
-            memcpy(allocated, ptr, size_old_b);
-            free(instance, ptr, size_old_b);
-        }
+        const block_id_t last_block_ptr = block_.key_entries[block_.size - 1];
+        if (last_block_ptr != ptr) {
+            free_offset = 0;
 
-        last_caller = instance;
+            memcpy(allocated, ptr, old_block.size);
+            free(last_block_ptr);
+
+            allocated = reinterpret_cast<block_id_t>(reinterpret_cast<unsigned long int>(allocated) + free_offset);
+
+            block_.put(allocated, {
+                .size      = static_cast<u_int32_t>(size_new_b),
+                .alignment = old_block.alignment,
+                .padding   = static_cast<u_int8_t>((new_offset - old_offset - size_new_b)),
+                .freed     = static_cast<u_int8_t>(false),
+            });
+
+            free_offset = 0;
+        } else {
+            if ((new_offset - old_offset - size_new_b) != 0)
+                abort(); // WTF, padding MUST be 0
+
+            old_block.size += size_new_b;
+        }
 
         if (old_data_ptr == new_data_ptr)
             return allocated;
@@ -191,12 +232,9 @@ namespace ex::data::memory::arena {
         if (offset == 0)
             return allocated;
 
-        for (int i = 0; i < watchers_.size; ++i) {
-            void *that = watchers_.key_entries[i];
-            if (that == instance)
-                continue;
-            if (const auto fn = watchers_.val_entries[i])
-                fn(that, offset);
+        for (int i = 0; i < watch_.size; ++i) {
+            if (const auto fn = watch_.val_entries[i])
+                fn(watch_.key_entries[i], offset);
         }
 
         return allocated;
@@ -205,17 +243,17 @@ namespace ex::data::memory::arena {
     static void release(const int size_new_b = DEFAULT_ARENA_SIZE_B) {
         alignment = 1;
         arena_.clean();
-        freed_.clean();
+        block_.clean();
         if (size_new_b >= 0)
             arena_.reserve(size_new_b);
     }
 
-    static void add_watcher(void *instance, const watch_fn_t fn) {
-        watchers_.put(instance, fn);
+    static void add_watcher(const watch_id_t instance, const watch_fn_t fn) {
+        watch_.put(instance, fn);
     }
 
-    static void del_watcher(void *instance, watch_fn_t) {
-        watchers_.remove(instance);
+    static void del_watcher(const watch_id_t instance, watch_fn_t) {
+        watch_.remove(instance);
     }
 
     static long size() {

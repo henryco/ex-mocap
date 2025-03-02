@@ -270,7 +270,7 @@ namespace limbo::graph {
 
     struct BaseNode : virtual IO, virtual io::IODescriptor, virtual GenericDataPtr {
 
-#define NODE_INIT_CAP 64
+#define NODE_INIT_CAP 2
 
         using assignment_fn_t = void (*)(int output_idx, const void *src_ptr, void *dst_ptr);
 
