@@ -121,9 +121,9 @@ namespace ex::data::memory::arena {
     using block_id_t = void *;
 
     struct memory_block {
-        u_int32_t size;
-        u_int16_t alignment;
-        u_int8_t  padding;
+        u_int32_t size_b;
+        u_int16_t alignment_b;
+        u_int8_t  padding_b;
         u_int8_t  freed;
     };
 
@@ -137,20 +137,32 @@ namespace ex::data::memory::arena {
     inline static long free_offset = 0;
     inline static long alignment   = 1;
 
-    static void calc_alignment(const long align_b) {
+    inline void calc_alignment(const long align_b) {
         const long max = alignment > align_b ? alignment : align_b;
         const long min = alignment > align_b ? align_b : alignment;
         alignment      = (max % min == 0) ? max : (max * min);
     }
 
-    static void free(const block_id_t ptr) {
+    inline void free(const block_id_t ptr) {
         memory_block &block = block_.at(ptr);
         block.freed = true;
+
+        if ((block.padding_b + block.size_b) % alignment == 0) {
+            const void *ptr_this = static_cast<void *>(static_cast<unsigned char *>(ptr) - block.padding_b);
+            const void *ptr_next = static_cast<void *>(static_cast<unsigned char *>(ptr) + block.size_b);
+
+//            memmove(ptr_this, ptr_next, )
+//            for (int i = 0; i < watch_.size; ++i) {
+//                if (const auto fn = watch_.val_entries[i])
+//                    fn(watch_.key_entries[i], offset);
+//            }
+//            block_.remove(ptr);
+        }
 
         // TODO
     }
 
-    static block_id_t allocate(const std::size_t size_new_b, const std::size_t alignment_b) {
+    inline block_id_t allocate(const std::size_t size_new_b, const std::size_t alignment_b) {
         if (size_new_b == 0 || alignment_b == 0)
             abort();
 
@@ -164,10 +176,10 @@ namespace ex::data::memory::arena {
 
         block_.remove(allocated);
         block_.put(allocated, {
-            .size      = static_cast<u_int32_t>(size_new_b),
-            .alignment = static_cast<u_int16_t>(alignment_b),
-            .padding   = static_cast<u_int8_t>((new_offset - old_offset - size_new_b)),
-            .freed     = static_cast<u_int8_t>(false),
+            .size_b      = static_cast<u_int32_t>(size_new_b),
+            .alignment_b = static_cast<u_int16_t>(alignment_b),
+            .padding_b   = static_cast<u_int8_t>((new_offset - old_offset - size_new_b)),
+            .freed       = static_cast<u_int8_t>(false),
         });
 
         if (old_data_ptr == new_data_ptr)
@@ -187,15 +199,15 @@ namespace ex::data::memory::arena {
         return allocated;
     }
 
-    static block_id_t reallocate(const block_id_t ptr, const std::size_t size_new_b) {
+    inline block_id_t reallocate(const block_id_t ptr, const std::size_t size_new_b) {
         if (size_new_b == 0)
             abort();
 
-        memory_block &old_block = block_.at(ptr);
+        memory_block &old_block  = block_.at(ptr);
 
         const void *old_data_ptr = arena_.data;
         const long  old_offset   = arena_.offset;
-        void       *allocated    = arena_.allocate(size_new_b, old_block.alignment);
+        void       *allocated    = arena_.allocate(size_new_b, old_block.alignment_b);
         const long  new_offset   = arena_.offset;
         const void *new_data_ptr = arena_.data;
 
@@ -203,16 +215,17 @@ namespace ex::data::memory::arena {
         if (last_block_ptr != ptr) {
             free_offset = 0;
 
-            memcpy(allocated, ptr, old_block.size);
+            const u_int16_t old_alignment_b = old_block.alignment_b;
+            memcpy(allocated, ptr, old_block.size_b);
             free(last_block_ptr);
 
             allocated = reinterpret_cast<block_id_t>(reinterpret_cast<unsigned long int>(allocated) + free_offset);
 
             block_.put(allocated, {
-                .size      = static_cast<u_int32_t>(size_new_b),
-                .alignment = old_block.alignment,
-                .padding   = static_cast<u_int8_t>((new_offset - old_offset - size_new_b)),
-                .freed     = static_cast<u_int8_t>(false),
+                .size_b      = static_cast<u_int32_t>(size_new_b),
+                .alignment_b = old_alignment_b,
+                .padding_b   = static_cast<u_int8_t>((new_offset - old_offset - size_new_b)),
+                .freed       = static_cast<u_int8_t>(false),
             });
 
             free_offset = 0;
@@ -220,7 +233,7 @@ namespace ex::data::memory::arena {
             if ((new_offset - old_offset - size_new_b) != 0)
                 abort(); // WTF, padding MUST be 0
 
-            old_block.size += size_new_b;
+            old_block.size_b += size_new_b;
         }
 
         if (old_data_ptr == new_data_ptr)
@@ -240,7 +253,7 @@ namespace ex::data::memory::arena {
         return allocated;
     }
 
-    static void release(const int size_new_b = DEFAULT_ARENA_SIZE_B) {
+    inline void release(const int size_new_b = DEFAULT_ARENA_SIZE_B) {
         alignment = 1;
         arena_.clean();
         block_.clean();
@@ -248,19 +261,19 @@ namespace ex::data::memory::arena {
             arena_.reserve(size_new_b);
     }
 
-    static void add_watcher(const watch_id_t instance, const watch_fn_t fn) {
+    inline void add_watcher(const watch_id_t instance, const watch_fn_t fn) {
         watch_.put(instance, fn);
     }
 
-    static void del_watcher(const watch_id_t instance, watch_fn_t) {
+    inline void del_watcher(const watch_id_t instance, watch_fn_t) {
         watch_.remove(instance);
     }
 
-    static long size() {
+    inline long size() {
         return arena_.offset;
     }
 
-    static void nop(void *, void *, std::size_t) {
+    inline void nop(void *, void *, std::size_t) {
         /*NOP*/
     }
 
