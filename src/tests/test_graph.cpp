@@ -136,6 +136,8 @@ TEST_CASE("Graph node test") {
     }
 
     std::cout << "avg: " << (avg / counter) << '\n';
+    std::cout << "align: " << ex::data::memory::arena::alignment << std::endl;
+    std::cout << "free: " << ex::data::memory::arena::freed_.size << std::endl;
     std::cout << "heap: " << limbo::graph::memory::allocator.size() << std::endl;
     std::cout << "finished" << std::endl;
 

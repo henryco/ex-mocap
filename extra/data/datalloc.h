@@ -13,13 +13,13 @@ namespace ex::data {
     using malloc_fn_t  = void *(*) (void *instance, std::size_t size_new_b, std::size_t alignment_b);
     using realloc_fn_t = void *(*) (void *instance, std::size_t size_old_b, std::size_t size_new_b, std::size_t alignment_b, void *ptr);
     using watch_fn_t   = void  (*) (void *instance, long int ptr_offset);
-    using free_fn_t    = void  (*) (void *instance, void *ptr);
+    using free_fn_t    = void  (*) (void *instance, void *ptr, std::size_t size_b);
     using reg_fn_t     = void  (*) (void *ptr, watch_fn_t watch_fn);
     using size_fn_t    = long  (*) ();
 
     inline void *default_malloc_(void *instance, std::size_t size_new_b, std::size_t alignment_b);
     inline void *default_realloc_(void *instance, std::size_t size_old_b, std::size_t size_new_b, std::size_t alignment_b, void *ptr);
-    inline void default_free_(void *instance, void *ptr);
+    inline void default_free_(void *instance, void *ptr, std::size_t size_b);
     inline void default_reg_(void *ptr, watch_fn_t watch_fn);
     inline long default_size_();
 
@@ -40,7 +40,7 @@ namespace ex::data {
         return ::realloc(ptr, size_new_b);
     }
 
-    void default_free_(void *, void *ptr) {
+    void default_free_(void *, void *ptr, std::size_t) {
         ::free(ptr);
     }
 

@@ -20,7 +20,7 @@ namespace ex::data {
         ~arena() {
             if (data == nullptr)
                 return;
-            free(data);
+            ::free(data);
         }
 
         arena(const std::size_t &reserve) {
@@ -34,9 +34,9 @@ namespace ex::data {
             capacity = n;
 
             if (data == nullptr)
-                data = malloc(capacity);
+                data = ::malloc(capacity);
             else
-                data = realloc(data, capacity);
+                data = ::realloc(data, capacity);
         }
 
         void expand(const std::size_t n) {
@@ -48,7 +48,7 @@ namespace ex::data {
             capacity = 0;
             if (data == nullptr)
                 return;
-            free(data);
+            ::free(data);
         }
 
         template<typename T>
@@ -102,7 +102,7 @@ namespace ex::data {
                 return *this;
 
             if (this->data != nullptr)
-                free(this->data);
+                ::free(this->data);
 
             this->data     = other.data;
             this->offset   = other.offset;
@@ -121,7 +121,7 @@ namespace ex::data::memory::arena {
 #define DEFAULT_META_STACK_SIZE_B 10
 
     inline static ex::data::arena                   arena_      = DEFAULT_ARENA_SIZE_B;
-    inline static ex::data::map<void *, ulong>      stack_      = DEFAULT_META_STACK_SIZE_B;
+    inline static ex::data::map<void *, ulong>      freed_      = DEFAULT_META_STACK_SIZE_B;
     inline static ex::data::map<void *, watch_fn_t> watchers_   = DEFAULT_META_STACK_SIZE_B;
     inline static void                             *last_caller = nullptr;
     inline static long                              alignment   = 1;
@@ -132,7 +132,9 @@ namespace ex::data::memory::arena {
         alignment      = (max % min == 0) ? max : (max * min);
     }
 
-    static void defrag() {
+    static void free(void *, void *ptr, const std::size_t size) {
+        freed_.put(ptr, size);
+
         // TODO
     }
 
@@ -142,9 +144,6 @@ namespace ex::data::memory::arena {
         const void *old_data_ptr = arena_.data;
         void *const allocated    = arena_.allocate(size_new_b, alignment_b);
         const void *new_data_ptr = arena_.data;
-
-        if (!stack_.contains(instance))
-            stack_.put(instance, reinterpret_cast<unsigned long int>(allocated));
 
         last_caller = instance;
 
@@ -156,13 +155,6 @@ namespace ex::data::memory::arena {
 
         if (offset == 0)
             return allocated;
-
-        for (int i = 0; i < stack_.size; ++i) {
-            const void *that = stack_.key_entries[i];
-            if (that == instance)
-                continue;
-            stack_.val_entries[i] += offset;
-        }
 
         for (int i = 0; i < watchers_.size; ++i) {
             void *that = watchers_.key_entries[i];
@@ -184,14 +176,9 @@ namespace ex::data::memory::arena {
         const void *new_data_ptr = arena_.data;
 
         if (instance != last_caller) {
-            stack_.remove(instance);
             memcpy(allocated, ptr, size_old_b);
-            stack_.put(instance, reinterpret_cast<unsigned long int>(allocated));
-            defrag();
+            free(instance, ptr, size_old_b);
         }
-
-        if (!stack_.contains(instance))
-            stack_.put(instance, reinterpret_cast<unsigned long int>(allocated));
 
         last_caller = instance;
 
@@ -204,13 +191,6 @@ namespace ex::data::memory::arena {
         if (offset == 0)
             return allocated;
 
-        for (int i = 0; i < stack_.size; ++i) {
-            const void *that = stack_.key_entries[i];
-            if (that == instance)
-                continue;
-            stack_.val_entries[i] += offset;
-        }
-
         for (int i = 0; i < watchers_.size; ++i) {
             void *that = watchers_.key_entries[i];
             if (that == instance)
@@ -222,13 +202,12 @@ namespace ex::data::memory::arena {
         return allocated;
     }
 
-    static void free(const int size_new_b = DEFAULT_ARENA_SIZE_B) {
+    static void release(const int size_new_b = DEFAULT_ARENA_SIZE_B) {
         alignment = 1;
         arena_.clean();
-        stack_.clean();
+        freed_.clean();
         if (size_new_b >= 0)
             arena_.reserve(size_new_b);
-        stack_.reserve(DEFAULT_META_STACK_SIZE_B);
     }
 
     static void add_watcher(void *instance, const watch_fn_t fn) {
@@ -243,12 +222,12 @@ namespace ex::data::memory::arena {
         return arena_.offset;
     }
 
-    static void nop(void *, void *) {
+    static void nop(void *, void *, std::size_t) {
         /*NOP*/
     }
 
     inline static ex::data::allocator allocator = {
-        &allocate, &reallocate, &nop, &add_watcher, &del_watcher, &size
+        &allocate, &reallocate, &free, &add_watcher, &del_watcher, &size
     };
 
 }
