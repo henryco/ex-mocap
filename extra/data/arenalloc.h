@@ -148,6 +148,8 @@ namespace ex::data::memory::arena {
         const int block_prev = block_curr - 1;
         const int block_next = block_curr + 1;
 
+        int block_target = block_curr;
+
         // x p c n x
         // x p [c <- n] x
         // x p c _ x
@@ -156,7 +158,7 @@ namespace ex::data::memory::arena {
 
         if (block_curr < block_.size - 1) {
             memory_block &block = block_.at(ptr);
-            if (const memory_block &next = block_.at_index(block_next); next.freed) {
+            if (const memory_block &next = block_.at_index(block_next); next.freed > 0) {
                 block.size_b += (next.size_b + next.padding_b);
                 block_.collapse_at_pos(block_next);
             }
@@ -164,22 +166,23 @@ namespace ex::data::memory::arena {
 
         if (block_curr > 0) {
             memory_block &block = block_.at(ptr);
-            if (const memory_block &prev = block_.at_index(block_prev); prev.freed) {
+            if (const memory_block &prev = block_.at_index(block_prev); prev.freed > 0) {
                 block.size_b += (prev.size_b + block.padding_b);
                 block.padding_b = prev.padding_b;
 
                 block_.key_entries[block_curr] = block_.key_entries[block_prev];
                 block_.collapse_at_pos(block_prev);
+                block_target = block_prev;
             }
         }
 
-        block_.key_entries[block_curr] =
-                static_cast<void *>(static_cast<unsigned char *>(block_.key_entries[block_curr]) -
-                                    block_.val_entries[block_curr].padding_b);
+        block_.key_entries[block_target] =
+                static_cast<void *>(static_cast<unsigned char *>(block_.key_entries[block_target]) -
+                                    block_.val_entries[block_target].padding_b);
 
-        block_.val_entries[block_curr].alignment_b = 0;
-        block_.val_entries[block_curr].padding_b   = 0;
-        block_.val_entries[block_curr].freed       = 1;
+        block_.val_entries[block_target].alignment_b = 0;
+        block_.val_entries[block_target].padding_b   = 0;
+        block_.val_entries[block_target].freed       = 1;
     }
 
     inline block_id_t allocate_locally(const std::size_t size_new_b, const std::size_t alignment_b) {
@@ -219,6 +222,9 @@ namespace ex::data::memory::arena {
                 block.padding_b   = static_cast<u_int8_t>(padding);
                 block.freed       = static_cast<u_int8_t>(false);
 
+                const block_id_t new_block_id = static_cast<unsigned char *>(data_ptr) + padding;
+                block_.key_entries[i] = new_block_id;
+
                 if (remain > 0) {
                     const auto ptr_remain = static_cast<void *>(static_cast<unsigned char *>(data_ptr) + required);
                     block_.key_entries.insert(i + 1, ptr_remain);
@@ -230,7 +236,7 @@ namespace ex::data::memory::arena {
                     });
                 }
 
-                return static_cast<unsigned char *>(data_ptr) + padding;
+                return new_block_id;
             }
         }
 
@@ -247,6 +253,9 @@ namespace ex::data::memory::arena {
         void       *allocated    = arena_.allocate(size_new_b, alignment_b);
         const long  new_offset   = arena_.offset;
         const void *new_data_ptr = arena_.data;
+
+        // 0 1 2 3 4 5 6 7
+        // x x _ x x x > x
 
         block_.collapse(allocated);
         block_.put(allocated, {
