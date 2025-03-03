@@ -52,7 +52,7 @@ namespace ex::data {
         }
 
         template<typename T>
-        T *allocate() {
+        T *request() {
             std::size_t padding = 0;
 
             if (offset % alignof(T) != 0)
@@ -69,7 +69,7 @@ namespace ex::data {
             return reinterpret_cast<T *>(static_cast<unsigned char *>(data) + offset - sizeof(T));
         }
 
-        void *allocate(const std::size_t size, const std::size_t alignment = 0) {
+        void *request(const std::size_t size, const std::size_t alignment = 0) {
             const std::size_t align   = alignment != 0 ? alignment : size;
             std::size_t       padding = 0;
 
@@ -189,8 +189,6 @@ namespace ex::data::memory::arena {
         if (size_new_b == 0)
             abort();
 
-        // TODO FIXME
-
         const std::size_t align = alignment_b != 0 ? alignment_b : size_new_b;
 
         calc_alignment(align);
@@ -250,7 +248,7 @@ namespace ex::data::memory::arena {
 
         const void *old_data_ptr = arena_.data;
         const long  old_offset   = arena_.offset;
-        void       *allocated    = arena_.allocate(size_new_b, alignment_b);
+        void       *allocated    = arena_.request(size_new_b, alignment_b);
         const long  new_offset   = arena_.offset;
         const void *new_data_ptr = arena_.data;
 
@@ -293,7 +291,7 @@ namespace ex::data::memory::arena {
 
         const void *old_data_ptr = arena_.data;
         const long  old_offset   = arena_.offset;
-        void       *allocated    = arena_.allocate(size_new_b, old_block.alignment_b);
+        void       *allocated    = arena_.request(size_new_b, old_block.alignment_b);
         const long  new_offset   = arena_.offset;
         const void *new_data_ptr = arena_.data;
 
