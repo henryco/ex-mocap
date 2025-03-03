@@ -207,11 +207,22 @@ namespace ex::data::memory::arena {
         if (size_new_b == 0)
             abort("requested allocation size == 0");
 
-        memory_block &old_block = block_.at(ptr);
-        const int    old_index = block_.index_at(ptr);
-        const size_t align     = old_block.alignment_b;
+        memory_block &curr_block = block_.at(ptr);
+
+        if (curr_block.size_b > size_new_b)
+            abort("reallocation error: data shrinkage is not supported (currently)");
+
+        const int     curr_index = block_.index_at(ptr);
+        const size_t  align      = curr_block.alignment_b;
+
+        const int prev_index = curr_index - 1;
+        const int next_index = curr_index + 1;
+
+        const size_t curr_size = curr_block.size_b;
+        const size_t req_size  = curr_size + size_new_b;
 
         // TODO
+
         return nullptr;
     }
 
@@ -319,14 +330,17 @@ namespace ex::data::memory::arena {
 
         memory_block &old_block  = block_.at(ptr);
 
-        const void *old_data_ptr = arena_.data;
-        const long  old_offset   = arena_.offset;
-        void       *allocated    = arena_.request(size_new_b, old_block.alignment_b);
-        const long  new_offset   = arena_.offset;
-        const void *new_data_ptr = arena_.data;
+        if (old_block.size_b > size_new_b)
+            abort("reallocation error: data shrinkage is not supported (currently)");
 
-        const block_id_t last_block_ptr = block_.key_entries[block_.size - 1];
-        if (last_block_ptr != ptr) {
+        const void *old_data_ptr = arena_.data;
+        void       *allocated    = nullptr;
+
+        if (const block_id_t last_block_ptr = block_.key_entries[block_.size - 1]; last_block_ptr != ptr) {
+
+            const long old_offset = arena_.offset;
+            allocated             = arena_.request(size_new_b, old_block.alignment_b);
+            const long new_offset = arena_.offset;
 
             const u_int16_t old_alignment_b = old_block.alignment_b;
             memcpy(allocated, ptr, old_block.size_b);
@@ -340,11 +354,19 @@ namespace ex::data::memory::arena {
             });
 
         } else {
-            if ((new_offset - old_offset - size_new_b) != 0)
-                abort("reallocation padding mismatch (MUST: 0)"); // WTF, padding MUST be 0
+            const size_t req_size = size_new_b - old_block.size_b;
 
-            old_block.size_b += size_new_b;
+            const long old_offset = arena_.offset;
+            allocated             = arena_.request(req_size, old_block.alignment_b);
+            const long new_offset = arena_.offset;
+
+            if ((new_offset - old_offset - req_size) != 0)
+                abort("reallocation padding mismatch (SHOULD: 0)"); // WTF, padding MUST be 0
+
+            old_block.size_b = size_new_b;
         }
+
+        const void *new_data_ptr = arena_.data;
 
         if (old_data_ptr == new_data_ptr)
             return allocated;

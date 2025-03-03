@@ -437,7 +437,7 @@ namespace limbo::graph {
     struct Clock final: virtual IO {
 
 #define EX_INT16_MAX 32767
-#define CLOCK_INIT_CAP 64
+#define CLOCK_INIT_CAP 32
 
         ex::data::array<BaseNode *> connections = { CLOCK_INIT_CAP, memory::allocator };
         unsigned int                clock_i     = 0;

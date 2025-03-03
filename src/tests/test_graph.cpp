@@ -122,8 +122,8 @@ TEST_CASE("Graph node test") {
 
     unsigned long int avg = 0;
     double counter = 0.;
-    ex::time::measure_avg measure = 100;
-    for (int i = 0; i < 100000; i++) {
+    ex::time::measure_avg measure = 1000;
+    for (int i = 0; i < 1000000; i++) {
         measure.start();
 
         clock.pull();
