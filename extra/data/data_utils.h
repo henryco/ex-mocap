@@ -247,6 +247,23 @@ namespace ex::data {
             data[size++] = value;
         }
 
+        void collapse(const int index) {
+            if (index >= size - 1) {
+                size--;
+                return;
+            }
+
+            // 0 1 2 3 4 5 6 : 7
+            // x x x x _ x x
+
+            // dst: 4
+            // src: 5
+            //   n: 2 = size(7) - index(4) - 1
+
+            memmove(data + index, data + index + 1, (size - index - 1) * sizeof(element_t));
+            size--;
+        }
+
         void pop() {
             size = (size > 0) ? (size - 1) : 0;
         }
@@ -451,9 +468,9 @@ namespace ex::data {
         int index_at(const key_t &key) const {
             for (int i = 0; i < key_entries.size; ++i) {
                 if (key_entries[i] == key)
-                    return i;;
+                    return i;
             }
-            return -1;
+            abort();
         }
 
         element_t &at(const key_t &key) {
@@ -470,6 +487,14 @@ namespace ex::data {
                     return val_entries[i];
             }
             abort();
+        }
+
+        const element_t &at_index(const int &index) const {
+            return val_entries[index];
+        }
+
+        element_t &at_index(const int &index) {
+            return val_entries[index];
         }
 
         element_t at_or_default(const key_t &key, const element_t &default_value = element_t()) const {
@@ -498,11 +523,28 @@ namespace ex::data {
             }
         }
 
+        void collapse(const key_t &key) {
+            for (int i = 0; i < key_entries.size; ++i) {
+                if (key_entries[i] == key) {
+                    key_entries.collapse(i);
+                    val_entries.collapse(i);
+                    return;
+                }
+            }
+        }
+
         void remove_at_pos(const int &idx) {
             if (idx >= key_entries.size || idx < 0)
                 return;
             key_entries.swap_remove(idx);
             val_entries.swap_remove(idx);
+        }
+
+        void collapse_at_pos(const int &idx) {
+            if (idx >= key_entries.size || idx < 0)
+                return;
+            key_entries.collapse(idx);
+            val_entries.collapse(idx);
         }
 
         bool empty() const {
