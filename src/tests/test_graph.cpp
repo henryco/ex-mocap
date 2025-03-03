@@ -129,14 +129,12 @@ TEST_CASE("Graph node test") {
         clock.pull();
 
         if (measure.stop()) {
-            std::cout << "time: " << measure.result() << '\n';
             avg += measure.result();
             counter++;
         }
     }
 
     std::cout << "avg: " << (avg / counter) << '\n';
-    std::cout << "align: " << ex::data::memory::arena::alignment << std::endl;
     std::cout << "blocks: " << ex::data::memory::arena::block_.size << std::endl;
     std::cout << "memory: " << limbo::graph::memory::allocator.size() << std::endl;
     std::cout << "finished" << std::endl;

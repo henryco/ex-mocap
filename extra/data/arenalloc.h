@@ -134,14 +134,6 @@ namespace ex::data::memory::arena {
     inline static ex::data::map<watch_id_t, watch_fn_t>   watch_ = DEFAULT_META_STACK_SIZE_B;
     inline static ex::data::map<block_id_t, memory_block> block_ = DEFAULT_META_STACK_SIZE_B;
 
-    inline static long alignment = 1;
-
-    inline void calc_alignment(const long align_b) {
-        const long max = alignment > align_b ? alignment : align_b;
-        const long min = alignment > align_b ? align_b : alignment;
-        alignment      = (max % min == 0) ? max : (max * min);
-    }
-
     inline void free(const block_id_t ptr) {
 
         const int block_curr = block_.index_at(ptr);
@@ -185,13 +177,16 @@ namespace ex::data::memory::arena {
         block_.val_entries[block_target].freed       = 1;
     }
 
+    inline block_id_t reallocate_locally(const block_id_t ptr, const std::size_t size_new_b) {
+        // TODO
+        return nullptr;
+    }
+
     inline block_id_t allocate_locally(const std::size_t size_new_b, const std::size_t alignment_b) {
         if (size_new_b == 0)
             abort();
 
         const std::size_t align = alignment_b != 0 ? alignment_b : size_new_b;
-
-        calc_alignment(align);
 
         for (int i = 0; i < block_.size; ++i) {
             memory_block &block = block_.val_entries[i];
@@ -243,8 +238,8 @@ namespace ex::data::memory::arena {
 
     inline block_id_t allocate(const std::size_t size_new_b, const std::size_t alignment_b) {
 
-//        if (const block_id_t locally_allocated = allocate_locally(size_new_b, alignment_b))
-//            return locally_allocated;
+        if (const block_id_t locally_allocated = allocate_locally(size_new_b, alignment_b))
+            return locally_allocated;
 
         const void *old_data_ptr = arena_.data;
         const long  old_offset   = arena_.offset;
@@ -284,10 +279,12 @@ namespace ex::data::memory::arena {
         if (size_new_b == 0)
             abort();
 
-        memory_block &old_block  = block_.at(ptr);
+        if (const block_id_t locally_allocated = reallocate_locally(ptr, size_new_b)) {
+            // TODO
+            return locally_allocated;
+        }
 
-//        if (const block_id_t locally_allocated = allocate_locally(size_new_b, old_block.alignment_b))
-//            return locally_allocated;
+        memory_block &old_block  = block_.at(ptr);
 
         const void *old_data_ptr = arena_.data;
         const long  old_offset   = arena_.offset;
@@ -334,7 +331,6 @@ namespace ex::data::memory::arena {
     }
 
     inline void release(const int size_new_b = DEFAULT_ARENA_SIZE_B) {
-        alignment = 1;
         arena_.clean();
         block_.clean();
         if (size_new_b >= 0)
