@@ -160,24 +160,15 @@ namespace ex::data::memory::arena {
 
         // NEXT BLOCK
         if (block_curr < block_.size - 1) {
-            memory_block &block = block_.at(ptr);
+            if (const memory_block &next  = block_.at_index(block_next); next.freed > 0) {
+                      memory_block &block = block_.at(ptr);
 
-            const block_id_t ptr_should_next = static_cast<unsigned char *>(ptr) + block.size_b;
-            const block_id_t ptr_next = block_.key_entries[block_next];
+                const block_id_t ptr_should_next = static_cast<unsigned char *>(ptr) + block.size_b;
+                const block_id_t ptr_next = block_.key_entries[block_next];
 
-            if (ptr_should_next != ptr_next) {
-                std::cerr << "memory fragmentation error: next block misalignment,"
-                << " SHOULD: " << ptr_should_next
-                << " HAVE: " << ptr_next
-                << std::endl;
-                // abort("memory fragmentation error: next block misalignment");
-            }
+                if (ptr_should_next != ptr_next)
+                    abort("memory fragmentation error: next block misalignment");
 
-            else if (const memory_block &next = block_.at_index(block_next); next.freed > 0) {
-                std::cout << "ok: next block,"
-                << " SHOULD: " << ptr_should_next
-                << " HAVE: " << ptr_next
-                << std::endl;
                 block.size_b += (next.size_b + next.padding_b);
                 block_.collapse_at_pos(block_next);
             }
@@ -185,26 +176,21 @@ namespace ex::data::memory::arena {
 
         // PREV BLOCK
         if (block_curr > 0) {
-            memory_block &block = block_.at(ptr);
-            if (const memory_block &prev = block_.at_index(block_prev); prev.freed > 0) {
+            if (const memory_block &prev  = block_.at_index(block_prev); prev.freed > 0) {
+                      memory_block &block = block_.at(ptr);
 
                 const block_id_t ptr_should_prev = static_cast<unsigned char *>(ptr) - (block.padding_b + prev.size_b);
                 const block_id_t ptr_prev = block_.key_entries[block_prev];
 
-                if (ptr_should_prev != ptr_prev) {
-                    std::cerr << "memory fragmentation error: prev block misalignment,"
-                    << " SHOULD: " << ptr_should_prev
-                    << " HAVE: " << ptr_prev
-                    << std::endl;
-                    // abort("memory fragmentation error: prev block misalignment");
-                } else {
-                    block.size_b += (prev.size_b + block.padding_b);
-                    block.padding_b = prev.padding_b;
+                if (ptr_should_prev != ptr_prev)
+                    abort("memory fragmentation error: prev block misalignment");
 
-                    block_.key_entries[block_curr] = block_.key_entries[block_prev];
-                    block_.collapse_at_pos(block_prev);
-                    block_target = block_prev;
-                }
+                block.size_b += (prev.size_b + block.padding_b);
+                block.padding_b = prev.padding_b;
+
+                block_.key_entries[block_curr] = block_.key_entries[block_prev];
+                block_.collapse_at_pos(block_prev);
+                block_target = block_prev;
             }
         }
 
