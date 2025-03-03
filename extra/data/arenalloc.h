@@ -174,6 +174,10 @@ namespace ex::data::memory::arena {
             }
 
             else if (const memory_block &next = block_.at_index(block_next); next.freed > 0) {
+                std::cout << "ok: next block,"
+                << " SHOULD: " << ptr_should_next
+                << " HAVE: " << ptr_next
+                << std::endl;
                 block.size_b += (next.size_b + next.padding_b);
                 block_.collapse_at_pos(block_next);
             }
