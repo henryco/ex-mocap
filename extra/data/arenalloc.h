@@ -59,7 +59,7 @@ namespace ex::data {
                 padding = alignof(T) - (offset % alignof(T));
 
             const std::size_t required = padding + sizeof(T);
-            const std::size_t remains  = capacity - offset;
+            const long int    remains  = capacity - offset;
 
             if (required > remains)
                 expand(capacity + required);
@@ -77,7 +77,7 @@ namespace ex::data {
                 padding = align - (offset % align);
 
             const std::size_t required = padding + size;
-            const std::size_t remains  = capacity - offset;
+            const long int    remains  = capacity - offset;
 
             if (required > remains)
                 expand(capacity + required);
@@ -165,18 +165,82 @@ namespace ex::data::memory::arena {
         if (block_curr > 0) {
             memory_block &block = block_.at(ptr);
             if (const memory_block &prev = block_.at_index(block_prev); prev.freed) {
-                block.size_b += (prev.size_b + prev.padding_b);
+                block.size_b += (prev.size_b + block.padding_b);
+                block.padding_b = prev.padding_b;
+
                 block_.key_entries[block_curr] = block_.key_entries[block_prev];
                 block_.collapse_at_pos(block_prev);
             }
         }
+
+        block_.key_entries[block_curr] =
+                static_cast<void *>(static_cast<unsigned char *>(block_.key_entries[block_curr]) -
+                                    block_.val_entries[block_curr].padding_b);
+
+        block_.val_entries[block_curr].alignment_b = 0;
+        block_.val_entries[block_curr].padding_b   = 0;
+        block_.val_entries[block_curr].freed       = 1;
+    }
+
+    inline block_id_t allocate_locally(const std::size_t size_new_b, const std::size_t alignment_b) {
+        if (size_new_b == 0)
+            abort();
+
+        // TODO FIXME
+
+        const std::size_t align = alignment_b != 0 ? alignment_b : size_new_b;
+
+        calc_alignment(align);
+
+        for (int i = 0; i < block_.size; ++i) {
+            memory_block &block = block_.val_entries[i];
+            if (block.freed == 0)
+                continue;
+            if (block.size_b >= size_new_b) {
+
+                void *const data_ptr = block_.key_entries[i];
+
+                const u_int64_t offset =
+                        reinterpret_cast<u_int64_t>(data_ptr) - reinterpret_cast<u_int64_t>(arena_.data);
+
+                int64_t padding = 0;
+                if (offset % align != 0)
+                    padding = align - (offset % align);
+
+                const u_int32_t total_size = block.size_b;
+                const int64_t   required   = padding + size_new_b;
+                const int64_t   remain     = total_size - required;
+
+                if (remain < 0)
+                    continue;
+
+                block.size_b      = static_cast<u_int32_t>(size_new_b);
+                block.alignment_b = static_cast<u_int16_t>(align);
+                block.padding_b   = static_cast<u_int8_t>(padding);
+                block.freed       = static_cast<u_int8_t>(false);
+
+                if (remain > 0) {
+                    const auto ptr_remain = static_cast<void *>(static_cast<unsigned char *>(data_ptr) + required);
+                    block_.key_entries.insert(i + 1, ptr_remain);
+                    block_.val_entries.insert(i + 1, {
+                        .size_b      = static_cast<u_int32_t>(remain),
+                        .alignment_b = static_cast<u_int16_t>(0),
+                        .padding_b   = static_cast<u_int8_t>(0),
+                        .freed       = static_cast<u_int8_t>(true),
+                    });
+                }
+
+                return static_cast<unsigned char *>(data_ptr) + padding;
+            }
+        }
+
+        return nullptr;
     }
 
     inline block_id_t allocate(const std::size_t size_new_b, const std::size_t alignment_b) {
-        if (size_new_b == 0 || alignment_b == 0)
-            abort();
 
-        calc_alignment(alignment_b);
+//        if (const block_id_t locally_allocated = allocate_locally(size_new_b, alignment_b))
+//            return locally_allocated;
 
         const void *old_data_ptr = arena_.data;
         const long  old_offset   = arena_.offset;
@@ -214,6 +278,9 @@ namespace ex::data::memory::arena {
             abort();
 
         memory_block &old_block  = block_.at(ptr);
+
+//        if (const block_id_t locally_allocated = allocate_locally(size_new_b, old_block.alignment_b))
+//            return locally_allocated;
 
         const void *old_data_ptr = arena_.data;
         const long  old_offset   = arena_.offset;
