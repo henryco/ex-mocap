@@ -203,14 +203,18 @@ namespace ex::data::memory::arena {
         block_.val_entries[block_target].freed       = 1;
     }
 
-    inline block_id_t reallocate_locally(const block_id_t ptr, const std::size_t size_new_b) {
-        if (size_new_b == 0)
-            abort("requested allocation size == 0");
+    inline void shrink(memory_block &block, const std::size_t size_new_b) {
+        // TODO
 
+    }
+
+    inline block_id_t reallocate_locally(const block_id_t ptr, const std::size_t size_new_b) {
         memory_block &curr_block = block_.at(ptr);
 
-        if (curr_block.size_b > size_new_b)
-            abort("reallocation error: data shrinkage is not supported (currently)");
+        if (curr_block.size_b > size_new_b) {
+            shrink(curr_block, size_new_b);
+            return ptr;
+        }
 
         const int     curr_index = block_.index_at(ptr);
         const size_t  align      = curr_block.alignment_b;
@@ -227,9 +231,6 @@ namespace ex::data::memory::arena {
     }
 
     inline block_id_t allocate_locally(const std::size_t size_new_b, const std::size_t alignment_b) {
-        if (size_new_b == 0)
-            abort("requested allocation size == 0");
-
         const std::size_t align = alignment_b != 0 ? alignment_b : size_new_b;
 
         for (int i = 0; i < block_.size; ++i) {
@@ -281,6 +282,8 @@ namespace ex::data::memory::arena {
     }
 
     inline block_id_t allocate(const std::size_t size_new_b, const std::size_t alignment_b) {
+        if (size_new_b == 0)
+            return nullptr;
 
         if (const block_id_t locally_allocated = allocate_locally(size_new_b, alignment_b))
             return locally_allocated;
@@ -320,8 +323,10 @@ namespace ex::data::memory::arena {
     }
 
     inline block_id_t reallocate(const block_id_t ptr, const std::size_t size_new_b) {
-        if (size_new_b == 0)
-            abort("requested allocation size == 0");
+        if (size_new_b == 0) {
+            free(ptr);
+            return nullptr;
+        }
 
         if (const block_id_t locally_allocated = reallocate_locally(ptr, size_new_b)) {
             // TODO
@@ -330,8 +335,10 @@ namespace ex::data::memory::arena {
 
         memory_block &old_block  = block_.at(ptr);
 
-        if (old_block.size_b > size_new_b)
-            abort("reallocation error: data shrinkage is not supported (currently)");
+        if (old_block.size_b > size_new_b) {
+            shrink(old_block, size_new_b);
+            return ptr;
+        }
 
         const void *old_data_ptr = arena_.data;
         void       *allocated    = nullptr;
