@@ -203,16 +203,32 @@ namespace ex::data::memory::arena {
         block_.val_entries[block_target].freed       = 1;
     }
 
-    inline void shrink(memory_block &block, const std::size_t size_new_b) {
-        // TODO
+    inline void shrink(const block_id_t ptr, const std::size_t size_new_b) {
+        memory_block &curr_block = block_.at(ptr);
+        const int     curr_index = block_.index_at(ptr);
 
+        const u_int32_t old_size = curr_block.size_b;
+        const u_int32_t remain   = old_size - static_cast<u_int32_t>(size_new_b);
+        curr_block.size_b        = static_cast<u_int32_t>(size_new_b);
+
+        if (remain <= 0)
+            return;
+
+        const block_id_t remain_ptr = static_cast<unsigned char *>(ptr) - old_size + size_new_b;
+        block_.key_entries.insert(curr_index + 1, remain_ptr);
+        block_.val_entries.insert(curr_index + 1, {
+             .size_b      = static_cast<u_int32_t>(remain),
+             .alignment_b = static_cast<u_int16_t>(0),
+             .padding_b   = static_cast<u_int8_t>(0),
+             .freed       = static_cast<u_int8_t>(true)
+        });
     }
 
     inline block_id_t reallocate_locally(const block_id_t ptr, const std::size_t size_new_b) {
         memory_block &curr_block = block_.at(ptr);
 
         if (curr_block.size_b > size_new_b) {
-            shrink(curr_block, size_new_b);
+            shrink(ptr, size_new_b);
             return ptr;
         }
 
@@ -336,7 +352,7 @@ namespace ex::data::memory::arena {
         memory_block &old_block  = block_.at(ptr);
 
         if (old_block.size_b > size_new_b) {
-            shrink(old_block, size_new_b);
+            shrink(ptr, size_new_b);
             return ptr;
         }
 
