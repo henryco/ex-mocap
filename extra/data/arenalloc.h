@@ -119,6 +119,11 @@ namespace ex::data {
 
 namespace ex::data::memory::arena {
 
+    inline void abort(const char *msg) {
+        std::cerr << msg << std::endl;
+        ::abort();
+    }
+
     using watch_id_t = void *;
     using block_id_t = void *;
 
@@ -142,6 +147,9 @@ namespace ex::data::memory::arena {
         const int block_prev = block_curr - 1;
         const int block_next = block_curr + 1;
 
+        if (block_.val_entries[block_curr].freed > 0)
+            abort("memory double free");
+
         int block_target = block_curr;
 
         // x p c n x
@@ -150,23 +158,49 @@ namespace ex::data::memory::arena {
         // x [p -> c] x
         // x _ c _ x
 
+        // NEXT BLOCK
         if (block_curr < block_.size - 1) {
             memory_block &block = block_.at(ptr);
-            if (const memory_block &next = block_.at_index(block_next); next.freed > 0) {
+
+            const block_id_t ptr_should_next = static_cast<unsigned char *>(ptr) + block.size_b;
+            const block_id_t ptr_next = block_.key_entries[block_next];
+
+            if (ptr_should_next != ptr_next) {
+                std::cerr << "memory fragmentation error: next block misalignment,"
+                << " SHOULD: " << ptr_should_next
+                << " HAVE: " << ptr_next
+                << std::endl;
+                // abort("memory fragmentation error: next block misalignment");
+            }
+
+            else if (const memory_block &next = block_.at_index(block_next); next.freed > 0) {
                 block.size_b += (next.size_b + next.padding_b);
                 block_.collapse_at_pos(block_next);
             }
         }
 
+        // PREV BLOCK
         if (block_curr > 0) {
             memory_block &block = block_.at(ptr);
             if (const memory_block &prev = block_.at_index(block_prev); prev.freed > 0) {
-                block.size_b += (prev.size_b + block.padding_b);
-                block.padding_b = prev.padding_b;
 
-                block_.key_entries[block_curr] = block_.key_entries[block_prev];
-                block_.collapse_at_pos(block_prev);
-                block_target = block_prev;
+                const block_id_t ptr_should_prev = static_cast<unsigned char *>(ptr) - (block.padding_b + prev.size_b);
+                const block_id_t ptr_prev = block_.key_entries[block_prev];
+
+                if (ptr_should_prev != ptr_prev) {
+                    std::cerr << "memory fragmentation error: prev block misalignment,"
+                    << " SHOULD: " << ptr_should_prev
+                    << " HAVE: " << ptr_prev
+                    << std::endl;
+                    // abort("memory fragmentation error: prev block misalignment");
+                } else {
+                    block.size_b += (prev.size_b + block.padding_b);
+                    block.padding_b = prev.padding_b;
+
+                    block_.key_entries[block_curr] = block_.key_entries[block_prev];
+                    block_.collapse_at_pos(block_prev);
+                    block_target = block_prev;
+                }
             }
         }
 
@@ -180,13 +214,20 @@ namespace ex::data::memory::arena {
     }
 
     inline block_id_t reallocate_locally(const block_id_t ptr, const std::size_t size_new_b) {
+        if (size_new_b == 0)
+            abort("requested allocation size == 0");
+
+        memory_block &old_block = block_.at(ptr);
+        const int    old_index = block_.index_at(ptr);
+        const size_t align     = old_block.alignment_b;
+
         // TODO
         return nullptr;
     }
 
     inline block_id_t allocate_locally(const std::size_t size_new_b, const std::size_t alignment_b) {
         if (size_new_b == 0)
-            abort();
+            abort("requested allocation size == 0");
 
         const std::size_t align = alignment_b != 0 ? alignment_b : size_new_b;
 
@@ -279,7 +320,7 @@ namespace ex::data::memory::arena {
 
     inline block_id_t reallocate(const block_id_t ptr, const std::size_t size_new_b) {
         if (size_new_b == 0)
-            abort();
+            abort("requested allocation size == 0");
 
         if (const block_id_t locally_allocated = reallocate_locally(ptr, size_new_b)) {
             // TODO
@@ -310,7 +351,7 @@ namespace ex::data::memory::arena {
 
         } else {
             if ((new_offset - old_offset - size_new_b) != 0)
-                abort(); // WTF, padding MUST be 0
+                abort("reallocation padding mismatch (MUST: 0)"); // WTF, padding MUST be 0
 
             old_block.size_b += size_new_b;
         }
