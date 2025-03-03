@@ -9,6 +9,7 @@
 
 namespace ex::data {
 
+    // ---- DEFAULT FALLBACK (malloc/realloc)
     struct arena {
 
         void       *data     = nullptr;
@@ -112,6 +113,7 @@ namespace ex::data {
             return *this;
         }
     };
+    // ---- DEFAULT FALLBACK (malloc/realloc)
 
 }
 
