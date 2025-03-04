@@ -225,25 +225,112 @@ namespace ex::data::memory::arena {
     }
 
     inline block_id_t reallocate_locally(const block_id_t ptr, const std::size_t size_new_b) {
-        memory_block &curr_block = block_.at(ptr);
+        const memory_block &block = block_.at(ptr);
 
-        if (curr_block.size_b > size_new_b) {
+        // TODO FIXME
+        auto &blocks = block_;
+
+        if (block.size_b > size_new_b) {
             shrink(ptr, size_new_b);
             return ptr;
         }
 
-        const int     curr_index = block_.index_at(ptr);
-        const size_t  align      = curr_block.alignment_b;
+        //                2                   5
+        // 0 1 2 3     [ - - ]         [ - - - -   - ]
+        // o o o o | o o - - | x x x x | - - - - | - o o o | o o o o
+        //                   [ - - - - ]
+        //                        4
+        // align: 4
+        // req  : 8
+
+        int          curr_index = block_.index_at(ptr);
+        const size_t curr_align = block.alignment_b;
 
         const int prev_index = curr_index - 1;
-        const int next_index = curr_index + 1;
+        int       next_index = curr_index + 1;
 
-        const size_t curr_size = curr_block.size_b;
+        const size_t curr_size = block.size_b;
         const size_t req_size  = curr_size + size_new_b;
 
-        // TODO
+        int padding_b = block.padding_b;
 
-        return nullptr;
+        block_id_t ptr_start = ptr;
+        block_id_t ptr_end   = reinterpret_cast<void *>(reinterpret_cast<u_int64_t>(ptr) + block.size_b);
+
+        if (curr_index > 0) {
+            if (const memory_block &prev = block_.at_index(prev_index); prev.freed > 0) {
+
+                const block_id_t ptr_should_prev = static_cast<unsigned char *>(ptr) - (block.padding_b + prev.size_b);
+                const block_id_t ptr_prev        = block_.key_entries[prev_index];
+
+                if (ptr_should_prev != ptr_prev)
+                    abort("memory fragmentation error: prev block misalignment");
+
+                const u_int64_t offset = reinterpret_cast<u_int64_t>(ptr_prev) -
+                                         reinterpret_cast<u_int64_t>(arena_.data);
+
+                u_int64_t padding = 0;
+                if (offset % curr_align != 0)
+                    padding = curr_align - (offset % curr_align);
+
+                if (padding < prev.size_b) {
+                    ptr_start = reinterpret_cast<void *>(reinterpret_cast<u_int64_t>(ptr_prev) + padding);
+                    padding_b = 0;
+                }
+            }
+        }
+
+        if (curr_index < block_.size - 1) {
+            if (const memory_block &next = block_.at_index(next_index); next.freed > 0) {
+                const block_id_t ptr_should_next = static_cast<unsigned char *>(ptr) + block.size_b;
+                const block_id_t ptr_next = block_.key_entries[next_index];
+
+                if (ptr_should_next != ptr_next)
+                    abort("memory fragmentation error: next block misalignment");
+
+                ptr_end = reinterpret_cast<void *>(reinterpret_cast<u_int64_t>(ptr_next) + next.size_b);
+            }
+        }
+
+        const u_int64_t available = reinterpret_cast<u_int64_t>(ptr_end) - reinterpret_cast<u_int64_t>(ptr_start);
+        if (available < req_size)
+            return nullptr;
+
+        if (ptr_start != ptr) {
+            ::memmove(ptr_start, ptr, curr_size);
+
+            const block_id_t ptr_prev = block_.key_entries[prev_index];
+            const u_int64_t  gap      = reinterpret_cast<u_int64_t>(ptr_start) - reinterpret_cast<u_int64_t>(ptr_prev);
+
+            if (gap > 0) {
+                memory_block &prev = block_.at_index(prev_index);
+                prev.size_b        = static_cast<u_int32_t>(gap);
+            } else {
+                block_.collapse_at_pos(prev_index);
+                --curr_index;
+                --next_index;
+            }
+        }
+
+        if (curr_index < block_.size - 1) {
+            const u_int64_t ptr_0 = reinterpret_cast<u_int64_t>(ptr_start) + req_size;
+            const u_int64_t gap   = reinterpret_cast<u_int64_t>(ptr_end) - ptr_0;
+
+            if (gap > 0) {
+                memory_block &next = block_.at_index(next_index);
+                next.size_b        = static_cast<u_int32_t>(gap);
+            } else {
+                block_.collapse_at_pos(next_index);
+            }
+        }
+
+        memory_block &curr = block_.at_index(curr_index);
+        curr.padding_b     = static_cast<u_int8_t>(padding_b);
+        curr.size_b        = static_cast<u_int32_t>(req_size);
+
+        block_.key_entries[curr_index] = ptr_start;
+
+        return ptr_start;
     }
 
     inline block_id_t allocate_locally(const std::size_t size_new_b, const std::size_t alignment_b) {
@@ -344,10 +431,8 @@ namespace ex::data::memory::arena {
             return nullptr;
         }
 
-        if (const block_id_t locally_allocated = reallocate_locally(ptr, size_new_b)) {
-            // TODO
+        if (const block_id_t locally_allocated = reallocate_locally(ptr, size_new_b))
             return locally_allocated;
-        }
 
         memory_block &old_block  = block_.at(ptr);
 
@@ -366,7 +451,7 @@ namespace ex::data::memory::arena {
             const long new_offset = arena_.offset;
 
             const u_int16_t old_alignment_b = old_block.alignment_b;
-            memcpy(allocated, ptr, old_block.size_b);
+            ::memcpy(allocated, ptr, old_block.size_b);
             free(ptr);
 
             block_.put(allocated, {
