@@ -106,6 +106,7 @@ namespace ex::data::simpalloc {
 #define DEFAULT_ARENA_SIZE_B 1048576
 
         ex::data::map<block_id_t, memory_block> blocks_;
+        ex::data::map<watch_id_t, watch_fn_t>   watche_;
         arena                                   memory_;
 
         allocator(const std::size_t pre_allocated = DEFAULT_ARENA_SIZE_B) {
@@ -119,8 +120,12 @@ namespace ex::data::simpalloc {
             int64_t offset;
             void *allocated = memory_.request(size, alignment, padding, &offset);
 
-            if (offset != 0) {
-                // TODO: update watchers
+            if (offset == 0)
+                return allocated;
+
+            for (int i = 0; i < watche_.size; ++i) {
+                if (const auto fn = watche_.val_entries[i])
+                    fn(watche_.key_entries[i], offset);
             }
 
             return allocated;
@@ -132,8 +137,8 @@ namespace ex::data::simpalloc {
         //                 2                   5
         //  0 1 2 3     [ - - ]         [ - - - -   - ]
         //  o o o o | o o - - | x x x x | - - - - | - o o o | o o o o
-        //                    [ - - - - ]
-        //                         4
+        //                ^ ^ [ - - - - ]
+        //                p p      4
         //
 
         void block_resize(block_id_t *lhs, block_id_t *rhs, const u_int32_t size_rhs_b) {
