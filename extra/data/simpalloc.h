@@ -148,7 +148,7 @@ namespace ex::data::simpalloc {
             if (*lhs == nullptr && *rhs == nullptr) {
                 // append new block to the end
 
-                void *const allocated = request_memory(size_rhs_b, 1);
+                void *const allocated = request_memory(size_rhs_b);
                 blocks_.val_entries.push({ size_rhs_b, 1, true });
                 blocks_.key_entries.push(allocated);
                 *rhs = allocated;
@@ -178,12 +178,10 @@ namespace ex::data::simpalloc {
                     }
 
                     // expand last block size
-                    std::size_t padding;
-                    request_memory((-1) * lhs_remain, block_lhs.alignment_b, &padding);
+                    const void *allocated = request_memory((-1) * lhs_remain);
 
-                    if (padding != 0) {
-                        abort("reallocation padding mismatch for expanded lhs block (MUST: 0)");
-                        return;
+                    if (static_cast<unsigned char *>(*lhs) + block_lhs.size_b != allocated) {
+                        abort("memory allocation error: next block misaligned");
                     }
 
                     // rhs block takes full space of expanded lhs
@@ -231,12 +229,10 @@ namespace ex::data::simpalloc {
                     }
 
                     // expand last block size
-                    std::size_t padding;
-                    request_memory((-1) * lhs_remain, block_rhs.alignment_b, &padding);
+                    const void *allocated = request_memory((-1) * lhs_remain);
 
-                    if (padding != 0) {
-                        abort("reallocation padding mismatch for expanded rhs block (MUST: 0)");
-                        return;
+                    if (static_cast<unsigned char *>(*rhs) + block_rhs.size_b != allocated) {
+                        abort("memory allocation error: next block misaligned");
                     }
 
                     // expanded R-HS block new size
@@ -285,18 +281,50 @@ namespace ex::data::simpalloc {
                 return;
             }
 
-            // Example memory layout
-            // Alignment: 4
-            //
-            //                 2                   5
-            //  0 1 2 3     [ - - ]         [ - - - -   - ] + + >
-            //  o o o o | o o - - | x x x x | x x x x | x o o o | o o o o
-            //              < + + [ - - - - ]
-            //                p p      4
-            //
+            const int32_t size_have = block_rhs.size_b + block_lhs.size_b;
+            const int32_t size_need = size_have > size_rhs_b ? size_have : size_rhs_b;
+            const int32_t new_lhs_b = size_have - size_rhs_b;
+            const int32_t new_rhs_b = size_rhs_b;
 
-            // TODO
+            if (size_need > size_have) {
+                if (index_rhs != blocks_.size - 1) {
+                    // cannot expand in the middle of arena
+                    abort("rhs memory block size out of bounds");
+                    return;
+                }
 
+                // expand last block size
+                const void *allocated = request_memory(size_need - size_have);
+
+                if (static_cast<unsigned char *>(*rhs) + block_rhs.size_b != allocated) {
+                    abort("memory allocation error: next block misaligned");
+                }
+
+                // merge lhs into rhs, collapse lhs
+                blocks_.key_entries[index_rhs]        = lhs;
+                blocks_.val_entries[index_rhs].size_b = size_rhs_b;
+
+                blocks_.collapse_at_pos(index_lhs);
+                *rhs = *lhs;
+                *lhs = nullptr;
+                return;
+            }
+
+            // resize / collapse
+            blocks_.val_entries[index_rhs].size_b = static_cast<u_int32_t>(new_rhs_b);
+            blocks_.val_entries[index_lhs].size_b = static_cast<u_int32_t>(new_lhs_b);
+
+            if (new_lhs_b <= 0) {
+                blocks_.key_entries[index_rhs] = static_cast<unsigned char *>(*lhs);
+                blocks_.collapse_at_pos(index_lhs);
+                *rhs = *lhs;
+                *lhs = nullptr;
+                return;
+            }
+
+            const block_id_t new_rhs_ptr   = static_cast<unsigned char *>(*lhs) + new_lhs_b;
+            blocks_.key_entries[index_rhs] = new_rhs_ptr;
+            *rhs                           = new_rhs_ptr;
         }
 
         void block_free(const block_id_t block) {
