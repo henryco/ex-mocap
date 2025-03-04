@@ -204,6 +204,7 @@ namespace ex::data::memory::arena {
     }
 
     inline void shrink(const block_id_t ptr, const std::size_t size_new_b) {
+//        abort("memory shrink not supported (currently)");
         memory_block &curr_block = block_.at(ptr);
         const int     curr_index = block_.index_at(ptr);
 
@@ -227,7 +228,8 @@ namespace ex::data::memory::arena {
     inline block_id_t reallocate_locally(const block_id_t ptr, const std::size_t size_new_b) {
         const memory_block &block = block_.at(ptr);
 
-        auto &blocks = block_; // DEBUG
+        if (block.size_b == size_new_b)
+            return ptr;
 
         if (block.size_b > size_new_b) {
             shrink(ptr, size_new_b);
@@ -236,8 +238,8 @@ namespace ex::data::memory::arena {
 
         //                2                   5
         // 0 1 2 3     [ - - ]         [ - - - -   - ]
-        // o o o o | o o - - | x x x x | - - - - | - o o o | o o o o
-        //                   [ - - - - ]
+        // o o o o | o o - - | _ x x x | - - - - | - o o o | o o o o
+        //                   [ - ^ - - ]
         //                        4
         // align: 4
         // req  : 8
@@ -249,12 +251,12 @@ namespace ex::data::memory::arena {
         int       next_index = curr_index + 1;
 
         const size_t curr_size = block.size_b;
-        const size_t req_size  = curr_size + size_new_b;
 
         int padding_b = block.padding_b;
+        const int pad = padding_b;
 
         block_id_t ptr_start = ptr;
-        block_id_t ptr_end   = reinterpret_cast<void *>(reinterpret_cast<u_int64_t>(ptr) + block.size_b);
+        block_id_t ptr_end   = static_cast<unsigned char *>(ptr) + block.size_b;
 
         if (curr_index > 0) {
             if (const memory_block &prev = block_.at_index(prev_index); prev.freed > 0) {
@@ -273,7 +275,7 @@ namespace ex::data::memory::arena {
                     padding = curr_align - (offset % curr_align);
 
                 if (padding < prev.size_b) {
-                    ptr_start = reinterpret_cast<void *>(reinterpret_cast<u_int64_t>(ptr_prev) + padding);
+                    ptr_start = static_cast<unsigned char *>(ptr_prev) + padding;
                     padding_b = 0;
                 }
             }
@@ -287,18 +289,21 @@ namespace ex::data::memory::arena {
                 if (ptr_should_next != ptr_next)
                     abort("memory fragmentation error: next block misalignment");
 
-                ptr_end = reinterpret_cast<void *>(reinterpret_cast<u_int64_t>(ptr_next) + next.size_b);
+                ptr_end = static_cast<unsigned char *>(ptr_next) + next.size_b;
             }
         }
 
         const u_int64_t available = reinterpret_cast<u_int64_t>(ptr_end) - reinterpret_cast<u_int64_t>(ptr_start);
-        if (available < req_size)
+        if (available < size_new_b)
             return nullptr;
 
-        // TODO FIXME
+        std::cout << "req: " << size_new_b << ", has: " << curr_size << " (" << pad << ") " << std::endl;
 
+        bool should_collapse_prev = false;
         if (ptr_start != ptr) {
             ::memmove(ptr_start, ptr, curr_size);
+
+            std::cout << "memmove: " << ptr_start << " <- " << ptr << ", prev: " << block_.at_index(prev_index).size_b << " b" << std::endl;
 
             const block_id_t ptr_prev = block_.key_entries[prev_index];
             const u_int64_t  gap      = reinterpret_cast<u_int64_t>(ptr_start) - reinterpret_cast<u_int64_t>(ptr_prev);
@@ -306,19 +311,23 @@ namespace ex::data::memory::arena {
             if (gap > 0) {
                 memory_block &prev = block_.at_index(prev_index);
                 prev.size_b        = static_cast<u_int32_t>(gap);
+
+                std::cout << "prev: " << ptr_prev << ": " << gap << " b" << std::endl;
             } else {
-                block_.collapse_at_pos(prev_index);
-                --curr_index;
-                --next_index;
+                should_collapse_prev = true;
+                std::cout << "collapse prev [" << prev_index << "]" << std::endl;
             }
         }
 
         if (curr_index < block_.size - 1) {
-            const u_int64_t ptr_0 = reinterpret_cast<u_int64_t>(ptr_start) + req_size;
+            const u_int64_t ptr_0 = reinterpret_cast<u_int64_t>(ptr_start) + size_new_b;
             const u_int64_t gap   = reinterpret_cast<u_int64_t>(ptr_end) - ptr_0;
 
             if (gap > 0) {
                 memory_block &next = block_.at_index(next_index);
+
+                std::cout << "next: " << next.size_b << " -> " << gap << " b" << std::endl;
+
                 next.size_b        = static_cast<u_int32_t>(gap);
             } else {
                 block_.collapse_at_pos(next_index);
@@ -327,9 +336,14 @@ namespace ex::data::memory::arena {
 
         memory_block &curr = block_.at_index(curr_index);
         curr.padding_b     = static_cast<u_int8_t>(padding_b);
-        curr.size_b        = static_cast<u_int32_t>(req_size);
+        curr.size_b        = static_cast<u_int32_t>(size_new_b);
 
         block_.key_entries[curr_index] = ptr_start;
+
+        std::cout << "new: " << ptr_start << ", " << curr.size_b << " b\n" << std::endl;
+
+        if (should_collapse_prev)
+            block_.collapse_at_pos(prev_index);
 
         return ptr_start;
     }
@@ -436,6 +450,9 @@ namespace ex::data::memory::arena {
             return locally_allocated;
 
         memory_block &old_block  = block_.at(ptr);
+
+        if (old_block.size_b == size_new_b)
+            return ptr;
 
         if (old_block.size_b > size_new_b) {
             shrink(ptr, size_new_b);
