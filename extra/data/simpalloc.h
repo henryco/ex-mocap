@@ -57,7 +57,9 @@ namespace ex::data::simpalloc {
             ::free(data);
         }
 
-        void *request(const std::size_t size, const std::size_t alignment = 1, std::size_t *padding = nullptr, int64_t *moved = nullptr) {
+        void *request(const std::size_t size, const std::size_t alignment = 1, std::size_t *padding = nullptr,
+                      int64_t *moved = nullptr) {
+
             std::size_t padding_ = 0;
 
             if (offset % alignment != 0)
@@ -262,10 +264,41 @@ namespace ex::data::simpalloc {
 
             const int index_lhs = blocks_.index_at(*lhs);
             const int index_rhs = blocks_.index_at(*rhs);
-            // TODO CONTINUITY CHECK
 
+            memory_block &block_lhs = blocks_.val_entries[index_lhs];
+            memory_block &block_rhs = blocks_.val_entries[index_rhs];
 
+            if (const block_id_t ptr_should = static_cast<unsigned char *>(*lhs) + block_lhs.size_b; ptr_should != rhs) {
+                abort("memory fragmentation error: next block misalignment");
+            }
 
+            if (const block_id_t ptr_should = static_cast<unsigned char *>(*rhs) - block_rhs.size_b; ptr_should != lhs) {
+                abort("memory fragmentation error: next block misalignment");
+            }
+
+            if (size_rhs_b == 0) {
+                // merge rhs into lhs
+
+                block_lhs.size_b += block_rhs.size_b;
+                blocks_.collapse_at_pos(index_rhs);
+                *rhs = nullptr;
+                return;
+            }
+
+            const int32_t rhs_size_diff = block_rhs.size_b - size_rhs_b;
+            if (rhs_size_diff == 0) {
+                // nothing ever happens, im all in
+                return;
+            }
+
+            if (rhs_size_diff < 0) {
+                // shrink lhs, expand rhs
+                // TODO
+                return;
+            }
+
+            // shrink rhs, expand lhs
+            // TODO
         }
 
         void block_free(const block_id_t block) {
