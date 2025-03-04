@@ -265,8 +265,8 @@ namespace ex::data::simpalloc {
             const int index_lhs = blocks_.index_at(*lhs);
             const int index_rhs = blocks_.index_at(*rhs);
 
-            memory_block &block_lhs = blocks_.val_entries[index_lhs];
-            memory_block &block_rhs = blocks_.val_entries[index_rhs];
+            const memory_block &block_lhs = blocks_.val_entries[index_lhs];
+            const memory_block &block_rhs = blocks_.val_entries[index_rhs];
 
             if (const block_id_t ptr_should = static_cast<unsigned char *>(*lhs) + block_lhs.size_b; ptr_should != rhs) {
                 abort("memory fragmentation error: next block misalignment");
@@ -279,26 +279,24 @@ namespace ex::data::simpalloc {
             if (size_rhs_b == 0) {
                 // merge rhs into lhs
 
-                block_lhs.size_b += block_rhs.size_b;
+                blocks_.val_entries[index_lhs].size_b += block_rhs.size_b;
                 blocks_.collapse_at_pos(index_rhs);
                 *rhs = nullptr;
                 return;
             }
 
-            const int32_t rhs_size_diff = block_rhs.size_b - size_rhs_b;
-            if (rhs_size_diff == 0) {
-                // nothing ever happens, im all in
-                return;
-            }
+            // Example memory layout
+            // Alignment: 4
+            //
+            //                 2                   5
+            //  0 1 2 3     [ - - ]         [ - - - -   - ] + + >
+            //  o o o o | o o - - | x x x x | x x x x | x o o o | o o o o
+            //              < + + [ - - - - ]
+            //                p p      4
+            //
 
-            if (rhs_size_diff < 0) {
-                // shrink lhs, expand rhs
-                // TODO
-                return;
-            }
-
-            // shrink rhs, expand lhs
             // TODO
+
         }
 
         void block_free(const block_id_t block) {
