@@ -227,8 +227,7 @@ namespace ex::data::memory::arena {
     inline block_id_t reallocate_locally(const block_id_t ptr, const std::size_t size_new_b) {
         const memory_block &block = block_.at(ptr);
 
-        // TODO FIXME
-        auto &blocks = block_;
+        auto &blocks = block_; // DEBUG
 
         if (block.size_b > size_new_b) {
             shrink(ptr, size_new_b);
@@ -295,6 +294,8 @@ namespace ex::data::memory::arena {
         const u_int64_t available = reinterpret_cast<u_int64_t>(ptr_end) - reinterpret_cast<u_int64_t>(ptr_start);
         if (available < req_size)
             return nullptr;
+
+        // TODO FIXME
 
         if (ptr_start != ptr) {
             ::memmove(ptr_start, ptr, curr_size);
