@@ -6,6 +6,7 @@
 #define EX_LIMBO_DATA_UTILS_H
 
 #include "datalloc.h"
+#include <cstring>
 
 namespace ex::data {
 

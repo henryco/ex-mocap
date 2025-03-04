@@ -6,7 +6,6 @@
 #define EX_DATALLOC_H
 
 #include <cstdlib>
-#include <cstring>
 
 namespace ex::data {
 

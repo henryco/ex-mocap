@@ -90,6 +90,7 @@ set(EXTRA_FILES
 
         # graph (nodes)
         extra/graph/graph.h
+        extra/data/simpalloc.h
 )
 
 set(PLATFORM_FILES

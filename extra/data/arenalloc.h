@@ -6,6 +6,7 @@
 #define EX_ARENALLOC_H
 
 #include "data_utils.h"
+#include <cstring>
 
 namespace ex::data {
 
