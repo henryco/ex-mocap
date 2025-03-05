@@ -2,15 +2,15 @@
 // Created by xd on 3/4/25.
 //
 
-#ifndef EX_DATA_SIMPALLOC_H
-#define EX_DATA_SIMPALLOC_H
+#ifndef EX_DATA_MEMPOOL_H
+#define EX_DATA_MEMPOOL_H
 
 #include "data_utils.h"
 
 #include <cstring>
 #include <iostream>
 
-namespace ex::data::simpalloc {
+namespace ex::data::mempool {
 
     inline void abort(const char *msg) {
         std::cerr << msg << std::endl;
@@ -106,6 +106,14 @@ namespace ex::data::simpalloc {
 
             blocks_.key_entries.push(allocated_ptr);
             blocks_.val_entries.push({ static_cast<u_int32_t>(allocated_size), 1, true });
+        }
+
+        void add_watcher(const watch_id_t id, const watch_fn_t fn) {
+            watche_.put(id, fn);
+        }
+
+        void del_watcher(const watch_id_t id, watch_fn_t) {
+            watche_.remove(id);
         }
 
         void *allocate(const std::size_t size_b, const std::size_t alignment_b) {
@@ -457,4 +465,4 @@ namespace ex::data::simpalloc {
 
 }
 
-#endif //EX_DATA_SIMPALLOC_H
+#endif //EX_DATA_MEMPOOL_H
