@@ -129,7 +129,14 @@ namespace ex::data::simpalloc {
         }
 
         void *reallocate(void *ptr, const std::size_t size_new_b) {
+
+            if (size_new_b <= 0) {
+                abort("Empty memory block reallocation");
+                return nullptr;
+            }
+
             // TODO
+
             return nullptr;
         }
 
