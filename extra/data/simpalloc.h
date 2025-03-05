@@ -45,6 +45,10 @@ namespace ex::data::simpalloc {
             return offset;
         }
 
+        const void *data_ptr() const {
+            return data;
+        }
+
         void *request(const std::size_t size, std::size_t *size_allocated = nullptr, int64_t *addr_diff = nullptr) {
             const std::size_t curr_offset = offset;
             const std::size_t real_size   = capacity + size;
@@ -104,19 +108,46 @@ namespace ex::data::simpalloc {
             blocks_.val_entries.push({ static_cast<u_int32_t>(allocated_size), 1, true });
         }
 
-        void *allocate(std::size_t size_b, std::size_t alignment_b) {
+        void *allocate(const std::size_t size_b, const std::size_t alignment_b) {
+
+            for (int i = 0; i < blocks_.size; i++) {
+                const memory_block block  = blocks_.val_entries[i];
+                if (block.is_free != true)
+                    continue;
+
+                const block_id_t block_id = blocks_.key_entries[i];
+                const u_int64_t  padding  = block_padding(block_id, alignment_b);
+                const int64_t    space_b  = block.size_b - padding;
+
+                if (space_b < size_b)
+                    continue;
+
+                const block_id_t ptr_start = block_split(block_id, space_b);
+
+                // TODO
+
+                return ptr_start;
+            }
+
             // TODO
             return nullptr;
         }
 
-        void *reallocate(void *ptr, std::size_t size_new_b) {
+        void *reallocate(void *ptr, const std::size_t size_new_b) {
             // TODO
             return nullptr;
         }
 
         void free(void *ptr) {
-            if (ptr != nullptr)
-                block_free(ptr);
+            if (ptr == nullptr)
+                return;
+
+            if (blocks_.at(ptr).is_free == true) {
+                abort("Double free: Attempting to free a block that is already has been freed");
+                return;
+            }
+
+            block_free(ptr);
         }
 
         long memory_used_b() const {
@@ -130,6 +161,16 @@ namespace ex::data::simpalloc {
 
         long memory_total_b() const {
             return memory_.size();
+        }
+
+        u_int64_t block_padding(const block_id_t block_id, const u_int64_t alignment_b) const {
+            if (alignment_b <= 1)
+                return 0;
+            const u_int64_t offset = reinterpret_cast<u_int64_t>(block_id) -
+                                     reinterpret_cast<u_int64_t>(memory_.data_ptr());
+            if (offset % alignment_b != 0)
+                return alignment_b - (offset % alignment_b);
+            return 0;
         }
 
         /**
@@ -198,7 +239,7 @@ namespace ex::data::simpalloc {
 
                 const int          index_lhs  = blocks_.index_at(*lhs);
                 const memory_block block_lhs  = blocks_.val_entries[index_lhs];
-                const int32_t      lhs_remain = size_rhs_b - block_lhs.size_b;
+                const int32_t      lhs_remain = block_lhs.size_b - size_rhs_b;
 
                 if (lhs_remain == 0) {
                     // rhs block takes full space of lhs
@@ -314,12 +355,6 @@ namespace ex::data::simpalloc {
         void block_free(const block_id_t block) {
 
             const int index_block = blocks_.index_at(block);
-
-            if (blocks_.val_entries[index_block].is_free) {
-                abort("Double free: Attempting to free a block that is already has been freed");
-                return;
-            }
-
             blocks_.val_entries[index_block].alignment_b = 1;
             blocks_.val_entries[index_block].is_free     = true;
 
