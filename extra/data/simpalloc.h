@@ -5,9 +5,11 @@
 #ifndef EX_DATA_SIMPALLOC_H
 #define EX_DATA_SIMPALLOC_H
 
-#include "data_utils.h"
-#include <iostream>
 #include <cstring>
+#include <iostream>
+#include "data_utils.h"
+
+#include "arenalloc.h"
 
 namespace ex::data::simpalloc {
 
@@ -37,6 +39,10 @@ namespace ex::data::simpalloc {
             if (data == nullptr)
                 return;
             ::free(data);
+        }
+
+        long size() const {
+            return offset;
         }
 
         void *request(const std::size_t size, std::size_t *size_allocated = nullptr, int64_t *addr_diff = nullptr) {
@@ -96,6 +102,34 @@ namespace ex::data::simpalloc {
 
             blocks_.key_entries.push(allocated_ptr);
             blocks_.val_entries.push({ static_cast<u_int32_t>(allocated_size), 1, true });
+        }
+
+        void *allocate(std::size_t size_b, std::size_t alignment_b) {
+            // TODO
+            return nullptr;
+        }
+
+        void *reallocate(void *ptr, std::size_t size_new_b) {
+            // TODO
+            return nullptr;
+        }
+
+        void free(void *ptr) {
+            if (ptr != nullptr)
+                block_free(ptr);
+        }
+
+        long memory_used_b() const {
+            long used_b = 0;
+            for (int i = 0; i < blocks_.size; ++i) {
+                const memory_block mem = blocks_.val_entries[i];
+                used_b += mem.is_free ? 0 : mem.size_b;
+            }
+            return used_b;
+        }
+
+        long memory_total_b() const {
+            return memory_.size();
         }
 
         /**
@@ -280,6 +314,12 @@ namespace ex::data::simpalloc {
         void block_free(const block_id_t block) {
 
             const int index_block = blocks_.index_at(block);
+
+            if (blocks_.val_entries[index_block].is_free) {
+                abort("Double free: Attempting to free a block that is already has been freed");
+                return;
+            }
+
             blocks_.val_entries[index_block].alignment_b = 1;
             blocks_.val_entries[index_block].is_free     = true;
 
