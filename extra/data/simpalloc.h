@@ -36,15 +36,7 @@ namespace ex::data::simpalloc {
         }
 
         void expand(const std::size_t n) {
-            reserve(capacity + n);
-        }
-
-        void reserve(const std::size_t n) {
-            if (n <= capacity)
-                return;
-
-            capacity = n;
-
+            capacity += n;
             if (data == nullptr) data = ::malloc(capacity);
             else                 data = ::realloc(data, capacity);
         }
@@ -57,36 +49,22 @@ namespace ex::data::simpalloc {
             ::free(data);
         }
 
-        void *request(const std::size_t size, const std::size_t alignment = 1, std::size_t *padding = nullptr,
-                      int64_t *moved = nullptr) {
-
-            std::size_t padding_ = 0;
-
-            if (offset % alignment != 0)
-                padding_ = alignment - (offset % alignment);
-
-            const std::size_t required = padding_ + size;
-            const long int    remains  = capacity - offset;
+        void *request(const std::size_t size, int64_t *addr_diff = nullptr) {
+            const long int remains = capacity - offset;
 
             const void *old_data_ptr = data;
-
-            if (required > remains)
-                expand(capacity + required);
-
+            if (size > remains)
+                expand(capacity + size);
             const void *new_data_ptr = data;
 
-            offset += required;
+            offset += size;
 
-            if (padding != nullptr) {
-                *padding = padding_;
-            }
-
-            if (moved != nullptr) {
+            if (addr_diff != nullptr) {
                 if (old_data_ptr == new_data_ptr)
-                    *moved = 0;
+                    *addr_diff = 0;
                 else
-                    *moved = reinterpret_cast<unsigned long int>(new_data_ptr) -
-                             reinterpret_cast<unsigned long int>(old_data_ptr);
+                    *addr_diff = reinterpret_cast<unsigned long int>(new_data_ptr) -
+                                 reinterpret_cast<unsigned long int>(old_data_ptr);
             }
 
             return static_cast<unsigned char *>(data) + offset - size;
@@ -119,18 +97,18 @@ namespace ex::data::simpalloc {
             blocks_.put(memory_.data, { static_cast<u_int32_t>(pre_allocated), 1, true });
         }
 
-        void *request_memory(const std::size_t size, const std::size_t alignment = 1, std::size_t *padding = nullptr) {
-            int64_t offset;
-            void *allocated = memory_.request(size, alignment, padding, &offset);
+        void *request_memory(const std::size_t size) {
+            int64_t addr_diff;
+            void *allocated = memory_.request(size, &addr_diff);
 
             // TODO
 
-            if (offset == 0)
+            if (addr_diff == 0)
                 return allocated;
 
             for (int i = 0; i < watche_.size; ++i) {
                 if (const auto fn = watche_.val_entries[i])
-                    fn(watche_.key_entries[i], offset);
+                    fn(watche_.key_entries[i], addr_diff);
             }
 
             return allocated;
