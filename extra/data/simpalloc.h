@@ -129,15 +129,27 @@ namespace ex::data::simpalloc {
         }
 
         void *reallocate(void *ptr, const std::size_t size_new_b) {
-
             if (size_new_b <= 0) {
-                abort("Empty memory block reallocation");
+                free(ptr);
                 return nullptr;
             }
 
-            // TODO
+            const int          block_idx = blocks_.index_at(ptr);
+            const memory_block block     = blocks_.val_entries[block_idx];
 
-            return nullptr;
+            if (block.is_free == true) {
+                abort("Cannot reallocate freed block");
+                return nullptr;
+            }
+
+            block_free(ptr);
+
+            void *allocated = allocate(size_new_b, block.alignment_b);
+            if (allocated != nullptr && allocated != ptr) {
+                ::memmove(allocated, ptr, block.size_b);
+            }
+
+            return allocated;
         }
 
         void free(void *ptr) {
