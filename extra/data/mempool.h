@@ -12,7 +12,11 @@
 
 namespace ex::data::mempool {
 
+    #ifndef UNIT_TEST
     #define abort_(msg) do { std::cerr << msg << std::endl; ::abort(); } while(false)
+    #else
+    #define abort_(msg) throw std::runtime_error(msg)
+    #endif
 
     // ---- DEFAULT FALLBACK (malloc/realloc)
     // TODO: replace with direct call to OS

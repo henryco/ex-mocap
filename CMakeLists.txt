@@ -327,6 +327,7 @@ if (ENABLE_TESTS)
             PRIVATE ${COMP_TARGET})
 
     target_compile_definitions(tests
+            PRIVATE UNIT_TEST
             PRIVATE ${DEFN_TARGET})
 
     enable_testing()

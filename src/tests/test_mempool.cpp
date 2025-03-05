@@ -6,8 +6,6 @@
 #include <doctest/doctest.h>
 #include "../../extra/data/mempool.h"
 
-
-// Dummy watcher function for tests.
 static int watcher_counter = 0;
 void test_watcher(void* /*id*/, int64_t diff) {
     watcher_counter += static_cast<int>(diff);
