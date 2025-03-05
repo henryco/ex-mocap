@@ -12,10 +12,7 @@
 
 namespace ex::data::mempool {
 
-    inline void abort(const char *msg) {
-        std::cerr << msg << std::endl;
-        ::abort();
-    }
+    #define abort_(msg) do { std::cerr << msg << std::endl; ::abort(); } while(false)
 
     // ---- DEFAULT FALLBACK (malloc/realloc)
     // TODO: replace with direct call to OS
@@ -97,9 +94,8 @@ namespace ex::data::mempool {
         #define DEFAULT_ARENA_SIZE_B 1048576
 
         allocator(const std::size_t pre_allocated = DEFAULT_ARENA_SIZE_B) {
-
             if (pre_allocated <= 0)
-                abort("Allocation size must be greater than 0");
+                abort_("Allocation size must be greater than 0");
 
             std::size_t allocated_size = 0;
             void *const allocated_ptr  = memory_.request(pre_allocated, &allocated_size);
@@ -118,8 +114,7 @@ namespace ex::data::mempool {
 
         void *allocate(const std::size_t size_b, const std::size_t alignment_b) {
             if (size_b <= 0) {
-                abort("Empty memory block allocation");
-                return nullptr;
+                abort_("Empty memory block allocation");
             }
 
             for (int i = 0; i < blocks_.size; i++) {
@@ -132,12 +127,11 @@ namespace ex::data::mempool {
             if (const block_id_t block_id = block_acquire(blocks_.size - 1, size_b, alignment_b))
                 return block_id;
 
-            abort("Out of free space");
-            return nullptr;
+            abort_("Out of free space");
         }
 
         void *reallocate(void *ptr, const std::size_t size_new_b) {
-            if (size_new_b <= 0) {
+            if (size_new_b <= 0 || ptr == nullptr) {
                 free(ptr);
                 return nullptr;
             }
@@ -146,14 +140,13 @@ namespace ex::data::mempool {
             const memory_block block     = blocks_.val_entries[block_idx];
 
             if (block.is_free == true) {
-                abort("Cannot reallocate freed block");
-                return nullptr;
+                abort_("Cannot reallocate freed block");
             }
 
             block_free(ptr);
 
             void *allocated = allocate(size_new_b, block.alignment_b);
-            if (allocated != nullptr && allocated != ptr) {
+            if (allocated != ptr) {
                 ::memmove(allocated, ptr, block.size_b);
             }
 
@@ -165,8 +158,7 @@ namespace ex::data::mempool {
                 return;
 
             if (blocks_.at(ptr).is_free == true) {
-                abort("Double free: Attempting to free a block that is already has been freed");
-                return;
+                abort_("Double free: Attempting to free a block that is already has been freed");
             }
 
             block_free(ptr);
@@ -251,8 +243,7 @@ namespace ex::data::mempool {
 
             // validate data continuity
             if ((static_cast<unsigned char *>(last_ptr) + addr_diff + last_block.size_b) != allocated_ptr) {
-                abort("Data fragmentation error: requested block alignment error");
-                return nullptr;
+                abort_("Data fragmentation error: requested block alignment error");
             }
 
             // update pointers in case of data relocation
@@ -290,8 +281,7 @@ namespace ex::data::mempool {
         //
         void block_resize(block_id_t *lhs, block_id_t *rhs, const u_int32_t size_rhs_b) {
             if (*lhs == nullptr && *rhs == nullptr) {
-                abort("block_resize called with nullptr");
-                return;
+                abort_("block_resize called with nullptr");
             }
 
             if (*rhs == nullptr) {
@@ -314,8 +304,7 @@ namespace ex::data::mempool {
                 }
 
                 if (lhs_remain < 0) {
-                    abort("rhs memory block size out of bounds");
-                    return;
+                    abort_("rhs memory block size out of bounds");
                 }
 
                 // split L-HS block into two parts, shrink L-HS, make second one R-HS
@@ -346,8 +335,7 @@ namespace ex::data::mempool {
                 }
 
                 if (lhs_remain < 0) {
-                    abort("rhs memory block size out of bounds");
-                    return;
+                    abort_("rhs memory block size out of bounds");
                 }
 
                 // split R-HS block into two parts, shrink R-HS, make second one R-HS
@@ -374,11 +362,11 @@ namespace ex::data::mempool {
             const memory_block block_rhs = blocks_.val_entries[index_rhs];
 
             if (const block_id_t ptr_should = static_cast<unsigned char *>(*lhs) + block_lhs.size_b; ptr_should != *rhs) {
-                abort("memory fragmentation error: next block misalignment");
+                abort_("memory fragmentation error: next block misalignment");
             }
 
             if (const block_id_t ptr_should = static_cast<unsigned char *>(*rhs) - block_lhs.size_b; ptr_should != *lhs) {
-                abort("memory fragmentation error: next block misalignment");
+                abort_("memory fragmentation error: next block misalignment");
             }
 
             if (size_rhs_b == 0) {
@@ -396,8 +384,7 @@ namespace ex::data::mempool {
             const int32_t new_rhs_b = size_rhs_b;
 
             if (size_need > size_have) {
-                abort("rhs memory block size out of bounds");
-                return;
+                abort_("rhs memory block size out of bounds");
             }
 
             // resize / collapse
