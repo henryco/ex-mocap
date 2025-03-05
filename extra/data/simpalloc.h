@@ -115,12 +115,15 @@ namespace ex::data::simpalloc {
             if (pre_allocated <= 0)
                 abort("Allocation size must be greater than 0");
             memory_ = pre_allocated;
-            blocks_.put(memory_.data, { 0, 1, true });
+            memory_.request(pre_allocated);
+            blocks_.put(memory_.data, { static_cast<u_int32_t>(pre_allocated), 1, true });
         }
 
         void *request_memory(const std::size_t size, const std::size_t alignment = 1, std::size_t *padding = nullptr) {
             int64_t offset;
             void *allocated = memory_.request(size, alignment, padding, &offset);
+
+            // TODO
 
             if (offset == 0)
                 return allocated;
@@ -146,21 +149,16 @@ namespace ex::data::simpalloc {
         void block_resize(block_id_t *lhs, block_id_t *rhs, const u_int32_t size_rhs_b) {
 
             if (*lhs == nullptr && *rhs == nullptr) {
-                // append new block to the end
-
-                void *const allocated = request_memory(size_rhs_b);
-                blocks_.val_entries.push({ size_rhs_b, 1, true });
-                blocks_.key_entries.push(allocated);
-                *rhs = allocated;
+                abort("block_resize called with nullptr");
                 return;
             }
 
             if (*rhs == nullptr) {
                 // Split L-HS block, allocate new R-HS (mostly by shrinking L-HS)
 
-                const int     index_lhs  = blocks_.index_at(*lhs);
-                memory_block &block_lhs  = blocks_.val_entries[index_lhs];
-                const int32_t lhs_remain = size_rhs_b - block_lhs.size_b;
+                const int          index_lhs  = blocks_.index_at(*lhs);
+                const memory_block block_lhs  = blocks_.val_entries[index_lhs];
+                const int32_t      lhs_remain = size_rhs_b - block_lhs.size_b;
 
                 if (lhs_remain == 0) {
                     // rhs block takes full space of lhs
@@ -185,7 +183,7 @@ namespace ex::data::simpalloc {
                     }
 
                     // rhs block takes full space of expanded lhs
-                    block_lhs.size_b = size_rhs_b;
+                    blocks_.val_entries[index_lhs].size_b = size_rhs_b;
 
                     *rhs = *lhs;
                     *lhs = nullptr;
@@ -209,9 +207,9 @@ namespace ex::data::simpalloc {
             if (*lhs == nullptr) {
                 // Split R-HS block, allocate new L-HS (mostly by shrinking R-HS)
 
-                const int     index_rhs  = blocks_.index_at(*rhs);
-                memory_block &block_rhs  = blocks_.val_entries[index_rhs];
-                const int32_t lhs_remain = block_rhs.size_b - size_rhs_b;
+                const int          index_rhs  = blocks_.index_at(*rhs);
+                const memory_block block_rhs  = blocks_.val_entries[index_rhs];
+                const int32_t      lhs_remain = block_rhs.size_b - size_rhs_b;
 
                 if (size_rhs_b == 0) {
                     // L-HS block takes full space of R-HS
@@ -236,7 +234,7 @@ namespace ex::data::simpalloc {
                     }
 
                     // expanded R-HS block new size
-                    block_rhs.size_b = size_rhs_b;
+                    blocks_.val_entries[index_rhs].size_b = size_rhs_b;
                     return;
 
                 }
@@ -261,8 +259,8 @@ namespace ex::data::simpalloc {
             const int index_lhs = blocks_.index_at(*lhs);
             const int index_rhs = blocks_.index_at(*rhs);
 
-            const memory_block &block_lhs = blocks_.val_entries[index_lhs];
-            const memory_block &block_rhs = blocks_.val_entries[index_rhs];
+            const memory_block block_lhs = blocks_.val_entries[index_lhs];
+            const memory_block block_rhs = blocks_.val_entries[index_rhs];
 
             if (const block_id_t ptr_should = static_cast<unsigned char *>(*lhs) + block_lhs.size_b; ptr_should != rhs) {
                 abort("memory fragmentation error: next block misalignment");
