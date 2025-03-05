@@ -431,13 +431,13 @@ namespace ex::data::mempool {
 
             if (const int index_next = index_block + 1; index_next <= blocks_.size - 1) {
                 if (const memory_block next = blocks_.val_entries[index_next]; next.is_free == true) {
-                    block_merge(blocks_.key_entries[index_next], block);
+                    block_merge(block, blocks_.key_entries[index_next]);
                 }
             }
 
             if (const int index_prev = index_block - 1; index_prev > 0) {
                 if (const memory_block prev = blocks_.val_entries[index_prev]; prev.is_free == true) {
-                    block_merge(block, blocks_.key_entries[index_prev]);
+                    block_merge(blocks_.key_entries[index_prev], block);
                 }
             }
         }
@@ -457,10 +457,12 @@ namespace ex::data::mempool {
         }
 
         /**
-         * Merge source (src) block into destination (dst) block
+         * Merge right block into the left block
          */
-        void block_merge(block_id_t src, block_id_t dst) {
-            block_resize(&dst, &src, 0);
+        void block_merge(const block_id_t left, const block_id_t right) {
+            block_id_t lhs = left;
+            block_id_t rhs = right;
+            block_resize(&lhs, &rhs, 0);
         }
     };
 
