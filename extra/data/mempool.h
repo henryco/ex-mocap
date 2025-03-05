@@ -357,7 +357,7 @@ namespace ex::data::mempool {
                 blocks_.key_entries[index_rhs]        = rhs_ptr;
                 blocks_.val_entries[index_rhs].size_b = size_rhs_b;
 
-                blocks_.key_entries.insert(index_rhs, rhs);
+                blocks_.key_entries.insert(index_rhs, *rhs);
                 blocks_.val_entries.insert(index_rhs, { static_cast<u_int32_t>(lhs_remain), 1, true });
 
                 *lhs = *rhs;
@@ -373,11 +373,11 @@ namespace ex::data::mempool {
             const memory_block block_lhs = blocks_.val_entries[index_lhs];
             const memory_block block_rhs = blocks_.val_entries[index_rhs];
 
-            if (const block_id_t ptr_should = static_cast<unsigned char *>(*lhs) + block_lhs.size_b; ptr_should != rhs) {
+            if (const block_id_t ptr_should = static_cast<unsigned char *>(*lhs) + block_lhs.size_b; ptr_should != *rhs) {
                 abort("memory fragmentation error: next block misalignment");
             }
 
-            if (const block_id_t ptr_should = static_cast<unsigned char *>(*rhs) - block_rhs.size_b; ptr_should != lhs) {
+            if (const block_id_t ptr_should = static_cast<unsigned char *>(*rhs) - block_rhs.size_b; ptr_should != *lhs) {
                 abort("memory fragmentation error: next block misalignment");
             }
 
