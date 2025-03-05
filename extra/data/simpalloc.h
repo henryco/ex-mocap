@@ -80,13 +80,14 @@ namespace ex::data::simpalloc {
 
     struct allocator {
 
-#define DEFAULT_ARENA_SIZE_B 1048576
-
         ex::data::map<block_id_t, memory_block> blocks_;
         ex::data::map<watch_id_t, watch_fn_t>   watche_;
         arena                                   memory_;
 
+        #define DEFAULT_ARENA_SIZE_B 1048576
+
         allocator(const std::size_t pre_allocated = DEFAULT_ARENA_SIZE_B) {
+
             if (pre_allocated <= 0)
                 abort("Allocation size must be greater than 0");
 
@@ -100,7 +101,7 @@ namespace ex::data::simpalloc {
         /**
          * Allocate at least additional <b>min_size_b</b> bytes of memory
          */
-        void request_memory(const std::size_t min_size_b) {
+        block_id_t block_request(const std::size_t min_size_b) {
 
             const int          last_idx   = blocks_.size - 1;
             const block_id_t   last_ptr   = blocks_.key_entries[last_idx];
@@ -114,7 +115,7 @@ namespace ex::data::simpalloc {
             // validate data continuity
             if ((static_cast<unsigned char *>(last_ptr) + addr_diff + last_block.size_b) != allocated_ptr) {
                 abort("Data fragmentation error: requested block alignment error");
-                return;
+                return nullptr;
             }
 
             // update pointers in case of data relocation
@@ -132,12 +133,13 @@ namespace ex::data::simpalloc {
             // resize last free block
             if (last_block.is_free) {
                 blocks_.val_entries[last_idx].size_b += real_size;
-                return;
+                return blocks_.key_entries[last_idx];
             }
 
             // append new free block
             blocks_.key_entries.push(allocated_ptr);
             blocks_.val_entries.push({ static_cast<u_int32_t>(real_size), 1, true });
+            return allocated_ptr;
         }
 
         // Example memory layout
@@ -276,6 +278,7 @@ namespace ex::data::simpalloc {
         }
 
         void block_free(const block_id_t block) {
+
             const int index_block = blocks_.index_at(block);
             blocks_.val_entries[index_block].alignment_b = 1;
             blocks_.val_entries[index_block].is_free     = true;
