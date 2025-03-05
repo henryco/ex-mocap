@@ -31,16 +31,6 @@ namespace ex::data::simpalloc {
             ::free(data);
         }
 
-        arena(const std::size_t &reserve) {
-            expand(reserve);
-        }
-
-        void expand(const std::size_t n) {
-            capacity += n;
-            if (data == nullptr) data = ::malloc(capacity);
-            else                 data = ::realloc(data, capacity);
-        }
-
         void clean() {
             offset   = 0;
             capacity = 0;
@@ -49,17 +39,20 @@ namespace ex::data::simpalloc {
             ::free(data);
         }
 
-        void *request(const std::size_t size, int64_t *addr_diff = nullptr) {
-            const long int remains = capacity - offset;
+        void *request(const std::size_t size, std::size_t *size_allocated = nullptr, int64_t *addr_diff = nullptr) {
+            const std::size_t curr_offset = offset;
+            const std::size_t real_size   = capacity + size;
 
             const void *old_data_ptr = data;
-            if (size > remains)
-                expand(capacity + size);
+            {
+                capacity += real_size;
+                offset   += real_size;
+                if (data == nullptr) data = ::malloc(capacity);
+                else                 data = ::realloc(data, capacity);
+            }
             const void *new_data_ptr = data;
 
-            offset += size;
-
-            if (addr_diff != nullptr) {
+            if (addr_diff != nullptr && old_data_ptr != nullptr) {
                 if (old_data_ptr == new_data_ptr)
                     *addr_diff = 0;
                 else
@@ -67,7 +60,11 @@ namespace ex::data::simpalloc {
                                  reinterpret_cast<unsigned long int>(old_data_ptr);
             }
 
-            return static_cast<unsigned char *>(data) + offset - size;
+            if (size_allocated != nullptr) {
+                *size_allocated = real_size;
+            }
+
+            return static_cast<unsigned char *>(data) + curr_offset;
         }
     };
     // ---- DEFAULT FALLBACK (malloc/realloc)
@@ -92,26 +89,55 @@ namespace ex::data::simpalloc {
         allocator(const std::size_t pre_allocated = DEFAULT_ARENA_SIZE_B) {
             if (pre_allocated <= 0)
                 abort("Allocation size must be greater than 0");
-            memory_ = pre_allocated;
-            memory_.request(pre_allocated);
-            blocks_.put(memory_.data, { static_cast<u_int32_t>(pre_allocated), 1, true });
+
+            std::size_t allocated_size = 0;
+            void *const allocated_ptr  = memory_.request(pre_allocated, &allocated_size);
+
+            blocks_.key_entries.push(allocated_ptr);
+            blocks_.val_entries.push({ static_cast<u_int32_t>(allocated_size), 1, true });
         }
 
-        void *request_memory(const std::size_t size) {
-            int64_t addr_diff;
-            void *allocated = memory_.request(size, &addr_diff);
+        /**
+         * Allocate at least additional <b>min_size_b</b> bytes of memory
+         */
+        void request_memory(const std::size_t min_size_b) {
 
-            // TODO
+            const int          last_idx   = blocks_.size - 1;
+            const block_id_t   last_ptr   = blocks_.key_entries[last_idx];
+            const memory_block last_block = blocks_.val_entries[last_idx];
 
-            if (addr_diff == 0)
-                return allocated;
+            int64_t     addr_diff;
+            std::size_t real_size;
 
-            for (int i = 0; i < watche_.size; ++i) {
-                if (const auto fn = watche_.val_entries[i])
-                    fn(watche_.key_entries[i], addr_diff);
+            void *allocated_ptr = memory_.request(min_size_b, &real_size, &addr_diff);
+
+            // validate data continuity
+            if ((static_cast<unsigned char *>(last_ptr) + addr_diff + last_block.size_b) != allocated_ptr) {
+                abort("Data fragmentation error: requested block alignment error");
+                return;
             }
 
-            return allocated;
+            // update pointers in case of data relocation
+            if (addr_diff != 0) {
+                for (int i = 0; i < blocks_.size; ++i) {
+                    blocks_.key_entries[i] = static_cast<unsigned char *>(blocks_.key_entries[i]) + addr_diff;
+                }
+
+                for (int i = 0; i < watche_.size; ++i) {
+                    if (const auto fn = watche_.val_entries[i])
+                        fn(watche_.key_entries[i], addr_diff);
+                }
+            }
+
+            // resize last free block
+            if (last_block.is_free) {
+                blocks_.val_entries[last_idx].size_b += real_size;
+                return;
+            }
+
+            // append new free block
+            blocks_.key_entries.push(allocated_ptr);
+            blocks_.val_entries.push({ static_cast<u_int32_t>(real_size), 1, true });
         }
 
         // Example memory layout
