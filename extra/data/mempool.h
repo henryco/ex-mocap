@@ -19,15 +19,15 @@ namespace ex::data::mempool {
 
     // ---- DEFAULT FALLBACK (malloc/realloc)
     // TODO: replace with direct call to OS
-    struct arena {
+    struct mem_provider {
 
         void       *data     = nullptr;
         std::size_t offset   = 0;
         std::size_t capacity = 0;
 
-        arena() = default;
+        mem_provider() = default;
 
-        ~arena() {
+        ~mem_provider() {
             if (data == nullptr)
                 return;
             ::free(data);
@@ -92,7 +92,7 @@ namespace ex::data::mempool {
 
         ex::data::map<block_id_t, memory_block> blocks_;
         ex::data::map<watch_id_t, watch_fn_t>   watche_;
-        arena                                   memory_;
+        mem_provider                            memory_;
 
         #define DEFAULT_ARENA_SIZE_B 1048576
 
