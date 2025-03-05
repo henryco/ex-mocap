@@ -108,7 +108,7 @@ namespace ex::data::simpalloc {
             blocks_.val_entries.push({ static_cast<u_int32_t>(allocated_size), 1, true });
         }
 
-        block_id_t acquire(const int block_idx, const std::size_t size_b, const std::size_t alignment_b) {
+        block_id_t block_acquire(const int block_idx, const std::size_t size_b, const std::size_t alignment_b) {
             const memory_block block  = blocks_.val_entries[block_idx];
             if (block.is_free != true)
                 return nullptr;
@@ -151,13 +151,13 @@ namespace ex::data::simpalloc {
             }
 
             for (int i = 0; i < blocks_.size; i++) {
-                if (const block_id_t block_id = acquire(i, size_b, alignment_b))
+                if (const block_id_t block_id = block_acquire(i, size_b, alignment_b))
                     return block_id;
             }
 
             block_request(size_b + alignment_b);
 
-            if (const block_id_t block_id = acquire(blocks_.size - 1, size_b, alignment_b))
+            if (const block_id_t block_id = block_acquire(blocks_.size - 1, size_b, alignment_b))
                 return block_id;
 
             abort("Out of free space");
