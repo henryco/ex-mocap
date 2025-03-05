@@ -131,7 +131,11 @@ namespace data {
         pool.del_watcher(ptr, fn);
     }
 
-    inline long pool_size_() {
+    inline long pool_size_total_() {
+        return pool.memory_total_b();
+    }
+
+    inline long pool_size_used_() {
         return pool.memory_used_b();
     }
 }
@@ -145,7 +149,8 @@ TEST_CASE("Graph node test") {
         .free = &data::pool_free_,
         .add_watcher = &data::pool_watch_add_,
         .del_watcher = &data::pool_watch_del_,
-        .size = &data::pool_size_
+        .size_total = &data::pool_size_total_,
+        .size_used = &data::pool_size_used_,
     };
 
     limbo::graph::memory::allocator = allocator_;
@@ -172,9 +177,18 @@ TEST_CASE("Graph node test") {
         }
     }
 
+    int free_blocks = 0;
+    for (int i = 0; i < data::pool.blocks_.size; ++i) {
+        const auto block = data::pool.blocks_.val_entries[i];
+        if (block.is_free == true)
+            free_blocks += 1;
+    }
+
     std::cout << "avg: " << (avg / counter) << '\n';
-    std::cout << "memory: " << limbo::graph::memory::allocator.size() << std::endl;
+    std::cout << "memory total : " << limbo::graph::memory::allocator.size_total() << " b" << std::endl;
+    std::cout << "memory used  : " << limbo::graph::memory::allocator.size_used() << " b" << std::endl;
+    std::cout << "blocks total: " << data::pool.blocks_.size << std::endl;
+    std::cout << "blocks free: " << free_blocks << std::endl;
     std::cout << "finished" << std::endl;
 
-    // TODO
 }

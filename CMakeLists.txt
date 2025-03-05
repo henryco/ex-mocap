@@ -86,7 +86,6 @@ set(EXTRA_FILES
         # data utils
         extra/data/data_utils.h
         extra/data/datalloc.h
-        extra/data/arenalloc.h
         extra/data/mempool.h
 
         # graph (nodes)

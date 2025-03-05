@@ -42,7 +42,8 @@ namespace ex::data {
         free_fn_t    free        = &default_free_;
         reg_fn_t     add_watcher = &default_reg_;
         reg_fn_t     del_watcher = &default_reg_;
-        size_fn_t    size        = &default_size_;
+        size_fn_t    size_total  = &default_size_;
+        size_fn_t    size_used   = &default_size_;
     };
 
 }
