@@ -377,7 +377,7 @@ namespace ex::data::mempool {
                 abort("memory fragmentation error: next block misalignment");
             }
 
-            if (const block_id_t ptr_should = static_cast<unsigned char *>(*rhs) - block_rhs.size_b; ptr_should != *lhs) {
+            if (const block_id_t ptr_should = static_cast<unsigned char *>(*rhs) - block_lhs.size_b; ptr_should != *lhs) {
                 abort("memory fragmentation error: next block misalignment");
             }
 
