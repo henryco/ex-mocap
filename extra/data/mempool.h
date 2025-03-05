@@ -204,20 +204,22 @@ namespace ex::data::mempool {
             // [space_b]: [size_b|rest_b]   -> [size_b] [rest_b]
             const block_id_t ptr_rest  = block_split(ptr_space, rest_b);
 
-            if (padding != 0 && block_id != ptr_space) {
-                block_free(block_id); // free padding
-            }
-
-            if (rest_b != 0 && ptr_rest != nullptr && ptr_rest != ptr_space) {
-                block_free(ptr_rest); // free rest
-            }
-
             const int ptr_idx = blocks_.index_at(ptr_space);
-
             blocks_.val_entries[ptr_idx].alignment_b = alignment_b;
             blocks_.val_entries[ptr_idx].size_b      = size_b;
             blocks_.val_entries[ptr_idx].is_free     = false;
 
+            // [padding] [size_b] [rest_b]
+            if (padding != 0 && block_id != ptr_space) {
+                block_free(block_id); // free padding
+            }
+
+            // [size_b] [rest_b]
+            if (rest_b != 0 && ptr_rest != nullptr && ptr_rest != ptr_space) {
+                block_free(ptr_rest); // free rest
+            }
+
+            // [size_b]
             return ptr_space;
         }
 
