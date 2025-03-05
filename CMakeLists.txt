@@ -87,10 +87,10 @@ set(EXTRA_FILES
         extra/data/data_utils.h
         extra/data/datalloc.h
         extra/data/arenalloc.h
+        extra/data/mempool.h
 
         # graph (nodes)
         extra/graph/graph.h
-        extra/data/simpalloc.h
 )
 
 set(PLATFORM_FILES
