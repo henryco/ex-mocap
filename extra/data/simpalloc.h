@@ -146,26 +146,7 @@ namespace ex::data::simpalloc {
                 }
 
                 if (lhs_remain < 0) {
-
-                    if (index_lhs != blocks_.size - 1) {
-                        // cannot expand block in the middle of arena
-                        abort("lhs memory block size out of bounds");
-                        return;
-                    }
-
-                    // expand last block size
-                    const void *allocated = request_memory((-1) * lhs_remain);
-
-                    if (static_cast<unsigned char *>(*lhs) + block_lhs.size_b != allocated) {
-                        abort("memory allocation error: next block misaligned");
-                    }
-
-                    // rhs block takes full space of expanded lhs
-                    blocks_.val_entries[index_lhs].size_b = size_rhs_b;
-
-                    *rhs = *lhs;
-                    *lhs = nullptr;
-
+                    abort("rhs memory block size out of bounds");
                     return;
                 }
 
@@ -197,24 +178,8 @@ namespace ex::data::simpalloc {
                 }
 
                 if (lhs_remain < 0) {
-
-                    if (index_rhs != blocks_.size - 1) {
-                        // cannot expand block in the middle of arena
-                        abort("rhs memory block size out of bounds");
-                        return;
-                    }
-
-                    // expand last block size
-                    const void *allocated = request_memory((-1) * lhs_remain);
-
-                    if (static_cast<unsigned char *>(*rhs) + block_rhs.size_b != allocated) {
-                        abort("memory allocation error: next block misaligned");
-                    }
-
-                    // expanded R-HS block new size
-                    blocks_.val_entries[index_rhs].size_b = size_rhs_b;
+                    abort("rhs memory block size out of bounds");
                     return;
-
                 }
 
                 // split R-HS block into two parts, shrink R-HS, make second one R-HS
@@ -263,26 +228,7 @@ namespace ex::data::simpalloc {
             const int32_t new_rhs_b = size_rhs_b;
 
             if (size_need > size_have) {
-                if (index_rhs != blocks_.size - 1) {
-                    // cannot expand in the middle of arena
-                    abort("rhs memory block size out of bounds");
-                    return;
-                }
-
-                // expand last block size
-                const void *allocated = request_memory(size_need - size_have);
-
-                if (static_cast<unsigned char *>(*rhs) + block_rhs.size_b != allocated) {
-                    abort("memory allocation error: next block misaligned");
-                }
-
-                // merge lhs into rhs, collapse lhs
-                blocks_.key_entries[index_rhs]        = lhs;
-                blocks_.val_entries[index_rhs].size_b = size_rhs_b;
-
-                blocks_.collapse_at_pos(index_lhs);
-                *rhs = *lhs;
-                *lhs = nullptr;
+                abort("rhs memory block size out of bounds");
                 return;
             }
 
