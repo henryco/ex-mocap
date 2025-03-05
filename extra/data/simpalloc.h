@@ -108,42 +108,6 @@ namespace ex::data::simpalloc {
             blocks_.val_entries.push({ static_cast<u_int32_t>(allocated_size), 1, true });
         }
 
-        block_id_t block_acquire(const int block_idx, const std::size_t size_b, const std::size_t alignment_b) {
-            const memory_block block  = blocks_.val_entries[block_idx];
-            if (block.is_free != true)
-                return nullptr;
-
-            const block_id_t block_id = blocks_.key_entries[block_idx];
-            const u_int64_t  padding  = block_padding(block_id, alignment_b);
-            const int64_t    space_b  = block.size_b - padding;
-            const int64_t    rest_b   = space_b - size_b;
-
-            if (space_b < size_b)
-                return nullptr;
-
-            // [block_b]: [padding|space_b] -> [padding] [space_b]
-            const block_id_t ptr_space = block_split(block_id, space_b);
-
-            // [space_b]: [size_b|rest_b]   -> [size_b] [rest_b]
-            const block_id_t ptr_rest  = block_split(ptr_space, rest_b);
-
-            if (padding != 0 && block_id != ptr_space) {
-                block_free(block_id); // free padding
-            }
-
-            if (rest_b != 0 && ptr_rest != nullptr && ptr_rest != ptr_space) {
-                block_free(ptr_rest); // free rest
-            }
-
-            const int ptr_idx = blocks_.index_at(ptr_space);
-
-            blocks_.val_entries[ptr_idx].alignment_b = alignment_b;
-            blocks_.val_entries[ptr_idx].size_b      = size_b;
-            blocks_.val_entries[ptr_idx].is_free     = false;
-
-            return ptr_space;
-        }
-
         void *allocate(const std::size_t size_b, const std::size_t alignment_b) {
             if (size_b <= 0) {
                 abort("Empty memory block allocation");
@@ -194,6 +158,45 @@ namespace ex::data::simpalloc {
             return memory_.size();
         }
 
+        block_id_t block_acquire(const int block_idx, const std::size_t size_b, const std::size_t alignment_b) {
+            const memory_block block  = blocks_.val_entries[block_idx];
+            if (block.is_free != true)
+                return nullptr;
+
+            const block_id_t block_id = blocks_.key_entries[block_idx];
+            const u_int64_t  padding  = block_padding(block_id, alignment_b);
+            const int64_t    space_b  = block.size_b - padding;
+            const int64_t    rest_b   = space_b - size_b;
+
+            if (space_b < size_b)
+                return nullptr;
+
+            // [block_b]: [padding|space_b] -> [padding] [space_b]
+            const block_id_t ptr_space = block_split(block_id, space_b);
+
+            // [space_b]: [size_b|rest_b]   -> [size_b] [rest_b]
+            const block_id_t ptr_rest  = block_split(ptr_space, rest_b);
+
+            if (padding != 0 && block_id != ptr_space) {
+                block_free(block_id); // free padding
+            }
+
+            if (rest_b != 0 && ptr_rest != nullptr && ptr_rest != ptr_space) {
+                block_free(ptr_rest); // free rest
+            }
+
+            const int ptr_idx = blocks_.index_at(ptr_space);
+
+            blocks_.val_entries[ptr_idx].alignment_b = alignment_b;
+            blocks_.val_entries[ptr_idx].size_b      = size_b;
+            blocks_.val_entries[ptr_idx].is_free     = false;
+
+            return ptr_space;
+        }
+
+        /**
+         * Calculate padding value for given block and alignment requirements
+         */
         u_int64_t block_padding(const block_id_t block_id, const u_int64_t alignment_b) const {
             if (alignment_b <= 1)
                 return 0;
@@ -256,7 +259,6 @@ namespace ex::data::simpalloc {
         //                ^ ^ [ - - - - ]
         //                p p      4
         //
-
         void block_resize(block_id_t *lhs, block_id_t *rhs, const u_int32_t size_rhs_b) {
             if (*lhs == nullptr && *rhs == nullptr) {
                 abort("block_resize called with nullptr");
@@ -386,6 +388,9 @@ namespace ex::data::simpalloc {
             *rhs                           = new_rhs_ptr;
         }
 
+        /**
+         * Return block into memory arena
+         */
         void block_free(const block_id_t block) {
             const int index_block = blocks_.index_at(block);
             blocks_.val_entries[index_block].alignment_b = 1;
@@ -408,13 +413,23 @@ namespace ex::data::simpalloc {
             }
         }
 
+        /**
+         * Split block on two, return newly created on the right.
+         * If new size is 0, do nothing (return nullptr).
+         * If new size is the size of source block, return source block
+         */
         block_id_t block_split(const block_id_t src, const u_int32_t size_new_b) {
+            if (size_new_b == 0)
+                return nullptr;
             block_id_t cpy = src;
             block_id_t dst = nullptr;
             block_resize(&cpy, &dst, size_new_b);
             return dst;
         }
 
+        /**
+         * Merge source (src) block into destination (dst) block
+         */
         void block_merge(block_id_t src, block_id_t dst) {
             block_resize(&dst, &src, 0);
         }
