@@ -5,11 +5,10 @@
 #ifndef EX_DATA_SIMPALLOC_H
 #define EX_DATA_SIMPALLOC_H
 
-#include <cstring>
-#include <iostream>
 #include "data_utils.h"
 
-#include "arenalloc.h"
+#include <cstring>
+#include <iostream>
 
 namespace ex::data::simpalloc {
 
@@ -19,6 +18,7 @@ namespace ex::data::simpalloc {
     }
 
     // ---- DEFAULT FALLBACK (malloc/realloc)
+    // TODO: replace with direct call to OS
     struct arena {
 
         void       *data     = nullptr;
