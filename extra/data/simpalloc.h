@@ -109,6 +109,7 @@ namespace ex::data::simpalloc {
         }
 
         void *allocate(const std::size_t size_b, const std::size_t alignment_b) {
+
             if (size_b <= 0) {
                 abort("Empty memory block allocation");
                 return nullptr;
@@ -150,8 +151,47 @@ namespace ex::data::simpalloc {
                 return ptr_space;
             }
 
-            // TODO
-            return nullptr;
+            block_request(size_b + alignment_b);
+            const int allocated_idx = blocks_.size - 1;
+
+            const block_id_t   block_id = blocks_.key_entries[allocated_idx];
+            const memory_block block    = blocks_.val_entries[allocated_idx];
+
+            if (block.is_free != true) {
+                abort("Out of free space");
+                return nullptr;
+            }
+
+            const u_int64_t padding = block_padding(block_id, alignment_b);
+            const int64_t   space_b = block.size_b - padding;
+            const int64_t   rest_b  = space_b - size_b;
+
+            if (space_b < size_b) {
+                abort("Out of free space");
+                return nullptr;
+            }
+
+            // [block_b]: [padding|space_b] -> [padding] [space_b]
+            const block_id_t ptr_space = block_split(block_id, space_b);
+
+            // [space_b]: [size_b|rest_b]   -> [size_b] [rest_b]
+            const block_id_t ptr_rest  = block_split(ptr_space, rest_b);
+
+            if (padding != 0 && block_id != ptr_space) {
+                block_free(block_id); // free padding
+            }
+
+            if (rest_b != 0 && ptr_rest != nullptr && ptr_rest != ptr_space) {
+                block_free(ptr_rest); // free rest
+            }
+
+            const int ptr_idx = blocks_.index_at(ptr_space);
+
+            blocks_.val_entries[ptr_idx].alignment_b = alignment_b;
+            blocks_.val_entries[ptr_idx].size_b      = size_b;
+            blocks_.val_entries[ptr_idx].is_free     = false;
+
+            return ptr_space;
         }
 
         void *reallocate(void *ptr, const std::size_t size_new_b) {
