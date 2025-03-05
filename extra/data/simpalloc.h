@@ -109,6 +109,10 @@ namespace ex::data::simpalloc {
         }
 
         void *allocate(const std::size_t size_b, const std::size_t alignment_b) {
+            if (size_b <= 0) {
+                abort("Empty memory block allocation");
+                return nullptr;
+            }
 
             for (int i = 0; i < blocks_.size; i++) {
                 const memory_block block  = blocks_.val_entries[i];
@@ -118,15 +122,32 @@ namespace ex::data::simpalloc {
                 const block_id_t block_id = blocks_.key_entries[i];
                 const u_int64_t  padding  = block_padding(block_id, alignment_b);
                 const int64_t    space_b  = block.size_b - padding;
+                const int64_t    rest_b   = space_b - size_b;
 
                 if (space_b < size_b)
                     continue;
 
-                const block_id_t ptr_start = block_split(block_id, space_b);
+                // [block_b]: [padding|space_b] -> [padding] [space_b]
+                const block_id_t ptr_space = block_split(block_id, space_b);
 
-                // TODO
+                // [space_b]: [size_b|rest_b]   -> [size_b] [rest_b]
+                const block_id_t ptr_rest  = block_split(ptr_space, rest_b);
 
-                return ptr_start;
+                if (padding != 0 && block_id != ptr_space) {
+                    block_free(block_id); // free padding
+                }
+
+                if (rest_b != 0 && ptr_rest != nullptr && ptr_rest != ptr_space) {
+                    block_free(ptr_rest); // free rest
+                }
+
+                const int ptr_idx = blocks_.index_at(ptr_space);
+
+                blocks_.val_entries[ptr_idx].alignment_b = alignment_b;
+                blocks_.val_entries[ptr_idx].size_b      = size_b;
+                blocks_.val_entries[ptr_idx].is_free     = false;
+
+                return ptr_space;
             }
 
             // TODO
@@ -236,6 +257,11 @@ namespace ex::data::simpalloc {
 
             if (*rhs == nullptr) {
                 // Split L-HS block, allocate new R-HS (mostly by shrinking L-HS)
+
+                if (size_rhs_b == 0) {
+                    // nothing ever happens, im all in
+                    return;
+                }
 
                 const int          index_lhs  = blocks_.index_at(*lhs);
                 const memory_block block_lhs  = blocks_.val_entries[index_lhs];
@@ -375,9 +401,10 @@ namespace ex::data::simpalloc {
             }
         }
 
-        block_id_t block_split(block_id_t src, const u_int32_t size_new_b) {
+        block_id_t block_split(const block_id_t src, const u_int32_t size_new_b) {
+            block_id_t cpy = src;
             block_id_t dst = nullptr;
-            block_resize(&src, &dst, size_new_b);
+            block_resize(&cpy, &dst, size_new_b);
             return dst;
         }
 
