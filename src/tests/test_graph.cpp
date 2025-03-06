@@ -155,9 +155,13 @@ TEST_CASE("Graph node test") {
 
     limbo::graph::memory::allocator = allocator_;
 
+    ex::time::measure_avg time = 1;
+    time.start();
     limbo::graph::BaseNode *root = new node_test_one();
     rec_build(root, 4, 3);
+    time.stop();
 
+    std::cout << "build: " << time.result() << " ns" << std::endl;
     std::cout << "total: " << counter_ << std::endl;
 
     limbo::graph::Clock clock;
