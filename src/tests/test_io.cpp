@@ -68,13 +68,13 @@ TEST_CASE("byte_box simple read write [offset]") {
     auto buff_in = in::create_buffer(10, in::mode::OFFSET);
     for (std::int64_t i = 0; (i = in::next(buff_in, data + i)) != -1;) {
 
-        std::cout << "next: " << in::offset(buff_in) << ", " << i << std::endl;
+//        std::cout << "next: " << in::offset(buff_in) << ", " << i << std::endl;
 
         if (in::begin_array(buff_in)) {
             const auto size_b = in::array_size(buff_in);
             const auto size_n = in::array_count(buff_in);
             const auto arr_t  = in::array_type(buff_in);
-            std::cout << "array begin: " << size_b << ", " << size_n << ", " << arr_t << '\n' << std::endl;
+//            std::cout << "array begin: " << size_b << ", " << size_n << ", " << arr_t << '\n' << std::endl;
 
             type_have[type_have_i][0] = arr_begin;
             type_have[type_have_i][1] = arr_t;
@@ -85,7 +85,7 @@ TEST_CASE("byte_box simple read write [offset]") {
             const auto size_b = in::array_size(buff_in);
             const auto size_n = in::array_count(buff_in);
             const auto arr_t  = in::array_type(buff_in);
-            std::cout << "array end: " << size_b << ", " << size_n << ", " << arr_t << '\n' << std::endl;
+//            std::cout << "array end: " << size_b << ", " << size_n << ", " << arr_t << '\n' << std::endl;
 
             type_have[type_have_i][0] = arr_end;
             type_have[type_have_i][1] = arr_t;
@@ -102,13 +102,13 @@ TEST_CASE("byte_box simple read write [offset]") {
             std::memcpy(dst, data + offset, obj_size_b);
             const auto str = reinterpret_cast<const char *>(dst);
 
-            std::cout << "is object: [" << item_idx << "][" << offset << "], "
-            << item_type << ", ("
-            << obj_size_b << ", "
-            << item_size_b << "): "
-            << str
-            << '\n'
-            << std::endl;
+//            std::cout << "is object: [" << item_idx << "][" << offset << "], "
+//            << item_type << ", ("
+//            << obj_size_b << ", "
+//            << item_size_b << "): "
+//            << str
+//            << '\n'
+//            << std::endl;
 
             delete[] dst;
 
@@ -173,13 +173,13 @@ TEST_CASE("byte_box simple read write [chunks]") {
 
     for (std::int64_t i = 0; (i = in::next(buff_in, chunk)) != -1;) {
 
-        std::cout << "next: " << i << std::endl;
+//        std::cout << "next: " << i << std::endl;
 
         if (in::begin_array(buff_in)) {
             const auto size_b = in::array_size(buff_in);
             const auto size_n = in::array_count(buff_in);
             const auto arr_t  = in::array_type(buff_in);
-            std::cout << "array begin: " << size_b << ", " << size_n << ", " << arr_t << '\n' << std::endl;
+//            std::cout << "array begin: " << size_b << ", " << size_n << ", " << arr_t << '\n' << std::endl;
 
             type_have[type_have_i][0] = arr_begin;
             type_have[type_have_i][1] = arr_t;
@@ -190,7 +190,7 @@ TEST_CASE("byte_box simple read write [chunks]") {
             const auto size_b = in::array_size(buff_in);
             const auto size_n = in::array_count(buff_in);
             const auto arr_t  = in::array_type(buff_in);
-            std::cout << "array end: " << size_b << ", " << size_n << ", " << arr_t << '\n' << std::endl;
+//            std::cout << "array end: " << size_b << ", " << size_n << ", " << arr_t << '\n' << std::endl;
 
             type_have[type_have_i][0] = arr_end;
             type_have[type_have_i][1] = arr_t;
@@ -207,14 +207,14 @@ TEST_CASE("byte_box simple read write [chunks]") {
 
             const auto str = reinterpret_cast<const char *>(chunk);
 
-            std::cout << "is object: [" << item_idx << "][" << offset << "], "
-            << item_type << ", ("
-            << obj_size_b << ", "
-            << i << ", "
-            << item_size_b << "): "
-            << str
-            << '\n'
-            << std::endl;
+//            std::cout << "is object: [" << item_idx << "][" << offset << "], "
+//            << item_type << ", ("
+//            << obj_size_b << ", "
+//            << i << ", "
+//            << item_size_b << "): "
+//            << str
+//            << '\n'
+//            << std::endl;
 
             type_have[type_have_i][0] = is_obj;
             type_have[type_have_i][1] = item_type;
