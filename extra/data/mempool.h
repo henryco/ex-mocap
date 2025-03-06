@@ -426,7 +426,7 @@ namespace ex::data::mempool {
                 }
             }
 
-            if (const int index_prev = index_block - 1; index_prev > 0) {
+            if (const int index_prev = index_block - 1; index_prev >= 0) {
                 if (const memory_block prev = blocks_.val_entries[index_prev]; prev.is_free == true) {
                     block_merge(blocks_.key_entries[index_prev], block);
                 }
