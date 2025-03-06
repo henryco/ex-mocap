@@ -151,6 +151,11 @@ namespace ex::data {
     template<typename element_t>
     struct array {
 
+        using comparator_fn = int8_t (*)(const element_t *a, const element_t *b);
+        static int8_t default_comparator(const element_t *a, const element_t *b) {
+            return (*a > *b) - (*a < *b);
+        }
+
         allocator allocator_;
 
         element_t *data     = nullptr;
@@ -220,6 +225,17 @@ namespace ex::data {
                 data = realloc_<element_t>(this, allocator_, data, n);
 
             capacity = n;
+        }
+
+        int sort_insert(const element_t &value, const comparator_fn compare = &default_comparator) {
+            for (int i = 0; i < size; ++i) {
+                if (compare(&value, &data[i]) < 0) {
+                    insert(i, value);
+                    return i;
+                }
+            }
+            push(value);
+            return size - 1;
         }
 
         void insert(const int index, const element_t &value) {
