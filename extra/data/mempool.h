@@ -12,11 +12,11 @@
 
 namespace ex::data::mempool {
 
-    #ifndef UNIT_TEST
+//    #ifndef UNIT_TEST
     #define abort_(msg) do { std::cerr << msg << std::endl; ::abort(); } while(false)
-    #else
-    #define abort_(msg) throw std::runtime_error(msg)
-    #endif
+//    #else
+//    #define abort_(msg) throw std::runtime_error(msg)
+//    #endif
 
     // ---- DEFAULT FALLBACK (malloc/realloc)
     // TODO: replace with direct call to OS
@@ -91,7 +91,13 @@ namespace ex::data::mempool {
 
     struct allocator {
 
-        ex::data::sorted_map<block_id_t, memory_block> blocks_;
+        static int8_t ptr_compare(const block_id_t *a, const block_id_t *b) {
+            const u_int64_t aa = reinterpret_cast<u_int64_t>(*a);
+            const u_int64_t bb = reinterpret_cast<u_int64_t>(*b);
+            return (aa > bb) - (aa < bb);
+        }
+
+        ex::data::sorted_map<block_id_t, memory_block> blocks_ = &ptr_compare;
         ex::data::map<watch_id_t, watch_fn_t>          watche_;
         ex::data::array<block_id_t>                    free_;
         mem_provider                                   memory_;

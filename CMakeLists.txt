@@ -307,7 +307,8 @@ if (ENABLE_TESTS)
     set(TEST_SOURCES
             src/tests/test_io.cpp
             src/tests/test_graph.cpp
-            src/tests/test_mempool.cpp)
+            src/tests/test_mempool.cpp
+            src/tests/test_data.cpp)
 
     add_executable(tests
             ${RESULT_SOURCES}
