@@ -46,7 +46,7 @@ namespace ex::data::mempool {
             return offset;
         }
 
-        const void *data_ptr() const {
+        void *data_ptr() const {
             return data;
         }
 
@@ -151,7 +151,7 @@ namespace ex::data::mempool {
 
             void *allocated = allocate(size_new_b, block.alignment_b);
             if (allocated != ptr) {
-                ::memmove(allocated, ptr, block.size_b);
+                ::memmove(allocated, ptr, size_new_b < block.size_b ? size_new_b : block.size_b);
             }
 
             return allocated;
