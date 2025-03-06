@@ -238,6 +238,19 @@ namespace ex::data {
             return size - 1;
         }
 
+        int sort_insert_unique(const element_t &value, const comparator_fn compare = &default_comparator) {
+            for (int i = 0; i < size; ++i) {
+                if (const int8_t r = compare(&value, &data[i]); r < 0) {
+                    insert(i, value);
+                    return i;
+                }
+                else if (r == 0)
+                    return i;
+            }
+            push(value);
+            return size - 1;
+        }
+
         void insert(const int index, const element_t &value) {
             if (size >= capacity) {
                 capacity = capacity > 0 ? (2 * capacity) : 2;

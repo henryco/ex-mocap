@@ -107,6 +107,7 @@ namespace ex::data::mempool {
 
             blocks_.key_entries.push(allocated_ptr);
             blocks_.val_entries.push({ static_cast<u_int32_t>(allocated_size), 1, true });
+            free_.sort_insert_unique(allocated_ptr);
         }
 
         void add_watcher(const watch_id_t id, const watch_fn_t fn) {
@@ -122,9 +123,15 @@ namespace ex::data::mempool {
                 abort_("Empty memory block allocation");
             }
 
-            for (int i = 0; i < blocks_.size; i++) {
-                if (const block_id_t block_id = block_acquire(i, size_b, alignment_b))
+//            for (int i = 0; i < blocks_.size; ++i) {
+//                if (const block_id_t block_id = block_acquire(i, size_b, alignment_b))
+//                    return block_id;
+//            }
+
+            for (int i = 0; i < free_.size; ++i) {
+                if (const block_id_t block_id = block_acquire(blocks_.index_at(free_[i]), size_b, alignment_b)) {
                     return block_id;
+                }
             }
 
             block_request(size_b + alignment_b);
@@ -206,6 +213,8 @@ namespace ex::data::mempool {
             blocks_.val_entries[ptr_idx].size_b      = size_b;
             blocks_.val_entries[ptr_idx].is_free     = false;
 
+            free_.collapse_element(ptr_space);
+
             // [padding] [size_b] [rest_b]
             if (padding != 0 && block_id != ptr_space) {
                 block_free(block_id); // free padding
@@ -257,6 +266,10 @@ namespace ex::data::mempool {
                     blocks_.key_entries[i] = static_cast<unsigned char *>(blocks_.key_entries[i]) + addr_diff;
                 }
 
+                for (int i = 0; i < free_.size; ++i) {
+                    free_[i] = static_cast<unsigned char *>(free_[i]) + addr_diff;
+                }
+
                 for (int i = 0; i < watche_.size; ++i) {
                     if (const auto fn = watche_.val_entries[i])
                         fn(watche_.key_entries[i], addr_diff);
@@ -272,6 +285,8 @@ namespace ex::data::mempool {
             // append new free block
             blocks_.key_entries.push(allocated_ptr);
             blocks_.val_entries.push({ static_cast<u_int32_t>(real_size), 1, true });
+            free_.sort_insert_unique(allocated_ptr);
+
             return allocated_ptr;
         }
 
@@ -320,6 +335,7 @@ namespace ex::data::mempool {
 
                 blocks_.key_entries.insert(index_lhs + 1, rhs_ptr);
                 blocks_.val_entries.insert(index_lhs + 1, { size_rhs_b, 1, true });
+                free_.sort_insert_unique(rhs_ptr);
 
                 *rhs = rhs_ptr;
                 return;
@@ -355,6 +371,9 @@ namespace ex::data::mempool {
 
                 *lhs = *rhs;
                 *rhs = rhs_ptr;
+
+                free_.sort_insert_unique(*rhs);
+
                 return;
             }
 
@@ -379,6 +398,7 @@ namespace ex::data::mempool {
 
                 blocks_.val_entries[index_lhs].size_b += block_rhs.size_b;
                 blocks_.collapse_at_pos(index_rhs);
+                free_.collapse_element(*rhs);
                 *rhs = nullptr;
                 return;
             }
@@ -396,6 +416,8 @@ namespace ex::data::mempool {
             blocks_.val_entries[index_rhs].size_b = static_cast<u_int32_t>(new_rhs_b);
             blocks_.val_entries[index_lhs].size_b = static_cast<u_int32_t>(new_lhs_b);
 
+            free_.collapse_element(*rhs);
+
             if (new_lhs_b <= 0) {
                 blocks_.key_entries[index_rhs] = static_cast<unsigned char *>(*lhs);
                 blocks_.collapse_at_pos(index_lhs);
@@ -407,6 +429,8 @@ namespace ex::data::mempool {
             const block_id_t new_rhs_ptr   = static_cast<unsigned char *>(*lhs) + new_lhs_b;
             blocks_.key_entries[index_rhs] = new_rhs_ptr;
             *rhs                           = new_rhs_ptr;
+
+            free_.sort_insert_unique(*rhs);
         }
 
         /**
@@ -416,6 +440,8 @@ namespace ex::data::mempool {
             const int index_block = blocks_.index_at(block);
             blocks_.val_entries[index_block].alignment_b = 1;
             blocks_.val_entries[index_block].is_free     = true;
+
+            free_.sort_insert_unique(block);
 
             // . . n 1 2 . .  [1 <- 2]
             // . . n 1 _ . .  [n <- 1]

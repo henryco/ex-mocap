@@ -193,6 +193,7 @@ TEST_CASE("Graph node test") {
     std::cout << "memory used  : " << limbo::graph::memory::allocator.size_used() << " b" << std::endl;
     std::cout << "blocks total: " << data::pool.blocks_.size << std::endl;
     std::cout << "blocks free: " << free_blocks << std::endl;
+    std::cout << "blocks void: " << data::pool.free_.size << std::endl;
     std::cout << "finished" << std::endl;
 
 }
