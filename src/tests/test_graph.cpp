@@ -184,7 +184,7 @@ TEST_CASE("Graph node test") {
             free_blocks += 1;
     }
 
-    std::cout << "avg: " << (avg / counter) << '\n';
+    std::cout << "avg: " << (avg / counter) << " ns\n";
     std::cout << "memory total : " << limbo::graph::memory::allocator.size_total() << " b" << std::endl;
     std::cout << "memory used  : " << limbo::graph::memory::allocator.size_used() << " b" << std::endl;
     std::cout << "blocks total: " << data::pool.blocks_.size << std::endl;
