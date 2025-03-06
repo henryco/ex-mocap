@@ -269,12 +269,16 @@ TEST_CASE("Reallocation returns same pointer if same size requested") {
 TEST_CASE("Multiple allocations with different alignments yield correctly aligned addresses") {
     allocator alloc;
     std::vector<std::size_t> alignments = {2, 4, 8, 16, 32};
-    for(auto alignment : alignments) {
+    for (auto alignment : alignments) {
         INFO("Allocating block with alignment " << alignment);
         void* ptr = alloc.allocate(64, alignment);
+
+        u_int64_t zero = reinterpret_cast<u_int64_t>(alloc.memory_.data_ptr());
         u_int64_t addr = reinterpret_cast<u_int64_t>(ptr);
+        u_int64_t offset = addr - zero;
+
         INFO("Checking pointer " << ptr << " is aligned to " << alignment << " (remainder: " << addr % alignment << ")");
-        CHECK(addr % alignment == 0);
+        CHECK(offset % alignment == 0);
         alloc.free(ptr);
     }
 }
