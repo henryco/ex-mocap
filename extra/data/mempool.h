@@ -93,6 +93,7 @@ namespace ex::data::mempool {
 
         ex::data::map<block_id_t, memory_block> blocks_;
         ex::data::map<watch_id_t, watch_fn_t>   watche_;
+        ex::data::array<block_id_t>             free_;
         mem_provider                            memory_;
 
         #define DEFAULT_ARENA_SIZE_B 1048576
