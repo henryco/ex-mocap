@@ -183,7 +183,7 @@ TEST_CASE("Graph node test") {
 
     int free_blocks = 0;
     for (int i = 0; i < data::pool.blocks_.size; ++i) {
-        const auto block = data::pool.blocks_.val_entries[i];
+        const auto block = data::pool.blocks_.val_entries_[i];
         if (block.is_free == true)
             free_blocks += 1;
     }

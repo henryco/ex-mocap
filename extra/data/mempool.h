@@ -91,10 +91,10 @@ namespace ex::data::mempool {
 
     struct allocator {
 
-        ex::data::map<block_id_t, memory_block> blocks_;
-        ex::data::map<watch_id_t, watch_fn_t>   watche_;
-        ex::data::array<block_id_t>             free_;
-        mem_provider                            memory_;
+        ex::data::sorted_map<block_id_t, memory_block> blocks_;
+        ex::data::map<watch_id_t, watch_fn_t>          watche_;
+        ex::data::array<block_id_t>                    free_;
+        mem_provider                                   memory_;
 
         #define DEFAULT_ARENA_SIZE_B 1048576
 
@@ -105,9 +105,8 @@ namespace ex::data::mempool {
             std::size_t allocated_size = 0;
             void *const allocated_ptr  = memory_.request(pre_allocated, &allocated_size);
 
-            blocks_.key_entries.push(allocated_ptr);
-            blocks_.val_entries.push({ static_cast<u_int32_t>(allocated_size), 1, true });
-            free_.sort_insert_unique(allocated_ptr);
+            blocks_.put(allocated_ptr, { static_cast<u_int32_t>(allocated_size), 1, true });
+            free_.sort_insert_once(allocated_ptr);
         }
 
         void add_watcher(const watch_id_t id, const watch_fn_t fn) {
@@ -149,7 +148,7 @@ namespace ex::data::mempool {
             }
 
             const int          block_idx = blocks_.index_at(ptr);
-            const memory_block block     = blocks_.val_entries[block_idx];
+            const memory_block block     = blocks_.at_index(block_idx);
 
             if (block.is_free == true) {
                 abort_("Cannot reallocate freed block");
@@ -179,7 +178,7 @@ namespace ex::data::mempool {
         long memory_used_b() const {
             long used_b = 0;
             for (int i = 0; i < blocks_.size; ++i) {
-                const memory_block mem = blocks_.val_entries[i];
+                const memory_block mem = blocks_.at_index(i);
                 used_b += mem.is_free ? 0 : mem.size_b;
             }
             return used_b;
@@ -190,11 +189,11 @@ namespace ex::data::mempool {
         }
 
         block_id_t block_acquire(const int block_idx, const std::size_t size_b, const std::size_t alignment_b) {
-            const memory_block block  = blocks_.val_entries[block_idx];
+            const memory_block block  = blocks_.at_index(block_idx);
             if (block.is_free != true)
                 return nullptr;
 
-            const block_id_t block_id = blocks_.key_entries[block_idx];
+            const block_id_t block_id = blocks_.key_at_index(block_idx);
             const u_int64_t  padding  = block_padding(block_id, alignment_b);
             const int64_t    space_b  = block.size_b - padding;
             const int64_t    rest_b   = space_b - size_b;
@@ -209,9 +208,9 @@ namespace ex::data::mempool {
             const block_id_t ptr_rest  = block_split(ptr_space, rest_b);
 
             const int ptr_idx = blocks_.index_at(ptr_space);
-            blocks_.val_entries[ptr_idx].alignment_b = alignment_b;
-            blocks_.val_entries[ptr_idx].size_b      = size_b;
-            blocks_.val_entries[ptr_idx].is_free     = false;
+            blocks_.at_index(ptr_idx).alignment_b = alignment_b;
+            blocks_.at_index(ptr_idx).size_b      = size_b;
+            blocks_.at_index(ptr_idx).is_free     = false;
 
             free_.collapse_element(ptr_space);
 
@@ -247,8 +246,8 @@ namespace ex::data::mempool {
          */
         block_id_t block_request(const std::size_t min_size_b) {
             const int          last_idx   = blocks_.size - 1;
-            const block_id_t   last_ptr   = blocks_.key_entries[last_idx];
-            const memory_block last_block = blocks_.val_entries[last_idx];
+            const block_id_t   last_ptr   = blocks_.key_at_index(last_idx);
+            const memory_block last_block = blocks_.at_index(last_idx);
 
             int64_t     addr_diff;
             std::size_t real_size;
@@ -263,7 +262,8 @@ namespace ex::data::mempool {
             // update pointers in case of data relocation
             if (addr_diff != 0) {
                 for (int i = 0; i < blocks_.size; ++i) {
-                    blocks_.key_entries[i] = static_cast<unsigned char *>(blocks_.key_entries[i]) + addr_diff;
+                    // TODO FIXME ?
+                    blocks_.key_at_index(i) = static_cast<unsigned char *>(blocks_.key_at_index(i)) + addr_diff;
                 }
 
                 for (int i = 0; i < free_.size; ++i) {
@@ -278,14 +278,13 @@ namespace ex::data::mempool {
 
             // resize last free block
             if (last_block.is_free) {
-                blocks_.val_entries[last_idx].size_b += real_size;
-                return blocks_.key_entries[last_idx];
+                blocks_.at_index(last_idx).size_b += real_size;
+                return blocks_.key_at_index(last_idx);
             }
 
             // append new free block
-            blocks_.key_entries.push(allocated_ptr);
-            blocks_.val_entries.push({ static_cast<u_int32_t>(real_size), 1, true });
-            free_.sort_insert_unique(allocated_ptr);
+            blocks_.put(allocated_ptr, { static_cast<u_int32_t>(real_size), 1, true });
+            free_.sort_insert_once(allocated_ptr);
 
             return allocated_ptr;
         }
@@ -313,7 +312,7 @@ namespace ex::data::mempool {
                 }
 
                 const int          index_lhs  = blocks_.index_at(*lhs);
-                const memory_block block_lhs  = blocks_.val_entries[index_lhs];
+                const memory_block block_lhs  = blocks_.at_index(index_lhs);
                 const int32_t      lhs_remain = block_lhs.size_b - size_rhs_b;
 
                 if (lhs_remain == 0) {
@@ -331,11 +330,10 @@ namespace ex::data::mempool {
 
                 const block_id_t rhs_ptr = static_cast<unsigned char *>(*lhs) + lhs_remain;
 
-                blocks_.val_entries[index_lhs].size_b = lhs_remain;
+                blocks_.at_index(index_lhs).size_b = lhs_remain;
 
-                blocks_.key_entries.insert(index_lhs + 1, rhs_ptr);
-                blocks_.val_entries.insert(index_lhs + 1, { size_rhs_b, 1, true });
-                free_.sort_insert_unique(rhs_ptr);
+                blocks_.put(rhs_ptr, { size_rhs_b, 1, true });
+                free_.sort_insert_once(rhs_ptr);
 
                 *rhs = rhs_ptr;
                 return;
@@ -345,7 +343,7 @@ namespace ex::data::mempool {
                 // Split R-HS block, allocate new L-HS (mostly by shrinking R-HS)
 
                 const int          index_rhs  = blocks_.index_at(*rhs);
-                const memory_block block_rhs  = blocks_.val_entries[index_rhs];
+                const memory_block block_rhs  = blocks_.at_index(index_rhs);
                 const int32_t      lhs_remain = block_rhs.size_b - size_rhs_b;
 
                 if (size_rhs_b == 0) {
@@ -363,16 +361,16 @@ namespace ex::data::mempool {
 
                 const block_id_t rhs_ptr = static_cast<unsigned char *>(*rhs) + lhs_remain;
 
-                blocks_.key_entries[index_rhs]        = rhs_ptr;
-                blocks_.val_entries[index_rhs].size_b = size_rhs_b;
+                // TODO FIXME ?
+                blocks_.key_at_index(index_rhs)    = rhs_ptr;
+                blocks_.at_index(index_rhs).size_b = size_rhs_b;
 
-                blocks_.key_entries.insert(index_rhs, *rhs);
-                blocks_.val_entries.insert(index_rhs, { static_cast<u_int32_t>(lhs_remain), 1, true });
+                blocks_.put(*rhs, { static_cast<u_int32_t>(lhs_remain), 1, true });
 
                 *lhs = *rhs;
                 *rhs = rhs_ptr;
 
-                free_.sort_insert_unique(*rhs);
+                free_.sort_insert_once(*rhs);
 
                 return;
             }
@@ -382,8 +380,8 @@ namespace ex::data::mempool {
             const int index_lhs = blocks_.index_at(*lhs);
             const int index_rhs = blocks_.index_at(*rhs);
 
-            const memory_block block_lhs = blocks_.val_entries[index_lhs];
-            const memory_block block_rhs = blocks_.val_entries[index_rhs];
+            const memory_block block_lhs = blocks_.at_index(index_lhs);
+            const memory_block block_rhs = blocks_.at_index(index_rhs);
 
             if (const block_id_t ptr_should = static_cast<unsigned char *>(*lhs) + block_lhs.size_b; ptr_should != *rhs) {
                 abort_("memory fragmentation error: next block misalignment");
@@ -396,7 +394,7 @@ namespace ex::data::mempool {
             if (size_rhs_b == 0) {
                 // merge rhs into lhs
 
-                blocks_.val_entries[index_lhs].size_b += block_rhs.size_b;
+                blocks_.at_index(index_lhs).size_b += block_rhs.size_b;
                 blocks_.collapse_at_pos(index_rhs);
                 free_.collapse_element(*rhs);
                 *rhs = nullptr;
@@ -413,24 +411,26 @@ namespace ex::data::mempool {
             }
 
             // resize / collapse
-            blocks_.val_entries[index_rhs].size_b = static_cast<u_int32_t>(new_rhs_b);
-            blocks_.val_entries[index_lhs].size_b = static_cast<u_int32_t>(new_lhs_b);
+            blocks_.at_index(index_rhs).size_b = static_cast<u_int32_t>(new_rhs_b);
+            blocks_.at_index(index_lhs).size_b = static_cast<u_int32_t>(new_lhs_b);
 
             free_.collapse_element(*rhs);
 
             if (new_lhs_b <= 0) {
-                blocks_.key_entries[index_rhs] = static_cast<unsigned char *>(*lhs);
+                // TODO FIXME ?
+                blocks_.key_at_index(index_rhs) = static_cast<unsigned char *>(*lhs);
                 blocks_.collapse_at_pos(index_lhs);
                 *rhs = *lhs;
                 *lhs = nullptr;
                 return;
             }
 
-            const block_id_t new_rhs_ptr   = static_cast<unsigned char *>(*lhs) + new_lhs_b;
-            blocks_.key_entries[index_rhs] = new_rhs_ptr;
-            *rhs                           = new_rhs_ptr;
+            // TODO FIXME ?
+            const block_id_t new_rhs_ptr    = static_cast<unsigned char *>(*lhs) + new_lhs_b;
+            blocks_.key_at_index(index_rhs) = new_rhs_ptr;
+            *rhs                            = new_rhs_ptr;
 
-            free_.sort_insert_unique(*rhs);
+            free_.sort_insert_once(*rhs);
         }
 
         /**
@@ -438,24 +438,24 @@ namespace ex::data::mempool {
          */
         void block_free(const block_id_t block) {
             const int index_block = blocks_.index_at(block);
-            blocks_.val_entries[index_block].alignment_b = 1;
-            blocks_.val_entries[index_block].is_free     = true;
+            blocks_.at_index(index_block).alignment_b = 1;
+            blocks_.at_index(index_block).is_free     = true;
 
-            free_.sort_insert_unique(block);
+            free_.sort_insert_once(block);
 
             // . . n 1 2 . .  [1 <- 2]
             // . . n 1 _ . .  [n <- 1]
             // . . n _ _ . .
 
             if (const int index_next = index_block + 1; index_next <= blocks_.size - 1) {
-                if (const memory_block next = blocks_.val_entries[index_next]; next.is_free == true) {
-                    block_merge(block, blocks_.key_entries[index_next]);
+                if (const memory_block next = blocks_.at_index(index_next); next.is_free == true) {
+                    block_merge(block, blocks_.key_at_index(index_next));
                 }
             }
 
             if (const int index_prev = index_block - 1; index_prev >= 0) {
-                if (const memory_block prev = blocks_.val_entries[index_prev]; prev.is_free == true) {
-                    block_merge(blocks_.key_entries[index_prev], block);
+                if (const memory_block prev = blocks_.at_index(index_prev); prev.is_free == true) {
+                    block_merge(blocks_.key_at_index(index_prev), block);
                 }
             }
         }

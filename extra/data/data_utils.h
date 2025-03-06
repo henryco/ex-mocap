@@ -227,28 +227,89 @@ namespace ex::data {
             capacity = n;
         }
 
-        int sort_insert(const element_t &value, const comparator_fn compare = &default_comparator) {
-            for (int i = 0; i < size; ++i) {
-                if (compare(&value, &data[i]) < 0) {
-                    insert(i, value);
-                    return i;
+        int binary_search(const element_t &value, const comparator_fn compare = &default_comparator) const {
+            if (data == nullptr)
+                return -1;
+            //[n: 2]
+            // i: 0 1 2 3 4 5 6 7 8
+            // d: 0 1 4 5 6 7 7 8 9
+            //       *            ^  8
+            //       |    ^          4
+            //       |^              2
+            //      ^|               1
+            //       |^              1
+            //      ^|               1
+
+            int index = size - 1;
+            int width = size;
+            while (true) {
+                const int8_t r = compare(&value, &data[index]);
+
+                if (r == 0)
+                    return index;
+
+                width = (width / 2) > 0
+                    ? (width / 2)
+                    : 1;
+
+                if (r < 0) index -= width;
+                else       index += width;
+
+                if (index >= size)
+                    return size;
+
+                if (index < 0)
+                    return -1;
+
+                if (width == 1) {
+                    const int8_t rr = compare(&value, &data[index]);
+                    if (rr == 0)
+                        return index;
+
+                    if (rr < 0 && r > 0)
+                        return index + 1;
+
+                    if (rr > 0 && r < 0)
+                        return index;
                 }
             }
-            push(value);
-            return size - 1;
         }
 
-        int sort_insert_unique(const element_t &value, const comparator_fn compare = &default_comparator) {
-            for (int i = 0; i < size; ++i) {
-                if (const int8_t r = compare(&value, &data[i]); r < 0) {
-                    insert(i, value);
-                    return i;
-                }
-                else if (r == 0)
-                    return i;
+        int sort_insert(const element_t &value, const comparator_fn compare = &default_comparator) {
+            const int i = binary_search(value, compare);
+
+            if (i >= size) {
+                push(value);
+                return size - 1;
             }
-            push(value);
-            return size - 1;
+
+            if (i <= 0) {
+                insert(0, value);
+                return 0;
+            }
+
+            insert(i, value);
+            return i;
+        }
+
+        int sort_insert_once(const element_t &value, const comparator_fn compare = &default_comparator) {
+            const int i = binary_search(value, compare);
+
+            if (i >= size) {
+                push(value);
+                return size - 1;
+            }
+
+            if (i <= 0) {
+                insert(0, value);
+                return 0;
+            }
+
+            if (compare(&data[i], &value) == 0)
+                return i;
+
+            insert(i, value);
+            return i;
         }
 
         void insert(const int index, const element_t &value) {
@@ -610,6 +671,159 @@ namespace ex::data {
             val_entries.reserve(n);
         }
     };
+
+
+    template<typename key_t, typename element_t>
+    struct sorted_map { // sorted map with binary tree search implementation
+
+        using comparator_fn = int8_t (*)(const key_t *a, const key_t *b);
+        static int8_t default_comparator(const key_t *a, const key_t *b) {
+            return (*a > *b) - (*a < *b);
+        }
+
+        comparator_fn    comparator__;
+        array<key_t>     key_entries_;
+        array<element_t> val_entries_;
+
+        const int &capacity = key_entries_.capacity;
+        const int &size     = key_entries_.size;
+
+        ~sorted_map() = default;
+
+        sorted_map(const comparator_fn compare = &default_comparator):
+            comparator__(compare) {
+        }
+
+        sorted_map(const allocator &allocator_, const comparator_fn compare = &default_comparator) :
+            comparator__(compare), key_entries_(allocator_), val_entries_(allocator_) {
+        }
+
+        sorted_map(int capacity, const comparator_fn compare = &default_comparator) :
+            comparator__(compare), key_entries_(capacity), val_entries_(capacity) {
+        }
+
+        sorted_map(int capacity, const allocator &allocator_, const comparator_fn compare = &default_comparator) :
+            comparator__(compare), key_entries_(capacity, allocator_), val_entries_(capacity, allocator_) {
+        }
+
+        sorted_map(const sorted_map &src) :
+            comparator__(src.comparator__),
+            key_entries_(src.key_entries_),
+            val_entries_(src.val_entries_) {
+        }
+
+        sorted_map(sorted_map &&src) noexcept :
+            comparator__(src.comparator__),
+            key_entries_(static_cast<array<key_t> &&>(src.key_entries_)),
+            val_entries_(static_cast<array<element_t> &&>(src.val_entries_)) {
+        }
+
+        sorted_map &operator = (const sorted_map &other) {
+            if (this == &other)
+                return *this;
+            key_entries_ = other.key_entries_;
+            val_entries_ = other.val_entries_;
+            comparator__ = other.comparator__;
+            return *this;
+        }
+
+        sorted_map &operator = (sorted_map &&other) noexcept {
+            if (this == &other)
+                return *this;
+            key_entries_ = static_cast<array<key_t> &&>(other.key_entries_);
+            val_entries_ = static_cast<array<element_t> &&>(other.val_entries_);
+            comparator__ = other.comparator__;
+            return *this;
+        }
+
+        int binary_search(const key_t &key) const {
+            return key_entries_.binary_search(key, comparator__);
+        }
+
+        void put(const key_t &key, const element_t &element) {
+            const int old_size = key_entries_.size;
+            const int index = key_entries_.sort_insert_once(key, comparator__);
+            if (old_size < size) val_entries_.insert(index, element);
+            else                 val_entries_[index] = element;
+        }
+
+        int index_at(const key_t &key) const {
+            const int index = binary_search(key);
+            if (index < 0 || index >= size)
+                abort();
+            return index;
+        }
+
+        key_t key_at_index(const int index) const {
+            return key_entries_[index];
+        }
+
+        key_t &key_at_index(const int index) {
+            return key_entries_[index];
+        }
+
+        element_t &at(const key_t &key) {
+            const int index = binary_search(key);
+            if (index < 0 || index >= size)
+                abort();
+            return val_entries_[index];
+        }
+
+        const element_t &at(const key_t &key) const {
+            const int index = binary_search(key);
+            if (index < 0 || index >= size)
+                abort();
+            return val_entries_[index];
+        }
+
+        const element_t &at_index(const int &index) const {
+            return val_entries_[index];
+        }
+
+        element_t &at_index(const int &index) {
+            return val_entries_[index];
+        }
+
+        bool contains(const key_t &key) const {
+            const int index = binary_search(key);
+            if (index < 0 || index >= size)
+                return false;
+            return true;
+        }
+
+        void collapse(const key_t &key) {
+            const int index = binary_search(key, comparator__);
+            if (index < 0 || index >= size)
+                return;
+            key_entries_.collapse(index);
+            val_entries_.collapse(index);
+        }
+
+        void collapse_at_pos(const int &idx) {
+            if (idx >= key_entries_.size || idx < 0)
+                return;
+            key_entries_.collapse(idx);
+            val_entries_.collapse(idx);
+        }
+
+        bool empty() const {
+            return key_entries_.empty();
+        }
+
+        void clean() {
+            key_entries_.clean();
+            val_entries_.clean();
+        }
+
+        void reserve(const int n) {
+            if (n <= capacity)
+                return;
+            key_entries_.reserve(n);
+            val_entries_.reserve(n);
+        }
+    };
+
+
 
     template<typename key_t, typename element_t>
     struct cache_line {

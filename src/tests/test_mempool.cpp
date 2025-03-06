@@ -219,8 +219,8 @@ TEST_CASE("Additional Allocator Functionality") {
 
         bool found = false;
         for (int i = 0; i < alloc.blocks_.size; ++i) {
-            if (alloc.blocks_.val_entries[i].is_free &&
-                alloc.blocks_.val_entries[i].size_b == DEFAULT_ARENA_SIZE_B)
+            if (alloc.blocks_.val_entries_[i].is_free &&
+                alloc.blocks_.val_entries_[i].size_b == DEFAULT_ARENA_SIZE_B)
             {
                 found = true;
                 break;
