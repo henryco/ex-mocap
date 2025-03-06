@@ -250,3 +250,72 @@ TEST_CASE("Reallocation shrinks block and preserves data") {
         CHECK(data[i] == 0xBB);
     }
 }
+
+TEST_CASE("Allocator constructor with zero pre_allocated size aborts") {
+    INFO("Constructing allocator with 0 pre_allocated size should abort");
+    CHECK_THROWS_AS(allocator(0), std::runtime_error);
+}
+
+TEST_CASE("Reallocation returns same pointer if same size requested") {
+    allocator alloc;
+    INFO("Allocating a block of 128 bytes");
+    void* ptr = alloc.allocate(128, 8);
+    INFO("Reallocating block with the same size (128 bytes)");
+    void* new_ptr = alloc.reallocate(ptr, 128);
+    INFO("Expecting same pointer to be returned");
+    CHECK(new_ptr == ptr);
+}
+
+TEST_CASE("Multiple allocations with different alignments yield correctly aligned addresses") {
+    allocator alloc;
+    std::vector<std::size_t> alignments = {2, 4, 8, 16, 32};
+    for(auto alignment : alignments) {
+        INFO("Allocating block with alignment " << alignment);
+        void* ptr = alloc.allocate(64, alignment);
+        u_int64_t addr = reinterpret_cast<u_int64_t>(ptr);
+        INFO("Checking pointer " << ptr << " is aligned to " << alignment << " (remainder: " << addr % alignment << ")");
+        CHECK(addr % alignment == 0);
+        alloc.free(ptr);
+    }
+}
+
+TEST_CASE("Multiple reallocation cycles preserving data") {
+    allocator alloc;
+    const std::size_t initial_size = 64;
+    INFO("Allocating block of 64 bytes");
+    void* ptr = alloc.allocate(initial_size, 8);
+    CHECK(ptr != nullptr);
+    // Fill with pattern 0xCC
+    std::memset(ptr, 0xCC, initial_size);
+
+    const std::size_t larger_size = 128;
+    INFO("Reallocating block to 128 bytes");
+    void* ptr_larger = alloc.reallocate(ptr, larger_size);
+    CHECK(ptr_larger != nullptr);
+    // Verify that first 64 bytes are preserved
+    unsigned char* data = static_cast<unsigned char*>(ptr_larger);
+    for (std::size_t i = 0; i < initial_size; ++i) {
+        INFO("Checking data at byte " << i << " after first reallocation");
+        CHECK(data[i] == 0xCC);
+    }
+
+    // Fill the new region with 0xDD
+    std::memset(static_cast<unsigned char*>(ptr_larger) + initial_size, 0xDD, larger_size - initial_size);
+
+    const std::size_t smaller_size = 32;
+    INFO("Reallocating block to 32 bytes (shrinking)");
+    void* ptr_smaller = alloc.reallocate(ptr_larger, smaller_size);
+    CHECK(ptr_smaller != nullptr);
+    // Verify that first 32 bytes are preserved
+    data = static_cast<unsigned char*>(ptr_smaller);
+    for (std::size_t i = 0; i < smaller_size; ++i) {
+        INFO("Checking data at byte " << i << " after shrinking reallocation");
+        CHECK(data[i] == 0xCC);
+    }
+}
+
+TEST_CASE("Deleting non-existent watcher does nothing") {
+    allocator alloc;
+    INFO("Deleting a watcher that was never added should not throw an exception");
+    CHECK_NOTHROW(alloc.del_watcher(reinterpret_cast<void*>(0xDEADBEEF), test_watcher));
+}
