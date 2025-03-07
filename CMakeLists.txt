@@ -90,7 +90,6 @@ set(EXTRA_FILES
 
         # graph (nodes)
         extra/graph/graph.h
-        extra/data/memarena.h
 )
 
 set(PLATFORM_FILES
