@@ -56,18 +56,14 @@ namespace ex::data::memarena {
             else                 data = ::realloc(data, capacity);
         }
 
-        void *request(const std::size_t size, std::size_t *size_allocated = nullptr, int64_t *addr_diff = nullptr) {
-            const std::size_t curr_offset = offset;
-            const std::size_t real_size   = capacity + size;
+        void *request(const std::size_t size, int64_t *addr_diff = nullptr) {
 
             const void *old_data_ptr = data;
-            {
-                if (size >= capacity) {
-                    capacity = capacity > 0 ? (2 * capacity) : 2;
+            if (size >= capacity) {
+                capacity = capacity > 0 ? (2 * capacity) : 2;
 
-                    if (data == nullptr) data = ::malloc(capacity);
-                    else                 data = ::realloc(data, capacity);
-                }
+                if (data == nullptr) data = ::malloc(capacity);
+                else                 data = ::realloc(data, capacity);
             }
             const void *new_data_ptr = data;
 
@@ -79,11 +75,7 @@ namespace ex::data::memarena {
                                  reinterpret_cast<unsigned long int>(old_data_ptr);
             }
 
-            if (size_allocated != nullptr) {
-                *size_allocated = real_size;
-            }
-
-            return static_cast<unsigned char *>(data) + curr_offset;
+            return static_cast<unsigned char *>(data) + offset - size;
         }
     };
     // ---- DEFAULT FALLBACK (malloc/realloc)
@@ -97,10 +89,10 @@ namespace ex::data::memarena {
     };
 
     struct allocator {
+        ex::data::sorted_map<void *, std::size_t> alignments_;
+
         ex::data::map<watch_id_t, watch_fn_t> watche_;
         mem_provider                          memory_;
-        void                                 *last_ptr;
-        u_int64_t                             last_size;
 
         #define DEFAULT_ARENA_SIZE_B 1048576
 
@@ -108,13 +100,9 @@ namespace ex::data::memarena {
             if (pre_allocated <= 0)
                 abort_("Allocation size must be greater than 0");
             memory_   = pre_allocated;
-            last_ptr  = nullptr;
-            last_size = 0;
         }
 
         void cleanup() {
-            last_ptr  = nullptr;
-            last_size = 0;
             memory_.clean();
             watche_.clean();
         }
@@ -153,8 +141,8 @@ namespace ex::data::memarena {
             const u_int64_t   padding        = block_padding(alignment_b);
             const std::size_t size_requested = size_b + padding;
 
-            int64_t addr_diff;
-            void *allocated = memory_.request(size_requested, nullptr, &addr_diff);
+            int64_t addr_diff = 0;
+            void *allocated = memory_.request(size_requested, &addr_diff);
 
             if (addr_diff != 0) {
                 for (int i = 0; i < watche_.size; ++i) {
@@ -164,29 +152,23 @@ namespace ex::data::memarena {
             }
 
             void *ptr = static_cast<unsigned char *>(allocated) + padding;
-            last_size = size_b;
-            last_ptr  = ptr;
+            alignments_.put(ptr, alignment_b);
             return ptr;
         }
 
         void *reallocate(void *ptr, const std::size_t size_new_b) {
-            if (size_new_b <= 0 || last_ptr == nullptr || ptr == nullptr)
+            if (size_new_b <= 0 || ptr == nullptr)
                 abort_("Empty memory block allocation");
 
             const void *old_data = memory_.data;
-            const void *const last_ptr_ = last_ptr;
-            void *allocated = allocate(size_new_b, 1);
+            void *allocated = allocate(size_new_b, alignments_.at(ptr));
             const void *new_data = memory_.data;
 
-            const int64_t offset = reinterpret_cast<u_int64_t>(new_data) -
-                                      reinterpret_cast<u_int64_t>(old_data);
+            const int64_t offset = reinterpret_cast<u_int64_t>(new_data) - reinterpret_cast<u_int64_t>(old_data);
 
+            const void *old_src = static_cast<unsigned char *>(ptr) + offset;
 
-            if (last_ptr_ != ptr) {
-                const void *old_src = static_cast<const unsigned char *>(ptr) + offset;
-                ::memcpy(allocated, old_src, last_size);
-            }
-
+            ::memcpy(allocated, old_src, size_new_b);
             return allocated;
         }
 
