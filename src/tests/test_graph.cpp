@@ -110,8 +110,8 @@ void rec_build(limbo::graph::BaseNode *parent, const int width, const int max_de
 }
 
 namespace data {
-//    static ex::data::mempool::allocator pool;
-    static ex::data::memarena::allocator pool;
+    static ex::data::mempool::allocator pool;
+//    static ex::data::memarena::allocator pool;
 
     inline void *pool_malloc_(const std::size_t size_new_b, const std::size_t alignment_b) {
         return pool.allocate(size_new_b, alignment_b);
