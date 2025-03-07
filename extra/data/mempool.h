@@ -12,11 +12,11 @@
 
 namespace ex::data::mempool {
 
-//    #ifndef UNIT_TEST
+    #ifndef UNIT_TEST
     #define abort_(msg) do { std::cerr << msg << std::endl; ::abort(); } while(false)
-//    #else
-//    #define abort_(msg) throw std::runtime_error(msg)
-//    #endif
+    #else
+    #define abort_(msg) throw std::runtime_error(msg)
+    #endif
 
     // ---- DEFAULT FALLBACK (malloc/realloc)
     // TODO: replace with direct call to OS
@@ -99,7 +99,6 @@ namespace ex::data::mempool {
 
         ex::data::sorted_map<block_id_t, memory_block> blocks_ = &ptr_compare;
         ex::data::map<watch_id_t, watch_fn_t>          watche_;
-        ex::data::array<block_id_t>                    free_;
         mem_provider                                   memory_;
 
         #define DEFAULT_ARENA_SIZE_B 1048576
@@ -112,7 +111,6 @@ namespace ex::data::mempool {
             void *const allocated_ptr  = memory_.request(pre_allocated, &allocated_size);
 
             blocks_.put(allocated_ptr, { static_cast<u_int32_t>(allocated_size), 1, true });
-            free_.sort_insert_once(allocated_ptr);
         }
 
         void add_watcher(const watch_id_t id, const watch_fn_t fn) {
@@ -128,15 +126,9 @@ namespace ex::data::mempool {
                 abort_("Empty memory block allocation");
             }
 
-//            for (int i = 0; i < blocks_.size; ++i) {
-//                if (const block_id_t block_id = block_acquire(i, size_b, alignment_b))
-//                    return block_id;
-//            }
-
-            for (int i = 0; i < free_.size; ++i) {
-                if (const block_id_t block_id = block_acquire(blocks_.index_at(free_[i]), size_b, alignment_b)) {
+            for (int i = 0; i < blocks_.size; ++i) {
+                if (const block_id_t block_id = block_acquire(i, size_b, alignment_b))
                     return block_id;
-                }
             }
 
             block_request(size_b + alignment_b);
@@ -218,8 +210,6 @@ namespace ex::data::mempool {
             blocks_.at_index(ptr_idx).size_b      = size_b;
             blocks_.at_index(ptr_idx).is_free     = false;
 
-            free_.collapse_element(ptr_space);
-
             // [padding] [size_b] [rest_b]
             if (padding != 0 && block_id != ptr_space) {
                 block_free(block_id); // free padding
@@ -272,10 +262,6 @@ namespace ex::data::mempool {
                     blocks_.key_at_index(i) = static_cast<unsigned char *>(blocks_.key_at_index(i)) + addr_diff;
                 }
 
-                for (int i = 0; i < free_.size; ++i) {
-                    free_[i] = static_cast<unsigned char *>(free_[i]) + addr_diff;
-                }
-
                 for (int i = 0; i < watche_.size; ++i) {
                     if (const auto fn = watche_.val_entries[i])
                         fn(watche_.key_entries[i], addr_diff);
@@ -290,8 +276,6 @@ namespace ex::data::mempool {
 
             // append new free block
             blocks_.put(allocated_ptr, { static_cast<u_int32_t>(real_size), 1, true });
-            free_.sort_insert_once(allocated_ptr);
-
             return allocated_ptr;
         }
 
@@ -339,7 +323,6 @@ namespace ex::data::mempool {
                 blocks_.at_index(index_lhs).size_b = lhs_remain;
 
                 blocks_.put(rhs_ptr, { size_rhs_b, 1, true });
-                free_.sort_insert_once(rhs_ptr);
 
                 *rhs = rhs_ptr;
                 return;
@@ -376,8 +359,6 @@ namespace ex::data::mempool {
                 *lhs = *rhs;
                 *rhs = rhs_ptr;
 
-                free_.sort_insert_once(*rhs);
-
                 return;
             }
 
@@ -402,7 +383,6 @@ namespace ex::data::mempool {
 
                 blocks_.at_index(index_lhs).size_b += block_rhs.size_b;
                 blocks_.collapse_at_pos(index_rhs);
-                free_.collapse_element(*rhs);
                 *rhs = nullptr;
                 return;
             }
@@ -420,8 +400,6 @@ namespace ex::data::mempool {
             blocks_.at_index(index_rhs).size_b = static_cast<u_int32_t>(new_rhs_b);
             blocks_.at_index(index_lhs).size_b = static_cast<u_int32_t>(new_lhs_b);
 
-            free_.collapse_element(*rhs);
-
             if (new_lhs_b <= 0) {
                 // TODO FIXME ?
                 blocks_.key_at_index(index_rhs) = static_cast<unsigned char *>(*lhs);
@@ -435,8 +413,6 @@ namespace ex::data::mempool {
             const block_id_t new_rhs_ptr    = static_cast<unsigned char *>(*lhs) + new_lhs_b;
             blocks_.key_at_index(index_rhs) = new_rhs_ptr;
             *rhs                            = new_rhs_ptr;
-
-            free_.sort_insert_once(*rhs);
         }
 
         /**
@@ -446,8 +422,6 @@ namespace ex::data::mempool {
             const int index_block = blocks_.index_at(block);
             blocks_.at_index(index_block).alignment_b = 1;
             blocks_.at_index(index_block).is_free     = true;
-
-            free_.sort_insert_once(block);
 
             // . . n 1 2 . .  [1 <- 2]
             // . . n 1 _ . .  [n <- 1]

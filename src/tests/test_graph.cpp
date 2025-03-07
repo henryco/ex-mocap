@@ -143,6 +143,8 @@ namespace data {
 
 TEST_CASE("Graph node test") {
 
+    ex::data::mempool::allocator &pool_ = data::pool;
+
     static ex::data::allocator allocator_ = {
         .malloc = &data::pool_malloc_,
         .realloc = &data::pool_realloc_,
@@ -187,13 +189,20 @@ TEST_CASE("Graph node test") {
         if (block.is_free == true)
             free_blocks += 1;
     }
+//    const int void_blocks = pool_.free_.size;
+//    for (int i = 0; i < void_blocks; ++i) {
+//        const auto block = data::pool.blocks_.at(pool_.free_[i]);
+//        const int size = block.size_b;
+//        const bool isit  = block.is_free;
+//        std::cout << "void: " << size << ", " << isit << std::endl;
+//    }
 
     std::cout << "avg: " << (avg / counter) << " ns\n";
     std::cout << "memory total : " << limbo::graph::memory::allocator.size_total() << " b" << std::endl;
     std::cout << "memory used  : " << limbo::graph::memory::allocator.size_used() << " b" << std::endl;
     std::cout << "blocks total: " << data::pool.blocks_.size << std::endl;
     std::cout << "blocks free: " << free_blocks << std::endl;
-    std::cout << "blocks void: " << data::pool.free_.size << std::endl;
+//    std::cout << "blocks void: " << void_blocks << std::endl;
     std::cout << "finished" << std::endl;
 
 }
