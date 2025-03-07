@@ -108,53 +108,9 @@ void rec_build(limbo::graph::BaseNode *parent, const int width, const int max_de
     }
 }
 
-namespace data {
-    static ex::data::mempool::allocator pool;
-//    static ex::data::memarena::allocator pool;
-
-    inline void *pool_malloc_(const std::size_t size_new_b, const std::size_t alignment_b) {
-        return pool.allocate(size_new_b, alignment_b);
-    }
-
-    inline void *pool_realloc_(void *ptr, const std::size_t size_new_b) {
-        return pool.reallocate(ptr, size_new_b);
-    }
-
-    inline void pool_free_(void *ptr) {
-        pool.free(ptr);
-    }
-
-    inline void pool_watch_add_(void *const ptr, const ex::data::watch_fn_t fn) {
-        pool.add_watcher(ptr, fn);
-    }
-
-    inline void pool_watch_del_(void *const ptr, const ex::data::watch_fn_t fn) {
-        pool.del_watcher(ptr, fn);
-    }
-
-    inline long pool_size_total_() {
-        return pool.memory_total_b();
-    }
-
-    inline long pool_size_used_() {
-        return pool.memory_used_b();
-    }
-}
-
-
 TEST_CASE("Graph node test") {
 
-    static ex::data::allocator allocator_ = {
-        .malloc = &data::pool_malloc_,
-        .realloc = &data::pool_realloc_,
-        .free = &data::pool_free_,
-        .add_watcher = &data::pool_watch_add_,
-        .del_watcher = &data::pool_watch_del_,
-        .size_total = &data::pool_size_total_,
-        .size_used = &data::pool_size_used_,
-    };
-
-    limbo::graph::memory::allocator = allocator_;
+    limbo::graph::memory::allocator = ex::data::mempool::pool;
 
     ex::time::measure_avg time = 1;
     time.start();
@@ -183,8 +139,8 @@ TEST_CASE("Graph node test") {
     }
 
     int free_blocks = 0;
-    for (int i = 0; i < data::pool.blocks_.size; ++i) {
-        const auto block = data::pool.blocks_.val_entries_[i];
+    for (int i = 0; i < ex::data::mempool::default_::pool.blocks_.size; ++i) {
+        const auto block = ex::data::mempool::default_::pool.blocks_.val_entries_[i];
         if (block.is_free == true)
             free_blocks += 1;
     }
@@ -192,7 +148,7 @@ TEST_CASE("Graph node test") {
     std::cout << "avg: " << (avg / counter) << " ns\n";
     std::cout << "memory total : " << limbo::graph::memory::allocator.size_total() << " b" << std::endl;
     std::cout << "memory used  : " << limbo::graph::memory::allocator.size_used() << " b" << std::endl;
-    std::cout << "blocks total: " << data::pool.blocks_.size << std::endl;
+    std::cout << "blocks total: " << ex::data::mempool::default_::pool.blocks_.size << std::endl;
     std::cout << "blocks free: " << free_blocks << std::endl;
     std::cout << "finished" << std::endl;
 

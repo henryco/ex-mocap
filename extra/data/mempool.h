@@ -466,6 +466,47 @@ namespace ex::data::mempool {
         }
     };
 
+    namespace default_ {
+        static ex::data::mempool::allocator pool;
+
+        inline void *pool_malloc_(const std::size_t size_new_b, const std::size_t alignment_b) {
+            return pool.allocate(size_new_b, alignment_b);
+        }
+
+        inline void *pool_realloc_(void *ptr, const std::size_t size_new_b) {
+            return pool.reallocate(ptr, size_new_b);
+        }
+
+        inline void pool_free_(void *ptr) {
+            pool.free(ptr);
+        }
+
+        inline void pool_watch_add_(void *const ptr, const ex::data::watch_fn_t fn) {
+            pool.add_watcher(ptr, fn);
+        }
+
+        inline void pool_watch_del_(void *const ptr, const ex::data::watch_fn_t fn) {
+            pool.del_watcher(ptr, fn);
+        }
+
+        inline long pool_size_total_() {
+            return pool.memory_total_b();
+        }
+
+        inline long pool_size_used_() {
+            return pool.memory_used_b();
+        }
+    }
+
+    inline static ex::data::allocator pool = {
+        .malloc = &default_::pool_malloc_,
+        .realloc = &default_::pool_realloc_,
+        .free = &default_::pool_free_,
+        .add_watcher = &default_::pool_watch_add_,
+        .del_watcher = &default_::pool_watch_del_,
+        .size_total = &default_::pool_size_total_,
+        .size_used = &default_::pool_size_used_,
+    };
 
 }
 
