@@ -258,7 +258,6 @@ namespace ex::data::mempool {
             // update pointers in case of data relocation
             if (addr_diff != 0) {
                 for (int i = 0; i < blocks_.size; ++i) {
-                    // TODO FIXME ?
                     blocks_.key_at_index(i) = static_cast<unsigned char *>(blocks_.key_at_index(i)) + addr_diff;
                 }
 
@@ -350,7 +349,6 @@ namespace ex::data::mempool {
 
                 const block_id_t rhs_ptr = static_cast<unsigned char *>(*rhs) + lhs_remain;
 
-                // TODO FIXME ?
                 blocks_.key_at_index(index_rhs)    = rhs_ptr;
                 blocks_.at_index(index_rhs).size_b = size_rhs_b;
 
@@ -401,7 +399,6 @@ namespace ex::data::mempool {
             blocks_.at_index(index_lhs).size_b = static_cast<u_int32_t>(new_lhs_b);
 
             if (new_lhs_b <= 0) {
-                // TODO FIXME ?
                 blocks_.key_at_index(index_rhs) = static_cast<unsigned char *>(*lhs);
                 blocks_.collapse_at_pos(index_lhs);
                 *rhs = *lhs;
@@ -409,7 +406,6 @@ namespace ex::data::mempool {
                 return;
             }
 
-            // TODO FIXME ?
             const block_id_t new_rhs_ptr    = static_cast<unsigned char *>(*lhs) + new_lhs_b;
             blocks_.key_at_index(index_rhs) = new_rhs_ptr;
             *rhs                            = new_rhs_ptr;
