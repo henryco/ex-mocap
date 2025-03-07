@@ -107,6 +107,7 @@ namespace ex::data {
 
             del_watcher_(allocator_, this, &watch_allocator);
             free_(this, allocator_, data);
+            data = nullptr;
 
             allocator_ = other.allocator_;
             size       = other.size;
@@ -132,6 +133,7 @@ namespace ex::data {
             del_watcher_(allocator_, this, &watch_allocator);
 
             free_(this, allocator_, data);
+            data = nullptr;
 
             this->allocator_ = other.allocator_;
             this->size       = other.size;
@@ -173,6 +175,7 @@ namespace ex::data {
         ~array() {
             del_watcher_(allocator_, this, &watch_allocator);
             free_(this, allocator_, data);
+            this->data = nullptr;
         }
 
         array(const int &capacity) : capacity(capacity) {
@@ -211,6 +214,7 @@ namespace ex::data {
 
         void clean() {
             free_(this, allocator_, data);
+            this->data = nullptr;
             size     = 0;
             capacity = 0;
         }
@@ -445,6 +449,7 @@ namespace ex::data {
 
             del_watcher_(allocator_, this, &watch_allocator);
             free_(this, allocator_, data);
+            data = nullptr;
 
             size       = other.size;
             capacity   = other.capacity;
@@ -472,6 +477,7 @@ namespace ex::data {
             del_watcher_(other.allocator_, &other, &watch_allocator);
             del_watcher_(allocator_, this, &watch_allocator);
             free_(this, allocator_, data);
+            data = nullptr;
 
             this->data       = other.data;
             this->size       = other.size;

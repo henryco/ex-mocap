@@ -6,7 +6,6 @@
 #define LOGIC_H
 
 #include "../../../extra/graph/graph.h"
-#include "../utils/log_utils.h"
 #include "../state.h"
 
 namespace ex::main {
@@ -29,7 +28,6 @@ namespace ex::main {
         limbo::graph::Clock clock_;
 
     public:
-        static inline const auto log = logs::get_logger("logic");
 
         Logic() = default;
 

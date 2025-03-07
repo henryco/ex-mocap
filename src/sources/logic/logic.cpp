@@ -10,8 +10,13 @@
 #include "../../headers/logic/logic_state.h"
 #include "../../headers/utils/file_utils.h"
 #include "../../headers/utils/time_utils.h"
+#include "../../headers/utils/log_utils.h"
 
 #include <iostream>
+
+namespace ex::main {
+    static inline const auto log = logs::get_logger("logic");
+}
 
 namespace internal_ {
 
