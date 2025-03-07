@@ -53,6 +53,12 @@ namespace internal_ {
 
 namespace ex::main {
 
+    Logic create_logic() {
+        Logic logic;
+        logic.initialize();
+        return logic;
+    }
+
     void abort_(const char *msg) {
         log->error(msg);
         std::cerr << msg << std::endl;
@@ -83,6 +89,12 @@ namespace ex::main {
         }
     };
 
+
+
+    // == INTERNAL METHODS ==
+
+    void rewire_(Logic &logic);
+
     void traverse_(State &state, TreeNode *node, bool *rewire, bool fresh);
 
     void build_tree_(State &state, TreeNode *node, TreeNode *previous, simple_list *group_list);
@@ -91,23 +103,28 @@ namespace ex::main {
 
     void mark_node_deleted_(State &state, TreeNode *node, bool moved);
 
-    Logic create_logic(State &state) {
-        Logic logic;
-        logic.initialize(state);
-        return logic;
-    }
+    void process_(Logic &logic);
 
-    void Logic::initialize(State &state) {
+    void synchronize_(Logic &logic);
+
+    void reset_internal_state_(Logic &logic);
+
+    // == INTERNAL METHODS ==
+
+
+    void Logic::initialize() {
         log->info("main logic initialization started");
 
-        reset_internal_state_(state);
+        reset_internal_state_(*this);
 
         log->info("main logic initialization synchronization");
-        synchronize_(state);
+        synchronize_(*this);
         log->info("main logic initialization complete");
     }
 
-    void Logic::run(State &state) {
+    void Logic::run() {
+        static State &state = ex::logic::globals::state();
+
         if (state.logic.work_tree == nullptr)
             abort_("Logic::run: work tree is null");
 
@@ -117,45 +134,33 @@ namespace ex::main {
 
         if (state.project.should_create) {
             state.project.should_create = false;
-            create_new_(state);
+            create_new_();
             return;
         }
 
         if (state.project.should_open) {
             state.project.should_open = false;
-            deserialize_(state);
-            process_(state);
+            deserialize_();
+            process_(*this);
             return;
         }
 
-        synchronize_(state);
-        process_(state);
+        synchronize_(*this);
+        process_(*this);
 
         if (state.project.should_save) {
             state.project.should_save = false;
-            serialize_(state);
+            serialize_();
         }
     }
 
-    void Logic::reset_internal_state_(State &state) {
-        clock_.reset();
+    void Logic::create_new_() {
+        static State &state = ex::logic::globals::state();
 
-        if (state.logic.work_tree != nullptr)
-            delete state.logic.work_tree;
-
-        state::uuid::reset_last_id();
-
-        state.logic.work_tree             = TreeNode::create();
-        state.logic.work_tree->state      = node_state::is_group;
-        state.logic.work_tree->name       = "root";
-        state.logic.work_tree->children_n = 0;
-    }
-
-    void Logic::create_new_(State &state) {
         log->info("create new project: {}", state.project.project_path);
-        reset_internal_state_(state);
-        synchronize_(state);
-        serialize_(state);
+        reset_internal_state_(*this);
+        synchronize_(*this);
+        serialize_();
 
         const auto str_pre        = std::string("ExMoCap - ");
         const auto str_post       = std::string(state.project.project_path);
@@ -166,7 +171,9 @@ namespace ex::main {
         log->info("new project created: {}", state.project.project_path);
     }
 
-    void Logic::serialize_(State &state) {
+    void Logic::serialize_() {
+        static State &state = ex::logic::globals::state();
+
         log->info("serialization start: {}", state.project.project_path);
         auto bytes = io::bytes::ByteSerializer().serialize(&state);
         ex::files::write_binary_file(state.project.project_path, bytes.data, bytes.size);
@@ -181,7 +188,9 @@ namespace ex::main {
         log->info("serialization complete: {}", state.project.project_path);
     }
 
-    void Logic::deserialize_(State &state) {
+    void Logic::deserialize_() {
+        static State &state = ex::logic::globals::state();
+
         log->info("deserialization start: {}", state.project.project_path);
 
         std::size_t size;
@@ -209,7 +218,7 @@ namespace ex::main {
         delete new_state;
         delete[] data;
 
-        synchronize_(state);
+        synchronize_(*this);
 
         const auto str_pre        = std::string("ExMoCap - ");
         const auto str_post       = std::string(state.project.project_path);
@@ -220,56 +229,12 @@ namespace ex::main {
         log->info("deserialization complete: {}", state.project.project_path);
     }
 
-    void Logic::process_(State &state) {
-        static ex::time::measure_avg timing = 1000;
-        if (state.metrics.timing_enabled)
-            timing.start();
+    void rewire_(Logic &logic) {
+        static State &state = ex::logic::globals::state();
 
-        clock_.pull();
-
-        if (state.metrics.timing_enabled && timing.stop())
-            state.metrics.logic_duration_ns = timing.result();
-    }
-
-    void Logic::synchronize_(State &state) {
-
-        static auto prev_target_fps = state.gl.target_fps;
-        static auto fps_guard = ex::time::fps_guard::from_fps(state.gl.target_fps);
-        if (prev_target_fps != state.gl.target_fps) {
-            prev_target_fps = state.gl.target_fps;
-            fps_guard.set_fps(state.gl.target_fps);
-        }
-        if (!fps_guard.step())
-            return;
-
-        bool rewire = state.logic.rewire;
-
-        internal_::cache.begin();
-        traverse_(state, state.logic.work_tree, &rewire, false);
-        internal_::cache.end();
-
-        static bool gc_run = false;
-
-        if (gc_run && !rewire) {
-            internal_::cleanup_nodes();
-            gc_run = false;
-        }
-
-        if (rewire) {
-            rewire_(state);
-            gc_run = true;
-
-            state.project.has_changes = true;
-            state.logic.dirty         = true;
-        }
-
-        state.logic.rewire = false;
-    }
-
-    void Logic::rewire_(State &state) {
         log->debug("rewire");
 
-        clock_.reset();
+        logic.clock_.reset();
         for (const auto &[_, node] : ex::logic::state::node_storage())
             node->detach_all();
 
@@ -302,7 +267,7 @@ namespace ex::main {
             if (output.aux)
                 continue;
 
-            if (clock_.attach(base_node)) {
+            if (logic.clock_.attach(base_node)) {
                 std::cout << "main attached: " << base_node->get_id() << std::endl;
                 log->debug("Node {} [{}][{}] (main) attached to clock",
                     base_node->get_node_name(), node->id_local, output.index);
@@ -315,7 +280,7 @@ namespace ex::main {
             if (!output.aux)
                 continue;
 
-            if (clock_.attach(base_node)) {
+            if (logic.clock_.attach(base_node)) {
                 std::cout << "aux attached: " << base_node->get_id() << std::endl;
                 log->debug("Node {} [{}][{}] (aux) attached to clock",
                     base_node->get_node_name(), node->id_local, output.index);
@@ -324,6 +289,70 @@ namespace ex::main {
         }
 
         log->error("Cannot connect node to clock");
+    }
+
+    void reset_internal_state_(Logic &logic) {
+        static State &state = ex::logic::globals::state();
+
+        logic.clock_.reset();
+
+        if (state.logic.work_tree != nullptr)
+            delete state.logic.work_tree;
+
+        state::uuid::reset_last_id();
+
+        state.logic.work_tree             = TreeNode::create();
+        state.logic.work_tree->state      = node_state::is_group;
+        state.logic.work_tree->name       = "root";
+        state.logic.work_tree->children_n = 0;
+    }
+
+    void process_(Logic &logic) {
+        static State &state = ex::logic::globals::state();
+        static ex::time::measure_avg timing = 1000;
+        if (state.metrics.timing_enabled)
+            timing.start();
+
+        logic.clock_.pull();
+
+        if (state.metrics.timing_enabled && timing.stop())
+            state.metrics.logic_duration_ns = timing.result();
+    }
+
+    void synchronize_(Logic &logic) {
+        static State &state = ex::logic::globals::state();
+
+        static auto prev_target_fps = state.gl.target_fps;
+        static auto fps_guard = ex::time::fps_guard::from_fps(state.gl.target_fps);
+        if (prev_target_fps != state.gl.target_fps) {
+            prev_target_fps = state.gl.target_fps;
+            fps_guard.set_fps(state.gl.target_fps);
+        }
+        if (!fps_guard.step())
+            return;
+
+        bool rewire = state.logic.rewire;
+
+        internal_::cache.begin();
+        traverse_(state, state.logic.work_tree, &rewire, false);
+        internal_::cache.end();
+
+        static bool gc_run = false;
+
+        if (gc_run && !rewire) {
+            internal_::cleanup_nodes();
+            gc_run = false;
+        }
+
+        if (rewire) {
+            rewire_(logic);
+            gc_run = true;
+
+            state.project.has_changes = true;
+            state.logic.dirty         = true;
+        }
+
+        state.logic.rewire = false;
     }
 
     void mark_node_deleted_(State &state, TreeNode *node, const bool moved) {

@@ -17,27 +17,18 @@ namespace ex::main {
 
         ~Logic() = default;
 
-        void initialize(State& state);
+        void initialize();
 
-        void run(State &state);
+        void run();
 
-        void reset_internal_state_(State &state);
+        void deserialize_();
 
-        void synchronize_(State &state);
+        void serialize_();
 
-        void process_(State &state);
-
-        void rewire_(State &state);
-
-        void deserialize_(State &state);
-
-        void serialize_(State &state);
-
-        void create_new_(State &state);
-
+        void create_new_();
     };
 
-    Logic create_logic(State& state);
+    Logic create_logic();
 
 }
 

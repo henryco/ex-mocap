@@ -161,7 +161,7 @@ namespace ex::boot {
         init_gui_display();
         log->info("Gui display implementation provided");
 
-        auto logic = main::create_logic(state);
+        auto logic = main::create_logic();
 
         log->info("Initialization complete");
 
@@ -176,7 +176,7 @@ namespace ex::boot {
 
             glfwPollEvents();
 
-            logic.run(state);
+            logic.run();
             update_history(state);
             update_title(state);
             update_gui(gui, state, window);
