@@ -75,7 +75,9 @@ namespace ex::data::memarena {
                                  reinterpret_cast<unsigned long int>(old_data_ptr);
             }
 
-            return static_cast<unsigned char *>(data) + offset - size;
+            void *ret = static_cast<unsigned char*>(data) + offset;
+            offset += size;
+            return ret;
         }
     };
     // ---- DEFAULT FALLBACK (malloc/realloc)
