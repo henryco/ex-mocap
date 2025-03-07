@@ -52,8 +52,9 @@ namespace internal_ {
 namespace ex::main {
 
     void abort_(const char *msg) {
+        log->error(msg);
         std::cerr << msg << std::endl;
-        std::abort();
+        ::abort();
     }
 
     simple_list *get_head_(simple_list *node) {
