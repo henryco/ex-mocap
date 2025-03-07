@@ -20,7 +20,7 @@ namespace ex::main {
 
 namespace internal_ {
 
-    static ex::data::map<std::uint32_t, int> ptr_counter_map(10);
+    static ex::data::array_map<std::uint32_t, int> ptr_counter_map(10);
 
     void cleanup_nodes() {
         ex::main::log->debug("start node gc");

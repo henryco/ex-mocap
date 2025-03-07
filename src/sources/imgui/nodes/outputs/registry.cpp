@@ -9,8 +9,8 @@
 namespace ex::gui::mappers {
 
     namespace internal_ {
-        inline const data::map<id_type, GuiNodeMapper> &instance_out_map_() {
-            static data::map<id_type, GuiNodeMapper> instance;
+        inline const data::array_map<id_type, GuiNodeMapper> &instance_out_map_() {
+            static data::array_map<id_type, GuiNodeMapper> instance;
 
             namespace display_n = ex::gui::node::out::display;
             instance.put(display_n::get_node_type_id(), display_n::gui_mappers);
@@ -19,8 +19,8 @@ namespace ex::gui::mappers {
         }
     }
 
-    const data::map<id_type, GuiNodeMapper> &node_outputs() {
-        static const data::map<id_type, GuiNodeMapper> &instance = internal_::instance_out_map_();
+    const data::array_map<id_type, GuiNodeMapper> &node_outputs() {
+        static const data::array_map<id_type, GuiNodeMapper> &instance = internal_::instance_out_map_();
         return instance;
     }
 }

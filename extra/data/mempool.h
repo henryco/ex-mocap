@@ -98,7 +98,7 @@ namespace ex::data::mempool {
         }
 
         ex::data::sorted_map<block_id_t, memory_block> blocks_ = &ptr_compare;
-        ex::data::map<watch_id_t, watch_fn_t>          watche_;
+        ex::data::array_map<watch_id_t, watch_fn_t>    watche_;
         mem_provider                                   memory_;
 
         #define DEFAULT_ARENA_SIZE_B 1048576

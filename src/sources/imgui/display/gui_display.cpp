@@ -24,7 +24,7 @@ namespace ex::display::imp::imgui {
         int         depth;
     };
 
-    static ex::data::map<unsigned int, display_window_t> display_map_(10);
+    static ex::data::array_map<unsigned int, display_window_t> display_map_(10);
 
     unsigned int add_output(const char *name, const int width, const int height, const int channels, const int depth) {
         const auto new_id = ++id_counter;

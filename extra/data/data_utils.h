@@ -502,7 +502,7 @@ namespace ex::data {
     };
 
     template<typename key_t, typename element_t>
-    struct map { // linear time map, perfect for small data sets ( < ~1000) due to cache locality
+    struct array_map { // linear time map, perfect for small data sets ( < ~1000) due to cache locality
 
         array<key_t>     key_entries;
         array<element_t> val_entries;
@@ -510,32 +510,32 @@ namespace ex::data {
         const int &capacity = key_entries.capacity;
         const int &size     = key_entries.size;
 
-        ~map() = default;
+        ~array_map() = default;
 
-        map() = default;
+        array_map() = default;
 
-        map(const allocator &allocator_) :
+        array_map(const allocator &allocator_) :
             key_entries(allocator_), val_entries(allocator_) {
         }
 
-        map(int capacity) :
+        array_map(int capacity) :
             key_entries(capacity), val_entries(capacity) {
         }
 
-        map(int capacity, const allocator &allocator_) :
+        array_map(int capacity, const allocator &allocator_) :
             key_entries(capacity, allocator_), val_entries(capacity, allocator_) {
         }
 
-        map(const map &src) :
+        array_map(const array_map &src) :
             key_entries(src.key_entries), val_entries(src.val_entries) {
         }
 
-        map(map &&src) noexcept :
+        array_map(array_map &&src) noexcept :
             key_entries(static_cast<array<key_t> &&>(src.key_entries)),
             val_entries(static_cast<array<element_t> &&>(src.val_entries)) {
         }
 
-        map &operator = (const map &other) {
+        array_map &operator = (const array_map &other) {
             if (this == &other)
                 return *this;
             key_entries = other.key_entries;
@@ -543,7 +543,7 @@ namespace ex::data {
             return *this;
         }
 
-        map &operator = (map &&other) noexcept {
+        array_map &operator = (array_map &&other) noexcept {
             if (this == &other)
                 return *this;
             key_entries = static_cast<array<key_t> &&>(other.key_entries);

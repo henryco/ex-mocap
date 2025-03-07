@@ -14,12 +14,12 @@ namespace ex::gui {
     /**
     * Sum of node_outputs and node_components
     */
-    const data::map<id_type, GuiNodeMapper> &node_mappers();
+    const data::array_map<id_type, GuiNodeMapper> &node_mappers();
 
     namespace mappers {
-        const data::map<id_type, GuiNodeMapper> &node_outputs();
+        const data::array_map<id_type, GuiNodeMapper> &node_outputs();
 
-        const data::map<id_type, GuiNodeMapper> &node_components();
+        const data::array_map<id_type, GuiNodeMapper> &node_components();
     }
 
 }

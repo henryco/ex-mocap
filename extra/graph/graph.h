@@ -280,13 +280,13 @@ namespace limbo::graph {
 
         virtual void on_init() { /*NOP*/ }
 
-        assignment_fn_t                assignment_fn_ = nullptr;
-        ex::data::map<ushort, io_data> cache_map      = { NODE_INIT_CAP, memory::allocator };
-        ex::data::map<ushort, void *>  stack_map      = { NODE_INIT_CAP, memory::allocator };
-        ex::data::array<io_node>       connections    = { NODE_INIT_CAP, memory::allocator };
-        std::size_t                    id_            = 0;
-        unsigned int                   clock_i        = 0;
-        bool                           initialized_   = false;
+        assignment_fn_t                      assignment_fn_ = nullptr;
+        ex::data::array_map<ushort, io_data> cache_map      = { NODE_INIT_CAP, memory::allocator };
+        ex::data::array_map<ushort, void *>  stack_map      = { NODE_INIT_CAP, memory::allocator };
+        ex::data::array<io_node>             connections    = { NODE_INIT_CAP, memory::allocator };
+        std::size_t                          id_            = 0;
+        unsigned int                         clock_i        = 0;
+        bool                                 initialized_   = false;
 
         ~BaseNode() override = default;
 

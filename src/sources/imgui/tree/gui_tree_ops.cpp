@@ -1028,7 +1028,7 @@ namespace ex::gui::tree {
         if (selection == nullptr)
             return;
 
-        ex::data::map<std::size_t, node_state> og_map;
+        ex::data::array_map<std::size_t, node_state> og_map;
         auto head = selection->root;
         while (head != nullptr) {
             og_map.put(head->selected->id_local, head->selected->state);
@@ -1082,7 +1082,7 @@ namespace ex::gui::tree {
         if (selection == nullptr)
             return;
 
-        ex::data::map<std::size_t, node_state> og_map;
+        ex::data::array_map<std::size_t, node_state> og_map;
         auto head = selection->root;
         while (head != nullptr) {
             og_map.put(head->selected->id_local, head->selected->state);
