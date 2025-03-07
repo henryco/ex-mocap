@@ -550,6 +550,10 @@ namespace ex::data {
             return *this;
         }
 
+        void put(const entry<key_t, element_t> &entry) {
+            put(entry.key, entry.element);
+        }
+
         void put(const key_t &key, const element_t &element) {
             for (int i = 0; i < key_entries.size; ++i) {
                 if (key_entries[i] == key) {
@@ -746,6 +750,10 @@ namespace ex::data {
             return key_entries_.binary_search(key, comparator__);
         }
 
+        void put(const entry<key_t, element_t> &entry) {
+            put(entry.key, entry.element);
+        }
+
         void put(const key_t &key, const element_t &element) {
             const int old_size = key_entries_.size;
             const int index = key_entries_.sort_insert_once(key, comparator__);
@@ -829,6 +837,11 @@ namespace ex::data {
         }
     };
 
+
+    template<typename key_t, typename element_t>
+    struct rb_map {
+
+    };
 
 
     template<typename key_t, typename element_t>
