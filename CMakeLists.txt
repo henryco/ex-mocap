@@ -77,9 +77,6 @@ set(EXTRA_FILES
         extra/bytebox/byte_box.h
         extra/bytebox/byte_box.cpp
 
-        # nodes
-#        extra/nodes/nodes.h
-
         # undo history
         extra/undo/undo_history.h
 
