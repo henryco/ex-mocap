@@ -113,6 +113,12 @@ namespace ex::data::mempool {
             blocks_.put(allocated_ptr, { static_cast<u_int32_t>(allocated_size), 1, true });
         }
 
+        void cleanup() {
+            watche_.clean();
+            blocks_.clean();
+            memory_.clean();
+        }
+
         void add_watcher(const watch_id_t id, const watch_fn_t fn) {
             watche_.put(id, fn);
         }

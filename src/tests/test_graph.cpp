@@ -5,6 +5,7 @@
 #include <iostream>
 #include <doctest/doctest.h>
 #include "../../extra/graph/graph.h"
+#include "../../extra/data/memarena.h"
 #include "../../extra/data/mempool.h"
 #include "../../src/headers/utils/time_utils.h"
 
@@ -109,7 +110,8 @@ void rec_build(limbo::graph::BaseNode *parent, const int width, const int max_de
 }
 
 namespace data {
-    static ex::data::mempool::allocator pool;
+//    static ex::data::mempool::allocator pool;
+    static ex::data::memarena::allocator pool;
 
     inline void *pool_malloc_(const std::size_t size_new_b, const std::size_t alignment_b) {
         return pool.allocate(size_new_b, alignment_b);
@@ -181,18 +183,18 @@ TEST_CASE("Graph node test") {
         }
     }
 
-    int free_blocks = 0;
-    for (int i = 0; i < data::pool.blocks_.size; ++i) {
-        const auto block = data::pool.blocks_.val_entries_[i];
-        if (block.is_free == true)
-            free_blocks += 1;
-    }
+//    int free_blocks = 0;
+//    for (int i = 0; i < data::pool.blocks_.size; ++i) {
+//        const auto block = data::pool.blocks_.val_entries_[i];
+//        if (block.is_free == true)
+//            free_blocks += 1;
+//    }
 
     std::cout << "avg: " << (avg / counter) << " ns\n";
     std::cout << "memory total : " << limbo::graph::memory::allocator.size_total() << " b" << std::endl;
     std::cout << "memory used  : " << limbo::graph::memory::allocator.size_used() << " b" << std::endl;
-    std::cout << "blocks total: " << data::pool.blocks_.size << std::endl;
-    std::cout << "blocks free: " << free_blocks << std::endl;
+//    std::cout << "blocks total: " << data::pool.blocks_.size << std::endl;
+//    std::cout << "blocks free: " << free_blocks << std::endl;
     std::cout << "finished" << std::endl;
 
 }
