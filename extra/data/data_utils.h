@@ -243,7 +243,6 @@ namespace ex::data {
             //       |^              2
             //      ^|               1
             //       |^              1
-            //      ^|               1
 
             int index = size - 1;
             int width = size;
@@ -663,7 +662,7 @@ namespace ex::data {
         }
 
         bool empty() const {
-            return key_entries.empty();
+            return size <= 0;
         }
 
         void clean() {
