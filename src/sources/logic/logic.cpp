@@ -23,6 +23,7 @@ namespace internal_ {
     static ex::data::map<std::uint32_t, int> ptr_counter_map(10);
 
     void cleanup_nodes() {
+        ex::main::log->debug("start node gc");
         for (int i = 0; i < ptr_counter_map.size; /*nop*/) {
             const uint32_t key         = ptr_counter_map.key_entries[i];
             int           &ptr_counter = ptr_counter_map.val_entries[i];
@@ -40,6 +41,7 @@ namespace internal_ {
                 ++i;
             }
         }
+        ex::main::log->debug("complete node gc");
     }
 
     inline int *fetch_(const std::uint32_t &id) {
@@ -57,30 +59,37 @@ namespace ex::main {
         ::abort();
     }
 
-    simple_list *get_head_(simple_list *node) {
-        if (node == nullptr)
-            return nullptr;
-        simple_list *head = node;
-        while (true) {
-            if (head->next == nullptr)
-                return head;
-            head = head->next;
+    struct simple_list {
+        TreeNode    *node = nullptr;
+        simple_list *next = nullptr;
+
+        ~simple_list() {
+            // hopefully it will not end up with stack overflow :/
+            if (next != nullptr) {
+                delete next;
+                next = nullptr;
+            }
         }
-    }
 
-    void Logic::reset_internal_state_(State &state) {
-        clock_.reset();
+        static simple_list *get_head_(simple_list *node) {
+            if (node == nullptr)
+                return nullptr;
+            simple_list *head = node;
+            while (true) {
+                if (head->next == nullptr)
+                    return head;
+                head = head->next;
+            }
+        }
+    };
 
-        if (state.logic.work_tree != nullptr)
-            delete state.logic.work_tree;
+    void traverse_(State &state, TreeNode *node, bool *rewire, bool fresh);
 
-        state::uuid::reset_last_id();
+    void build_tree_(State &state, TreeNode *node, TreeNode *previous, simple_list *group_list);
 
-        state.logic.work_tree             = TreeNode::create();
-        state.logic.work_tree->state      = node_state::is_group;
-        state.logic.work_tree->name       = "root";
-        state.logic.work_tree->children_n = 0;
-    }
+    bool connect_nodes_(TreeNode *from, TreeNode *to);
+
+    void mark_node_deleted_(State &state, TreeNode *node, bool moved);
 
     Logic create_logic(State &state) {
         Logic logic;
@@ -126,6 +135,20 @@ namespace ex::main {
             state.project.should_save = false;
             serialize_(state);
         }
+    }
+
+    void Logic::reset_internal_state_(State &state) {
+        clock_.reset();
+
+        if (state.logic.work_tree != nullptr)
+            delete state.logic.work_tree;
+
+        state::uuid::reset_last_id();
+
+        state.logic.work_tree             = TreeNode::create();
+        state.logic.work_tree->state      = node_state::is_group;
+        state.logic.work_tree->name       = "root";
+        state.logic.work_tree->children_n = 0;
     }
 
     void Logic::create_new_(State &state) {
@@ -228,7 +251,7 @@ namespace ex::main {
         static bool gc_run = false;
 
         if (gc_run && !rewire) {
-            gc_(state);
+            internal_::cleanup_nodes();
             gc_run = false;
         }
 
@@ -243,118 +266,6 @@ namespace ex::main {
         state.logic.rewire = false;
     }
 
-    void Logic::mark_node_deleted_(State &state, TreeNode *node, const bool moved) {
-        if (node == nullptr)
-            return;
-
-        node->state -= node_state::deleted;
-        node->state -= node_state::moved;
-
-        node->state |= (node_state::deleted && !moved);
-        node->state |= (node_state::moved && moved);
-
-        if (!moved &&
-            !(node->state >>= node_state::is_link) &&
-            !(node->state >>= node_state::is_group)) {
-
-            if (const auto base = ex::logic::state::get_node(node->id_local)) {
-                if (const auto d_func = ex::logic::node_mappers()[node->id_node].destroy)
-                    d_func(node, base);
-            }
-
-            ex::logic::state::remove_node(node->id_local);
-            internal_::ptr_counter_map.remove(node->id_local);
-        }
-
-        if (moved && !(node->state >>= node_state::is_link) && !(node->state >>= node_state::is_group)) {
-            const auto base = ex::logic::state::get_node(node->id_local);
-            const auto r_func = ex::logic::node_mappers()[node->id_node].relocate;
-            if (r_func != nullptr) {
-                const auto new_one = r_func(node, base);
-                if (base != new_one) {
-                    ex::logic::state::replace_node(node->id_local, new_one);
-                }
-            }
-        }
-
-        if (node->children_n <= 0 || node->children == nullptr) {
-            return;
-        }
-
-        for (int i = 0; i < node->children_n; i++) {
-            mark_node_deleted_(state, node->children[i], moved);
-        }
-    }
-
-    void Logic::traverse_(State &state, TreeNode *node, bool *rewire, const bool fresh) {
-        if (node == nullptr)
-            return;
-
-
-        if ((node->state >>= node_state::deleted) || (node->state >>= node_state::moved)) {
-            *rewire = true;
-            return;
-        }
-
-        for (std::size_t i = 0; i < node->children_n; i++) {
-            const auto child = node->children[i];
-
-            if ((child->state >>= node_state::deleted) || (child->state >>= node_state::moved)) {
-                *rewire = true;
-            }
-
-            else {
-                traverse_(state, child, rewire, fresh || (node->state >>= node_state::created));
-                if ((child->state >>= node_state::is_group) && (child->children_n <= 0 || child->children == nullptr)) {
-                    child->state |= node_state::deleted;
-                    *rewire = true;
-                }
-            }
-        }
-
-        int o = 0;
-        while (true) {
-            if (o >= node->children_n)
-                break;
-            const auto child = node->children[o];
-            if (!(child->state >>= node_state::deleted) && !(child->state >>= node_state::moved)) {
-                o += 1;
-                continue;
-            }
-            mark_node_deleted_(state, child, child->state >>= node_state::moved);
-            node->remove_node(child);
-            delete child;
-            o = 0;
-        }
-
-        if ((node->state >>= node_state::created) || fresh) {
-
-            if (!(node->state >>= node_state::is_group) && !(node->state >>= node_state::is_link)) {
-
-                const logic::NodeMapper &mappers = ex::logic::node_mappers()[node->id_node];
-                if (const auto node_ptr = ex::logic::state::get_node(node->id_local); node_ptr != nullptr) {
-                    if (node_ptr->get_id() != node->id_local)
-                        ex::logic::state::replace_node(node->id_local, mappers.instance(node));
-                } else
-                    ex::logic::state::store_node(node->id_local, mappers.instance(node));
-
-                internal_::ptr_counter_map[node->id_local]++;
-            }
-
-            node->state -= node_state::created;
-            *rewire = true;
-        }
-
-        if ((node->state >>= node_state::is_group) || (node->state >>= node_state::is_link))
-            return;
-
-//        int &v_ref = internal_::ptr_counter_map[node->id_local];    // 1
-//        v_ref      = std::min(v_ref + 1, 10000000);
-
-        int *v_ref = internal_::cache(node->id_local);              // 2
-        *v_ref     = std::min(*v_ref + 1, 10000000);
-    }
-
     void Logic::rewire_(State &state) {
         log->debug("rewire");
 
@@ -365,9 +276,9 @@ namespace ex::main {
         simple_list current = { state.logic.work_tree };
         build_tree_(state, state.logic.work_tree, nullptr, &current);
 
-        gc_(state);
+        internal_::cleanup_nodes();
 
-        const simple_list *head = get_head_(&current);
+        const simple_list *head = simple_list::get_head_(&current);
         if (head == nullptr) {
             return;
         }
@@ -415,71 +326,50 @@ namespace ex::main {
         log->error("Cannot connect node to clock");
     }
 
-    void Logic::gc_(State &_) {
-        log->debug("start node gc");
-        internal_::cleanup_nodes();
-        log->debug("complete node gc");
-    }
-
-    void Logic::build_tree_(State &state, TreeNode *node, TreeNode *previous, simple_list *group_list) {
-
-        // TODO IS_OUTPUT
-        // TODO FIXME NULL REF BUG
-
-        if (node == nullptr || group_list == nullptr || (node->state >>= node_state::deleted))
+    void mark_node_deleted_(State &state, TreeNode *node, const bool moved) {
+        if (node == nullptr)
             return;
 
-        if (!(node->state >>= node_state::is_link) && !(node->state >>= node_state::is_group)) {
-            node->state -= node_state::connected;
-        }
+        node->state -= node_state::deleted;
+        node->state -= node_state::moved;
 
-        if (node->state >>= node_state::is_group) {
-            TreeNode *prev_node = previous;
-            TreeNode *curr_node = nullptr;
+        node->state |= (node_state::deleted && !moved);
+        node->state |= (node_state::moved && moved);
 
-            for (std::size_t i = 0; i < node->children_n; i++) {
-                const auto child_node = node->children[i];
+        if (!moved &&
+            !(node->state >>= node_state::is_link) &&
+            !(node->state >>= node_state::is_group)) {
 
-                if (child_node->state >>= node_state::disabled)
-                    continue;
+            if (const auto base = ex::logic::state::get_node(node->id_local)) {
+                if (const auto d_func = ex::logic::node_mappers()[node->id_node].destroy)
+                    d_func(node, base);
+            }
 
-                curr_node = child_node;
+            ex::logic::state::remove_node(node->id_local);
+            internal_::ptr_counter_map.remove(node->id_local);
+            }
 
-                build_tree_(state, curr_node, prev_node, group_list);
-
-                if (!(curr_node->state >>= node_state::is_group)) {
-                    prev_node = curr_node;
+        if (moved && !(node->state >>= node_state::is_link) && !(node->state >>= node_state::is_group)) {
+            const auto base = ex::logic::state::get_node(node->id_local);
+            const auto r_func = ex::logic::node_mappers()[node->id_node].relocate;
+            if (r_func != nullptr) {
+                const auto new_one = r_func(node, base);
+                if (base != new_one) {
+                    ex::logic::state::replace_node(node->id_local, new_one);
                 }
             }
+        }
 
-            if (curr_node != nullptr && !(curr_node->state >>= node_state::is_group)) {
-                // add last non-group element within group to list
-                get_head_(group_list)->next = new simple_list(curr_node);
-            }
+        if (node->children_n <= 0 || node->children == nullptr) {
             return;
         }
 
-        connect_nodes_(previous, node);
-        for (std::size_t i = 0; i < node->children_n; i++) {
-            TreeNode *curr_node = node->children[i];
-
-            // non-group element can contain only groups as children
-            if (!(curr_node->state >>= node_state::is_group) || (curr_node->state >>= node_state::disabled))
-                continue;
-
-            simple_list list = {};
-            build_tree_(state, curr_node, nullptr, &list);
-
-            const simple_list *head = list.next;
-            while (head != nullptr) {
-                // collect results of the group traversal
-                connect_nodes_(head->node, node);
-                head = head->next;
-            }
+        for (int i = 0; i < node->children_n; i++) {
+            mark_node_deleted_(state, node->children[i], moved);
         }
     }
 
-    bool Logic::connect_nodes_(TreeNode *from, TreeNode *to) {
+    bool connect_nodes_(TreeNode *from, TreeNode *to) {
         if (from == nullptr || to == nullptr || (to->state >>= node_state::is_link))
             return false;
 
@@ -550,6 +440,133 @@ namespace ex::main {
         log->debug("CONNECTION STATUS: {} -> {} [{}]", from_id_local, to->id_local, to->state >>= node_state::connected);
 
         return to->state >>= node_state::connected;
+    }
+
+    void traverse_(State &state, TreeNode *node, bool *rewire, const bool fresh) {
+        if (node == nullptr)
+            return;
+
+
+        if ((node->state >>= node_state::deleted) || (node->state >>= node_state::moved)) {
+            *rewire = true;
+            return;
+        }
+
+        for (std::size_t i = 0; i < node->children_n; i++) {
+            const auto child = node->children[i];
+
+            if ((child->state >>= node_state::deleted) || (child->state >>= node_state::moved)) {
+                *rewire = true;
+            }
+
+            else {
+                traverse_(state, child, rewire, fresh || (node->state >>= node_state::created));
+                if ((child->state >>= node_state::is_group) && (child->children_n <= 0 || child->children == nullptr)) {
+                    child->state |= node_state::deleted;
+                    *rewire = true;
+                }
+            }
+        }
+
+        int o = 0;
+        while (true) {
+            if (o >= node->children_n)
+                break;
+            const auto child = node->children[o];
+            if (!(child->state >>= node_state::deleted) && !(child->state >>= node_state::moved)) {
+                o += 1;
+                continue;
+            }
+            mark_node_deleted_(state, child, child->state >>= node_state::moved);
+            node->remove_node(child);
+            delete child;
+            o = 0;
+        }
+
+        if ((node->state >>= node_state::created) || fresh) {
+
+            if (!(node->state >>= node_state::is_group) && !(node->state >>= node_state::is_link)) {
+
+                const logic::NodeMapper &mappers = ex::logic::node_mappers()[node->id_node];
+                if (const auto node_ptr = ex::logic::state::get_node(node->id_local); node_ptr != nullptr) {
+                    if (node_ptr->get_id() != node->id_local)
+                        ex::logic::state::replace_node(node->id_local, mappers.instance(node));
+                } else
+                    ex::logic::state::store_node(node->id_local, mappers.instance(node));
+
+                internal_::ptr_counter_map[node->id_local]++;
+            }
+
+            node->state -= node_state::created;
+            *rewire = true;
+        }
+
+        if ((node->state >>= node_state::is_group) || (node->state >>= node_state::is_link))
+            return;
+
+//        int &v_ref = internal_::ptr_counter_map[node->id_local];    // 1
+//        v_ref      = std::min(v_ref + 1, 10000000);
+
+        int *v_ref = internal_::cache(node->id_local);              // 2
+        *v_ref     = std::min(*v_ref + 1, 10000000);
+    }
+
+    void build_tree_(State &state, TreeNode *node, TreeNode *previous, simple_list *group_list) {
+
+        // TODO IS_OUTPUT
+        // TODO FIXME NULL REF BUG
+
+        if (node == nullptr || group_list == nullptr || (node->state >>= node_state::deleted))
+            return;
+
+        if (!(node->state >>= node_state::is_link) && !(node->state >>= node_state::is_group)) {
+            node->state -= node_state::connected;
+        }
+
+        if (node->state >>= node_state::is_group) {
+            TreeNode *prev_node = previous;
+            TreeNode *curr_node = nullptr;
+
+            for (std::size_t i = 0; i < node->children_n; i++) {
+                const auto child_node = node->children[i];
+
+                if (child_node->state >>= node_state::disabled)
+                    continue;
+
+                curr_node = child_node;
+
+                build_tree_(state, curr_node, prev_node, group_list);
+
+                if (!(curr_node->state >>= node_state::is_group)) {
+                    prev_node = curr_node;
+                }
+            }
+
+            if (curr_node != nullptr && !(curr_node->state >>= node_state::is_group)) {
+                // add last non-group element within group to list
+                simple_list::get_head_(group_list)->next = new simple_list(curr_node);
+            }
+            return;
+        }
+
+        connect_nodes_(previous, node);
+        for (std::size_t i = 0; i < node->children_n; i++) {
+            TreeNode *curr_node = node->children[i];
+
+            // non-group element can contain only groups as children
+            if (!(curr_node->state >>= node_state::is_group) || (curr_node->state >>= node_state::disabled))
+                continue;
+
+            simple_list list = {};
+            build_tree_(state, curr_node, nullptr, &list);
+
+            const simple_list *head = list.next;
+            while (head != nullptr) {
+                // collect results of the group traversal
+                connect_nodes_(head->node, node);
+                head = head->next;
+            }
+        }
     }
 
 }
