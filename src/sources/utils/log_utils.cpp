@@ -4,7 +4,7 @@
 
 #include "../../headers/utils/log_utils.h"
 
-#include <spdlog/sinks/ringbuffer_sink.h>
+#include <spdlog/sinks/ansicolor_sink.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 
 namespace ex::logs {
@@ -17,12 +17,11 @@ namespace ex::logs {
     }
 
     ex::logs::logger get_logger(const std::string &name) {
-        static auto rotating =
-                std::make_shared<spdlog::sinks::rotating_file_sink_mt>("logs/exmotion_log",
-                                                                       1024 * 1024,
-                                                                       10,
-                                                                       false);
-        std::initializer_list<spdlog::sink_ptr> sinks = { rotating, get_buffer_sink() };
+        static auto color_ascii_sink = std::make_shared<spdlog::sinks::ansicolor_stdout_sink_mt>();
+        static auto rotating_file_sink =
+                std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
+                    "logs/exmotion_log", 1024 * 1024, 10, false);
+        std::initializer_list<spdlog::sink_ptr> sinks = { rotating_file_sink, get_buffer_sink(), color_ascii_sink };
         auto ptr = make_shared<spdlog::logger>(name, sinks);
         ptr->set_level(global_level);
         _loggers.push_back(ptr);
