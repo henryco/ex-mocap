@@ -3,6 +3,7 @@
 //
 
 #include "../headers/boot.h"
+#include "../../extra/data/mempool.h"
 #include "../headers/imgui/gui.h"
 #include "../headers/logic/logic.h"
 #include "../headers/logic/logic_globals.h"
@@ -144,7 +145,7 @@ namespace ex::boot {
     }
 
     int gui(int, char **, const char *project_path) {
-
+//        limbo::graph::memory::allocator = ex::data::mempool::pool;
         State &state = ex::logic::globals::state();
         state.project.project_path = project_path;
         state.project.title        = "ExMoCap";
