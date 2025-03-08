@@ -915,7 +915,6 @@ namespace ex::data {
             if (*direction >= 0) {
                 if (node->rns != nullptr)
                     return descend_(node->rns, key, direction);
-
                 return node;
             }
             if (node->lns != nullptr)
