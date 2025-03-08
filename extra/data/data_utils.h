@@ -941,6 +941,8 @@ namespace ex::data {
             if (direction >= 0) base->rns = node;
             else                base->lns = node;
 
+            // TODO FIX POST BINARY INSERT
+
             fix_insert_(node);
         }
 
