@@ -838,8 +838,94 @@ namespace ex::data {
     };
 
 
-    template<typename key_t, typename element_t>
+    template<typename key_t, typename val_t>
     struct rb_map {
+
+        using col_t = bool;
+#define BLACK_        false
+#define RED_          true
+
+        struct rb_node {
+            rb_node *par;
+            rb_node *lns;
+            rb_node *rns;
+            val_t    val;
+            key_t    key;
+            col_t    col;
+        };
+
+        using comparator_fn = int8_t (*)(const key_t *a, const key_t *b);
+        static int8_t default_comparator(const key_t *a, const key_t *b) {
+            return (*a > *b) - (*a < *b);
+        }
+
+        comparator_fn comparator__;
+        rb_node      *root;
+
+        ~rb_map() {
+            if (root == nullptr)
+                return;
+            recursive_free(&root);
+        }
+
+        rb_map(const comparator_fn compare = &default_comparator):
+            comparator__(compare), root(nullptr) {
+        }
+
+        static void recursive_free(rb_node **node) {
+            if (*node == nullptr) return;
+            recursive_free((*node)->lns);
+            recursive_free((*node)->rns);
+            ::free(*node);
+            *node = nullptr;
+        }
+
+        void put(const entry<key_t, val_t> &entry) {
+            put(entry.key, entry.element);
+        }
+
+        void put(const key_t &key, const val_t &val) {
+            if (root == nullptr) {
+                root = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
+                root->par = nullptr;
+                root->lns = nullptr;
+                root->rns = nullptr;
+                root->val = val;
+                root->key = key;
+                root->col = BLACK_;
+                return;
+            }
+
+            int direction;
+            rb_node *base = descend(root, key, &direction);
+
+            rb_node *node = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
+            node->par     = base;
+            node->lns     = nullptr;
+            node->rns     = nullptr;
+            node->val     = val;
+            node->key     = key;
+            node->col     = RED_;
+
+            if (direction >= 0) base->rns = node;
+            else                base->lns = node;
+
+            // TODO REBALANCE
+        }
+
+        rb_node *descend(const rb_node *node, const key_t &key, int *direction) {
+            if (node == nullptr) return nullptr;
+            *direction = comparator__(key, node->key);
+            if (*direction >= 0) {
+                if (node->rns != nullptr)
+                    return descend(node->rns, key, direction);
+
+                return node;
+            }
+            if (node->lns != nullptr)
+                return descend(node->lns, key, direction);
+            return node;
+        }
 
     };
 
