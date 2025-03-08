@@ -865,19 +865,11 @@ namespace ex::data {
         ~rb_map() {
             if (root == nullptr)
                 return;
-            recursive_free(&root);
+            recursive_free_(&root);
         }
 
         rb_map(const comparator_fn compare = &default_comparator):
             comparator__(compare), root(nullptr) {
-        }
-
-        static void recursive_free(rb_node **node) {
-            if (*node == nullptr) return;
-            recursive_free((*node)->lns);
-            recursive_free((*node)->rns);
-            ::free(*node);
-            *node = nullptr;
         }
 
         void put(const entry<key_t, val_t> &entry) {
@@ -897,7 +889,7 @@ namespace ex::data {
             }
 
             int direction;
-            rb_node *base = descend(root, key, &direction);
+            rb_node *base = descend_(root, key, &direction);
 
             rb_node *node = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
             node->par     = base;
@@ -910,21 +902,33 @@ namespace ex::data {
             if (direction >= 0) base->rns = node;
             else                base->lns = node;
 
-            // TODO REBALANCE
+            // TODO RE-BALANCE
         }
 
-        rb_node *descend(const rb_node *node, const key_t &key, int *direction) {
+        void re_balance_(rb_node *node) {
+            // TODO
+        }
+
+        rb_node *descend_(const rb_node *node, const key_t &key, int *direction) {
             if (node == nullptr) return nullptr;
             *direction = comparator__(key, node->key);
             if (*direction >= 0) {
                 if (node->rns != nullptr)
-                    return descend(node->rns, key, direction);
+                    return descend_(node->rns, key, direction);
 
                 return node;
             }
             if (node->lns != nullptr)
-                return descend(node->lns, key, direction);
+                return descend_(node->lns, key, direction);
             return node;
+        }
+
+        static void recursive_free_(rb_node **node) {
+            if (*node == nullptr) return;
+            recursive_free((*node)->lns);
+            recursive_free((*node)->rns);
+            ::free(*node);
+            *node = nullptr;
         }
 
     };
