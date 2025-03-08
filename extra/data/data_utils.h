@@ -5,8 +5,10 @@
 #ifndef EX_LIMBO_DATA_UTILS_H
 #define EX_LIMBO_DATA_UTILS_H
 
-#include "datalloc.h"
 #include <cstring>
+#include <fmt/core.h>
+#include <ios>
+#include "datalloc.h"
 
 namespace ex::data {
 
@@ -902,11 +904,57 @@ namespace ex::data {
             if (direction >= 0) base->rns = node;
             else                base->lns = node;
 
-            // TODO RE-BALANCE
+            fix_insert_(node);
         }
 
-        void re_balance_(rb_node *node) {
-            // TODO
+
+        void fix_insert_(rb_node *node) {
+            rb_node *parent = node->par;
+
+            if (parent == nullptr) {
+                node->col = BLACK_;
+                return;
+            }
+
+            if (parent->col == BLACK_)
+                return;
+
+            if (parent->par == nullptr) {
+                // now, what ?
+                return;
+            }
+
+            rb_node *uncle_  = get_brother_(parent);
+
+            if (uncle_->col == RED_) {
+                uncle_->col      = BLACK_;
+                parent->col      = BLACK_;
+                parent->par->col = RED_;
+                fix_insert_(parent->par);
+                return;
+            }
+
+            if (node == parent->lns && parent == parent->par->lns) {
+                // LL
+                rotate_right_(parent->par);
+            }
+
+            else if (node == parent->rns && parent == parent->par->rns) {
+                // RR
+                rotate_left_(parent->par);
+            }
+
+            else if (node == parent->lns && parent == parent->par->rns) {
+                // LR
+                rotate_left_(parent);
+                rotate_right_(parent->par);
+            }
+
+            else if (node == parent->rns && parent == parent->par->lns) {
+                // RL
+                rotate_right_(parent);
+                rotate_left_(parent->par);
+            }
         }
 
         rb_node *descend_(const rb_node *node, const key_t &key, int *direction) {
@@ -920,6 +968,63 @@ namespace ex::data {
             if (node->lns != nullptr)
                 return descend_(node->lns, key, direction);
             return node;
+        }
+
+        void rotate_right_(rb_node *node) {
+            rb_node *left = node->lns;
+            if (left == nullptr)
+                return;
+
+            node->lns = left->rns;
+
+            if (left->rns != nullptr)
+                left->rns->par = node;
+
+            if (node->par == nullptr)
+                root = left;
+
+            else if (node->par->lns == node)
+                node->par->lns = left;
+
+            else if (node->par->rns == node)
+                node->par->rns = left;
+
+            left->par = node->par;
+            left->rns = node;
+            node->par = left;
+        }
+
+        void rotate_left_(rb_node *node) {
+            rb_node *right = node->rns;
+            if (right == nullptr)
+                return;
+
+            node->rns = right->lns;
+
+            if (right->lns != nullptr)
+                right->lns->par = node;
+
+            if (node->par == nullptr)
+                root = right;
+
+            else if (node->par->lns == node)
+                node->par->lns = right;
+
+            else if (node->par->rns == node)
+                node->par->rns = right;
+
+            right->par = node->par;
+            right->lns = node;
+            node->par  = right;
+        }
+
+        static rb_node *get_brother_(const rb_node *node) {
+            if (node == nullptr)
+                ::abort();
+            const rb_node *parent = node->par;
+            if (parent == nullptr)
+                ::abort();
+            return parent->lns == node ? parent->rns : parent->lns;
         }
 
         static void recursive_free_(rb_node **node) {
