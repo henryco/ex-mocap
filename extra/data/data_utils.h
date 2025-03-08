@@ -941,8 +941,6 @@ namespace ex::data {
             if (direction >= 0) base->rns = node;
             else                base->lns = node;
 
-            // TODO FIX POST BINARY INSERT
-
             fix_insert_(node);
         }
 
@@ -955,23 +953,85 @@ namespace ex::data {
             if (direction != 0 || comp_(&key, &(node->key)) != 0)
                 return;
 
-            if (node->par->lns == node)
-                node->par->lns = nullptr;
-            if (node->par->rns == node)
-                node->par->rns = nullptr;
-
             size_ = size_ - 1 >= 0 ? size_ - 1 : 0;
+            remove_node_(node);
+        }
 
-            // TODO
+        void remove_node_(rb_node *node) {
 
-            fix_remove_(node);
-            ::free(node);
+            if (node->lns == nullptr && node->rns == nullptr) {
+                // no children
+
+                if (node == root_) {
+                    ::free(root_);
+                    root_ = nullptr;
+                    return;
+                }
+
+                fix_remove_(node);
+                ::free(node);
+                return;
+            }
+
+            if (node->lns != nullptr && node->rns != nullptr) {
+                // left and right
+                rb_node *largest = get_largest_(node->lns);
+                node->key = largest->key;
+                node->val = largest->val;
+
+                rb_node *left_child = largest->lns;
+                if (largest->par->lns == largest)
+                    largest->par->lns = left_child;
+                else if (largest->par->rns == largest)
+                    largest->par->rns = left_child;
+                left_child->par = largest->par;
+
+                // TODO
+
+                fix_remove_(largest);
+                ::free(largest);
+                return;
+            }
+
+
+            if (node->lns != nullptr && node->rns == nullptr) {
+                // left
+                rb_node *left_child = node->lns;
+                if (node->par->rns == node)
+                    node->par->rns = left_child;
+                else if (node->par->lns == node)
+                    node->par->lns = left_child;
+                left_child->par = node->par;
+
+                // TODO
+
+                fix_remove_(node);
+                ::free(node);
+                return;
+            }
+
+            if (node->rns != nullptr && node->lns == nullptr) {
+                // right
+                rb_node *right_child = node->rns;
+                if (node->par->rns == node)
+                    node->par->rns = right_child;
+                else if (node->par->lns == node)
+                    node->par->lns = right_child;
+                right_child->par = node->par;
+
+                // TODO
+
+                fix_remove_(node);
+                ::free(node);
+            }
+
         }
 
         void fix_remove_(rb_node *node) {
-            // TODO
             if (node == nullptr || node->col == RED_)
                 return;
+
+
         }
 
         void fix_insert_(rb_node *node) {
@@ -1089,6 +1149,14 @@ namespace ex::data {
             right->par = node->par;
             right->lns = node;
             node->par  = right;
+        }
+
+        static rb_node *get_largest_(rb_node *node) {
+            if (node == nullptr)
+                return nullptr;
+            if (node->rns == nullptr)
+                return node;
+            return largest_(node->rns);
         }
 
         static rb_node *get_brother_(const rb_node *node) {
