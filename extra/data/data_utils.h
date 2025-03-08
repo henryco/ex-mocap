@@ -859,26 +859,52 @@ namespace ex::data {
             return (*a > *b) - (*a < *b);
         }
 
-        comparator_fn comparator__;
-        rb_node      *root;
+        comparator_fn comp_;
+        int64_t       size_;
+        rb_node      *root_;
 
-        ~rb_map() {
-            if (root == nullptr)
-                return;
-            recursive_free_(&root);
+        rb_map(const comparator_fn compare = &rb_map::default_comparator):
+                    comp_(compare), size_(0), root_(nullptr) {
         }
 
-        rb_map(const comparator_fn compare = &default_comparator):
-            comparator__(compare), root(nullptr) {
+        ~rb_map() {
+            if (root_ == nullptr)
+                return;
+            recursive_free_(&root_);
+        }
+
+        void clean() {
+            recursive_free_(&root_);
+            size_ = 0;
+        }
+
+        bool empty() const {
+            return size_ <= 0;
+        }
+
+        int64_t size() const {
+            return size_;
+        }
+
+        bool contains(const key_t &key) const {
+            int direction;
+            const rb_node *node = descend_(root_, key, &direction);
+            if (node == nullptr)
+                return false;
+
+            if (direction != 0 || comp_(&key, &(node->key)) != 0)
+                return false;
+
+            return true;
         }
 
         val_t &at(const key_t &key) {
             int direction;
-            const rb_node *node = descend_(root, key, &direction);
+            const rb_node *node = descend_(root_, key, &direction);
             if (node == nullptr)
                 ::abort();
 
-            if (direction == 0 && comparator__(&key, &(node->key)) == 0)
+            if (direction == 0 && comp_(&key, &(node->key)) == 0)
                 return node->val;
 
             ::abort();
@@ -889,19 +915,20 @@ namespace ex::data {
         }
 
         void put(const key_t &key, const val_t &val) {
-            if (root == nullptr) {
-                root = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
-                root->par = nullptr;
-                root->lns = nullptr;
-                root->rns = nullptr;
-                root->val = val;
-                root->key = key;
-                root->col = BLACK_;
+            ++size_;
+            if (root_ == nullptr) {
+                root_ = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
+                root_->par = nullptr;
+                root_->lns = nullptr;
+                root_->rns = nullptr;
+                root_->val = val;
+                root_->key = key;
+                root_->col = BLACK_;
                 return;
             }
 
             int direction;
-            rb_node *base = descend_(root, key, &direction);
+            rb_node *base = descend_(root_, key, &direction);
 
             rb_node *node = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
             node->par     = base;
@@ -919,17 +946,19 @@ namespace ex::data {
 
         void remove(const key_t &key) {
             int direction;
-            rb_node *node = descend_(root, key, &direction);
+            rb_node *node = descend_(root_, key, &direction);
             if (node == nullptr)
                 return;
 
-            if (direction != 0 || comparator__(&key, &(node->key)) != 0)
+            if (direction != 0 || comp_(&key, &(node->key)) != 0)
                 return;
 
             if (node->par->lns == node)
                 node->par->lns = nullptr;
             if (node->par->rns == node)
                 node->par->rns = nullptr;
+
+            size_ = size_ - 1 >= 0 ? size_ - 1 : 0;
 
             fix_remove_(node);
             ::free(node);
@@ -990,7 +1019,7 @@ namespace ex::data {
 
         rb_node *descend_(const rb_node *node, const key_t &key, int *direction) {
             if (node == nullptr) return nullptr;
-            *direction = comparator__(&key, &(node->key));
+            *direction = comp_(&key, &(node->key));
             if (*direction >= 0) {
                 if (node->rns != nullptr)
                     return descend_(node->rns, key, direction);
@@ -1012,7 +1041,7 @@ namespace ex::data {
                 left->rns->par = node;
 
             if (node->par == nullptr)
-                root = left;
+                root_ = left;
 
             else if (node->par->lns == node)
                 node->par->lns = left;
@@ -1036,7 +1065,7 @@ namespace ex::data {
                 right->lns->par = node;
 
             if (node->par == nullptr)
-                root = right;
+                root_ = right;
 
             else if (node->par->lns == node)
                 node->par->lns = right;
