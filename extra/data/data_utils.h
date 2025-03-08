@@ -5,10 +5,8 @@
 #ifndef EX_LIMBO_DATA_UTILS_H
 #define EX_LIMBO_DATA_UTILS_H
 
-#include <cstring>
-#include <fmt/core.h>
-#include <ios>
 #include "datalloc.h"
+#include <cstring>
 
 namespace ex::data {
 
@@ -874,6 +872,18 @@ namespace ex::data {
             comparator__(compare), root(nullptr) {
         }
 
+        val_t &at(const key_t &key) {
+            int direction;
+            const rb_node *node = descend_(root, key, &direction);
+            if (node == nullptr)
+                ::abort();
+
+            if (direction == 0 && comparator__(&key, &(node->key)) == 0)
+                return node->val;
+
+            ::abort();
+        }
+
         void put(const entry<key_t, val_t> &entry) {
             put(entry.key, entry.element);
         }
@@ -907,6 +917,27 @@ namespace ex::data {
             fix_insert_(node);
         }
 
+        void remove(const key_t &key) {
+            int direction;
+            rb_node *node = descend_(root, key, &direction);
+            if (node == nullptr)
+                return;
+
+            if (direction != 0 || comparator__(&key, &(node->key)) != 0)
+                return;
+
+            if (node->par->lns == node)
+                node->par->lns = nullptr;
+            if (node->par->rns == node)
+                node->par->rns = nullptr;
+
+            fix_remove_(node);
+            ::free(node);
+        }
+
+        void fix_remove_(rb_node *node) {
+            // TODO
+        }
 
         void fix_insert_(rb_node *node) {
             rb_node *parent = node->par;
@@ -959,7 +990,7 @@ namespace ex::data {
 
         rb_node *descend_(const rb_node *node, const key_t &key, int *direction) {
             if (node == nullptr) return nullptr;
-            *direction = comparator__(key, node->key);
+            *direction = comparator__(&key, &(node->key));
             if (*direction >= 0) {
                 if (node->rns != nullptr)
                     return descend_(node->rns, key, direction);
