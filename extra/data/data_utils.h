@@ -888,7 +888,7 @@ namespace ex::data {
 
         bool contains(const key_t &key) const {
             int direction;
-            const rb_node *node = descend_(root_, key, &direction);
+            const rb_node *node = descend_(root_, key, true, &direction);
             if (node == nullptr)
                 return false;
 
@@ -900,7 +900,7 @@ namespace ex::data {
 
         val_t &at(const key_t &key) {
             int direction;
-            const rb_node *node = descend_(root_, key, &direction);
+            const rb_node *node = descend_(root_, key, true, &direction);
             if (node == nullptr)
                 ::abort();
 
@@ -928,7 +928,7 @@ namespace ex::data {
             }
 
             int direction;
-            rb_node *base = descend_(root_, key, &direction);
+            rb_node *base = descend_(root_, key, false, &direction);
 
             rb_node *node = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
             node->par     = base;
@@ -946,7 +946,7 @@ namespace ex::data {
 
         void remove(const key_t &key) {
             int direction;
-            rb_node *node = descend_(root_, key, &direction);
+            rb_node *node = descend_(root_, key, true, &direction);
             if (node == nullptr)
                 return;
 
@@ -960,12 +960,16 @@ namespace ex::data {
 
             size_ = size_ - 1 >= 0 ? size_ - 1 : 0;
 
+            // TODO
+
             fix_remove_(node);
             ::free(node);
         }
 
         void fix_remove_(rb_node *node) {
             // TODO
+            if (node == nullptr || node->col == RED_)
+                return;
         }
 
         void fix_insert_(rb_node *node) {
@@ -1017,16 +1021,23 @@ namespace ex::data {
             }
         }
 
-        rb_node *descend_(const rb_node *node, const key_t &key, int *direction) {
-            if (node == nullptr) return nullptr;
+        rb_node *descend_(const rb_node *node, const key_t &key, const bool search, int *direction) {
+            if (node == nullptr)
+                return nullptr;
+
             *direction = comp_(&key, &(node->key));
+
+            if (*direction == 0 && search)
+                return node;
+
             if (*direction >= 0) {
                 if (node->rns != nullptr)
-                    return descend_(node->rns, key, direction);
+                    return descend_(node->rns, key, search, direction);
                 return node;
             }
+
             if (node->lns != nullptr)
-                return descend_(node->lns, key, direction);
+                return descend_(node->lns, key, search, direction);
             return node;
         }
 
