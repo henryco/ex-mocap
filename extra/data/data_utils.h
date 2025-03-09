@@ -953,11 +953,11 @@ namespace ex::data {
             if (direction != 0 || comp_(&key, &(node->key)) != 0)
                 return;
 
-            size_ = size_ - 1 >= 0 ? size_ - 1 : 0;
             remove_node_(node);
         }
 
         void remove_node_(rb_node *node) {
+            size_ = (size_ - 1) > 0 ? (size_ - 1) : 0;
 
             if (node->lns == nullptr && node->rns == nullptr) {
                 // no children
@@ -965,10 +965,11 @@ namespace ex::data {
                 if (node == root_) {
                     ::free(root_);
                     root_ = nullptr;
+                    size_ = 0;
                     return;
                 }
 
-                fix_remove_(node);
+                fix_remove_if_needed_(node, nullptr);
                 ::free(node);
                 return;
             }
@@ -976,19 +977,13 @@ namespace ex::data {
             if (node->lns != nullptr && node->rns != nullptr) {
                 // left and right
                 rb_node *largest = get_largest_(node->lns);
+                rb_node *child   = largest->lns;
+
                 node->key = largest->key;
                 node->val = largest->val;
 
-                rb_node *left_child = largest->lns;
-                if (largest->par->lns == largest)
-                    largest->par->lns = left_child;
-                else if (largest->par->rns == largest)
-                    largest->par->rns = left_child;
-                left_child->par = largest->par;
-
-                // TODO
-
-                fix_remove_(largest);
+                replace_with_child_(largest, child);
+                fix_remove_if_needed_(largest, child);
                 ::free(largest);
                 return;
             }
@@ -996,41 +991,53 @@ namespace ex::data {
 
             if (node->lns != nullptr && node->rns == nullptr) {
                 // left
-                rb_node *left_child = node->lns;
-                if (node->par->rns == node)
-                    node->par->rns = left_child;
-                else if (node->par->lns == node)
-                    node->par->lns = left_child;
-                left_child->par = node->par;
+                rb_node *child = node->lns;
 
-                // TODO
+                if (node == root_) {
+                    root_ = child;
+                    root_->par = nullptr;
+                    root_->col = BLACK_;
+                    ::free(node);
+                    return;
+                }
 
-                fix_remove_(node);
+                replace_with_child_(node, child);
+                fix_remove_if_needed_(node, child);
                 ::free(node);
                 return;
             }
 
             if (node->rns != nullptr && node->lns == nullptr) {
                 // right
-                rb_node *right_child = node->rns;
-                if (node->par->rns == node)
-                    node->par->rns = right_child;
-                else if (node->par->lns == node)
-                    node->par->lns = right_child;
-                right_child->par = node->par;
+                rb_node *child = node->rns;
 
-                // TODO
+                if (node == root_) {
+                    root_ = child;
+                    root_->par = nullptr;
+                    root_->col = BLACK_;
+                    ::free(node);
+                    return;
+                }
 
-                fix_remove_(node);
+                replace_with_child_(node, child);
+                fix_remove_if_needed_(node, child);
                 ::free(node);
             }
 
         }
 
-        void fix_remove_(rb_node *node) {
+        void fix_remove_if_needed_(rb_node *node, rb_node *child) {
+            // case 1: deleted was red
             if (node == nullptr || node->col == RED_)
                 return;
 
+            // case 2: deleted was black with a red child
+            if (child != nullptr && child->col == RED_) {
+                child->col = BLACK_;
+                return;
+            }
+
+            // case 3: deleted was black with black child (NULL child is black)
 
         }
 
@@ -1149,6 +1156,14 @@ namespace ex::data {
             right->par = node->par;
             right->lns = node;
             node->par  = right;
+        }
+
+        static void replace_with_child_(rb_node *node, rb_node *child) {
+            if (node->par->lns == node)
+                node->par->lns = child;
+            else if (node->par->rns == node)
+                node->par->rns = child;
+            child->par = node->par;
         }
 
         static rb_node *get_largest_(rb_node *node) {
