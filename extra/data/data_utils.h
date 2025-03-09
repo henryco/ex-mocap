@@ -920,7 +920,7 @@ namespace ex::data {
             ++size_;
             if (root_ == nullptr) {
                 root_ = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
-                ::memset(root_, 0, sizeof(rb_node));
+                ::memset(root_, 0, sizeof(rb_node)); // avoid new operator
                 root_->par = nullptr;
                 root_->lns = nullptr;
                 root_->rns = nullptr;
@@ -939,7 +939,7 @@ namespace ex::data {
             }
 
             rb_node *node = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
-            ::memset(node, 0, sizeof(rb_node));
+            ::memset(node, 0, sizeof(rb_node)); // avoid new operator
             node->par     = base;
             node->lns     = nullptr;
             node->rns     = nullptr;
