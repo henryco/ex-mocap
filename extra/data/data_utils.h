@@ -1081,7 +1081,8 @@ namespace ex::data {
                 else if (current == parent->rns)
                     rotate_right_(parent);
 
-                fix_double_black_(parent, get_sibling_(current), sibling);
+                sibling = get_sibling_(current);
+                fix_double_black_(current, sibling, current->par);
                 return;
             }
 
