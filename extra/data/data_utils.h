@@ -1085,7 +1085,6 @@ namespace ex::data {
                 return;
             }
 
-
             // case 2: sibling is black, both of siblings children are black
             if ((sibling->lns == nullptr || sibling->lns->col == BLACK_) &&
                 (sibling->rns == nullptr || sibling->rns->col == BLACK_)) {
@@ -1097,7 +1096,7 @@ namespace ex::data {
                     return;
                 }
 
-                fix_double_black_(parent, current->par, get_sibling_(current));
+                fix_double_black_(parent, get_sibling_(parent), parent->par);
                 return;
             }
 
@@ -1111,13 +1110,13 @@ namespace ex::data {
 
                 if (is_left) {
                     rotate_left_(parent);
-                    if (sibling->rns != nullptr)
-                        sibling->rns->col = BLACK_;
+                    if (parent->par != nullptr && parent->par->rns != nullptr)
+                        parent->par->rns->col = BLACK_;
                 }
                 else {
                     rotate_right_(parent);
-                    if (sibling->lns != nullptr)
-                        sibling->lns->col = BLACK_;
+                    if (parent->par != nullptr && parent->par->lns != nullptr)
+                        parent->par->lns->col = BLACK_;
                 }
                 return;
             }
@@ -1127,12 +1126,34 @@ namespace ex::data {
                 (!is_left && (sibling->rns != nullptr && sibling->rns->col == RED_))) {
 
                 rb_node *near = is_left ? sibling->lns : sibling->rns;
-                if (near == sibling->lns)
+                if (near == sibling->lns) {
+                    sibling->lns->col = BLACK_;
+                    sibling->col      = RED_;
+
                     rotate_right_(sibling);
-                else
+
+                    sibling = parent->rns;
+
+                    swap_colors(parent, sibling);
+                    rotate_left_(parent);
+
+                    if (sibling->rns != nullptr)
+                        sibling->rns->col = BLACK_;
+                }
+                else {
+                    sibling->rns->col = BLACK_;
+                    sibling->col      = RED_;
+
                     rotate_left_(sibling);
 
-                fix_double_black_(current, sibling->par, parent);
+                    sibling = parent->lns;
+
+                    swap_colors(parent, sibling);
+                    rotate_right_(parent);
+
+                    if (sibling->lns != nullptr)
+                        sibling->lns->col = BLACK_;
+                }
             }
         }
 
