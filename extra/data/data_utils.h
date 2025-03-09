@@ -1041,26 +1041,23 @@ namespace ex::data {
             rb_node *sibling = get_sibling_(node);
             rb_node *parent  = node->par;
             rb_node *current = node;
-            bool     is_left{};
 
-            // case 3: double black problem
-            double_black:
+            fix_double_black_(current, sibling, parent);
+        }
 
-            // case 3.2.0: deleted was black with black sibling (NULL is implicitly black)
+        void fix_double_black_(rb_node *current, rb_node *sibling, rb_node *parent) {
+            // case 2: deleted was black with black sibling (NULL is implicitly black)
             if (sibling == nullptr) {
                 if (parent == root_ || parent->col == RED_) {
                     parent->col = BLACK_;
                     return;
                 }
 
-                current = parent;
-                parent = current->par;
-                sibling = get_sibling_(current);
-
-                goto double_black;
+                fix_double_black_(parent, get_sibling_(current), current->par);
+                return;
             }
 
-            // case 3.1: sibling is Red
+            // case 1: sibling is Red
             if (sibling->col == RED_) {
                 swap_colors(parent, sibling);
 
@@ -1069,15 +1066,12 @@ namespace ex::data {
                 else if (current == parent->rns)
                     rotate_right_(parent);
 
-                current = parent;
-                parent  = sibling;
-                sibling = get_sibling_(current);
-
-                goto double_black;
+                fix_double_black_(parent, get_sibling_(current), sibling);
+                return;
             }
 
 
-            // case 3.2: sibling is black, both of siblings children are black
+            // case 2: sibling is black, both of siblings children are black
             if ((sibling->lns == nullptr || sibling->lns->col == BLACK_) &&
                 (sibling->rns == nullptr || sibling->rns->col == BLACK_)) {
 
@@ -1088,17 +1082,13 @@ namespace ex::data {
                     return;
                 }
 
-                current = parent;
-                parent = current->par;
-                sibling = get_sibling_(current);
-
-                goto double_black;
+                fix_double_black_(parent, current->par, get_sibling_(current));
+                return;
             }
 
+            const bool is_left = parent->lns == current;
 
-            is_left = parent->lns == current;
-
-            // case 3.3: sibling is black, far child is red
+            // case 3: sibling is black, far child is red
             if (( is_left && (sibling->rns != nullptr && sibling->rns->col == RED_)) ||
                 (!is_left && (sibling->lns != nullptr && sibling->lns->col == RED_))) {
 
@@ -1117,7 +1107,7 @@ namespace ex::data {
                 return;
             }
 
-            // case 3.4: sibling is black, near child is red
+            // case 4: sibling is black, near child is red
             if (( is_left && (sibling->lns != nullptr && sibling->lns->col == RED_)) ||
                 (!is_left && (sibling->rns != nullptr && sibling->rns->col == RED_))) {
 
@@ -1127,10 +1117,8 @@ namespace ex::data {
                 else
                     rotate_left_(sibling);
 
-                sibling = sibling->par;
-                goto double_black;
+                fix_double_black_(current, sibling->par, parent);
             }
-
         }
 
         void fix_insert_if_needed_(rb_node *node) {
@@ -1276,7 +1264,7 @@ namespace ex::data {
                 return nullptr;
             if (node->rns == nullptr)
                 return node;
-            return largest_(node->rns);
+            return get_largest_(node->rns);
         }
 
         static rb_node *get_sibling_(const rb_node *node) {
