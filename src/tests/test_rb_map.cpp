@@ -2,6 +2,8 @@
 // Created by xd on 3/9/25.
 //
 
+#include <set>
+#include <random>
 #include <cstdint>
 #include <doctest/doctest.h>
 #include "../../extra/data/data_utils.h"
@@ -336,4 +338,58 @@ TEST_CASE("RB Tree map stress tests") {
         CHECK(tree.at(80) == 80);
     }
 
+}
+
+TEST_CASE("rb_map extensive data integrity check") {
+    // TODO FIXME
+
+    rb_map<int, int> tree;
+    std::set<int> reference; // reference implementation using std::set for verification
+    const int OPERATIONS = 10000;
+    const int KEY_RANGE = 1000;
+
+    std::mt19937 rng(12345); // deterministic random generator
+    std::uniform_int_distribution<int> op_dist(0, 1);
+    std::uniform_int_distribution<int> key_dist(0, KEY_RANGE - 1);
+
+    // Perform random insertions and deletions
+    for (int i = 0; i < OPERATIONS; ++i) {
+        int key = key_dist(rng);
+        bool insert_op = op_dist(rng);
+
+        if (insert_op) {
+            tree.put(key, key * 7);
+            reference.insert(key);
+        } else {
+            tree.remove(key);
+            reference.erase(key);
+        }
+
+        // Frequent checks to ensure integrity throughout operations
+        CHECK(tree.size() == static_cast<int64_t>(reference.size()));
+
+        for (int sample = 0; sample < 10; ++sample) {
+            int sample_key = key_dist(rng);
+            CHECK(tree.contains(sample_key) == (reference.count(sample_key) > 0));
+            if (reference.count(sample_key)) {
+                CHECK(tree.at(sample_key) == sample_key * 7);
+            }
+        }
+    }
+
+    // Final exhaustive verification
+    CHECK(tree.size() == static_cast<int64_t>(reference.size()));
+
+    for (int key = 0; key < KEY_RANGE; ++key) {
+        CHECK(tree.contains(key) == (reference.count(key) > 0));
+        if (reference.count(key))
+            CHECK(tree.at(key) == key * 7);
+    }
+
+    // Remove all remaining keys to ensure tree properly cleans up
+    for (int key : reference)
+        tree.remove(key);
+
+    CHECK(tree.empty());
+    CHECK(tree.size() == 0);
 }
