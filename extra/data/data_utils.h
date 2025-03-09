@@ -1107,6 +1107,8 @@ namespace ex::data {
             if (( is_left && (sibling->rns != nullptr && sibling->rns->col == RED_)) ||
                 (!is_left && (sibling->lns != nullptr && sibling->lns->col == RED_))) {
 
+                swap_colors(parent, sibling);
+
                 if (is_left) {
                     rotate_left_(parent);
                     if (sibling->rns != nullptr)
@@ -1117,8 +1119,6 @@ namespace ex::data {
                     if (sibling->lns != nullptr)
                         sibling->lns->col = BLACK_;
                 }
-
-                swap_colors(parent, sibling);
                 return;
             }
 
@@ -1171,28 +1171,28 @@ namespace ex::data {
 
             // Case 2a: Left-Left (LL) violation
             if (node == parent->lns && parent == grand_parent->lns) {
-                rotate_right_(grand_parent);
                 swap_colors(parent, grand_parent);
+                rotate_right_(grand_parent);
             }
 
             // Case 2b: Right-Right (RR) violation
             else if (node == parent->rns && parent == grand_parent->rns) {
-                rotate_left_(grand_parent);
                 swap_colors(parent, grand_parent);
+                rotate_left_(grand_parent);
             }
 
             // Case 3a: Left-Right (LR) violation
             else if (node == parent->lns && parent == grand_parent->rns) {
+                swap_colors(node, grand_parent);
                 rotate_left_(parent);
                 rotate_right_(grand_parent);
-                swap_colors(node, grand_parent);
             }
 
             // Case 3b: Right-Left (RL) violation
             else if (node == parent->rns && parent == grand_parent->lns) {
+                swap_colors(node, grand_parent);
                 rotate_right_(parent);
                 rotate_left_(grand_parent);
-                swap_colors(node, grand_parent);
             }
 
             root_->col = BLACK_; // Ensure root is black after all rotations
