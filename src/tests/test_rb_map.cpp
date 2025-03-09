@@ -361,16 +361,24 @@ TEST_CASE("rb_map extensive data integrity check (corrected)") {
             const bool has_b_m = tree.contains(key);
             const bool has_b_r = reference.contains(key);
 
+            int val_b_m = -1;
+            int val_b_r = -1;
+            if (has_b_m) {
+                val_b_m = tree.at(key);
+                val_b_r = reference.at(key);
+            }
+
             tree.put(key, val);
             reference[key] = val;
 
             const bool has_a_m = tree.contains(key);
             const bool has_a_r = reference.contains(key);
 
-            const int val_a = tree.at(key);
+            const int val_a_m = tree.at(key);
+            const int val_a_r = reference.at(key);
 
-            std::cout << "insert map: " << key << ", [" << has_b_m << " -> " << has_a_m << "] [" << val << " : " << val_a << "]\n";
-            std::cout << "insert ref: " << key << ", [" << has_b_r << " -> " << has_a_r << "]\n";
+            std::cout << "insert map: " << key << ": " << val << ", [" << has_b_m << " -> " << has_a_m << "] [" << val_b_m << " -> " << val_a_m << "]\n";
+            std::cout << "insert ref: " << key << ": " << val << ", [" << has_b_r << " -> " << has_a_r << "] [" << val_b_r << " -> " << val_a_r << "]\n";
 
             CHECK(tree.at(key) == val);
         } else {
