@@ -353,7 +353,7 @@ TEST_CASE("rb_map extensive data integrity check (corrected)") {
     std::uniform_int_distribution val_dist(0, 1000000);
 
     for (int i = 0; i < OPERATIONS; ++i) {
-        int key = key_dist(rng);
+        const int key = key_dist(rng);
 
         if (op_dist(rng)) {
             const int val = val_dist(rng);
