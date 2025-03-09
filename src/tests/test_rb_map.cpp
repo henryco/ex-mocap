@@ -304,6 +304,14 @@ TEST_CASE("rb_map traversal and ordering correctness") {
     CHECK(tree.contains(70));
     CHECK(tree.contains(80));
 
+    CHECK(tree.at(20) == 20);
+    CHECK(tree.at(30) == 30);
+    CHECK(tree.at(40) == 40);
+    CHECK(tree.at(50) == 50);
+    CHECK(tree.at(60) == 60);
+    CHECK(tree.at(70) == 70);
+    CHECK(tree.at(80) == 80);
+
     // Remove some nodes
     tree.remove(30);
     tree.remove(70);
@@ -318,4 +326,10 @@ TEST_CASE("rb_map traversal and ordering correctness") {
     CHECK(tree.contains(50));
     CHECK(tree.contains(60));
     CHECK(tree.contains(80));
+
+    CHECK(tree.at(20) == 20);
+    CHECK(tree.at(40) == 40);
+    CHECK(tree.at(50) == 50);
+    CHECK(tree.at(60) == 60);
+    CHECK(tree.at(80) == 80);
 }
