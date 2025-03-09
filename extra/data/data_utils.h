@@ -1183,15 +1183,15 @@ namespace ex::data {
 
             // Case 3a: Left-Right (LR) violation
             else if (node == parent->lns && parent == grand_parent->rns) {
-                rotate_right_(parent);
-                rotate_left_(grand_parent);
+                rotate_left_(parent);
+                rotate_right_(grand_parent);
                 swap_colors(node, grand_parent);
             }
 
             // Case 3b: Right-Left (RL) violation
             else if (node == parent->rns && parent == grand_parent->lns) {
-                rotate_left_(parent);
-                rotate_right_(grand_parent);
+                rotate_right_(parent);
+                rotate_left_(grand_parent);
                 swap_colors(node, grand_parent);
             }
 
