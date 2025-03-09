@@ -868,8 +868,6 @@ namespace ex::data {
         }
 
         ~rb_map() {
-            if (root_ == nullptr)
-                return;
             recursive_free_(root_);
             root_ = nullptr;
         }
