@@ -1038,7 +1038,7 @@ namespace ex::data {
             }
 
             // case 3: deleted was black with black child (NULL child is black)
-
+            // TODO
         }
 
         void fix_insert_(rb_node *node) {
