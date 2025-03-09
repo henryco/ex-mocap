@@ -137,3 +137,185 @@ TEST_CASE("RB Tree map tests") {
     }
 
 }
+
+TEST_CASE("rb_map sequential insertion ascending order") {
+    rb_map<int, int> tree;
+    for (int i = 1; i <= 1000; ++i)
+        tree.put(i, i * 10);
+
+    CHECK(tree.size() == 1000);
+    CHECK(tree.at(1) == 10);
+    CHECK(tree.at(500) == 5000);
+    CHECK(tree.at(1000) == 10000);
+}
+
+TEST_CASE("rb_map sequential insertion descending order") {
+    rb_map<int, int> tree;
+    for (int i = 1000; i >= 1; --i)
+        tree.put(i, i * 10);
+
+    CHECK(tree.size() == 1000);
+    CHECK(tree.at(1) == 10);
+    CHECK(tree.at(500) == 5000);
+    CHECK(tree.at(1000) == 10000);
+}
+
+TEST_CASE("rb_map random insert and remove stress test") {
+    rb_map<int, int> tree;
+    const int N = 10000;
+    for (int i = 0; i < N; ++i)
+        tree.put(i, i + 1);
+
+    CHECK(tree.size() == N);
+
+    for (int i = 0; i < N; i += 2)
+        tree.remove(i);
+
+    CHECK(tree.size() == N / 2);
+
+    for (int i = 0; i < N; i += 2)
+        CHECK_FALSE(tree.contains(i));
+
+    for (int i = 1; i < N; i += 2)
+        CHECK(tree.at(i) == i + 1);
+}
+
+TEST_CASE("rb_map duplicate insertions") {
+    rb_map<int, int> tree;
+
+    tree.put(42, 100);
+    CHECK(tree.size() == 1);
+    CHECK(tree.at(42) == 100);
+
+    tree.put(42, 200);
+    CHECK(tree.size() == 1);
+    CHECK(tree.at(42) == 200);
+
+    tree.put(42, 300);
+    CHECK(tree.size() == 1);
+    CHECK(tree.at(42) == 300);
+}
+
+TEST_CASE("rb_map insertions causing multiple recolors and rotations") {
+    rb_map<int, int> tree;
+
+    const int keys[] = {10, 20, 30, 15, 25, 5, 1, 50, 40, 60};
+    for (int key : keys)
+        tree.put(key, key * 10);
+
+    CHECK(tree.size() == 10);
+
+    for (int key : keys)
+        CHECK(tree.at(key) == key * 10);
+}
+
+TEST_CASE("rb_map large scale removals and reinserts") {
+    rb_map<int, int> tree;
+
+    const int N = 5000;
+    for (int i = 0; i < N; ++i)
+        tree.put(i, i * 2);
+
+    CHECK(tree.size() == N);
+
+    // Remove half of the elements
+    for (int i = 0; i < N; i += 2)
+        tree.remove(i);
+
+    CHECK(tree.size() == N / 2);
+
+    // Reinsert removed elements
+    for (int i = 0; i < N; i += 2)
+        tree.put(i, i * 3);
+
+    CHECK(tree.size() == N);
+
+    for (int i = 0; i < N; ++i) {
+        if (i % 2 == 0)
+            CHECK(tree.at(i) == i * 3);
+        else
+            CHECK(tree.at(i) == i * 2);
+    }
+}
+
+TEST_CASE("rb_map deep balancing check") {
+    rb_map<int, int> tree;
+    const int N = 1024;
+
+    // Insert power-of-two spaced keys to force deeper tree structures
+    for (int gap = N; gap > 0; gap /= 2)
+        for (int i = gap; i <= N; i += gap * 2)
+            tree.put(i, i);
+
+    CHECK(tree.size() == N);
+
+    for (int i = 1; i <= N; ++i)
+        CHECK(tree.at(i) == i);
+}
+
+TEST_CASE("rb_map stress test alternating inserts and deletes") {
+    rb_map<int, int> tree;
+    const int cycles = 1000;
+
+    for (int i = 0; i < cycles; ++i) {
+        tree.put(i, i);
+        if (i % 2 == 0)
+            tree.remove(i / 2);
+    }
+
+    // Ensure size consistency
+    CHECK(tree.size() == cycles / 2);
+
+    // Check remaining elements
+    for (int i = cycles / 2; i < cycles; ++i)
+        CHECK(tree.at(i) == i);
+}
+
+TEST_CASE("rb_map edge case: repeated insert-remove same key") {
+    rb_map<int, int> tree;
+    const int key = 123456;
+
+    for (int i = 0; i < 100; ++i) {
+        tree.put(key, i);
+        CHECK(tree.size() == 1);
+        CHECK(tree.at(key) == i);
+
+        tree.remove(key);
+        CHECK(tree.size() == 0);
+        CHECK_FALSE(tree.contains(key));
+    }
+}
+
+TEST_CASE("rb_map traversal and ordering correctness") {
+    rb_map<int, int> tree;
+
+    const int keys[] = {50, 30, 70, 20, 40, 60, 80};
+    for (int key : keys)
+        tree.put(key, key);
+
+    CHECK(tree.size() == 7);
+
+    // Verify each key explicitly
+    CHECK(tree.contains(20));
+    CHECK(tree.contains(30));
+    CHECK(tree.contains(40));
+    CHECK(tree.contains(50));
+    CHECK(tree.contains(60));
+    CHECK(tree.contains(70));
+    CHECK(tree.contains(80));
+
+    // Remove some nodes
+    tree.remove(30);
+    tree.remove(70);
+
+    CHECK_FALSE(tree.contains(30));
+    CHECK_FALSE(tree.contains(70));
+    CHECK(tree.size() == 5);
+
+    // Confirm remaining nodes
+    CHECK(tree.contains(20));
+    CHECK(tree.contains(40));
+    CHECK(tree.contains(50));
+    CHECK(tree.contains(60));
+    CHECK(tree.contains(80));
+}
