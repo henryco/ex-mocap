@@ -120,15 +120,15 @@ TEST_CASE("RB Tree map tests") {
 
     SUBCASE("rb_map key boundary checks") {
         rb_map<int, int> tree;
-        const int min = INT32_MIN;
-        const int max = INT32_MAX;
+        constexpr int min = INT32_MIN;
+        constexpr int max = INT32_MAX;
 
         tree.put(min, -1);
         tree.put(max, 1);
 
         CHECK(tree.size() == 2);
         CHECK(tree.at(min) == -1);
-        CHECK(tree.at(max) == INT32_MAX / INT32_MAX);
+        CHECK(tree.at(max) == 1);
 
         tree.remove(min);
         CHECK_FALSE(tree.contains(min));
