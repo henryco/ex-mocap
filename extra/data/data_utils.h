@@ -988,7 +988,6 @@ namespace ex::data {
                 return;
             }
 
-
             if (node->lns != nullptr && node->rns == nullptr) {
                 // left
                 rb_node *child = node->lns;
@@ -1039,7 +1038,8 @@ namespace ex::data {
             }
 
             // case 3: deleted was black with black child (NULL child is black)
-            // TODO
+
+            rb_node *sibling = get_sibling_(node);
 
         }
 
