@@ -941,7 +941,7 @@ namespace ex::data {
             if (direction >= 0) base->rns = node;
             else                base->lns = node;
 
-            fix_insert_(node);
+            fix_insert_if_needed_(node);
         }
 
         void remove(const key_t &key) {
@@ -969,7 +969,7 @@ namespace ex::data {
                     return;
                 }
 
-                fix_remove_if_needed_(node, nullptr);
+                fix_delete_if_needed_(node, nullptr);
                 ::free(node);
                 return;
             }
@@ -983,7 +983,7 @@ namespace ex::data {
                 node->val = largest->val;
 
                 replace_with_child_(largest, child);
-                fix_remove_if_needed_(largest, child);
+                fix_delete_if_needed_(largest, child);
                 ::free(largest);
                 return;
             }
@@ -1002,7 +1002,7 @@ namespace ex::data {
                 }
 
                 replace_with_child_(node, child);
-                fix_remove_if_needed_(node, child);
+                fix_delete_if_needed_(node, child);
                 ::free(node);
                 return;
             }
@@ -1020,13 +1020,13 @@ namespace ex::data {
                 }
 
                 replace_with_child_(node, child);
-                fix_remove_if_needed_(node, child);
+                fix_delete_if_needed_(node, child);
                 ::free(node);
             }
 
         }
 
-        void fix_remove_if_needed_(rb_node *node, rb_node *child) {
+        void fix_delete_if_needed_(rb_node *node, rb_node *child) {
             // case 1: deleted was red
             if (node == nullptr || node->col == RED_)
                 return;
@@ -1042,7 +1042,7 @@ namespace ex::data {
 
         }
 
-        void fix_insert_(rb_node *node) {
+        void fix_insert_if_needed_(rb_node *node) {
             rb_node *parent = node->par;
 
             if (parent == nullptr) {
@@ -1063,7 +1063,7 @@ namespace ex::data {
                 uncle_->col      = BLACK_;
                 parent->col      = BLACK_;
                 parent->par->col = RED_;
-                fix_insert_(parent->par);
+                fix_insert_if_needed_(parent->par);
                 return;
             }
 
