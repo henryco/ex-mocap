@@ -1024,6 +1024,7 @@ namespace ex::data {
                 ::free(node);
             }
 
+            ::abort();
         }
 
         void fix_delete_if_needed_(rb_node *node, rb_node *child) {
