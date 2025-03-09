@@ -1251,11 +1251,19 @@ namespace ex::data {
         }
 
         static void replace_with_child_(rb_node *node, rb_node *child) {
-            if (node->par->lns == node)
-                node->par->lns = child;
-            else if (node->par->rns == node)
-                node->par->rns = child;
-            child->par = node->par;
+            if (node->par != nullptr) {
+                if (node->par->lns == node)
+                    node->par->lns = child;
+                else if (node->par->rns == node)
+                    node->par->rns = child;
+            }
+            else {
+                root_ = child;
+            }
+
+            if (child != nullptr) {
+                child->par = node->par;
+            }
         }
 
         static rb_node *get_largest_(rb_node *node) {
