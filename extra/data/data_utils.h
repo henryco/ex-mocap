@@ -1052,6 +1052,9 @@ namespace ex::data {
         }
 
         void fix_double_black_(rb_node *current, rb_node *sibling, rb_node *parent) {
+            if (parent == nullptr)
+                return;
+
             // case 2: deleted was black with black sibling (NULL is implicitly black)
             if (sibling == nullptr) {
                 if (parent == root_ || parent->col == RED_) {
@@ -1092,7 +1095,7 @@ namespace ex::data {
                 return;
             }
 
-            const bool is_left = parent->lns == current;
+            const bool is_left = (parent->lns == current);
 
             // case 3: sibling is black, far child is red
             if (( is_left && (sibling->rns != nullptr && sibling->rns->col == RED_)) ||
