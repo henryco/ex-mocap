@@ -1283,8 +1283,8 @@ namespace ex::data {
 
         static void recursive_free_(rb_node *node) {
             if (node == nullptr) return;
-            recursive_free(node->lns);
-            recursive_free(node->rns);
+            recursive_free_(node->lns);
+            recursive_free_(node->rns);
             ::free(node);
         }
 
