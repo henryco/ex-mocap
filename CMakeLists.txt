@@ -305,7 +305,8 @@ if (ENABLE_TESTS)
             src/tests/test_io.cpp
             src/tests/test_graph.cpp
             src/tests/test_mempool.cpp
-            src/tests/test_data.cpp)
+            src/tests/test_data.cpp
+            src/tests/test_rb_map.cpp)
 
     add_executable(tests
             ${RESULT_SOURCES}

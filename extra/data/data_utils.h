@@ -1261,7 +1261,7 @@ namespace ex::data {
             node->par  = right;
         }
 
-        static void replace_with_child_(rb_node *node, rb_node *child) {
+        void replace_with_child_(rb_node *node, rb_node *child) {
             if (node->par != nullptr) {
                 if (node->par->lns == node)
                     node->par->lns = child;
