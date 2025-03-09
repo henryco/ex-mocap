@@ -1021,6 +1021,7 @@ namespace ex::data {
                 replace_with_child_(node, child);
                 fix_delete_if_needed_(node, child);
                 ::free(node);
+                return;
             }
 
             ::abort();
@@ -1037,7 +1038,7 @@ namespace ex::data {
                 return;
             }
 
-            // case 3: deleted was black with black child (NULL child is black)
+            // case 3: deleted was black with black child (NULL is implicitly black)
             rb_node *sibling = get_sibling_(node);
             if (sibling == nullptr) {
                 if (node->par == root_ || node->par->col == RED_) {
@@ -1045,6 +1046,12 @@ namespace ex::data {
                     return;
                 }
                 // TODO: Move Double Black to Parent and Recursively Fix
+                return;
+            }
+
+            if (sibling->col == RED_) {
+
+
                 return;
             }
 
@@ -1079,24 +1086,32 @@ namespace ex::data {
             if (node == parent->lns && parent == parent->par->lns) {
                 // LL
                 rotate_right_(parent->par);
+                swap_colors(parent, parent->rns);
             }
 
             else if (node == parent->rns && parent == parent->par->rns) {
                 // RR
                 rotate_left_(parent->par);
+                swap_colors(parent, parent->lns);
             }
 
             else if (node == parent->lns && parent == parent->par->rns) {
                 // LR
+                rb_node *grand_parent = parent->par;
                 rotate_left_(parent);
-                rotate_right_(parent->par);
+                rotate_right_(grand_parent);
+                swap_colors(grand_parent, grand_parent->par);
             }
 
             else if (node == parent->rns && parent == parent->par->lns) {
                 // RL
+                rb_node *grand_parent = parent->par;
                 rotate_right_(parent);
-                rotate_left_(parent->par);
+                rotate_left_(grand_parent);
+                swap_colors(grand_parent, grand_parent->par);
             }
+
+            root_->col = BLACK_;
         }
 
         rb_node *descend_(const rb_node *node, const key_t &key, const bool search, int *direction) {
@@ -1196,6 +1211,12 @@ namespace ex::data {
             if (parent == nullptr)
                 ::abort();
             return parent->lns == node ? parent->rns : parent->lns;
+        }
+
+        static void swap_colors(rb_node *a, rb_node *b) {
+            const col_t tmp = a->col;
+            a->col = b->col;
+            b->col = tmp;
         }
 
         static void recursive_free_(rb_node **node) {
