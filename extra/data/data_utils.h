@@ -1038,9 +1038,17 @@ namespace ex::data {
             }
 
             // case 3: deleted was black with black child (NULL child is black)
-
             rb_node *sibling = get_sibling_(node);
+            if (sibling == nullptr) {
+                if (node->par == root_ || node->par->col == RED_) {
+                    node->par->col = BLACK_;
+                    return;
+                }
+                // TODO: Move Double Black to Parent and Recursively Fix
+                return;
+            }
 
+            // TODO
         }
 
         void fix_insert_if_needed_(rb_node *node) {
