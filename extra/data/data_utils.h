@@ -1039,25 +1039,25 @@ namespace ex::data {
 
             // case 3: deleted was black with black child (NULL child is black)
             // TODO
+
         }
 
         void fix_insert_(rb_node *node) {
             rb_node *parent = node->par;
 
             if (parent == nullptr) {
+                if (node != root_)
+                    ::abort();
+
+                // just in case, root is always black
                 node->col = BLACK_;
                 return;
             }
 
             if (parent->col == BLACK_)
-                return;
+                return; // also: parent->par == nullptr (root is always black)
 
-            if (parent->par == nullptr) {
-                // now, what ?
-                return;
-            }
-
-            rb_node *uncle_  = get_brother_(parent);
+            rb_node *uncle_ = get_sibling_(parent);
 
             if (uncle_->col == RED_) {
                 uncle_->col      = BLACK_;
@@ -1120,8 +1120,10 @@ namespace ex::data {
             if (left->rns != nullptr)
                 left->rns->par = node;
 
-            if (node->par == nullptr)
-                root_ = left;
+            if (node->par == nullptr) {
+                root_      = left;
+                root_->col = BLACK_;
+            }
 
             else if (node->par->lns == node)
                 node->par->lns = left;
@@ -1144,8 +1146,10 @@ namespace ex::data {
             if (right->lns != nullptr)
                 right->lns->par = node;
 
-            if (node->par == nullptr)
-                root_ = right;
+            if (node->par == nullptr) {
+                root_      = right;
+                root_->col = BLACK_;
+            }
 
             else if (node->par->lns == node)
                 node->par->lns = right;
@@ -1174,7 +1178,7 @@ namespace ex::data {
             return largest_(node->rns);
         }
 
-        static rb_node *get_brother_(const rb_node *node) {
+        static rb_node *get_sibling_(const rb_node *node) {
             if (node == nullptr)
                 ::abort();
             const rb_node *parent = node->par;
