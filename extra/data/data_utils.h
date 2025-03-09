@@ -1067,12 +1067,15 @@ namespace ex::data {
 
             // case 2: deleted was black with black sibling (NULL is implicitly black)
             if (sibling == nullptr) {
-                if (parent == root_ || parent->col == RED_) {
+                if (parent == root_)
+                    return;
+
+                if (parent->col == RED_) {
                     parent->col = BLACK_;
                     return;
                 }
 
-                fix_double_black_(parent, get_sibling_(current), current->par);
+                fix_double_black_(parent, get_sibling_(parent), parent->par);
                 return;
             }
 
