@@ -918,6 +918,8 @@ namespace ex::data {
             ++size_;
             if (root_ == nullptr) {
                 root_ = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
+                if (root_ == nullptr)
+                    ::abort();
                 ::memset(root_, 0, sizeof(rb_node)); // avoid new operator
                 root_->par = nullptr;
                 root_->lns = nullptr;
@@ -937,6 +939,8 @@ namespace ex::data {
             }
 
             rb_node *node = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
+            if (node == nullptr)
+                ::abort();
             ::memset(node, 0, sizeof(rb_node)); // avoid new operator
             node->par     = base;
             node->lns     = nullptr;
@@ -949,7 +953,9 @@ namespace ex::data {
             else                base->lns = node;
 
             fix_insert_if_needed_(node);
-            root_->col = BLACK_; // just in case
+
+            if (root_ != nullptr)
+                root_->col = BLACK_; // just in case
         }
 
         void remove(const key_t &key) {
@@ -978,7 +984,7 @@ namespace ex::data {
                 }
 
                 fix_delete_if_needed_(node, nullptr);
-                ::free(node);
+                free_node_(node);
                 return;
             }
 
@@ -992,7 +998,7 @@ namespace ex::data {
 
                 replace_with_child_(largest, child);
                 fix_delete_if_needed_(largest, child);
-                ::free(largest);
+                free_node_(largest);
                 return;
             }
 
@@ -1004,13 +1010,13 @@ namespace ex::data {
                     root_ = child;
                     root_->par = nullptr;
                     root_->col = BLACK_;
-                    ::free(node);
+                    free_node_(node);
                     return;
                 }
 
                 replace_with_child_(node, child);
                 fix_delete_if_needed_(node, child);
-                ::free(node);
+                free_node_(node);
                 return;
             }
 
@@ -1022,13 +1028,13 @@ namespace ex::data {
                     root_ = child;
                     root_->par = nullptr;
                     root_->col = BLACK_;
-                    ::free(node);
+                    free_node_(node);
                     return;
                 }
 
                 replace_with_child_(node, child);
                 fix_delete_if_needed_(node, child);
-                ::free(node);
+                free_node_(node);
                 return;
             }
 
@@ -1215,7 +1221,8 @@ namespace ex::data {
                 rotate_left_(grand_parent);
             }
 
-            root_->col = BLACK_; // Ensure root is black after all rotations
+            if (root_ != nullptr)
+                root_->col = BLACK_; // just in case
         }
 
         rb_node *descend_(const rb_node *node, const key_t &key, const bool search, int *direction) {
@@ -1302,6 +1309,18 @@ namespace ex::data {
             if (child != nullptr) {
                 child->par = node->par;
             }
+        }
+
+        static void free_node_(rb_node *node) {
+            if (node == nullptr)
+                return;
+            if (node->par != nullptr) {
+                if (node->par->lns == node)
+                    node->par->lns = nullptr;
+                if (node->par->rns == node)
+                    node->par->rns = nullptr;
+            }
+            ::free(node);
         }
 
         static rb_node *get_largest_(rb_node *node) {
