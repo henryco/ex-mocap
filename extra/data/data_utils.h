@@ -870,11 +870,13 @@ namespace ex::data {
         ~rb_map() {
             if (root_ == nullptr)
                 return;
-            recursive_free_(&root_);
+            recursive_free_(root_);
+            root_ = nullptr;
         }
 
         void clean() {
-            recursive_free_(&root_);
+            recursive_free_(root_);
+            root_ = nullptr;
             size_ = 0;
         }
 
@@ -960,9 +962,8 @@ namespace ex::data {
             size_ = (size_ - 1) > 0 ? (size_ - 1) : 0;
 
             if (node->lns == nullptr && node->rns == nullptr) {
-                // no children
-
                 if (node == root_) {
+                    // node is a root, and node has no any children
                     ::free(root_);
                     root_ = nullptr;
                     size_ = 0;
@@ -1137,8 +1138,8 @@ namespace ex::data {
                 return; // also: parent->par == nullptr (root is always black)
 
             rb_node *uncle_ = get_sibling_(parent);
-
-            if (uncle_->col == RED_) {
+            // NULL implies black color
+            if (uncle_ != nullptr && uncle_->col == RED_) {
                 uncle_->col      = BLACK_;
                 parent->col      = BLACK_;
                 parent->par->col = RED_;
@@ -1210,14 +1211,13 @@ namespace ex::data {
             if (node->par == nullptr) {
                 root_      = left;
                 root_->col = BLACK_;
-                root_->par = nullptr;
             }
-
-            else if (node->par->lns == node)
+            else if (node == node->par->lns) {
                 node->par->lns = left;
-
-            else if (node->par->rns == node)
+            }
+            else {
                 node->par->rns = left;
+            }
 
             left->par = node->par;
             left->rns = node;
@@ -1237,14 +1237,13 @@ namespace ex::data {
             if (node->par == nullptr) {
                 root_      = right;
                 root_->col = BLACK_;
-                root_->par = nullptr;
             }
-
-            else if (node->par->lns == node)
+            else if (node == node->par->lns) {
                 node->par->lns = right;
-
-            else if (node->par->rns == node)
+            }
+            else {
                 node->par->rns = right;
+            }
 
             right->par = node->par;
             right->lns = node;
@@ -1272,7 +1271,7 @@ namespace ex::data {
                 ::abort();
             const rb_node *parent = node->par;
             if (parent == nullptr)
-                ::abort();
+                return nullptr;
             return parent->lns == node ? parent->rns : parent->lns;
         }
 
@@ -1282,12 +1281,11 @@ namespace ex::data {
             b->col = tmp;
         }
 
-        static void recursive_free_(rb_node **node) {
-            if (*node == nullptr) return;
-            recursive_free((*node)->lns);
-            recursive_free((*node)->rns);
-            ::free(*node);
-            *node = nullptr;
+        static void recursive_free_(rb_node *node) {
+            if (node == nullptr) return;
+            recursive_free(node->lns);
+            recursive_free(node->rns);
+            ::free(node);
         }
 
     };
