@@ -966,7 +966,10 @@ namespace ex::data {
         }
 
         void remove_node_(rb_node *node) {
-            size_ = (size_ - 1) > 0 ? (size_ - 1) : 0;
+            if (--size_ == 0) {
+                clean();
+                return;
+            }
 
             if (node->lns == nullptr && node->rns == nullptr) {
                 if (node == root_) {
