@@ -920,6 +920,7 @@ namespace ex::data {
             ++size_;
             if (root_ == nullptr) {
                 root_ = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
+                ::memset(root_, 0, sizeof(rb_node));
                 root_->par = nullptr;
                 root_->lns = nullptr;
                 root_->rns = nullptr;
@@ -933,6 +934,7 @@ namespace ex::data {
             rb_node *base = descend_(root_, key, false, &direction);
 
             rb_node *node = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
+            ::memset(node, 0, sizeof(rb_node));
             node->par     = base;
             node->lns     = nullptr;
             node->rns     = nullptr;
@@ -964,9 +966,7 @@ namespace ex::data {
             if (node->lns == nullptr && node->rns == nullptr) {
                 if (node == root_) {
                     // node is a root, and node has no any children
-                    ::free(root_);
-                    root_ = nullptr;
-                    size_ = 0;
+                    clean();
                     return;
                 }
 
