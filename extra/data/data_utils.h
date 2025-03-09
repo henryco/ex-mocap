@@ -904,12 +904,12 @@ namespace ex::data {
             int direction;
             const rb_node *node = descend_(root_, key, true, &direction);
             if (node == nullptr)
-                ::abort();
+                ::abort(); // all or nothing, avoid exceptions
 
             if (direction == 0 && comp_(&key, &(node->key)) == 0)
                 return node->val;
 
-            ::abort();
+            ::abort(); // all or nothing, avoid exceptions
         }
 
         void put(const entry<key_t, val_t> &entry) {
