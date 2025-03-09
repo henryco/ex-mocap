@@ -951,6 +951,7 @@ namespace ex::data {
             else                base->lns = node;
 
             fix_insert_if_needed_(node);
+            root_->col = BLACK_; // just in case
         }
 
         void remove(const key_t &key) {
@@ -1052,6 +1053,8 @@ namespace ex::data {
             rb_node *current = node;
 
             fix_double_black_(current, sibling, parent);
+            if (root_ != nullptr)
+                root_->col = BLACK_; // just in case
         }
 
         void fix_double_black_(rb_node *current, rb_node *sibling, rb_node *parent) {
@@ -1175,7 +1178,8 @@ namespace ex::data {
                 rb_node *grand_parent = parent->par;
                 rotate_left_(parent);
                 rotate_right_(grand_parent);
-                swap_colors(grand_parent, grand_parent->par);
+                if (grand_parent->par != nullptr)
+                    swap_colors(grand_parent, grand_parent->par);
             }
 
             else if (node == parent->rns && parent == parent->par->lns) {
@@ -1183,7 +1187,8 @@ namespace ex::data {
                 rb_node *grand_parent = parent->par;
                 rotate_right_(parent);
                 rotate_left_(grand_parent);
-                swap_colors(grand_parent, grand_parent->par);
+                if (grand_parent->par != nullptr)
+                    swap_colors(grand_parent, grand_parent->par);
             }
 
             root_->col = BLACK_;
@@ -1215,13 +1220,13 @@ namespace ex::data {
                 return;
 
             node->lns = left->rns;
-
             if (left->rns != nullptr)
                 left->rns->par = node;
 
+            left->par = node->par;
+
             if (node->par == nullptr) {
-                root_      = left;
-                root_->col = BLACK_;
+                root_ = left;
             }
             else if (node == node->par->lns) {
                 node->par->lns = left;
@@ -1230,7 +1235,6 @@ namespace ex::data {
                 node->par->rns = left;
             }
 
-            left->par = node->par;
             left->rns = node;
             node->par = left;
         }
@@ -1241,13 +1245,13 @@ namespace ex::data {
                 return;
 
             node->rns = right->lns;
-
             if (right->lns != nullptr)
                 right->lns->par = node;
 
+            right->par = node->par;
+
             if (node->par == nullptr) {
-                root_      = right;
-                root_->col = BLACK_;
+                root_ = right;
             }
             else if (node == node->par->lns) {
                 node->par->lns = right;
@@ -1256,7 +1260,6 @@ namespace ex::data {
                 node->par->rns = right;
             }
 
-            right->par = node->par;
             right->lns = node;
             node->par  = right;
         }
