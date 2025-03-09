@@ -933,6 +933,11 @@ namespace ex::data {
             int direction;
             rb_node *base = descend_(root_, key, false, &direction);
 
+            if (direction == 0 && comp_(&key, &(base->key)) == 0) {
+                base->val = val;
+                return;
+            }
+
             rb_node *node = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
             ::memset(node, 0, sizeof(rb_node));
             node->par     = base;
