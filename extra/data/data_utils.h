@@ -900,7 +900,7 @@ namespace ex::data {
 
         val_t &at(const key_t &key) {
             int direction;
-            const rb_node *node = descend_(root_, key, true, &direction);
+            rb_node *node = descend_(root_, key, true, &direction);
             if (node == nullptr)
                 ::abort(); // all or nothing, avoid exceptions
 
@@ -915,8 +915,8 @@ namespace ex::data {
         }
 
         void put(const key_t &key, const val_t &val) {
-            ++size_;
             if (root_ == nullptr) {
+                ++size_;
                 root_ = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
                 if (root_ == nullptr)
                     ::abort();
@@ -937,6 +937,8 @@ namespace ex::data {
                 base->val = val;
                 return;
             }
+
+            ++size_;
 
             rb_node *node = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
             if (node == nullptr)
@@ -1228,7 +1230,7 @@ namespace ex::data {
                 root_->col = BLACK_; // just in case
         }
 
-        rb_node *descend_(const rb_node *node, const key_t &key, const bool search, int *direction) {
+        rb_node *descend_(rb_node *node, const key_t &key, const bool search, int *direction) const {
             if (node == nullptr)
                 return nullptr;
 
