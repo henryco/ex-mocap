@@ -1124,6 +1124,7 @@ namespace ex::data {
             if (node->par == nullptr) {
                 root_      = left;
                 root_->col = BLACK_;
+                root_->par = nullptr;
             }
 
             else if (node->par->lns == node)
@@ -1150,6 +1151,7 @@ namespace ex::data {
             if (node->par == nullptr) {
                 root_      = right;
                 root_->col = BLACK_;
+                root_->par = nullptr;
             }
 
             else if (node->par->lns == node)
