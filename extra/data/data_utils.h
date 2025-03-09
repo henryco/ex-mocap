@@ -1149,49 +1149,53 @@ namespace ex::data {
             }
 
             if (parent->col == BLACK_)
-                return; // also: parent->par == nullptr (root is always black)
+                return;
 
-            rb_node *uncle_ = get_sibling_(parent);
-            // NULL implies black color
-            if (uncle_ != nullptr && uncle_->col == RED_) {
-                uncle_->col      = BLACK_;
-                parent->col      = BLACK_;
-                parent->par->col = RED_;
-                fix_insert_if_needed_(parent->par);
+            rb_node *grand_parent = parent->par;
+            if (grand_parent == nullptr) {
+                // just in case, root is always black
+                parent->col = BLACK_;
                 return;
             }
 
-            if (node == parent->lns && parent == parent->par->lns) {
-                // LL
-                rotate_right_(parent->par);
-                swap_colors(parent, parent->rns);
+            rb_node *uncle = get_sibling_(parent);
+
+            // Case 1: Parent and uncle are both red -> Recolor and recurse up
+            if (uncle != nullptr && uncle->col == RED_) {
+                parent->col       = BLACK_;
+                uncle->col        = BLACK_;
+                grand_parent->col = RED_;
+                fix_insert_if_needed_(grand_parent);
+                return;
             }
 
-            else if (node == parent->rns && parent == parent->par->rns) {
-                // RR
-                rotate_left_(parent->par);
-                swap_colors(parent, parent->lns);
-            }
-
-            else if (node == parent->lns && parent == parent->par->rns) {
-                // LR
-                rb_node *grand_parent = parent->par;
-                rotate_left_(parent);
+            // Case 2a: Left-Left (LL) violation
+            if (node == parent->lns && parent == grand_parent->lns) {
                 rotate_right_(grand_parent);
-                if (grand_parent->par != nullptr)
-                    swap_colors(grand_parent, grand_parent->par);
+                swap_colors(parent, grand_parent);
             }
 
-            else if (node == parent->rns && parent == parent->par->lns) {
-                // RL
-                rb_node *grand_parent = parent->par;
+            // Case 2b: Right-Right (RR) violation
+            else if (node == parent->rns && parent == grand_parent->rns) {
+                rotate_left_(grand_parent);
+                swap_colors(parent, grand_parent);
+            }
+
+            // Case 3a: Left-Right (LR) violation
+            else if (node == parent->lns && parent == grand_parent->rns) {
                 rotate_right_(parent);
                 rotate_left_(grand_parent);
-                if (grand_parent->par != nullptr)
-                    swap_colors(grand_parent, grand_parent->par);
+                swap_colors(node, grand_parent);
             }
 
-            root_->col = BLACK_;
+            // Case 3b: Right-Left (RL) violation
+            else if (node == parent->rns && parent == grand_parent->lns) {
+                rotate_left_(parent);
+                rotate_right_(grand_parent);
+                swap_colors(node, grand_parent);
+            }
+
+            root_->col = BLACK_; // Ensure root is black after all rotations
         }
 
         rb_node *descend_(const rb_node *node, const key_t &key, const bool search, int *direction) {
