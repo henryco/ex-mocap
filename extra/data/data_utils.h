@@ -1038,24 +1038,99 @@ namespace ex::data {
                 return;
             }
 
-            // case 3: deleted was black with black child (NULL is implicitly black)
             rb_node *sibling = get_sibling_(node);
+            rb_node *parent  = node->par;
+            rb_node *current = node;
+            bool     is_left{};
+
+            // case 3: double black problem
+            double_black:
+
+            // case 3.2.0: deleted was black with black sibling (NULL is implicitly black)
             if (sibling == nullptr) {
-                if (node->par == root_ || node->par->col == RED_) {
-                    node->par->col = BLACK_;
+                if (parent == root_ || parent->col == RED_) {
+                    parent->col = BLACK_;
                     return;
                 }
-                // TODO: Move Double Black to Parent and Recursively Fix
-                return;
+
+                current = parent;
+                parent = current->par;
+                sibling = get_sibling_(current);
+
+                goto double_black;
             }
 
+            // case 3.1: sibling is Red
             if (sibling->col == RED_) {
+                swap_colors(parent, sibling);
+
+                if (current == parent->lns)
+                    rotate_left_(parent);
+                else if (current == parent->rns)
+                    rotate_right_(parent);
+
+                current = parent;
+                parent  = sibling;
+                sibling = get_sibling_(current);
+
+                goto double_black;
+            }
 
 
+            // case 3.2: sibling is black, both of siblings children are black
+            if ((sibling->lns == nullptr || sibling->lns->col == BLACK_) &&
+                (sibling->rns == nullptr || sibling->rns->col == BLACK_)) {
+
+                sibling->col = RED_;
+
+                if (parent == root_ || parent->col == RED_) {
+                    parent->col = BLACK_;
+                    return;
+                }
+
+                current = parent;
+                parent = current->par;
+                sibling = get_sibling_(current);
+
+                goto double_black;
+            }
+
+
+            is_left = parent->lns == current;
+
+            // case 3.3: sibling is black, far child is red
+            if (( is_left && (sibling->rns != nullptr && sibling->rns->col == RED_)) ||
+                (!is_left && (sibling->lns != nullptr && sibling->lns->col == RED_))) {
+
+                if (is_left) {
+                    rotate_left_(parent);
+                    if (sibling->rns != nullptr)
+                        sibling->rns->col = BLACK_;
+                }
+                else {
+                    rotate_right_(parent);
+                    if (sibling->lns != nullptr)
+                        sibling->lns->col = BLACK_;
+                }
+
+                swap_colors(parent, sibling);
                 return;
             }
 
-            // TODO
+            // case 3.4: sibling is black, near child is red
+            if (( is_left && (sibling->lns != nullptr && sibling->lns->col == RED_)) ||
+                (!is_left && (sibling->rns != nullptr && sibling->rns->col == RED_))) {
+
+                rb_node *near = is_left ? sibling->lns : sibling->rns;
+                if (near == sibling->lns)
+                    rotate_right_(sibling);
+                else
+                    rotate_left_(sibling);
+
+                sibling = sibling->par;
+                goto double_black;
+            }
+
         }
 
         void fix_insert_if_needed_(rb_node *node) {
