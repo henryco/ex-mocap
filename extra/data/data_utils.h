@@ -932,11 +932,6 @@ namespace ex::data {
         }
 
         void put(const key_t &key, const val_t &val) {
-            #ifdef UNIT_TEST
-            if (key == 325849) {
-                verify_rb_tree_();
-            }
-            #endif
 
             if (root_ == nullptr) {
                 ++size_;
@@ -1007,6 +1002,7 @@ namespace ex::data {
                 return;
 
             remove_node_(node);
+            verify_rb_tree_(); // TODO FIXME
         }
 
         void remove_node_(rb_node *node) {
@@ -1024,8 +1020,6 @@ namespace ex::data {
 
                 fix_delete_if_needed_(node, nullptr);
                 free_node_(node);
-
-                verify_rb_tree_();
                 return;
             }
 
@@ -1041,7 +1035,6 @@ namespace ex::data {
                 fix_delete_if_needed_(largest, child);
                 free_node_(largest);
 
-                verify_rb_tree_();
                 return;
             }
 
@@ -1061,7 +1054,6 @@ namespace ex::data {
                 fix_delete_if_needed_(node, child);
                 free_node_(node);
 
-                verify_rb_tree_();
                 return;
             }
 
@@ -1081,7 +1073,6 @@ namespace ex::data {
                 fix_delete_if_needed_(node, child);
                 free_node_(node);
 
-                verify_rb_tree_();
                 return;
             }
 
@@ -1267,7 +1258,6 @@ namespace ex::data {
 
             // Case 3a: Left-Right (LR) violation
             else if (node == parent->lns && parent == grand_parent->rns) {
-                // TODO FIXME
                 swap_colors(node, grand_parent);
                 rotate_right_(parent);
                 rotate_left_(grand_parent);
@@ -1275,7 +1265,6 @@ namespace ex::data {
 
             // Case 3b: Right-Left (RL) violation
             else if (node == parent->rns && parent == grand_parent->lns) {
-                // TODO FIXME
                 swap_colors(node, grand_parent);
                 rotate_left_(parent);
                 rotate_right_(grand_parent);
