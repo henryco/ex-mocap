@@ -841,6 +841,11 @@ namespace ex::data {
     template<typename key_t, typename val_t>
     struct rb_map {
 
+#ifdef UNIT_TEST
+        using metrics_t = int;
+        metrics_t metrics_n_ = 0;
+#endif
+
         using col_t = bool;
 #define BLACK_        false
 #define RED_          true
@@ -902,7 +907,13 @@ namespace ex::data {
 
         val_t &at(const key_t &key) {
             int direction;
+
+            #ifdef UNIT_TEST
+            rb_node *node = descend_(root_, key, &direction, &metrics_n_);
+            #else
             rb_node *node = descend_(root_, key, &direction);
+            #endif
+
             if (node == nullptr)
                 ::abort(); // all or nothing, avoid exceptions
 
@@ -933,7 +944,12 @@ namespace ex::data {
             }
 
             int direction;
+
+            #ifdef UNIT_TEST
+            rb_node *base = descend_(root_, key, &direction, &metrics_n_);
+            #else
             rb_node *base = descend_(root_, key, &direction);
+            #endif
 
             if (direction == 0 && comp_(&key, &(base->key)) == 0) {
                 base->val = val;
@@ -965,7 +981,13 @@ namespace ex::data {
 
         void remove(const key_t &key) {
             int direction;
+
+            #ifdef UNIT_TEST
+            rb_node *node = descend_(root_, key, &direction, &metrics_n_);
+            #else
             rb_node *node = descend_(root_, key, &direction);
+            #endif
+
             if (node == nullptr)
                 return;
 
@@ -1238,8 +1260,17 @@ namespace ex::data {
                 root_->col = BLACK_; // just in case
         }
 
-        rb_node *descend_(rb_node *node, const key_t &key, int *direction) const {
+        rb_node *descend_(rb_node *node, const key_t &key, int *direction, int *n = nullptr) const {
+
+            #ifdef UNIT_TEST
+            if (n) *n = 0;
+            #endif
+
             while (node != nullptr) {
+                #ifdef UNIT_TEST
+                if (n) (*n)++;
+                #endif
+
                 *direction = comp_(&key, &(node->key));
 
                 if (*direction == 0)
