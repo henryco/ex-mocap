@@ -1338,19 +1338,15 @@ namespace ex::data {
         }
 
         void replace_with_child_(rb_node *node, rb_node *child) {
-            if (node->par != nullptr) {
-                if (node->par->lns == node)
-                    node->par->lns = child;
-                else if (node->par->rns == node)
-                    node->par->rns = child;
-            }
-            else {
+            if (node->par == nullptr)
                 root_ = child;
-            }
+            else if (node == node->par->lns)
+                node->par->lns = child;
+            else
+                node->par->rns = child;
 
-            if (child != nullptr) {
+            if (child != nullptr)
                 child->par = node->par;
-            }
         }
 
         static void free_node_(rb_node *node) {
@@ -1423,6 +1419,30 @@ namespace ex::data {
                     }
                 }
             }
+        }
+
+        static bool verify_tree_(rb_node* node, int& black_count, int path_black = 0) {
+            if (!node) {
+                if (black_count == -1)
+                    black_count = path_black;
+                return path_black == black_count;
+            }
+
+            // Red node can't have red children
+            if (node->col == RED_) {
+                if ((node->lns && node->lns->col == RED_) ||
+                    (node->rns && node->rns->col == RED_))
+                    return false;
+            } else {
+                path_black++;
+            }
+
+            // Check parent links
+            if (node->lns && node->lns->par != node) return false;
+            if (node->rns && node->rns->par != node) return false;
+
+            return verify_tree(node->lns, black_count, path_black) &&
+                   verify_tree(node->rns, black_count, path_black);
         }
 
     };
