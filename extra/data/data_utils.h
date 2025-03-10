@@ -8,6 +8,10 @@
 #include "datalloc.h"
 #include <cstring>
 
+#ifdef UNIT_TEST
+#include <cassert>
+#endif
+
 namespace ex::data {
 
     template <typename T>
@@ -928,6 +932,12 @@ namespace ex::data {
         }
 
         void put(const key_t &key, const val_t &val) {
+            #ifdef UNIT_TEST
+            if (key == 325849) {
+                verify_rb_tree_();
+            }
+            #endif
+
             if (root_ == nullptr) {
                 ++size_;
                 root_ = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
@@ -974,6 +984,8 @@ namespace ex::data {
 
             fix_insert_if_needed_(node);
 
+            verify_rb_tree_();
+
             // ReSharper disable once CppDFAConstantConditions
             if (root_ != nullptr)
                 root_->col = BLACK_; // just in case
@@ -1012,6 +1024,8 @@ namespace ex::data {
 
                 fix_delete_if_needed_(node, nullptr);
                 free_node_(node);
+
+                verify_rb_tree_();
                 return;
             }
 
@@ -1026,6 +1040,8 @@ namespace ex::data {
                 replace_with_child_(largest, child);
                 fix_delete_if_needed_(largest, child);
                 free_node_(largest);
+
+                verify_rb_tree_();
                 return;
             }
 
@@ -1044,6 +1060,8 @@ namespace ex::data {
                 replace_with_child_(node, child);
                 fix_delete_if_needed_(node, child);
                 free_node_(node);
+
+                verify_rb_tree_();
                 return;
             }
 
@@ -1062,6 +1080,8 @@ namespace ex::data {
                 replace_with_child_(node, child);
                 fix_delete_if_needed_(node, child);
                 free_node_(node);
+
+                verify_rb_tree_();
                 return;
             }
 
@@ -1216,7 +1236,7 @@ namespace ex::data {
             if (grand_parent == nullptr) {
                 // just in case, root is always black
                 parent->col = BLACK_;
-                return;
+//                return;
             }
 
             rb_node *uncle = get_sibling_(parent);
@@ -1225,8 +1245,11 @@ namespace ex::data {
             if (uncle != nullptr && uncle->col == RED_) {
                 parent->col       = BLACK_;
                 uncle->col        = BLACK_;
-                grand_parent->col = RED_;
-                fix_insert_if_needed_(grand_parent);
+
+                if (grand_parent != nullptr) {
+                    grand_parent->col = RED_;
+                    fix_insert_if_needed_(grand_parent);
+                }
                 return;
             }
 
@@ -1244,6 +1267,7 @@ namespace ex::data {
 
             // Case 3a: Left-Right (LR) violation
             else if (node == parent->lns && parent == grand_parent->rns) {
+                // TODO FIXME
                 swap_colors(node, grand_parent);
                 rotate_left_(parent);
                 rotate_right_(grand_parent);
@@ -1251,6 +1275,7 @@ namespace ex::data {
 
             // Case 3b: Right-Left (RL) violation
             else if (node == parent->rns && parent == grand_parent->lns) {
+                // TODO FIXME
                 swap_colors(node, grand_parent);
                 rotate_right_(parent);
                 rotate_left_(grand_parent);
@@ -1444,6 +1469,17 @@ namespace ex::data {
             return verify_tree_(node->lns, black_count, path_black) &&
                    verify_tree_(node->rns, black_count, path_black);
         }
+
+        #ifdef UNIT_TEST
+        void verify_rb_tree_() {
+            int black_count = -1;
+            const bool is_ok = verify_tree_(root_, black_count);
+            assert(root_ == nullptr || root_->col == BLACK_);
+            assert(is_ok);
+        }
+        #else
+        #define verify_rb_tree_(empty) ;
+        #endif
 
     };
 
