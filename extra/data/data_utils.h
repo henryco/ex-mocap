@@ -1441,8 +1441,8 @@ namespace ex::data {
             if (node->lns && node->lns->par != node) return false;
             if (node->rns && node->rns->par != node) return false;
 
-            return verify_tree(node->lns, black_count, path_black) &&
-                   verify_tree(node->rns, black_count, path_black);
+            return verify_tree_(node->lns, black_count, path_black) &&
+                   verify_tree_(node->rns, black_count, path_black);
         }
 
     };
