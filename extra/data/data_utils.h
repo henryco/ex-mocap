@@ -1269,16 +1269,16 @@ namespace ex::data {
             else if (node == parent->lns && parent == grand_parent->rns) {
                 // TODO FIXME
                 swap_colors(node, grand_parent);
-                rotate_left_(parent);
-                rotate_right_(grand_parent);
+                rotate_right_(parent);
+                rotate_left_(grand_parent);
             }
 
             // Case 3b: Right-Left (RL) violation
             else if (node == parent->rns && parent == grand_parent->lns) {
                 // TODO FIXME
                 swap_colors(node, grand_parent);
-                rotate_right_(parent);
-                rotate_left_(grand_parent);
+                rotate_left_(parent);
+                rotate_right_(grand_parent);
             }
 
             if (root_ != nullptr)
