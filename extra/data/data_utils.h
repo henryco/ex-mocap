@@ -1095,7 +1095,7 @@ namespace ex::data {
                 sibling = get_sibling_(current);
 
                 if (sibling == nullptr) {
-                    // Sibling is implicitly black (Case 2), handle directly:
+                    // sibling is implicitly black (case 2)
                     fix_double_black_(parent, nullptr, parent->par);
                     return;
                 }
@@ -1237,23 +1237,21 @@ namespace ex::data {
         }
 
         rb_node *descend_(rb_node *node, const key_t &key, int *direction) const {
-            if (node == nullptr)
-                return nullptr;
+            while (node != nullptr) {
+                *direction = comp_(&key, &(node->key));
 
-            *direction = comp_(&key, &(node->key));
+                if (*direction == 0)
+                    return node;
 
-            if (*direction == 0)
-                return node;
-
-            if (*direction > 0) {
-                if (node->rns != nullptr)
-                    return descend_(node->rns, key, direction);
-                return node;
+                if (*direction > 0) {
+                    if (node->rns != nullptr) node = node->rns;
+                    else return node;
+                } else {
+                    if (node->lns != nullptr) node = node->lns;
+                    else return node;
+                }
             }
-
-            if (node->lns != nullptr)
-                return descend_(node->lns, key, direction);
-            return node;
+            return nullptr;
         }
 
         void rotate_right_(rb_node *node) {
