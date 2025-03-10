@@ -1091,9 +1091,14 @@ namespace ex::data {
                 else if (current == parent->rns)
                     rotate_right_(parent);
 
+                parent = current->par;
                 sibling = get_sibling_(current);
-                fix_double_black_(current, sibling, current->par); // TODO FIXME: STACK OVERFLOW
-                return;
+
+                if (sibling == nullptr) {
+                    // Sibling is implicitly black (Case 2), handle directly:
+                    fix_double_black_(parent, nullptr, parent->par);
+                    return;
+                }
             }
 
             // case 2: sibling is black, both of siblings children are black
