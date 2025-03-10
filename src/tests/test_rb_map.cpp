@@ -341,16 +341,16 @@ TEST_CASE("RB Tree map stress tests") {
 
 }
 
+// guaranteed worst case scenario for red black tree
+#define MAX_HEIGHT_(tree) static_cast<int>((2. * (std::log2(tree.size() + 1.))) + 1)
+
 TEST_CASE("rb_map extensive data integrity check (corrected)") {
-    rb_map<int, int> tree;
+    rb_map<int, int>   tree;
     std::map<int, int> reference; // Using std::map as a trusted reference
     constexpr int      OPERATIONS = 10000;
-    constexpr int      KEY_RANGE  = 1000;
+    constexpr int      KEY_RANGE  = 1000000;
 
-    // guaranteed worst case scenario for red black tree
-    const int max_height = 2 * (std::log2(OPERATIONS + 1) + 1);
-
-    std::mt19937 rng(12345); // deterministic random seed
+    std::mt19937 rng(54321); // deterministic random seed
     std::uniform_int_distribution op_dist(0, 1);
     std::uniform_int_distribution key_dist(0, KEY_RANGE - 1);
     std::uniform_int_distribution val_dist(0, 1000000);
@@ -369,14 +369,14 @@ TEST_CASE("rb_map extensive data integrity check (corrected)") {
             if (has_b_m) {
                 val_b_m = tree.at(key);
                 val_b_r = reference.at(key);
-                CHECK(tree.metrics_n_ <= max_height);
+                CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
                 std::cout << "N: " << tree.metrics_n_ << '\n';
             }
 
             tree.put(key, val);
             reference[key] = val;
 
-            CHECK(tree.metrics_n_ <= max_height);
+            CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
             std::cout << "N: " << tree.metrics_n_ << '\n';
 
             const bool has_a_m = tree.contains(key);
@@ -385,7 +385,7 @@ TEST_CASE("rb_map extensive data integrity check (corrected)") {
             const int val_a_m = tree.at(key);
             const int val_a_r = reference.at(key);
 
-            CHECK(tree.metrics_n_ <= max_height);
+            CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
             std::cout << "N: " << tree.metrics_n_ << '\n';
 
             std::cout << "insert map: " << key << ": " << val << ", [" << has_b_m << " -> " << has_a_m << "] [" << val_b_m << " -> " << val_a_m << "]\n";
@@ -394,7 +394,7 @@ TEST_CASE("rb_map extensive data integrity check (corrected)") {
             CHECK(reference.at(key) == val);
             CHECK(tree.at(key) == val);
 
-            CHECK(tree.metrics_n_ <= max_height);
+            CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
             std::cout << "N: " << tree.metrics_n_ << '\n';
         } else {
             const bool has_b_m = tree.contains(key);
@@ -403,7 +403,7 @@ TEST_CASE("rb_map extensive data integrity check (corrected)") {
             tree.remove(key);
             reference.erase(key);
 
-            CHECK(tree.metrics_n_ <= max_height);
+            CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
             std::cout << "N: " << tree.metrics_n_ << '\n';
 
             const bool has_a_m = tree.contains(key);
@@ -426,7 +426,7 @@ TEST_CASE("rb_map extensive data integrity check (corrected)") {
             CHECK(tree.contains(sample_key) == (reference.contains(sample_key)));
             if (reference.contains(sample_key)) {
                 CHECK(tree.at(sample_key) == reference[sample_key]);
-                CHECK(tree.metrics_n_ <= max_height);
+                CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
                 std::cout << "N: " << tree.metrics_n_ << '\n';
             }
         }
@@ -436,7 +436,7 @@ TEST_CASE("rb_map extensive data integrity check (corrected)") {
     for (const auto &[key, val] : reference) {
         CHECK(tree.contains(key));
         CHECK(tree.at(key) == val);
-        CHECK(tree.metrics_n_ <= max_height);
+        CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
         std::cout << "N: " << tree.metrics_n_ << '\n';
     }
 
@@ -445,10 +445,11 @@ TEST_CASE("rb_map extensive data integrity check (corrected)") {
     // Clean up and ensure emptiness
     for (const auto &[key, _] : reference) {
         tree.remove(key);
-        CHECK(tree.metrics_n_ <= max_height);
+        CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
         std::cout << "N: " << tree.metrics_n_ << '\n';
     }
 
     CHECK(tree.empty());
     CHECK(tree.size() == 0);
+    std::cout << "finish" << std::endl;
 }
