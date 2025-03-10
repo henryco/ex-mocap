@@ -888,7 +888,7 @@ namespace ex::data {
 
         bool contains(const key_t &key) const {
             int direction;
-            const rb_node *node = descend_(root_, key, true, &direction);
+            const rb_node *node = descend_(root_, key, &direction);
             if (node == nullptr)
                 return false;
 
@@ -900,7 +900,7 @@ namespace ex::data {
 
         val_t &at(const key_t &key) {
             int direction;
-            rb_node *node = descend_(root_, key, true, &direction);
+            rb_node *node = descend_(root_, key, &direction);
             if (node == nullptr)
                 ::abort(); // all or nothing, avoid exceptions
 
@@ -931,7 +931,7 @@ namespace ex::data {
             }
 
             int direction;
-            rb_node *base = descend_(root_, key, false, &direction);
+            rb_node *base = descend_(root_, key, &direction);
 
             if (direction == 0 && comp_(&key, &(base->key)) == 0) {
                 base->val = val;
@@ -956,13 +956,14 @@ namespace ex::data {
 
             fix_insert_if_needed_(node);
 
+            // ReSharper disable once CppDFAConstantConditions
             if (root_ != nullptr)
                 root_->col = BLACK_; // just in case
         }
 
         void remove(const key_t &key) {
             int direction;
-            rb_node *node = descend_(root_, key, true, &direction);
+            rb_node *node = descend_(root_, key, &direction);
             if (node == nullptr)
                 return;
 
@@ -1091,7 +1092,7 @@ namespace ex::data {
                     rotate_right_(parent);
 
                 sibling = get_sibling_(current);
-                fix_double_black_(current, sibling, current->par);
+                fix_double_black_(current, sibling, current->par); // TODO FIXME: STACK OVERFLOW
                 return;
             }
 
@@ -1230,23 +1231,23 @@ namespace ex::data {
                 root_->col = BLACK_; // just in case
         }
 
-        rb_node *descend_(rb_node *node, const key_t &key, const bool search, int *direction) const {
+        rb_node *descend_(rb_node *node, const key_t &key, int *direction) const {
             if (node == nullptr)
                 return nullptr;
 
             *direction = comp_(&key, &(node->key));
 
-            if (*direction == 0 && search)
+            if (*direction == 0)
                 return node;
 
-            if (*direction >= 0) {
+            if (*direction > 0) {
                 if (node->rns != nullptr)
-                    return descend_(node->rns, key, search, direction);
+                    return descend_(node->rns, key, direction);
                 return node;
             }
 
             if (node->lns != nullptr)
-                return descend_(node->lns, key, search, direction);
+                return descend_(node->lns, key, direction);
             return node;
         }
 
