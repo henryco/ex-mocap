@@ -868,12 +868,14 @@ namespace ex::data {
         }
 
         ~rb_map() {
-            recursive_free_(root_);
+//            recursive_free_(root_);
+            iterative_free_(root_);
             root_ = nullptr;
         }
 
         void clean() {
-            recursive_free_(root_);
+//            recursive_free_(root_);
+            iterative_free_(root_);
             root_ = nullptr;
             size_ = 0;
         }
@@ -1360,6 +1362,36 @@ namespace ex::data {
             recursive_free_(node->lns);
             recursive_free_(node->rns);
             ::free(node);
+        }
+
+        static void iterative_free_(rb_node *node) {
+            // Morris traversal technique
+            rb_node *current = node;
+            while (current != nullptr) {
+                if (current->lns == nullptr) {
+                    rb_node *right = current->rns;
+                    ::free(current);
+                    current = right;
+                } else {
+                    // find the inorder predecessor of current
+                    rb_node *pre = current->lns;
+                    while (pre->rns != nullptr && pre->rns != current)
+                        pre = pre->rns;
+
+                    if (pre->rns == nullptr) {
+                        // create temporary threaded link
+                        pre->rns = current;
+                        current = current->lns;
+                    } else {
+                        // remove temporary threaded link
+                        pre->rns = nullptr;
+
+                        rb_node *right = current->rns;
+                        ::free(current);
+                        current = right;
+                    }
+                }
+            }
         }
 
     };

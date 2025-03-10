@@ -167,7 +167,7 @@ TEST_CASE("RB Tree map stress tests") {
 
     SUBCASE("rb_map random insert and remove stress test") {
         rb_map<int, int> tree;
-        const int N = 10000;
+        constexpr int N = 10000;
         for (int i = 0; i < N; ++i)
             tree.put(i, i + 1);
 
@@ -217,7 +217,7 @@ TEST_CASE("RB Tree map stress tests") {
     SUBCASE("rb_map large scale removals and reinserts") {
         rb_map<int, int> tree;
 
-        const int N = 5000;
+        constexpr int N = 5000;
         for (int i = 0; i < N; ++i)
             tree.put(i, i * 2);
 
@@ -245,7 +245,7 @@ TEST_CASE("RB Tree map stress tests") {
 
     SUBCASE("rb_map deep balancing check") {
         rb_map<int, int> tree;
-        const int N = 1024;
+        constexpr int N = 1024;
 
         // Insert power-of-two spaced keys to force deeper tree structures
         for (int gap = N; gap > 0; gap /= 2)
@@ -260,7 +260,7 @@ TEST_CASE("RB Tree map stress tests") {
 
     SUBCASE("rb_map stress test alternating inserts and deletes") {
         rb_map<int, int> tree;
-        const int cycles = 1000;
+        constexpr int cycles = 1000;
 
         for (int i = 0; i < cycles; ++i) {
             tree.put(i, i);
@@ -278,9 +278,9 @@ TEST_CASE("RB Tree map stress tests") {
 
     SUBCASE("rb_map edge case: repeated insert-remove same key") {
         rb_map<int, int> tree;
-        const int key = 123456;
 
         for (int i = 0; i < 100; ++i) {
+            constexpr int key = 123456;
             tree.put(key, i);
             CHECK(tree.size() == 1);
             CHECK(tree.at(key) == i);
@@ -380,6 +380,7 @@ TEST_CASE("rb_map extensive data integrity check (corrected)") {
             std::cout << "insert map: " << key << ": " << val << ", [" << has_b_m << " -> " << has_a_m << "] [" << val_b_m << " -> " << val_a_m << "]\n";
             std::cout << "insert ref: " << key << ": " << val << ", [" << has_b_r << " -> " << has_a_r << "] [" << val_b_r << " -> " << val_a_r << "]\n";
 
+            CHECK(reference.at(key) == val);
             CHECK(tree.at(key) == val);
         } else {
             const bool has_b_m = tree.contains(key);
@@ -393,6 +394,9 @@ TEST_CASE("rb_map extensive data integrity check (corrected)") {
 
             std::cout << "remove map: " << key << ", [" << has_b_m << ", " << has_a_m << "]\n";
             std::cout << "remove ref: " << key << ", [" << has_b_r << ", " << has_a_r << "]\n";
+
+            CHECK_FALSE(reference.contains(key));
+            CHECK_FALSE(tree.contains(key));
         }
 
         std::cout << '\n';
@@ -402,8 +406,8 @@ TEST_CASE("rb_map extensive data integrity check (corrected)") {
         // Frequent integrity spot-checks
         for (int sample = 0; sample < 10; ++sample) {
             int sample_key = key_dist(rng);
-            CHECK(tree.contains(sample_key) == (reference.count(sample_key) > 0));
-            if (reference.count(sample_key)) {
+            CHECK(tree.contains(sample_key) == (reference.contains(sample_key)));
+            if (reference.contains(sample_key)) {
                 CHECK(tree.at(sample_key) == reference[sample_key]);
             }
         }
