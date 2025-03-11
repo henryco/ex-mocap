@@ -1001,12 +1001,6 @@ namespace ex::data {
             if (direction != 0 || comp_(&key, &(node->key)) != 0)
                 return;
 
-            #ifdef UNIT_TEST
-            if (key == 164923) {
-                ; // TODO REMOVE
-            }
-            #endif
-
             remove_node_(node);
             verify_rb_tree_();
         }
@@ -1102,7 +1096,7 @@ namespace ex::data {
                 return;
             }
 
-            fix_double_black_(child, sibling, node->par); // TODO FIXME: child == nullptr
+            fix_double_black_(child, sibling, node->par);
             if (root_ != nullptr)
                 root_->col = BLACK_; // just in case
         }
@@ -1110,8 +1104,6 @@ namespace ex::data {
         void fix_double_black_(rb_node *current, rb_node *sibling, rb_node *parent) {
             if (parent == nullptr)
                 return;
-
-            // TODO FIXME: current == nullptr
 
             // case 2: deleted was black with black sibling (NULL is implicitly black)
             if (sibling == nullptr) {
@@ -1136,8 +1128,10 @@ namespace ex::data {
                 else if (current == parent->rns)
                     rotate_right_(parent);
 
-                parent = current->par;
-                sibling = get_sibling_(current);
+//                parent = current->par; // parent does not change after rotation
+
+                if (current != nullptr) sibling = get_sibling_(current);
+                else                    sibling = (parent->lns == current) ? parent->rns : parent->lns;
 
                 if (sibling == nullptr) {
                     // sibling is implicitly black (case 2)
@@ -1394,7 +1388,6 @@ namespace ex::data {
         }
 
         static rb_node *get_sibling_(const rb_node *node) {
-            // TODO FIXME
             if (node == nullptr)
                 ::abort();
 
