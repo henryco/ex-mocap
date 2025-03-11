@@ -8,10 +8,6 @@
 #include "datalloc.h"
 #include <cstring>
 
-#ifdef UNIT_TEST
-#include <cassert>
-#endif
-
 namespace ex::data {
 
     template <typename T>
@@ -871,6 +867,8 @@ namespace ex::data {
 
         allocator allocator_;
 
+        // TODO: reallocation watcher -> traverse tree -> update ptr addresses
+
         comparator_fn comp_;
         int64_t       size_;
         rb_node      *root_;
@@ -1073,9 +1071,8 @@ namespace ex::data {
 
             fix_insert_if_needed_(node);
 
-            // ReSharper disable once CppDFAConstantConditions
-            if (root_ != nullptr)
-                root_->col = BLACK_; // just in case
+            // if root_ is nullptr we have much bigger problem
+            root_->col = BLACK_; // just in case
         }
 
         void remove(const key_t &key) {
