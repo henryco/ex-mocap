@@ -863,7 +863,7 @@ namespace ex::data {
         metrics_t metrics_n_ = 0;
 #endif
 
-        using node_apply_fn = void   (*) (rb_node *node);
+        using node_apply_fn = void   (*)(rb_node *node);
         using comparator_fn = int8_t (*)(const key_t *a, const key_t *b);
         static int8_t default_comparator(const key_t *a, const key_t *b) {
             return (*a > *b) - (*a < *b);
@@ -1416,15 +1416,6 @@ namespace ex::data {
          * Function is applied on exit from node
          */
         static void traverse_depth_tree_(rb_node *const node, const node_apply_fn fn) {
-
-            /*   a
-             * b   c
-             *    d  e
-             *        f
-             *      g
-             *    h   i
-             */
-
             bool down = true;
             rb_node *head = node;
             rb_node *prev = node;
