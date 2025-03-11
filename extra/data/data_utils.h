@@ -934,10 +934,10 @@ namespace ex::data {
 
             if (root_ == nullptr) {
                 ++size_;
-                root_ = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
-                if (root_ == nullptr)
+                void *mem = ::malloc(sizeof(rb_node));
+                if (mem == nullptr)
                     ::abort();
-                ::memset(root_, 0, sizeof(rb_node)); // avoid new operator
+                root_      = new (mem) rb_node;
                 root_->par = nullptr;
                 root_->lns = nullptr;
                 root_->rns = nullptr;
@@ -962,10 +962,10 @@ namespace ex::data {
 
             ++size_;
 
-            rb_node *node = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
-            if (node == nullptr)
+            void *mem = ::malloc(sizeof(rb_node));
+            if (mem == nullptr)
                 ::abort();
-            ::memset(node, 0, sizeof(rb_node)); // avoid new operator
+            rb_node *node = new (mem) rb_node;
             node->par     = base;
             node->lns     = nullptr;
             node->rns     = nullptr;
@@ -1405,6 +1405,9 @@ namespace ex::data {
         }
 
         static void release_node_(rb_node *node) {
+            if (node == nullptr)
+                return;
+            node->~rb_node();
             ::free(node);
         }
 
