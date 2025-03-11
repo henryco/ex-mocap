@@ -1023,10 +1023,7 @@ namespace ex::data {
 
             fix_insert_if_needed_(node);
 
-            // ReSharper disable once CppDFAConstantConditions
-            if (root_ != nullptr)
-                root_->col = BLACK_; // just in case
-
+            root_->col = BLACK_; // just in case
             return node->val;
         }
 
