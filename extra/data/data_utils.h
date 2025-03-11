@@ -999,11 +999,11 @@ namespace ex::data {
 
             int direction;
 
-            #ifdef UNIT_TEST
+#ifdef UNIT_TEST
             rb_node *base = descend_(root_, key, &direction, &metrics_n_);
-            #else
+#else
             rb_node *base = descend_(root_, key, &direction);
-            #endif
+#endif
 
             if (direction == 0 && base != nullptr && comp_(&key, &(base->key)) == 0)
                 return base->val;
