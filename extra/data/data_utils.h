@@ -863,6 +863,7 @@ namespace ex::data {
         metrics_t metrics_n_ = 0;
 #endif
 
+        using node_apply_fn = void   (*) (rb_node *node);
         using comparator_fn = int8_t (*)(const key_t *a, const key_t *b);
         static int8_t default_comparator(const key_t *a, const key_t *b) {
             return (*a > *b) - (*a < *b);
@@ -1369,7 +1370,7 @@ namespace ex::data {
                 if (node->par->rns == node)
                     node->par->rns = nullptr;
             }
-            ::free(node);
+            release_node_(node);
         }
 
         static rb_node *get_largest_(rb_node *node) {
@@ -1400,36 +1401,63 @@ namespace ex::data {
             if (node == nullptr) return;
             recursive_free_(node->lns);
             recursive_free_(node->rns);
+            release_node_(node);
+        }
+
+        static void release_node_(rb_node *node) {
             ::free(node);
         }
 
-        static void iterative_free_(rb_node *node) {
-            // Morris traversal technique
-            rb_node *current = node;
-            while (current != nullptr) {
-                if (current->lns == nullptr) {
-                    rb_node *right = current->rns;
-                    ::free(current);
-                    current = right;
-                } else {
-                    // find the inorder predecessor of current
-                    rb_node *pre = current->lns;
-                    while (pre->rns != nullptr && pre->rns != current)
-                        pre = pre->rns;
+        static void iterative_free_(rb_node *const node) {
+            iterate_tree_(node, &release_node_);
+        }
 
-                    if (pre->rns == nullptr) {
-                        // create temporary threaded link
-                        pre->rns = current;
-                        current = current->lns;
-                    } else {
-                        // remove temporary threaded link
-                        pre->rns = nullptr;
+        static void iterate_tree_(rb_node *const node, const node_apply_fn fn) {
 
-                        rb_node *right = current->rns;
-                        ::free(current);
-                        current = right;
-                    }
+            /*   a
+             * b   c
+             *    d  e
+             *        f
+             *      g
+             *    h   i
+             */
+
+            bool down = true;
+            rb_node *head = node;
+            rb_node *prev = node;
+
+            while (head != nullptr) {
+                if (down && head->lns != nullptr) {
+                    prev = head;
+                    head = head->lns;
+                    continue;
                 }
+
+                if (down && head->rns != nullptr) {
+                    prev = head;
+                    head = head->rns;
+                    continue;
+                }
+
+                if (down || prev == head->rns) {
+                    prev = head;
+                    head = head->par;
+                    down = false;
+                    fn(prev);
+                    continue;
+                }
+
+                if (head->rns != nullptr) {
+                    prev = head;
+                    head = head->rns;
+                    down = true;
+                    continue;
+                }
+
+                prev = head;
+                head = head->par;
+                down = false;
+                fn(prev);
             }
         }
     };
