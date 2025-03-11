@@ -1001,6 +1001,12 @@ namespace ex::data {
             if (direction != 0 || comp_(&key, &(node->key)) != 0)
                 return;
 
+            #ifdef UNIT_TEST
+            if (key == 164923) {
+                ;
+            }
+            #endif
+
             remove_node_(node);
             verify_rb_tree_(); // TODO FIXME
         }
@@ -1080,6 +1086,8 @@ namespace ex::data {
         }
 
         void fix_delete_if_needed_(rb_node *node, rb_node *child) {
+            // TODO FIXME
+
             // case 1: deleted was red
             if (node == nullptr || node->col == RED_)
                 return;
