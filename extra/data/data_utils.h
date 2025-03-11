@@ -146,7 +146,7 @@ namespace ex::data {
 
         static void watch_allocator(void *instance, const long int offset) {
             auto this_ = static_cast<buffer *>(instance);
-            this_->data = reinterpret_cast<element_t *>(reinterpret_cast<unsigned long int>(this_->data) + offset);
+            this_->data = reinterpret_cast<element_t *>(reinterpret_cast<unsigned char *>(this_->data) + offset);
         }
     };
 
@@ -175,7 +175,7 @@ namespace ex::data {
         ~array() {
             del_watcher_(allocator_, this, &watch_allocator);
             free_(this, allocator_, data);
-            this->data = nullptr;
+            data = nullptr;
         }
 
         array(const int &capacity) : capacity(capacity) {
@@ -490,7 +490,7 @@ namespace ex::data {
 
         static void watch_allocator(void *instance, const long int offset) {
             auto this_ = static_cast<array *>(instance);
-            this_->data = reinterpret_cast<element_t *>(reinterpret_cast<unsigned long int>(this_->data) + offset);
+            this_->data = reinterpret_cast<element_t *>(reinterpret_cast<unsigned char *>(this_->data) + offset);
         }
     };
 
@@ -867,8 +867,6 @@ namespace ex::data {
 
         allocator allocator_;
 
-        // TODO: reallocation watcher -> traverse tree -> update ptr addresses
-
         comparator_fn comp_;
         int64_t       size_;
         rb_node      *root_;
@@ -879,35 +877,43 @@ namespace ex::data {
 
         rb_map(const comparator_fn compare):
             comp_(compare), size_(0), root_(nullptr) {
+            add_watcher_(allocator_, this, &watch_allocator);
         }
 
         rb_map(const allocator &allocator_):
             allocator_(allocator_), comp_(&rb_map::default_comparator), size_(0), root_(nullptr) {
+            add_watcher_(allocator_, this, &watch_allocator);
         }
 
         rb_map(const allocator &allocator_, const comparator_fn compare):
             allocator_(allocator_), comp_(compare), size_(0), root_(nullptr) {
+            add_watcher_(allocator_, this, &watch_allocator);
         }
 
         rb_map(const rb_map &other):
             allocator_(other.allocator_), comp_(other.comp_), size_(other.size_) {
             root_ = other.iterative_copy_(other.root_);
+            add_watcher_(allocator_, this, &watch_allocator);
         }
 
         rb_map(rb_map &&other) noexcept:
             allocator_(other.allocator_), comp_(other.comp_), size_(other.size_), root_(other.root_) {
             other.root_ = nullptr;
             other.size_ = 0;
+            del_watcher_(other.allocator_, this, &watch_allocator);
+            add_watcher_(allocator_, this, &watch_allocator);
         }
 
         rb_map &operator = (const rb_map &other) {
             if (this == &other)
                 return *this;
             clean();
+            del_watcher_(allocator_, this, &watch_allocator);
             root_      = other.iterative_copy_(other.root_);
             allocator_ = other.allocator_;
             comp_      = other.comp_;
             size_      = other.size_;
+            add_watcher_(allocator_, this, &watch_allocator);
             return *this;
         }
 
@@ -915,17 +921,20 @@ namespace ex::data {
             if (this == &other)
                 return *this;
             clean();
+            del_watcher_(other.allocator_, this, &watch_allocator);
+            del_watcher_(allocator_, this, &watch_allocator);
             allocator_ = other.allocator_;
             comp_      = other.comp_;
             size_      = other.size_;
             root_      = other.root_;
-
+            add_watcher_(allocator_, this, &watch_allocator);
             other.root_ = nullptr;
             other.size_ = 0;
             return *this;
         }
 
         ~rb_map() {
+            del_watcher_(allocator_, this, &watch_allocator);
             iterative_free_(root_);
             root_ = nullptr;
         }
@@ -1647,6 +1656,11 @@ namespace ex::data {
                 down = false;
                 fn(prev);
             }
+        }
+
+        static void watch_allocator(void *instance, const long int offset) {
+            auto that_ = static_cast<rb_map *>(instance);
+            ::abort(); // reallocation prohibited
         }
     };
 
