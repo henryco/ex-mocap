@@ -347,13 +347,15 @@ TEST_CASE("RB Tree map stress tests") {
 TEST_CASE("rb_map extensive data integrity check") {
     rb_map<int, int>   tree;
     std::map<int, int> reference; // Using std::map as a trusted reference
-    constexpr int      OPERATIONS = 10000;
-    constexpr int      KEY_RANGE  = 10000;
+    constexpr int      OPERATIONS = 100000;
+    constexpr int      KEY_RANGE  = 100000;
 
-    std::mt19937 rng(54321); // deterministic random seed
+    std::mt19937 rng(918273645); // deterministic random seed
     std::uniform_int_distribution op_dist(0, 1);
     std::uniform_int_distribution key_dist(0, KEY_RANGE - 1);
     std::uniform_int_distribution val_dist(0, 1000000);
+
+    int max_n = 0;
 
     for (int i = 0; i < OPERATIONS; ++i) {
         const int key = key_dist(rng);
@@ -364,13 +366,14 @@ TEST_CASE("rb_map extensive data integrity check") {
             const bool has_b_m = tree.contains(key);
 //            const bool has_b_r = reference.contains(key);
 
-            int val_b_m = -1;
-            int val_b_r = -1;
+            int val_b_m;// = -1;
+            int val_b_r;// = -1;
             if (has_b_m) {
                 val_b_m = tree.at(key);
                 val_b_r = reference.at(key);
                 CHECK(val_b_m == val_b_r);
                 CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
+                max_n = max_n > tree.metrics_n_ ? max_n : tree.metrics_n_;
 //                std::cout << "N: " << tree.metrics_n_ << '\n';
             }
 
@@ -378,15 +381,15 @@ TEST_CASE("rb_map extensive data integrity check") {
             reference[key] = val;
 
             CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
+            max_n = max_n > tree.metrics_n_ ? max_n : tree.metrics_n_;
 //            std::cout << "N: " << tree.metrics_n_ << '\n';
-
-            const bool has_a_m = tree.contains(key);
-            const bool has_a_r = reference.contains(key);
 
             const int val_a_m = tree.at(key);
             const int val_a_r = reference.at(key);
 
+            CHECK(val_a_m == val_a_r);
             CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
+            max_n = max_n > tree.metrics_n_ ? max_n : tree.metrics_n_;
 //            std::cout << "N: " << tree.metrics_n_ << '\n';
 
 //            std::cout << "insert map: " << key << ": " << val << ", [" << has_b_m << " -> " << has_a_m << "] [" << val_b_m << " -> " << val_a_m << "]\n";
@@ -396,19 +399,21 @@ TEST_CASE("rb_map extensive data integrity check") {
             CHECK(tree.at(key) == val);
 
             CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
+            max_n = max_n > tree.metrics_n_ ? max_n : tree.metrics_n_;
 //            std::cout << "N: " << tree.metrics_n_ << '\n';
         } else {
-            const bool has_b_m = tree.contains(key);
-            const bool has_b_r = reference.contains(key);
+//            const bool has_b_m = tree.contains(key);
+//            const bool has_b_r = reference.contains(key);
 
             tree.remove(key);
             reference.erase(key);
 
             CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
+            max_n = max_n > tree.metrics_n_ ? max_n : tree.metrics_n_;
 //            std::cout << "N: " << tree.metrics_n_ << '\n';
 
-            const bool has_a_m = tree.contains(key);
-            const bool has_a_r = reference.contains(key);
+//            const bool has_a_m = tree.contains(key);
+//            const bool has_a_r = reference.contains(key);
 
 //            std::cout << "remove map: " << key << ", [" << has_b_m << ", " << has_a_m << "]\n";
 //            std::cout << "remove ref: " << key << ", [" << has_b_r << ", " << has_a_r << "]\n";
@@ -428,6 +433,7 @@ TEST_CASE("rb_map extensive data integrity check") {
             if (reference.contains(sample_key)) {
                 CHECK(tree.at(sample_key) == reference[sample_key]);
                 CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
+                max_n = max_n > tree.metrics_n_ ? max_n : tree.metrics_n_;
 //                std::cout << "N: " << tree.metrics_n_ << '\n';
             }
         }
@@ -438,6 +444,7 @@ TEST_CASE("rb_map extensive data integrity check") {
         CHECK(tree.contains(key));
         CHECK(tree.at(key) == val);
         CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
+        max_n = max_n > tree.metrics_n_ ? max_n : tree.metrics_n_;
 //        std::cout << "N: " << tree.metrics_n_ << '\n';
     }
 
@@ -447,10 +454,18 @@ TEST_CASE("rb_map extensive data integrity check") {
     for (const auto &[key, _] : reference) {
         tree.remove(key);
         CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
+        max_n = max_n > tree.metrics_n_ ? max_n : tree.metrics_n_;
 //        std::cout << "N: " << tree.metrics_n_ << '\n';
     }
 
     CHECK(tree.empty());
     CHECK(tree.size() == 0);
-    std::cout << "rb_map extensive data integrity check finish" << std::endl;
+    std::cout << "rb_map extensive data integrity check finish ["
+    << max_n
+    << "|"
+    << static_cast<int>((std::log2(OPERATIONS + 1.)) + 1)
+    << "|"
+    << static_cast<int>((2. * (std::log2(OPERATIONS + 1.))) + 1)
+    << "]"
+    << std::endl;
 }
