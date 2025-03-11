@@ -976,6 +976,57 @@ namespace ex::data {
             ::abort(); // all or nothing, avoid exceptions
         }
 
+        val_t &operator [] (const key_t &key) {
+
+            if (root_ == nullptr) {
+                root_      = instance_node_();
+                root_->par = nullptr;
+                root_->lns = nullptr;
+                root_->rns = nullptr;
+                root_->val = val_t();
+                root_->key = key;
+                root_->col = BLACK_;
+                ++size_;
+                return root_->val;
+            }
+
+            int direction;
+
+            #ifdef UNIT_TEST
+            rb_node *base = descend_(root_, key, &direction, &metrics_n_);
+            #else
+            rb_node *base = descend_(root_, key, &direction);
+            #endif
+
+            if (direction == 0 && base != nullptr && comp_(&key, &(base->key)) == 0)
+                return base->val;
+
+            ++size_;
+
+            rb_node *node = instance_node_();
+            node->par     = base;
+            node->lns     = nullptr;
+            node->rns     = nullptr;
+            node->val     = val_t();
+            node->key     = key;
+            node->col     = RED_;
+
+            if (direction >= 0) base->rns = node;
+            else                base->lns = node;
+
+            fix_insert_if_needed_(node);
+
+            // ReSharper disable once CppDFAConstantConditions
+            if (root_ != nullptr)
+                root_->col = BLACK_; // just in case
+
+            return node->val;
+        }
+
+        const val_t &operator [] (const key_t &key) const {
+            return at(key);
+        }
+
         void put(const entry<key_t, val_t> &entry) {
             put(entry.key, entry.element);
         }
@@ -983,8 +1034,6 @@ namespace ex::data {
         void put(const key_t &key, const val_t &val) {
 
             if (root_ == nullptr) {
-                ++size_;
-
                 root_      = instance_node_();
                 root_->par = nullptr;
                 root_->lns = nullptr;
@@ -992,6 +1041,7 @@ namespace ex::data {
                 root_->val = val;
                 root_->key = key;
                 root_->col = BLACK_;
+                ++size_;
                 return;
             }
 
