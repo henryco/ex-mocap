@@ -891,6 +891,42 @@ namespace ex::data {
             allocator_(allocator_), comp_(compare), size_(0), root_(nullptr) {
         }
 
+        rb_map(const rb_map &other):
+            allocator_(other.allocator_), comp_(other.comp_), size_(other.size_) {
+            root_ = other.iterative_copy_(other.root_);
+        }
+
+        rb_map(rb_map &&other) noexcept:
+            allocator_(other.allocator_), comp_(other.comp_), size_(other.size_), root_(other.root_) {
+            other.root_ = nullptr;
+            other.size_ = 0;
+        }
+
+        rb_map &operator = (const rb_map &other) {
+            if (this == &other)
+                return *this;
+            clean();
+            root_      = other.iterative_copy_(other.root_);
+            allocator_ = other.allocator_;
+            comp_      = other.comp_;
+            size_      = other.size_;
+            return *this;
+        }
+
+        rb_map &operator = (rb_map &&other) noexcept {
+            if (this == &other)
+                return *this;
+            clean();
+            allocator_ = other.allocator_;
+            comp_      = other.comp_;
+            size_      = other.size_;
+            root_      = other.root_;
+
+            other.root_ = nullptr;
+            other.size_ = 0;
+            return *this;
+        }
+
         ~rb_map() {
             iterative_free_(root_);
             root_ = nullptr;
