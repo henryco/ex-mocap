@@ -1024,8 +1024,11 @@ namespace ex::data {
                     return;
                 }
 
-                fix_delete_if_needed_(node, nullptr);
+                rb_node *sibling = get_sibling_(node);
+                replace_with_child_(node, nullptr);
+                fix_delete_if_needed_(node, nullptr, sibling);
                 free_node_(node);
+
                 return;
             }
 
@@ -1037,8 +1040,9 @@ namespace ex::data {
                 node->key = largest->key;
                 node->val = largest->val;
 
+                rb_node *sibling = get_sibling_(largest);
                 replace_with_child_(largest, child);
-                fix_delete_if_needed_(largest, child);
+                fix_delete_if_needed_(largest, child, sibling);
                 free_node_(largest);
 
                 return;
@@ -1056,8 +1060,9 @@ namespace ex::data {
                     return;
                 }
 
+                rb_node *sibling = get_sibling_(node);
                 replace_with_child_(node, child);
-                fix_delete_if_needed_(node, child);
+                fix_delete_if_needed_(node, child, sibling);
                 free_node_(node);
 
                 return;
@@ -1075,8 +1080,9 @@ namespace ex::data {
                     return;
                 }
 
+                rb_node *sibling = get_sibling_(node);
                 replace_with_child_(node, child);
-                fix_delete_if_needed_(node, child);
+                fix_delete_if_needed_(node, child, sibling);
                 free_node_(node);
 
                 return;
@@ -1085,7 +1091,7 @@ namespace ex::data {
             ::abort();
         }
 
-        void fix_delete_if_needed_(rb_node *node, rb_node *child) {
+        void fix_delete_if_needed_(rb_node *node, rb_node *child, rb_node *sibling) {
             // case 1: deleted was red
             if (node == nullptr || node->col == RED_)
                 return;
@@ -1096,9 +1102,7 @@ namespace ex::data {
                 return;
             }
 
-            // TODO FIXME
-
-            fix_double_black_(node, get_sibling_(node), node->par);
+            fix_double_black_(child, sibling, node->par); // TODO FIXME: child == nullptr
             if (root_ != nullptr)
                 root_->col = BLACK_; // just in case
         }
@@ -1106,6 +1110,8 @@ namespace ex::data {
         void fix_double_black_(rb_node *current, rb_node *sibling, rb_node *parent) {
             if (parent == nullptr)
                 return;
+
+            // TODO FIXME: current == nullptr
 
             // case 2: deleted was black with black sibling (NULL is implicitly black)
             if (sibling == nullptr) {
