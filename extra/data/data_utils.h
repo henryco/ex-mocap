@@ -1361,6 +1361,71 @@ namespace ex::data {
                 child->par = node->par;
         }
 
+        rb_node *instance_node_() const {
+            void *mem = ::malloc(sizeof(rb_node));
+            if (mem == nullptr)
+                ::abort();
+            return new (mem) rb_node;
+        }
+
+        rb_node *copy_node_(const rb_node *node) const {
+            if (node == nullptr)
+                return nullptr;
+            rb_node *copy = instance_node_();
+            *copy = *node;
+            return copy;
+        }
+
+        void iterative_copy_(rb_node *const node) {
+            rb_node *copy = copy_node_(node);
+            rb_node *head = node;
+            rb_node *prev = node;
+            bool     down = true;
+
+            while (head != nullptr) {
+                if (down && head->lns != nullptr) {
+                    prev = head;
+                    head = head->lns;
+
+                    *copy->lns = copy_node_(head);
+                    copy = copy->lns;
+                    continue;
+                }
+
+                if (down && head->rns != nullptr) {
+                    prev = head;
+                    head = head->rns;
+
+                    *copy->rns = copy_node_(head);
+                    copy = copy->rns;
+                    continue;
+                }
+
+                if (down || prev == head->rns) {
+                    prev = head;
+                    head = head->par;
+                    copy = copy->par;
+                    down = false;
+                    continue;
+                }
+
+                if (head->rns != nullptr) {
+                    prev = head;
+                    head = head->rns;
+
+                    *copy->rns = copy_node_(head);
+                    copy = copy->rns;
+                    down = true;
+                    continue;
+                }
+
+                prev = head;
+                head = head->par;
+                copy = copy->par;
+                down = false;
+            }
+        }
+
         static void free_node_(rb_node *node) {
             if (node == nullptr)
                 return;
@@ -1414,50 +1479,6 @@ namespace ex::data {
         static void iterative_free_(rb_node *const node) {
             traverse_depth_tree_(node, &release_node_);
         }
-
-//        static void iterative_copy_(rb_node *const node) {
-//
-//            rb_node  pod_ = {};
-//            rb_node *copy = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
-//
-//            bool down = true;
-//            rb_node *head = node;
-//            rb_node *prev = node;
-//
-//            while (head != nullptr) {
-//                if (down && head->lns != nullptr) {
-//                    prev = head;
-//                    head = head->lns;
-//                    continue;
-//                }
-//
-//                if (down && head->rns != nullptr) {
-//                    prev = head;
-//                    head = head->rns;
-//                    continue;
-//                }
-//
-//                if (down || prev == head->rns) {
-//                    prev = head;
-//                    head = head->par;
-//                    down = false;
-//                    fn(prev);
-//                    continue;
-//                }
-//
-//                if (head->rns != nullptr) {
-//                    prev = head;
-//                    head = head->rns;
-//                    down = true;
-//                    continue;
-//                }
-//
-//                prev = head;
-//                head = head->par;
-//                down = false;
-//                fn(prev);
-//            }
-//        }
 
         /**
          * Function is applied on exit from node
