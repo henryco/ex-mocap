@@ -845,11 +845,6 @@ namespace ex::data {
     template<typename key_t, typename val_t>
     struct rb_map {
 
-#ifdef UNIT_TEST
-        using metrics_t = int;
-        metrics_t metrics_n_ = 0;
-#endif
-
         using col_t = bool;
 #define BLACK_        false
 #define RED_          true
@@ -862,6 +857,20 @@ namespace ex::data {
             key_t    key;
             col_t    col;
         };
+
+#ifdef UNIT_TEST
+        using metrics_t = int;
+        metrics_t metrics_n_ = 0;
+
+        void verify_rb_tree_() {
+            int black_count = -1;
+            const bool is_ok = verify_tree_(root_, black_count);
+            assert(root_ == nullptr || root_->col == BLACK_);
+            assert(is_ok);
+        }
+#else
+    #define verify_rb_tree_(empty) ;
+#endif
 
         using comparator_fn = int8_t (*)(const key_t *a, const key_t *b);
         static int8_t default_comparator(const key_t *a, const key_t *b) {
@@ -877,13 +886,11 @@ namespace ex::data {
         }
 
         ~rb_map() {
-//            recursive_free_(root_);
             iterative_free_(root_);
             root_ = nullptr;
         }
 
         void clean() {
-//            recursive_free_(root_);
             iterative_free_(root_);
             root_ = nullptr;
             size_ = 0;
@@ -912,11 +919,11 @@ namespace ex::data {
         val_t &at(const key_t &key) {
             int direction;
 
-            #ifdef UNIT_TEST
+#ifdef UNIT_TEST
             rb_node *node = descend_(root_, key, &direction, &metrics_n_);
-            #else
+#else
             rb_node *node = descend_(root_, key, &direction);
-            #endif
+#endif
 
             if (node == nullptr)
                 ::abort(); // all or nothing, avoid exceptions
@@ -950,11 +957,11 @@ namespace ex::data {
 
             int direction;
 
-            #ifdef UNIT_TEST
+#ifdef UNIT_TEST
             rb_node *base = descend_(root_, key, &direction, &metrics_n_);
-            #else
+#else
             rb_node *base = descend_(root_, key, &direction);
-            #endif
+#endif
 
             if (direction == 0 && comp_(&key, &(base->key)) == 0) {
                 base->val = val;
@@ -989,11 +996,11 @@ namespace ex::data {
         void remove(const key_t &key) {
             int direction;
 
-            #ifdef UNIT_TEST
+#ifdef UNIT_TEST
             rb_node *node = descend_(root_, key, &direction, &metrics_n_);
-            #else
+#else
             rb_node *node = descend_(root_, key, &direction);
-            #endif
+#endif
 
             if (node == nullptr)
                 return;
@@ -1279,15 +1286,13 @@ namespace ex::data {
         }
 
         rb_node *descend_(rb_node *node, const key_t &key, int *direction, int *n = nullptr) const {
-
-            #ifdef UNIT_TEST
+#ifdef UNIT_TEST
             if (n) *n = 0;
-            #endif
-
+#endif
             while (node != nullptr) {
-                #ifdef UNIT_TEST
+#ifdef UNIT_TEST
                 if (n) (*n)++;
-                #endif
+#endif
 
                 *direction = comp_(&key, &(node->key));
 
@@ -1441,39 +1446,28 @@ namespace ex::data {
         }
 
         static bool verify_tree_(rb_node* node, int& black_count, int path_black = 0) {
-            if (!node) {
+            if (node == nullptr) {
                 if (black_count == -1)
                     black_count = path_black;
                 return path_black == black_count;
             }
 
-            // Red node can't have red children
+            // red node cannot have red children
             if (node->col == RED_) {
-                if ((node->lns && node->lns->col == RED_) ||
-                    (node->rns && node->rns->col == RED_))
+                if ((node->lns != nullptr && node->lns->col == RED_) ||
+                    (node->rns != nullptr && node->rns->col == RED_))
                     return false;
             } else {
                 path_black++;
             }
 
-            // Check parent links
-            if (node->lns && node->lns->par != node) return false;
-            if (node->rns && node->rns->par != node) return false;
+            // check parent links
+            if (node->lns != nullptr && node->lns->par != node) return false;
+            if (node->rns != nullptr && node->rns->par != node) return false;
 
             return verify_tree_(node->lns, black_count, path_black) &&
                    verify_tree_(node->rns, black_count, path_black);
         }
-
-        #ifdef UNIT_TEST
-        void verify_rb_tree_() {
-            int black_count = -1;
-            const bool is_ok = verify_tree_(root_, black_count);
-            assert(root_ == nullptr || root_->col == BLACK_);
-            assert(is_ok);
-        }
-        #else
-        #define verify_rb_tree_(empty) ;
-        #endif
 
     };
 
