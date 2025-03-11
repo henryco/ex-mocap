@@ -1096,6 +1096,8 @@ namespace ex::data {
                 return;
             }
 
+            // TODO FIXME
+
             fix_double_black_(node, get_sibling_(node), node->par);
             if (root_ != nullptr)
                 root_->col = BLACK_; // just in case
@@ -1389,6 +1391,7 @@ namespace ex::data {
             // TODO FIXME
             if (node == nullptr)
                 ::abort();
+
             const rb_node *parent = node->par;
             if (parent == nullptr)
                 return nullptr;
