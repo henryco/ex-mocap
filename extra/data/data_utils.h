@@ -861,8 +861,11 @@ namespace ex::data {
 #ifdef UNIT_TEST
         using metrics_t = int;
         metrics_t metrics_n_ = 0;
+        bool      enable_tree_verification = false;
 
         void verify_rb_tree_() {
+            if (!enable_tree_verification)
+                return;
             int black_count = -1;
             const bool is_ok = verify_tree_(root_, black_count);
             assert(root_ == nullptr || root_->col == BLACK_);

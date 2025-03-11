@@ -346,14 +346,17 @@ TEST_CASE("RB Tree map stress tests") {
 
 TEST_CASE("rb_map extensive data integrity check") {
     rb_map<int, int>   tree;
+
+    tree.enable_tree_verification = true;
+
     std::map<int, int> reference; // Using std::map as a trusted reference
-    constexpr int      OPERATIONS = 100000;
+    constexpr int      OPERATIONS = 200000;
     constexpr int      KEY_RANGE  = 100000;
 
     std::mt19937 rng(918273645); // deterministic random seed
     std::uniform_int_distribution op_dist(0, 1);
     std::uniform_int_distribution key_dist(0, KEY_RANGE - 1);
-    std::uniform_int_distribution val_dist(0, 1000000);
+    std::uniform_int_distribution val_dist(0, 9000000);
 
     int max_n = 0;
 
