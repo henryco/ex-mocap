@@ -875,12 +875,20 @@ namespace ex::data {
         int64_t       size_;
         rb_node      *root_;
 
-        rb_map(const comparator_fn compare = &rb_map::default_comparator):
-                    comp_(compare), size_(0), root_(nullptr) {
+        rb_map():
+            comp_(&rb_map::default_comparator), size_(0), root_(nullptr) {
         }
 
-        rb_map(const allocator &allocator_, const comparator_fn compare = &rb_map::default_comparator):
-                    allocator_(allocator_), comp_(compare), size_(0), root_(nullptr) {
+        rb_map(const comparator_fn compare):
+            comp_(compare), size_(0), root_(nullptr) {
+        }
+
+        rb_map(const allocator &allocator_):
+            allocator_(allocator_), comp_(&rb_map::default_comparator), size_(0), root_(nullptr) {
+        }
+
+        rb_map(const allocator &allocator_, const comparator_fn compare):
+            allocator_(allocator_), comp_(compare), size_(0), root_(nullptr) {
         }
 
         ~rb_map() {
