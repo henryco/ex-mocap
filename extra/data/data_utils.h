@@ -1412,6 +1412,50 @@ namespace ex::data {
             traverse_depth_tree_(node, &release_node_);
         }
 
+//        static void iterative_copy_(rb_node *const node) {
+//
+//            rb_node  pod_ = {};
+//            rb_node *copy = static_cast<rb_node *>(::malloc(sizeof(rb_node)));
+//
+//            bool down = true;
+//            rb_node *head = node;
+//            rb_node *prev = node;
+//
+//            while (head != nullptr) {
+//                if (down && head->lns != nullptr) {
+//                    prev = head;
+//                    head = head->lns;
+//                    continue;
+//                }
+//
+//                if (down && head->rns != nullptr) {
+//                    prev = head;
+//                    head = head->rns;
+//                    continue;
+//                }
+//
+//                if (down || prev == head->rns) {
+//                    prev = head;
+//                    head = head->par;
+//                    down = false;
+//                    fn(prev);
+//                    continue;
+//                }
+//
+//                if (head->rns != nullptr) {
+//                    prev = head;
+//                    head = head->rns;
+//                    down = true;
+//                    continue;
+//                }
+//
+//                prev = head;
+//                head = head->par;
+//                down = false;
+//                fn(prev);
+//            }
+//        }
+
         /**
          * Function is applied on exit from node
          */
