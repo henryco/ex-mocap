@@ -366,8 +366,8 @@ TEST_CASE("rb_map extensive data integrity check") {
             const bool has_b_m = tree.contains(key);
 //            const bool has_b_r = reference.contains(key);
 
-            int val_b_m;// = -1;
-            int val_b_r;// = -1;
+            int val_b_m{};// = -1;
+            int val_b_r{};// = -1;
             if (has_b_m) {
                 val_b_m = tree.at(key);
                 val_b_r = reference.at(key);
