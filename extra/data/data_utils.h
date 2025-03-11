@@ -1003,12 +1003,12 @@ namespace ex::data {
 
             #ifdef UNIT_TEST
             if (key == 164923) {
-                ;
+                ; // TODO REMOVE
             }
             #endif
 
             remove_node_(node);
-            verify_rb_tree_(); // TODO FIXME
+            verify_rb_tree_();
         }
 
         void remove_node_(rb_node *node) {
@@ -1086,8 +1086,6 @@ namespace ex::data {
         }
 
         void fix_delete_if_needed_(rb_node *node, rb_node *child) {
-            // TODO FIXME
-
             // case 1: deleted was red
             if (node == nullptr || node->col == RED_)
                 return;
@@ -1098,11 +1096,7 @@ namespace ex::data {
                 return;
             }
 
-            rb_node *sibling = get_sibling_(node);
-            rb_node *parent  = node->par;
-            rb_node *current = node;
-
-            fix_double_black_(current, sibling, parent);
+            fix_double_black_(node, get_sibling_(node), node->par);
             if (root_ != nullptr)
                 root_->col = BLACK_; // just in case
         }
@@ -1392,6 +1386,7 @@ namespace ex::data {
         }
 
         static rb_node *get_sibling_(const rb_node *node) {
+            // TODO FIXME
             if (node == nullptr)
                 ::abort();
             const rb_node *parent = node->par;
