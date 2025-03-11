@@ -1409,10 +1409,13 @@ namespace ex::data {
         }
 
         static void iterative_free_(rb_node *const node) {
-            iterate_tree_(node, &release_node_);
+            traverse_depth_tree_(node, &release_node_);
         }
 
-        static void iterate_tree_(rb_node *const node, const node_apply_fn fn) {
+        /**
+         * Function is applied on exit from node
+         */
+        static void traverse_depth_tree_(rb_node *const node, const node_apply_fn fn) {
 
             /*   a
              * b   c
