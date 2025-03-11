@@ -869,12 +869,18 @@ namespace ex::data {
             return (*a > *b) - (*a < *b);
         }
 
+        allocator allocator_;
+
         comparator_fn comp_;
         int64_t       size_;
         rb_node      *root_;
 
         rb_map(const comparator_fn compare = &rb_map::default_comparator):
                     comp_(compare), size_(0), root_(nullptr) {
+        }
+
+        rb_map(const allocator &allocator_, const comparator_fn compare = &rb_map::default_comparator):
+                    allocator_(allocator_), comp_(compare), size_(0), root_(nullptr) {
         }
 
         ~rb_map() {
@@ -934,10 +940,8 @@ namespace ex::data {
 
             if (root_ == nullptr) {
                 ++size_;
-                void *mem = ::malloc(sizeof(rb_node));
-                if (mem == nullptr)
-                    ::abort();
-                root_      = new (mem) rb_node;
+
+                root_      = instance_node_();
                 root_->par = nullptr;
                 root_->lns = nullptr;
                 root_->rns = nullptr;
@@ -962,10 +966,7 @@ namespace ex::data {
 
             ++size_;
 
-            void *mem = ::malloc(sizeof(rb_node));
-            if (mem == nullptr)
-                ::abort();
-            rb_node *node = new (mem) rb_node;
+            rb_node *node = instance_node_();
             node->par     = base;
             node->lns     = nullptr;
             node->rns     = nullptr;
@@ -1361,10 +1362,8 @@ namespace ex::data {
                 child->par = node->par;
         }
 
-        rb_node *instance_node_() const {
-            void *mem = ::malloc(sizeof(rb_node));
-            if (mem == nullptr)
-                ::abort();
+        rb_node *instance_node_() {
+            void *mem = malloc_<rb_node>(this, allocator_, 1);
             return new (mem) rb_node;
         }
 
@@ -1426,7 +1425,7 @@ namespace ex::data {
             }
         }
 
-        static void free_node_(rb_node *node) {
+        void free_node_(rb_node *node) {
             if (node == nullptr)
                 return;
             if (node->par != nullptr) {
@@ -1436,6 +1435,60 @@ namespace ex::data {
                     node->par->rns = nullptr;
             }
             release_node_(node);
+        }
+
+        void release_node_(rb_node *node) {
+            if (node == nullptr)
+                return;
+            node->~rb_node();
+            free_(this, allocator_, node);
+        }
+
+        void recursive_free_(rb_node *node) {
+            if (node == nullptr) return;
+            recursive_free_(node->lns);
+            recursive_free_(node->rns);
+            release_node_(node);
+        }
+
+        void iterative_free_(rb_node *const node) {
+            bool down = true;
+            rb_node *head = node;
+            rb_node *prev = node;
+
+            while (head != nullptr) {
+                if (down && head->lns != nullptr) {
+                    prev = head;
+                    head = head->lns;
+                    continue;
+                }
+
+                if (down && head->rns != nullptr) {
+                    prev = head;
+                    head = head->rns;
+                    continue;
+                }
+
+                if (down || prev == head->rns) {
+                    prev = head;
+                    head = head->par;
+                    down = false;
+                    release_node_(prev);
+                    continue;
+                }
+
+                if (head->rns != nullptr) {
+                    prev = head;
+                    head = head->rns;
+                    down = true;
+                    continue;
+                }
+
+                prev = head;
+                head = head->par;
+                down = false;
+                release_node_(prev);
+            }
         }
 
         static rb_node *get_largest_(rb_node *node) {
@@ -1462,28 +1515,10 @@ namespace ex::data {
             b->col = tmp;
         }
 
-        static void recursive_free_(rb_node *node) {
-            if (node == nullptr) return;
-            recursive_free_(node->lns);
-            recursive_free_(node->rns);
-            release_node_(node);
-        }
-
-        static void release_node_(rb_node *node) {
-            if (node == nullptr)
-                return;
-            node->~rb_node();
-            ::free(node);
-        }
-
-        static void iterative_free_(rb_node *const node) {
-            traverse_depth_tree_(node, &release_node_);
-        }
-
         /**
          * Function is applied on exit from node
          */
-        static void traverse_depth_tree_(rb_node *const node, const node_apply_fn fn) {
+        static void traverse_depth_(rb_node *const node, const node_apply_fn fn) {
             bool down = true;
             rb_node *head = node;
             rb_node *prev = node;

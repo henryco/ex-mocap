@@ -17,11 +17,17 @@ namespace ex::data {
     using size_fn_t    = long  (*) ();
 
     inline void *default_malloc_(const std::size_t size_new_b, std::size_t) {
-        return ::malloc(size_new_b);
+        void *mem = ::malloc(size_new_b);
+        if (mem == nullptr)
+            ::abort();
+        return mem;
     }
 
     inline void *default_realloc_(void *ptr, const std::size_t size_new_b) {
-        return ::realloc(ptr, size_new_b);
+        void *mem = ::realloc(ptr, size_new_b);
+        if (mem == nullptr)
+            ::abort();
+        return mem;
     }
 
     inline void default_free_(void *ptr) {
