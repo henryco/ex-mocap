@@ -861,18 +861,6 @@ namespace ex::data {
 #ifdef UNIT_TEST
         using metrics_t = int;
         metrics_t metrics_n_ = 0;
-        bool      enable_tree_verification = false;
-
-        void verify_rb_tree_() {
-            if (!enable_tree_verification)
-                return;
-            int black_count = -1;
-            const bool is_ok = verify_tree_(root_, black_count);
-            assert(root_ == nullptr || root_->col == BLACK_);
-            assert(is_ok);
-        }
-#else
-    #define verify_rb_tree_(empty) ;
 #endif
 
         using comparator_fn = int8_t (*)(const key_t *a, const key_t *b);
@@ -989,8 +977,6 @@ namespace ex::data {
 
             fix_insert_if_needed_(node);
 
-            verify_rb_tree_();
-
             // ReSharper disable once CppDFAConstantConditions
             if (root_ != nullptr)
                 root_->col = BLACK_; // just in case
@@ -1012,7 +998,6 @@ namespace ex::data {
                 return;
 
             remove_node_(node);
-            verify_rb_tree_();
         }
 
         void remove_node_(rb_node *node) {
@@ -1447,31 +1432,6 @@ namespace ex::data {
                 }
             }
         }
-
-        static bool verify_tree_(rb_node* node, int& black_count, int path_black = 0) {
-            if (node == nullptr) {
-                if (black_count == -1)
-                    black_count = path_black;
-                return path_black == black_count;
-            }
-
-            // red node cannot have red children
-            if (node->col == RED_) {
-                if ((node->lns != nullptr && node->lns->col == RED_) ||
-                    (node->rns != nullptr && node->rns->col == RED_))
-                    return false;
-            } else {
-                path_black++;
-            }
-
-            // check parent links
-            if (node->lns != nullptr && node->lns->par != node) return false;
-            if (node->rns != nullptr && node->rns->par != node) return false;
-
-            return verify_tree_(node->lns, black_count, path_black) &&
-                   verify_tree_(node->rns, black_count, path_black);
-        }
-
     };
 
 

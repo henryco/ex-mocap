@@ -11,6 +11,9 @@
 
 using namespace ex::data;
 
+bool verify_tree_(rb_map<int,int>::rb_node* node, int& black_count, int path_black = 0);
+void verify_rb_tree_(rb_map<int, int> &map);
+
 TEST_CASE("RB Tree map tests") {
 
     SUBCASE("rb_map empty and size") {
@@ -347,11 +350,9 @@ TEST_CASE("RB Tree map stress tests") {
 TEST_CASE("rb_map extensive data integrity check") {
     rb_map<int, int>   tree;
 
-    tree.enable_tree_verification = true;
-
     std::map<int, int> reference; // Using std::map as a trusted reference
-    constexpr int      OPERATIONS = 200000;
-    constexpr int      KEY_RANGE  = 100000;
+    constexpr int      OPERATIONS = 1000000;
+    constexpr int      KEY_RANGE  = 1000000;
 
     std::mt19937 rng(918273645); // deterministic random seed
     std::uniform_int_distribution op_dist(0, 1);
@@ -471,4 +472,142 @@ TEST_CASE("rb_map extensive data integrity check") {
     << static_cast<int>((2. * (std::log2(OPERATIONS + 1.))) + 1)
     << "]"
     << std::endl;
+}
+
+TEST_CASE("rb_map tree structure validity check") {
+    rb_map<int, int>   tree;
+
+    std::map<int, int> reference; // Using std::map as a trusted reference
+    constexpr int      OPERATIONS = 100000;
+    constexpr int      KEY_RANGE  = 100000;
+
+    std::mt19937 rng(918472641); // deterministic random seed
+    std::uniform_int_distribution op_dist(0, 1);
+    std::uniform_int_distribution key_dist(0, KEY_RANGE - 1);
+    std::uniform_int_distribution val_dist(0, 9000000);
+
+    int max_n = 0;
+
+    for (int i = 0; i < OPERATIONS; ++i) {
+        const int key = key_dist(rng);
+
+        if (op_dist(rng)) {
+            const int val = val_dist(rng);
+
+            const bool has_b_m = tree.contains(key);
+
+            int val_b_m{};// = -1;
+            int val_b_r{};// = -1;
+            if (has_b_m) {
+                val_b_m = tree.at(key);
+                val_b_r = reference.at(key);
+                CHECK(val_b_m == val_b_r);
+                CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
+                max_n = max_n > tree.metrics_n_ ? max_n : tree.metrics_n_;
+            }
+
+            tree.put(key, val);
+            reference[key] = val;
+
+            verify_rb_tree_(tree);
+            CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
+            max_n = max_n > tree.metrics_n_ ? max_n : tree.metrics_n_;
+
+            const int val_a_m = tree.at(key);
+            const int val_a_r = reference.at(key);
+
+            CHECK(val_a_m == val_a_r);
+            CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
+            max_n = max_n > tree.metrics_n_ ? max_n : tree.metrics_n_;
+
+            CHECK(reference.at(key) == val);
+            CHECK(tree.at(key) == val);
+            CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
+
+            max_n = max_n > tree.metrics_n_ ? max_n : tree.metrics_n_;
+        } else {
+            tree.remove(key);
+            reference.erase(key);
+
+            verify_rb_tree_(tree);
+            CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
+            CHECK_FALSE(reference.contains(key));
+            CHECK_FALSE(tree.contains(key));
+
+            max_n = max_n > tree.metrics_n_ ? max_n : tree.metrics_n_;
+        }
+
+        verify_rb_tree_(tree);
+        CHECK(tree.size() == static_cast<int64_t>(reference.size()));
+
+        // Frequent integrity spot-checks
+        for (int sample = 0; sample < 10; ++sample) {
+            int sample_key = key_dist(rng);
+            CHECK(tree.contains(sample_key) == (reference.contains(sample_key)));
+            if (reference.contains(sample_key)) {
+                CHECK(tree.at(sample_key) == reference[sample_key]);
+                CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
+                max_n = max_n > tree.metrics_n_ ? max_n : tree.metrics_n_;
+            }
+        }
+    }
+
+    // Exhaustive verification at the end
+    for (const auto &[key, val] : reference) {
+        CHECK(tree.contains(key));
+        CHECK(tree.at(key) == val);
+        CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
+        max_n = max_n > tree.metrics_n_ ? max_n : tree.metrics_n_;
+    }
+
+    CHECK(tree.size() == static_cast<int64_t>(reference.size()));
+
+    // Clean up and ensure emptiness
+    for (const auto &[key, _] : reference) {
+        tree.remove(key);
+        CHECK(tree.metrics_n_ <= MAX_HEIGHT_(tree));
+        max_n = max_n > tree.metrics_n_ ? max_n : tree.metrics_n_;
+    }
+
+    CHECK(tree.empty());
+    CHECK(tree.size() == 0);
+    std::cout << "rb_map tree structure validity check finish ["
+    << max_n
+    << "|"
+    << static_cast<int>((std::log2(OPERATIONS + 1.)) + 1)
+    << "|"
+    << static_cast<int>((2. * (std::log2(OPERATIONS + 1.))) + 1)
+    << "]"
+    << std::endl;
+}
+
+void verify_rb_tree_(rb_map<int, int> &map) {
+    int black_count = -1;
+    const bool is_ok = verify_tree_(map.root_, black_count);
+    CHECK((map.root_ == nullptr || map.root_->col == BLACK_));
+    CHECK(is_ok);
+}
+
+bool verify_tree_(rb_map<int,int>::rb_node* node, int& black_count, int path_black) {
+    if (node == nullptr) {
+        if (black_count == -1)
+            black_count = path_black;
+        return path_black == black_count;
+    }
+
+    // red node cannot have red children
+    if (node->col == RED_) {
+        if ((node->lns != nullptr && node->lns->col == RED_) ||
+            (node->rns != nullptr && node->rns->col == RED_))
+            return false;
+    } else {
+        path_black++;
+    }
+
+    // check parent links
+    if (node->lns != nullptr && node->lns->par != node) return false;
+    if (node->rns != nullptr && node->rns->par != node) return false;
+
+    return verify_tree_(node->lns, black_count, path_black) &&
+           verify_tree_(node->rns, black_count, path_black);
 }
