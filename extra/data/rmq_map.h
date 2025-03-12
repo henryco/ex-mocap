@@ -42,14 +42,14 @@ namespace ex::data {
         inline static metrics_t metrics_n_ = 0;
 #endif
 
-        using comparator_fn = int8_t (*)(const key_t *a, const key_t *b);
-        using min_max_eq_fn = int8_t (*)(const rmq_t *a, const rmq_t *b);
+        using comparator_fn = int32_t (*)(const key_t *a, const key_t *b);
+        using min_max_eq_fn = int16_t (*)(const rmq_t *a, const rmq_t *b);
 
-        static int8_t default_min_max_eq(const rmq_t *a, const rmq_t *b) {
+        static int32_t default_comparator(const key_t *a, const key_t *b) {
             return (*a > *b) - (*a < *b);
         }
 
-        static int8_t default_comparator(const key_t *a, const key_t *b) {
+        static int16_t default_min_max_eq(const rmq_t *a, const rmq_t *b) {
             return (*a > *b) - (*a < *b);
         }
 
@@ -784,7 +784,7 @@ namespace ex::data {
         void release_node_(rmq_node *node) {
             if (node == nullptr)
                 return;
-            node->~rb_node();
+            node->~rmq_node();
             free_(this, allocator_, node);
         }
 

@@ -39,8 +39,8 @@ namespace ex::data {
         inline static metrics_t metrics_n_ = 0;
 #endif
 
-        using comparator_fn = int8_t (*)(const key_t *a, const key_t *b);
-        static int8_t default_comparator(const key_t *a, const key_t *b) {
+        using comparator_fn = int32_t (*)(const key_t *a, const key_t *b);
+        static int32_t default_comparator(const key_t *a, const key_t *b) {
             return (*a > *b) - (*a < *b);
         }
 
