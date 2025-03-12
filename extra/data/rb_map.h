@@ -36,7 +36,7 @@ namespace ex::data {
 
 #ifdef UNIT_TEST
         using metrics_t = int;
-        metrics_t metrics_n_ = 0;
+        inline static metrics_t metrics_n_ = 0;
 #endif
 
         using comparator_fn = int8_t (*)(const key_t *a, const key_t *b);
@@ -174,7 +174,11 @@ namespace ex::data {
 
         bool contains(const key_t &key) const {
             int direction;
-            const rb_node *node = descend_(root_, key, &direction);
+#ifdef UNIT_TEST
+            rb_node *node = descend_(root_, key, &direction, &metrics_n_);
+#else
+            rb_node *node = descend_(root_, key, &direction);
+#endif
             if (node == nullptr)
                 return false;
 
@@ -184,7 +188,7 @@ namespace ex::data {
             return true;
         }
 
-        val_t &at(const key_t &key) {
+        val_t &at(const key_t &key) const {
             int direction;
 
 #ifdef UNIT_TEST
@@ -251,7 +255,7 @@ namespace ex::data {
         }
 
         void put(const entry &entry) {
-            put(entry.key, entry.element);
+            put(entry.key, entry.val);
         }
 
         void put(const key_t &key, const val_t &val) {

@@ -39,7 +39,7 @@ namespace ex::data {
 
 #ifdef UNIT_TEST
         using metrics_t = int;
-        metrics_t metrics_n_ = 0;
+        inline static metrics_t metrics_n_ = 0;
 #endif
 
         using comparator_fn = int8_t (*)(const key_t *a, const key_t *b);
@@ -233,7 +233,11 @@ namespace ex::data {
 
         bool contains(const key_t &key) const {
             int direction;
+#ifdef UNIT_TEST
+            rmq_node *node = descend_(root_, key, &direction, &metrics_n_);
+#else
             rmq_node *node = descend_(root_, key, &direction);
+#endif
             if (node == nullptr)
                 return false;
 
@@ -243,7 +247,7 @@ namespace ex::data {
             return true;
         }
 
-        val_t &at(const key_t &key) {
+        val_t &at(const key_t &key) const {
             int direction;
 
 #ifdef UNIT_TEST
@@ -266,11 +270,11 @@ namespace ex::data {
         }
 
         void put(const entry &entry, const rmq_t &range) {
-            put(entry.key, entry.element, range);
+            put(entry.key, entry.val, range);
         }
 
         void put(const entry &entry) {
-            put(entry.key, entry.element, entry.element);
+            put(entry.key, entry.val, entry.val);
         }
 
         void put(const key_t &key, const val_t &val) {
@@ -860,6 +864,90 @@ namespace ex::data {
             return node;
         }
 
+        struct iterator {
+            entry     entr_;
+            rmq_node *node_;
+            rmq_node *head_;
+            rmq_node *prev_;
+            long      idx__;
+            bool      down_;
+
+            iterator(rmq_node *node):
+                node_(node) {
+                head_ = node;
+                prev_ = node;
+                down_ = true;
+                idx__ = -1;
+                entr_ = {};
+                spin_();
+            }
+
+            entry &operator * () {
+                return entr_;
+            }
+
+            void spin_() {
+                while (head_ != nullptr) {
+                    if (down_ && head_->lns != nullptr) {
+                        prev_ = head_;
+                        head_ = head_->lns;
+                        continue;
+                    }
+
+                    if (down_ && head_->rns != nullptr) {
+                        prev_ = head_;
+                        head_ = head_->rns;
+                        continue;
+                    }
+
+                    if (down_ || prev_ == head_->rns) {
+                        prev_ = head_;
+                        head_ = head_->par;
+                        down_ = false;
+
+                        if (prev_ != nullptr)
+                            entr_ = { prev_->key, prev_->val };
+                        idx__++;
+                        return;
+                    }
+
+                    if (head_->rns != nullptr) {
+                        prev_ = head_;
+                        head_ = head_->rns;
+                        down_ = true;
+                        continue;
+                    }
+
+                    prev_ = head_;
+                    head_ = head_->par;
+                    down_ = false;
+
+                    if (prev_ != nullptr)
+                        entr_ = { prev_->key, prev_->val };
+                    idx__++;
+                    return;
+                }
+
+                idx__ = -1;
+            }
+
+            iterator &operator ++ () {
+                spin_();
+                return *this;
+            }
+
+            bool operator != (const iterator &other) const {
+                return idx__ != other.idx__;
+            }
+        };
+
+        iterator begin() const {
+            return iterator(root_);
+        }
+
+        iterator end() const {
+            return iterator(nullptr);
+        }
 
         static void watch_allocator(void *instance, const long int) {
             auto that_ = static_cast<rmq_map *>(instance);
