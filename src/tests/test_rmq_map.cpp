@@ -13,6 +13,7 @@
 using namespace ex::data;
 
 bool verify_rb_tree_height_(rmq_map<int,int>::rmq_node *node, int &black_count, int path_black = 0);
+bool verify_rmq_weights_(rmq_map<int,int>::rmq_node *node, int &min, int &max);
 void verify_rb_tree_(rmq_map<int, int> &map);
 
 TEST_CASE("RMQ Tree map tests") {
@@ -561,10 +562,14 @@ TEST_CASE("rmq_map tree structure validity check") {
 }
 
 void verify_rb_tree_(rmq_map<int, int> &map) {
-    int black_count = -1;
-    const bool is_ok = verify_rb_tree_height_(map.root_, black_count);
+    int        black_count    = -1;
+    int        min            = 0;
+    int        max            = 0;
+    const bool is_ok_1        = verify_rb_tree_height_(map.root_, black_count);
+    const bool is_ok_2        = verify_rmq_weights_(map.root_, min, max);
     CHECK((map.root_ == nullptr || map.root_->col == BLACK_));
-    CHECK(is_ok);
+    CHECK(is_ok_1);
+    CHECK(is_ok_2);
 }
 
 bool verify_rb_tree_height_(rmq_map<int,int>::rmq_node *node, int &black_count, int path_black) {
@@ -589,4 +594,22 @@ bool verify_rb_tree_height_(rmq_map<int,int>::rmq_node *node, int &black_count, 
 
     return verify_rb_tree_height_(node->lns, black_count, path_black) &&
            verify_rb_tree_height_(node->rns, black_count, path_black);
+}
+
+bool verify_rmq_weights_(rmq_map<int,int>::rmq_node *node, int &min, int &max) {
+    if (!node) return true;
+
+    int min_l = node->rmq, max_l = node->rmq;
+    int min_r = node->rmq, max_r = node->rmq;
+
+    if (node->lns != nullptr && !verify_rmq_weights_(node->lns, min_l, max_l))
+        return false;
+
+    if (node->rns != nullptr && !verify_rmq_weights_(node->rns, min_r, max_r))
+        return false;
+
+    min = std::min(node->rmq, std::min(min_l, min_r));
+    max = std::max(node->rmq, std::min(max_l, max_r));
+
+    return node->min == min && node->max == max;
 }
