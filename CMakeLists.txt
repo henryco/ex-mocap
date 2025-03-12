@@ -93,6 +93,7 @@ set(EXTRA_FILES
         extra/data/array_map.h
         extra/data/sorted_map.h
         extra/data/cache.h
+        extra/data/interval_map.h
 )
 
 set(PLATFORM_FILES

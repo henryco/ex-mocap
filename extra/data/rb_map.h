@@ -130,6 +130,46 @@ namespace ex::data {
             return size_;
         }
 
+        rb_node *next(const key_t &key) const {
+            int direction;
+            const rb_node *node = descend_(root_, key, &direction);
+            if (node == nullptr || direction != 0 || comp_(&key, &(node->key)) != 0)
+                ::abort();
+            if (node->rns != nullptr) {
+                if (const rb_node *min_ = minimum_(node->rns))
+                    return min_;
+                ::abort();
+            }
+            for (rb_node *head = node;;) {
+                rb_node *parent = head->par;
+                if (parent == nullptr)
+                    return nullptr;
+                if (parent->lns == head)
+                    return parent;
+                head = parent;
+            }
+        }
+
+        rb_node *prev(const key_t &key) const {
+            int direction;
+            const rb_node *node = descend_(root_, key, &direction);
+            if (node == nullptr || direction != 0 || comp_(&key, &(node->key)) != 0)
+                ::abort();
+            if (node->lns != nullptr) {
+                if (const rb_node *max_ = maximum_(node->lns))
+                    return max_;
+                ::abort();
+            }
+            for (rb_node *head = node;;) {
+                rb_node *parent = head->par;
+                if (parent == nullptr)
+                    return nullptr;
+                if (parent->rns == head)
+                    return parent;
+                head = parent;
+            }
+        }
+
         bool contains(const key_t &key) const {
             int direction;
             const rb_node *node = descend_(root_, key, &direction);
@@ -787,6 +827,18 @@ namespace ex::data {
             const col_t tmp = a->col;
             a->col = b->col;
             b->col = tmp;
+        }
+
+        static rb_node *minimum_(const rb_node *node) {
+            while (node != nullptr && node->lns != nullptr)
+                node = node->lns;
+            return node;
+        }
+
+        static rb_node *maximum_(const rb_node *node) {
+            while (node != nullptr && node->rns != nullptr)
+                node = node->rns;
+            return node;
         }
 
         /**
