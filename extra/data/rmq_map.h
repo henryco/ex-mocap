@@ -13,7 +13,7 @@ namespace ex::data {
     /**
      * Range-Min/Max-Query Tree based on top of a Red-Black Tree implementation of Map
      */
-    template<typename key_t, typename val_t, typename rmq_t = val_t>
+    template<typename key_t, typename val_t, typename rmq_t = key_t>
     struct rmq_map {
 
         struct entry {
@@ -274,11 +274,11 @@ namespace ex::data {
         }
 
         void put(const entry &entry) {
-            put(entry.key, entry.val, entry.val);
+            put(entry.key, entry.val, entry.key);
         }
 
         void put(const key_t &key, const val_t &val) {
-            put(key, val, val);
+            put(key, val, key);
         }
 
         void put(const key_t &key, const val_t &val, const rmq_t &range) {
