@@ -6,6 +6,7 @@
 #define EX_LIMBO_DATA_RB_MAP_H
 
 #include "datalloc.h"
+#include <new>
 
 namespace ex::data {
 
@@ -717,17 +718,17 @@ namespace ex::data {
             free_(this, allocator_, node);
         }
 
-        void recursive_free_(rb_node *node) {
-            if (node == nullptr) return;
-            recursive_free_(node->lns);
-            recursive_free_(node->rns);
-            release_node_(node);
-        }
+//        void recursive_free_(rb_node *node) {
+//            if (node == nullptr) return;
+//            recursive_free_(node->lns);
+//            recursive_free_(node->rns);
+//            release_node_(node);
+//        }
 
         void iterative_free_(rb_node *const node) {
-            bool down = true;
             rb_node *head = node;
             rb_node *prev = node;
+            bool     down = true;
 
             while (head != nullptr) {
                 if (down && head->lns != nullptr) {
@@ -792,9 +793,9 @@ namespace ex::data {
          * Function is applied on exit from node
          */
         static void traverse_depth_(rb_node *const node, const node_apply_fn fn) {
-            bool down = true;
             rb_node *head = node;
             rb_node *prev = node;
+            bool     down = true;
 
             while (head != nullptr) {
                 if (down && head->lns != nullptr) {
@@ -829,6 +830,91 @@ namespace ex::data {
                 down = false;
                 fn(prev);
             }
+        }
+
+        struct iterator {
+            entry    entr_;
+            rb_node *node_;
+            rb_node *head_;
+            rb_node *prev_;
+            long     idx__;
+            bool     down_;
+
+            iterator(rb_node *node):
+                node_(node) {
+                head_ = node;
+                prev_ = node;
+                down_ = true;
+                idx__ = -1;
+                entr_ = {};
+                spin_();
+            }
+
+            entry &operator * () {
+                return entr_;
+            }
+
+            void spin_() {
+                while (head_ != nullptr) {
+                    if (down_ && head_->lns != nullptr) {
+                        prev_ = head_;
+                        head_ = head_->lns;
+                        continue;
+                    }
+
+                    if (down_ && head_->rns != nullptr) {
+                        prev_ = head_;
+                        head_ = head_->rns;
+                        continue;
+                    }
+
+                    if (down_ || prev_ == head_->rns) {
+                        prev_ = head_;
+                        head_ = head_->par;
+                        down_ = false;
+
+                        if (prev_ != nullptr)
+                            entr_ = { prev_->key, prev_->val };
+                        idx__++;
+                        return;
+                    }
+
+                    if (head_->rns != nullptr) {
+                        prev_ = head_;
+                        head_ = head_->rns;
+                        down_ = true;
+                        continue;
+                    }
+
+                    prev_ = head_;
+                    head_ = head_->par;
+                    down_ = false;
+
+                    if (prev_ != nullptr)
+                        entr_ = { prev_->key, prev_->val };
+                    idx__++;
+                    return;
+                }
+
+                idx__ = -1;
+            }
+
+            iterator &operator ++ () {
+                spin_();
+                return *this;
+            }
+
+            bool operator != (const iterator &other) const {
+                return idx__ != other.idx__;
+            }
+        };
+
+        iterator begin() const {
+            return iterator(root_);
+        }
+
+        iterator end() const {
+            return iterator(nullptr);
         }
 
         static void watch_allocator(void *instance, const long int) {

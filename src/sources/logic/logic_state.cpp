@@ -6,12 +6,12 @@
 
 namespace ex::logic::state {
 
-    std::map<id_local, limbo::graph::BaseNode *> &node_store_() {
-        static std::map<id_local, limbo::graph::BaseNode *> instance;
+    ex::data::rb_map<id_local, limbo::graph::BaseNode *> &node_store_() {
+        static ex::data::rb_map<id_local, limbo::graph::BaseNode *> instance;
         return instance;
     }
 
-    const std::map<id_local, limbo::graph::BaseNode *> &node_storage() {
+    const ex::data::rb_map<id_local, limbo::graph::BaseNode *> &node_storage() {
         return node_store_();
     }
 
@@ -24,8 +24,7 @@ namespace ex::logic::state {
 
     void store_node(const id_local &id, limbo::graph::BaseNode *node) {
         static auto &store = node_store_();
-        if (!store.contains(id))
-            store.emplace(id, node);
+        store.put(id, node);
     }
 
     void replace_node(const id_local &id, limbo::graph::BaseNode *node) {
@@ -33,11 +32,10 @@ namespace ex::logic::state {
         if (store.contains(id)) {
             const auto base = store.at(id);
             base->detach_all();
-            store.erase(id);
+            store.remove(id);
             delete base;
         }
-        if (!store.contains(id))
-            store.emplace(id, node);
+        store.put(id, node);
     }
 
     void remove_node(const id_local &id) {
@@ -45,7 +43,7 @@ namespace ex::logic::state {
         if (store.contains(id)) {
             const auto base = store.at(id);
             base->detach_all();
-            store.erase(id);
+            store.remove(id);
             delete base;
         }
     }
