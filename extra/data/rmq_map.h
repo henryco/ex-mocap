@@ -31,10 +31,16 @@ namespace ex::data {
             rmq_node *rns;
             rmq_t     min;
             rmq_t     max;
+            rmq_t     rmq;
             val_t     val;
             key_t     key;
             col_t     col;
         };
+
+#ifdef UNIT_TEST
+        using metrics_t = int;
+        metrics_t metrics_n_ = 0;
+#endif
 
         using comparator_fn = int8_t (*)(const key_t *a, const key_t *b);
         using min_max_eq_fn = int8_t (*)(const rmq_t *a, const rmq_t *b);
@@ -112,6 +118,748 @@ namespace ex::data {
             size_(0), root_(nullptr) {
             add_watcher_(allocator_, this, &watch_allocator);
         }
+
+        rmq_map(const rmq_map &other):
+            allocator_(other.allocator_),
+            comp_(other.comp_),
+            mmeq_(other.mmeq_),
+            size_(other.size_) {
+            root_ = other.iterative_copy_(other.root_);
+            add_watcher_(allocator_, this, &watch_allocator);
+        }
+
+        rmq_map(rmq_map &&other) noexcept:
+            allocator_(other.allocator_),
+            comp_(other.comp_),
+            mmeq_(other.mmeq_),
+            size_(other.size_),
+            root_(other.root_) {
+            other.root_ = nullptr;
+            other.size_ = 0;
+            del_watcher_(other.allocator_, this, &watch_allocator);
+            add_watcher_(allocator_, this, &watch_allocator);
+        }
+
+        rmq_map &operator = (const rmq_map &other) {
+            if (this == &other)
+                return *this;
+            clean();
+            del_watcher_(allocator_, this, &watch_allocator);
+            root_      = other.iterative_copy_(other.root_);
+            allocator_ = other.allocator_;
+            comp_      = other.comp_;
+            mmeq_      = other.mmeq_;
+            size_      = other.size_;
+            add_watcher_(allocator_, this, &watch_allocator);
+            return *this;
+        }
+
+        rmq_map &operator = (rmq_map &&other) noexcept {
+            if (this == &other)
+                return *this;
+            clean();
+            del_watcher_(other.allocator_, this, &watch_allocator);
+            del_watcher_(allocator_, this, &watch_allocator);
+            allocator_ = other.allocator_;
+            comp_      = other.comp_;
+            mmeq_      = other.mmeq_;
+            size_      = other.size_;
+            root_      = other.root_;
+            add_watcher_(allocator_, this, &watch_allocator);
+            other.root_ = nullptr;
+            other.size_ = 0;
+            return *this;
+        }
+
+        ~rmq_map() {
+            del_watcher_(allocator_, this, &watch_allocator);
+            iterative_free_(root_);
+            root_ = nullptr;
+        }
+
+        void clean() {
+            iterative_free_(root_);
+            root_ = nullptr;
+            size_ = 0;
+        }
+
+        bool empty() const {
+            return size_ <= 0;
+        }
+
+        int64_t size() const {
+            return size_;
+        }
+
+        rmq_node *next(const key_t &key) const {
+            int direction;
+            const rmq_node *node = descend_(root_, key, &direction);
+            if (node == nullptr || direction != 0 || comp_(&key, &(node->key)) != 0)
+                ::abort();
+            if (node->rns != nullptr) {
+                if (const rmq_node *min_ = minimum_(node->rns))
+                    return min_;
+                ::abort();
+            }
+            for (rmq_node *head = node;;) {
+                rmq_node *parent = head->par;
+                if (parent == nullptr)
+                    return nullptr;
+                if (parent->lns == head)
+                    return parent;
+                head = parent;
+            }
+        }
+
+        rmq_node *prev(const key_t &key) const {
+            int direction;
+            const rmq_node *node = descend_(root_, key, &direction);
+            if (node == nullptr || direction != 0 || comp_(&key, &(node->key)) != 0)
+                ::abort();
+            if (node->lns != nullptr) {
+                if (const rmq_node *max_ = maximum_(node->lns))
+                    return max_;
+                ::abort();
+            }
+            for (rmq_node *head = node;;) {
+                rmq_node *parent = head->par;
+                if (parent == nullptr)
+                    return nullptr;
+                if (parent->rns == head)
+                    return parent;
+                head = parent;
+            }
+        }
+
+        bool contains(const key_t &key) const {
+            int direction;
+            rmq_node *node = descend_(root_, key, &direction);
+            if (node == nullptr)
+                return false;
+
+            if (direction != 0 || comp_(&key, &(node->key)) != 0)
+                return false;
+
+            return true;
+        }
+
+        val_t &at(const key_t &key) {
+            int direction;
+
+#ifdef UNIT_TEST
+            rmq_node *node = descend_(root_, key, &direction, &metrics_n_);
+#else
+            rmq_node *node = descend_(root_, key, &direction);
+#endif
+
+            if (node == nullptr)
+                ::abort(); // all or nothing, avoid exceptions
+
+            if (direction == 0 && comp_(&key, &(node->key)) == 0)
+                return node->val;
+
+            ::abort(); // all or nothing, avoid exceptions
+        }
+
+        const val_t &operator [] (const key_t &key) const {
+            return at(key);
+        }
+
+        void put(const entry &entry, const rmq_t &range) {
+            put(entry.key, entry.element, range);
+        }
+
+        void put(const entry &entry) {
+            put(entry.key, entry.element, entry.element);
+        }
+
+        void put(const key_t &key, const val_t &val) {
+            put(key, val, val);
+        }
+
+        void put(const key_t &key, const val_t &val, const rmq_t &range) {
+
+            if (root_ == nullptr) {
+                root_      = instance_node_();
+                root_->par = nullptr;
+                root_->lns = nullptr;
+                root_->rns = nullptr;
+                root_->val = val;
+                root_->key = key;
+                root_->col = BLACK_;
+                ++size_;
+                return;
+            }
+
+            int direction;
+
+#ifdef UNIT_TEST
+            rmq_node *base = descend_(root_, key, &direction, &metrics_n_);
+#else
+            rmq_node *base = descend_(root_, key, &direction);
+#endif
+
+            if (direction == 0 && comp_(&key, &(base->key)) == 0) {
+                base->val = val;
+                return;
+            }
+
+            ++size_;
+
+            rmq_node *node = instance_node_();
+            node->par      = base;
+            node->lns      = nullptr;
+            node->rns      = nullptr;
+            node->rmq      = range;
+            node->val      = val;
+            node->key      = key;
+            node->col      = RED_;
+
+            if (direction >= 0) base->rns = node;
+            else                base->lns = node;
+
+            fix_insert_if_needed_(node);
+
+            // if root_ is nullptr we have much bigger problem
+            root_->col = BLACK_; // just in case
+        }
+
+        void remove(const key_t &key) {
+            int direction;
+
+#ifdef UNIT_TEST
+            rmq_node *node = descend_(root_, key, &direction, &metrics_n_);
+#else
+            rmq_node *node = descend_(root_, key, &direction);
+#endif
+
+            if (node == nullptr)
+                return;
+
+            if (direction != 0 || comp_(&key, &(node->key)) != 0)
+                return;
+
+            remove_node_(node);
+        }
+
+        void remove_node_(rmq_node *node) {
+            if (--size_ == 0) {
+                clean();
+                return;
+            }
+
+            if (node->lns == nullptr && node->rns == nullptr) {
+                if (node == root_) {
+                    // node is a root, and node has no any children
+                    clean();
+                    return;
+                }
+
+                rmq_node *sibling = get_sibling_(node);
+                replace_with_child_(node, nullptr);
+                fix_delete_if_needed_(node, nullptr, sibling);
+                free_node_(node);
+
+                return;
+            }
+
+            if (node->lns != nullptr && node->rns != nullptr) {
+                // left and right
+                rmq_node *largest = get_largest_(node->lns);
+                rmq_node *child   = largest->lns;
+
+                node->key = largest->key;
+                node->val = largest->val;
+
+                rmq_node *sibling = get_sibling_(largest);
+                replace_with_child_(largest, child);
+                fix_delete_if_needed_(largest, child, sibling);
+                free_node_(largest);
+
+                return;
+            }
+
+            if (node->lns != nullptr && node->rns == nullptr) {
+                // left
+                rmq_node *child = node->lns;
+
+                if (node == root_) {
+                    root_ = child;
+                    root_->par = nullptr;
+                    root_->col = BLACK_;
+                    free_node_(node);
+                    return;
+                }
+
+                rmq_node *sibling = get_sibling_(node);
+                replace_with_child_(node, child);
+                fix_delete_if_needed_(node, child, sibling);
+                free_node_(node);
+
+                return;
+            }
+
+            if (node->rns != nullptr && node->lns == nullptr) {
+                // right
+                rmq_node *child = node->rns;
+
+                if (node == root_) {
+                    root_ = child;
+                    root_->par = nullptr;
+                    root_->col = BLACK_;
+                    free_node_(node);
+                    return;
+                }
+
+                rmq_node *sibling = get_sibling_(node);
+                replace_with_child_(node, child);
+                fix_delete_if_needed_(node, child, sibling);
+                free_node_(node);
+
+                return;
+            }
+
+            ::abort();
+        }
+
+        void fix_delete_if_needed_(rmq_node *node, rmq_node *child, rmq_node *sibling) {
+            // case 1: deleted was red
+            if (node == nullptr || node->col == RED_)
+                return;
+
+            // case 2: deleted was black with a red child
+            if (child != nullptr && child->col == RED_) {
+                child->col = BLACK_;
+                return;
+            }
+
+            fix_double_black_(child, sibling, node->par);
+            if (root_ != nullptr)
+                root_->col = BLACK_; // just in case
+        }
+
+        void fix_double_black_(rmq_node *current, rmq_node *sibling, rmq_node *parent) {
+            if (parent == nullptr)
+                return;
+
+            // case 2: deleted was black with black sibling (NULL is implicitly black)
+            if (sibling == nullptr) {
+                if (parent == root_)
+                    return;
+
+                if (parent->col == RED_) {
+                    parent->col = BLACK_;
+                    return;
+                }
+
+                fix_double_black_(parent, get_sibling_(parent), parent->par);
+                return;
+            }
+
+            // case 1: sibling is Red
+            if (sibling->col == RED_) {
+                swap_colors(parent, sibling);
+
+                if (current == parent->lns)
+                    rotate_left_(parent);
+                else if (current == parent->rns)
+                    rotate_right_(parent);
+
+//                parent = current->par; // parent does not change after rotation
+
+                if (current != nullptr) sibling = get_sibling_(current);
+                else                    sibling = (parent->lns == current) ? parent->rns : parent->lns;
+
+                if (sibling == nullptr) {
+                    // sibling is implicitly black (case 2)
+                    fix_double_black_(parent, nullptr, parent->par);
+                    return;
+                }
+            }
+
+            // case 2: sibling is black, both of siblings children are black
+            if ((sibling->lns == nullptr || sibling->lns->col == BLACK_) &&
+                (sibling->rns == nullptr || sibling->rns->col == BLACK_)) {
+
+                sibling->col = RED_;
+
+                if (parent == root_ || parent->col == RED_) {
+                    parent->col = BLACK_;
+                    return;
+                }
+
+                fix_double_black_(parent, get_sibling_(parent), parent->par);
+                return;
+            }
+
+            const bool is_left = (parent->lns == current);
+
+            // case 3: sibling is black, far child is red
+            if (( is_left && (sibling->rns != nullptr && sibling->rns->col == RED_)) ||
+                (!is_left && (sibling->lns != nullptr && sibling->lns->col == RED_))) {
+
+                swap_colors(parent, sibling);
+
+                if (is_left) {
+                    rotate_left_(parent);
+                    if (parent->par != nullptr && parent->par->rns != nullptr)
+                        parent->par->rns->col = BLACK_;
+                }
+                else {
+                    rotate_right_(parent);
+                    if (parent->par != nullptr && parent->par->lns != nullptr)
+                        parent->par->lns->col = BLACK_;
+                }
+                return;
+            }
+
+            // case 4: sibling is black, near child is red
+            if (( is_left && (sibling->lns != nullptr && sibling->lns->col == RED_)) ||
+                (!is_left && (sibling->rns != nullptr && sibling->rns->col == RED_))) {
+
+                rmq_node *near = is_left ? sibling->lns : sibling->rns;
+                if (near == sibling->lns) {
+                    sibling->lns->col = BLACK_;
+                    sibling->col      = RED_;
+
+                    rotate_right_(sibling);
+
+                    sibling = parent->rns;
+
+                    swap_colors(parent, sibling);
+                    rotate_left_(parent);
+
+                    if (sibling->rns != nullptr)
+                        sibling->rns->col = BLACK_;
+                }
+                else {
+                    sibling->rns->col = BLACK_;
+                    sibling->col      = RED_;
+
+                    rotate_left_(sibling);
+
+                    sibling = parent->lns;
+
+                    swap_colors(parent, sibling);
+                    rotate_right_(parent);
+
+                    if (sibling->lns != nullptr)
+                        sibling->lns->col = BLACK_;
+                }
+            }
+        }
+
+        void fix_insert_if_needed_(rmq_node *node) {
+            rmq_node *parent = node->par;
+
+            if (parent == nullptr) {
+                if (node != root_)
+                    ::abort();
+
+                // just in case, root is always black
+                node->col = BLACK_;
+                return;
+            }
+
+            if (parent->col == BLACK_)
+                return;
+
+            rmq_node *grand_parent = parent->par;
+            if (grand_parent == nullptr) {
+                // just in case, root is always black
+                parent->col = BLACK_;
+            }
+
+            rmq_node *uncle = get_sibling_(parent);
+
+            // Case 1: Parent and uncle are both red -> Recolor and recurse up
+            if (uncle != nullptr && uncle->col == RED_) {
+                parent->col       = BLACK_;
+                uncle->col        = BLACK_;
+
+                if (grand_parent != nullptr) {
+                    grand_parent->col = RED_;
+                    fix_insert_if_needed_(grand_parent);
+                }
+                return;
+            }
+
+            // Case 2a: Left-Left (LL) violation
+            if (node == parent->lns && parent == grand_parent->lns) {
+                swap_colors(parent, grand_parent);
+                rotate_right_(grand_parent);
+            }
+
+            // Case 2b: Right-Right (RR) violation
+            else if (node == parent->rns && parent == grand_parent->rns) {
+                swap_colors(parent, grand_parent);
+                rotate_left_(grand_parent);
+            }
+
+            // Case 3a: Left-Right (LR) violation
+            else if (node == parent->lns && parent == grand_parent->rns) {
+                swap_colors(node, grand_parent);
+                rotate_right_(parent);
+                rotate_left_(grand_parent);
+            }
+
+            // Case 3b: Right-Left (RL) violation
+            else if (node == parent->rns && parent == grand_parent->lns) {
+                swap_colors(node, grand_parent);
+                rotate_left_(parent);
+                rotate_right_(grand_parent);
+            }
+
+            if (root_ != nullptr)
+                root_->col = BLACK_; // just in case
+        }
+
+        rmq_node *descend_(rmq_node *node, const key_t &key, int *direction, int *n = nullptr) const {
+#ifdef UNIT_TEST
+            if (n) *n = 0;
+#endif
+            while (node != nullptr) {
+#ifdef UNIT_TEST
+                if (n) (*n)++;
+#endif
+
+                *direction = comp_(&key, &(node->key));
+
+                if (*direction == 0)
+                    return node;
+
+                if (*direction > 0) {
+                    if (node->rns != nullptr) node = node->rns;
+                    else return node;
+                } else {
+                    if (node->lns != nullptr) node = node->lns;
+                    else return node;
+                }
+            }
+            return nullptr;
+        }
+
+        void rotate_right_(rmq_node *node) {
+            rmq_node *left = node->lns;
+            if (left == nullptr)
+                return;
+
+            node->lns = left->rns;
+            if (left->rns != nullptr)
+                left->rns->par = node;
+
+            left->par = node->par;
+
+            if (node->par == nullptr) {
+                root_ = left;
+            }
+            else if (node == node->par->lns) {
+                node->par->lns = left;
+            }
+            else {
+                node->par->rns = left;
+            }
+
+            left->rns = node;
+            node->par = left;
+        }
+
+        void rotate_left_(rmq_node *node) {
+            rmq_node *right = node->rns;
+            if (right == nullptr)
+                return;
+
+            node->rns = right->lns;
+            if (right->lns != nullptr)
+                right->lns->par = node;
+
+            right->par = node->par;
+
+            if (node->par == nullptr) {
+                root_ = right;
+            }
+            else if (node == node->par->lns) {
+                node->par->lns = right;
+            }
+            else {
+                node->par->rns = right;
+            }
+
+            right->lns = node;
+            node->par  = right;
+        }
+
+        void replace_with_child_(rmq_node *node, rmq_node *child) {
+            if (node->par == nullptr)
+                root_ = child;
+            else if (node == node->par->lns)
+                node->par->lns = child;
+            else
+                node->par->rns = child;
+
+            if (child != nullptr)
+                child->par = node->par;
+        }
+
+        rmq_node *instance_node_() {
+            void *mem = malloc_<rmq_node>(this, allocator_, 1);
+            return new (mem) rmq_node;
+        }
+
+        rmq_node *copy_node_(const rmq_node *node) const {
+            if (node == nullptr)
+                return nullptr;
+            rmq_node *copy = instance_node_();
+            *copy = *node;
+            return copy;
+        }
+
+        void iterative_copy_(rmq_node *const node) {
+            rmq_node *copy = copy_node_(node);
+            rmq_node *head = node;
+            rmq_node *prev = node;
+            bool     down = true;
+
+            while (head != nullptr) {
+                if (down && head->lns != nullptr) {
+                    prev = head;
+                    head = head->lns;
+
+                    *copy->lns = copy_node_(head);
+                    copy = copy->lns;
+                    continue;
+                }
+
+                if (down && head->rns != nullptr) {
+                    prev = head;
+                    head = head->rns;
+
+                    *copy->rns = copy_node_(head);
+                    copy = copy->rns;
+                    continue;
+                }
+
+                if (down || prev == head->rns) {
+                    prev = head;
+                    head = head->par;
+                    copy = copy->par;
+                    down = false;
+                    continue;
+                }
+
+                if (head->rns != nullptr) {
+                    prev = head;
+                    head = head->rns;
+
+                    *copy->rns = copy_node_(head);
+                    copy = copy->rns;
+                    down = true;
+                    continue;
+                }
+
+                prev = head;
+                head = head->par;
+                copy = copy->par;
+                down = false;
+            }
+        }
+
+
+        void free_node_(rmq_node *node) {
+            if (node == nullptr)
+                return;
+            if (node->par != nullptr) {
+                if (node->par->lns == node)
+                    node->par->lns = nullptr;
+                if (node->par->rns == node)
+                    node->par->rns = nullptr;
+            }
+            release_node_(node);
+        }
+
+        void release_node_(rmq_node *node) {
+            if (node == nullptr)
+                return;
+            node->~rb_node();
+            free_(this, allocator_, node);
+        }
+
+        void iterative_free_(rmq_node *const node) {
+            rmq_node *head = node;
+            rmq_node *prev = node;
+            bool     down = true;
+
+            while (head != nullptr) {
+                if (down && head->lns != nullptr) {
+                    prev = head;
+                    head = head->lns;
+                    continue;
+                }
+
+                if (down && head->rns != nullptr) {
+                    prev = head;
+                    head = head->rns;
+                    continue;
+                }
+
+                if (down || prev == head->rns) {
+                    prev = head;
+                    head = head->par;
+                    down = false;
+                    release_node_(prev);
+                    continue;
+                }
+
+                if (head->rns != nullptr) {
+                    prev = head;
+                    head = head->rns;
+                    down = true;
+                    continue;
+                }
+
+                prev = head;
+                head = head->par;
+                down = false;
+                release_node_(prev);
+            }
+        }
+
+        static rmq_node *get_largest_(rmq_node *node) {
+            if (node == nullptr)
+                return nullptr;
+            if (node->rns == nullptr)
+                return node;
+            return get_largest_(node->rns);
+        }
+
+        static rmq_node *get_sibling_(const rmq_node *node) {
+            if (node == nullptr)
+                ::abort();
+
+            const rmq_node *parent = node->par;
+            if (parent == nullptr)
+                return nullptr;
+            return parent->lns == node ? parent->rns : parent->lns;
+        }
+
+        static void swap_colors(rmq_node *a, rmq_node *b) {
+            const col_t tmp = a->col;
+            a->col = b->col;
+            b->col = tmp;
+        }
+
+        static rmq_node *minimum_(const rmq_node *node) {
+            while (node != nullptr && node->lns != nullptr)
+                node = node->lns;
+            return node;
+        }
+
+        static rmq_node *maximum_(const rmq_node *node) {
+            while (node != nullptr && node->rns != nullptr)
+                node = node->rns;
+            return node;
+        }
+
 
         static void watch_allocator(void *instance, const long int) {
             auto that_ = static_cast<rmq_map *>(instance);

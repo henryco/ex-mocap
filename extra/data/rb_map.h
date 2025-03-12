@@ -544,7 +544,6 @@ namespace ex::data {
             if (grand_parent == nullptr) {
                 // just in case, root is always black
                 parent->col = BLACK_;
-//                return;
             }
 
             rb_node *uncle = get_sibling_(parent);
@@ -759,13 +758,6 @@ namespace ex::data {
             node->~rb_node();
             free_(this, allocator_, node);
         }
-
-//        void recursive_free_(rb_node *node) {
-//            if (node == nullptr) return;
-//            recursive_free_(node->lns);
-//            recursive_free_(node->rns);
-//            release_node_(node);
-//        }
 
         void iterative_free_(rb_node *const node) {
             rb_node *head = node;
