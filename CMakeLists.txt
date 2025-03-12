@@ -88,12 +88,12 @@ set(EXTRA_FILES
         # graph (nodes)
         extra/graph/graph.h
         extra/data/rb_map.h
+        extra/data/rmq_map.h
         extra/data/array.h
         extra/data/buffer.h
         extra/data/array_map.h
         extra/data/sorted_map.h
         extra/data/cache.h
-        extra/data/interval_map.h
 )
 
 set(PLATFORM_FILES

@@ -10,6 +10,9 @@
 
 namespace ex::data {
 
+    /**
+     * Red-Black Tree implementation of Map
+     */
     template<typename key_t, typename val_t>
     struct rb_map {
 
@@ -36,7 +39,6 @@ namespace ex::data {
         metrics_t metrics_n_ = 0;
 #endif
 
-        using node_apply_fn = void   (*)(rb_node *node);
         using comparator_fn = int8_t (*)(const key_t *a, const key_t *b);
         static int8_t default_comparator(const key_t *a, const key_t *b) {
             return (*a > *b) - (*a < *b);
@@ -839,49 +841,6 @@ namespace ex::data {
             while (node != nullptr && node->rns != nullptr)
                 node = node->rns;
             return node;
-        }
-
-        /**
-         * Function is applied on exit from node
-         */
-        static void traverse_depth_(rb_node *const node, const node_apply_fn fn) {
-            rb_node *head = node;
-            rb_node *prev = node;
-            bool     down = true;
-
-            while (head != nullptr) {
-                if (down && head->lns != nullptr) {
-                    prev = head;
-                    head = head->lns;
-                    continue;
-                }
-
-                if (down && head->rns != nullptr) {
-                    prev = head;
-                    head = head->rns;
-                    continue;
-                }
-
-                if (down || prev == head->rns) {
-                    prev = head;
-                    head = head->par;
-                    down = false;
-                    fn(prev);
-                    continue;
-                }
-
-                if (head->rns != nullptr) {
-                    prev = head;
-                    head = head->rns;
-                    down = true;
-                    continue;
-                }
-
-                prev = head;
-                head = head->par;
-                down = false;
-                fn(prev);
-            }
         }
 
         struct iterator {

@@ -8,6 +8,7 @@
 #include "array.h"
 #include "array_map.h"
 #include "sorted_map.h"
+#include "rmq_map.h"
 #include "rb_map.h"
 #include "buffer.h"
 #include "cache.h"
