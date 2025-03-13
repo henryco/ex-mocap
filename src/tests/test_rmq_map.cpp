@@ -638,5 +638,7 @@ bool verify_rmq_weights_(rmq_map<int,int>::rmq_node *node, int &min, int &max) {
     min = std::min(node->rmq, std::min(min_l, min_r));
     max = std::max(node->rmq, std::min(max_l, max_r));
 
+    CHECK((node->min) == min);
+    CHECK((node->max) == max);
     return node->min == min && node->max == max;
 }
