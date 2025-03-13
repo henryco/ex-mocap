@@ -287,6 +287,7 @@ namespace ex::data {
                 root_->rns = nullptr;
                 root_->val = val;
                 root_->key = key;
+                root_->rmq = range;
                 root_->col = BLACK_;
                 ++size_;
                 return;
@@ -301,6 +302,7 @@ namespace ex::data {
 #endif
 
             if (direction == 0 && comp_(&key, &(base->key)) == 0) {
+                base->rmq = range;
                 base->val = val;
                 return;
             }
