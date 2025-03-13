@@ -22,6 +22,14 @@ namespace ex::data {
             rmq_t rmq;
         };
 
+        struct it_entry {
+            key_t key;
+            val_t val;
+            rmq_t rmq;
+            rmq_t min;
+            rmq_t max;
+        };
+
         using col_t = bool;
 #define BLACK_        false
 #define RED_          true
@@ -935,7 +943,7 @@ namespace ex::data {
 
         // DSF Post-Order iterator
         struct iterator {
-            entry     entr_;
+            it_entry  entr_;
             rmq_node *node_;
             rmq_node *head_;
             rmq_node *prev_;
@@ -952,7 +960,7 @@ namespace ex::data {
                 spin_();
             }
 
-            entry &operator * () {
+            it_entry &operator * () {
                 return entr_;
             }
 
@@ -976,7 +984,7 @@ namespace ex::data {
                         down_ = false;
 
                         if (prev_ != nullptr)
-                            entr_ = { prev_->key, prev_->val, prev_->rmq };
+                            entr_ = { prev_->key, prev_->val, prev_->rmq, prev_->min, prev_->max };
                         idx__++;
                         return;
                     }
@@ -993,7 +1001,7 @@ namespace ex::data {
                     down_ = false;
 
                     if (prev_ != nullptr)
-                        entr_ = { prev_->key, prev_->val, prev_->rmq };
+                        entr_ = { prev_->key, prev_->val, prev_->rmq, prev_->min, prev_->max };
                     idx__++;
                     return;
                 }

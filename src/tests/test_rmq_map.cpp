@@ -174,7 +174,7 @@ TEST_CASE("RMQ Tree map stress tests") {
     }
 
     SUBCASE("rmq_map next op test") {
-        rb_map<int, int> tree;
+        rmq_map<int, int> tree;
         for (int i = 10000; i >= 0; --i) {
             tree.put(i, i);
         }
@@ -188,7 +188,7 @@ TEST_CASE("RMQ Tree map stress tests") {
     }
 
     SUBCASE("rmq_map prev op test") {
-        rb_map<int, int> tree;
+        rmq_map<int, int> tree;
         for (int i = 10000; i >= 0; --i) {
             tree.put(i, i);
         }
@@ -586,6 +586,21 @@ TEST_CASE("rmq_map tree structure validity check") {
     << static_cast<int>((2. * (std::log2(OPERATIONS + 1.))) + 1)
     << "]"
     << std::endl;
+}
+
+TEST_CASE("RMQ Map iterator tests") {
+
+    SUBCASE("rmq_map tree basic iterator check") {
+        rmq_map<int, int> tree;
+        for (int i = 100; i >= 0; --i) {
+            tree.put(i, i);
+        }
+
+        for (const auto &entry : tree) {
+            std::cout << entry.key << ", " << entry.rmq << ", [ " << entry.min << " | " << entry.max << " ]\n";
+        }
+    }
+
 }
 
 void verify_rb_tree_(rmq_map<int, int> &map) {
