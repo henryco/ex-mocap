@@ -849,6 +849,7 @@ namespace ex::data {
             return head;
         }
 
+        // DSF Post-Order iterator
         struct iterator {
             entry    entr_;
             rb_node *node_;

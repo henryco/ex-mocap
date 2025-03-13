@@ -933,6 +933,7 @@ namespace ex::data {
             return head;
         }
 
+        // DSF Post-Order iterator
         struct iterator {
             entry     entr_;
             rmq_node *node_;
