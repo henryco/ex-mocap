@@ -16,6 +16,9 @@ bool verify_rb_tree_height_(rmq_map<int,int>::rmq_node *node, int &black_count, 
 bool verify_rmq_weights_(rmq_map<int,int>::rmq_node *node, int &min, int &max);
 void verify_rb_tree_(rmq_map<int, int> &map);
 
+// guaranteed worst case scenario for red black tree
+#define MAX_HEIGHT_(tree) static_cast<int>((2. * (std::log2(tree.size() + 1.))) + 1)
+
 TEST_CASE("RMQ Tree map tests") {
 
     SUBCASE("rmq_map empty and size") {
@@ -168,6 +171,34 @@ TEST_CASE("RMQ Tree map stress tests") {
         CHECK(tree.at(1) == 10);
         CHECK(tree.at(500) == 5000);
         CHECK(tree.at(1000) == 10000);
+    }
+
+    SUBCASE("rmq_map next op test") {
+        rb_map<int, int> tree;
+        for (int i = 10000; i >= 0; --i) {
+            tree.put(i, i);
+        }
+
+        for (int i = 0; i < 10000; ++i) {
+            const auto *node  = tree.next(i);
+            const int   value = node->key;
+            const int   must  = i + 1;
+            CHECK(value == must);
+        }
+    }
+
+    SUBCASE("rmq_map prev op test") {
+        rb_map<int, int> tree;
+        for (int i = 10000; i >= 0; --i) {
+            tree.put(i, i);
+        }
+
+        for (int i = 10000; i > 0; --i) {
+            const auto *node  = tree.prev(i);
+            const int   value = node->key;
+            const int   must  = i - 1;
+            CHECK(value == must);
+        }
     }
 
     SUBCASE("rmq_map random insert and remove stress test") {
@@ -343,11 +374,7 @@ TEST_CASE("RMQ Tree map stress tests") {
         CHECK(tree.at(60) == 60);
         CHECK(tree.at(80) == 80);
     }
-
 }
-
-// guaranteed worst case scenario for red black tree
-#define MAX_HEIGHT_(tree) static_cast<int>((2. * (std::log2(tree.size() + 1.))) + 1)
 
 TEST_CASE("rmq_map extensive data integrity check") {
     rmq_map<int, int>   tree;

@@ -14,6 +14,9 @@ using namespace ex::data;
 bool verify_tree_(rb_map<int,int>::rb_node *node, int &black_count, int path_black = 0);
 void verify_rb_tree_(rb_map<int, int> &map);
 
+// guaranteed worst case scenario for red black tree
+#define MAX_HEIGHT_(tree) static_cast<int>((2. * (std::log2(tree.size() + 1.))) + 1)
+
 TEST_CASE("RB Tree map tests") {
 
     SUBCASE("rb_map empty and size") {
@@ -166,6 +169,34 @@ TEST_CASE("RB Tree map stress tests") {
         CHECK(tree.at(1) == 10);
         CHECK(tree.at(500) == 5000);
         CHECK(tree.at(1000) == 10000);
+    }
+
+    SUBCASE("rb_map next op test") {
+        rb_map<int, int> tree;
+        for (int i = 10000; i >= 0; --i) {
+            tree.put(i, i);
+        }
+
+        for (int i = 0; i < 10000; ++i) {
+            const auto *node  = tree.next(i);
+            const int   value = node->key;
+            const int   must  = i + 1;
+            CHECK(value == must);
+        }
+    }
+
+    SUBCASE("rb_map prev op test") {
+        rb_map<int, int> tree;
+        for (int i = 10000; i >= 0; --i) {
+            tree.put(i, i);
+        }
+
+        for (int i = 10000; i > 0; --i) {
+            const auto *node  = tree.prev(i);
+            const int   value = node->key;
+            const int   must  = i - 1;
+            CHECK(value == must);
+        }
     }
 
     SUBCASE("rb_map random insert and remove stress test") {
@@ -341,11 +372,7 @@ TEST_CASE("RB Tree map stress tests") {
         CHECK(tree.at(60) == 60);
         CHECK(tree.at(80) == 80);
     }
-
 }
-
-// guaranteed worst case scenario for red black tree
-#define MAX_HEIGHT_(tree) static_cast<int>((2. * (std::log2(tree.size() + 1.))) + 1)
 
 TEST_CASE("rb_map extensive data integrity check") {
     rb_map<int, int>   tree;

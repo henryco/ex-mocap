@@ -134,11 +134,15 @@ namespace ex::data {
 
         rb_node *next(const key_t &key) const {
             int direction;
-            const rb_node *node = descend_(root_, key, &direction);
+#ifdef UNIT_TEST
+            rb_node *node = descend_(root_, key, &direction, &metrics_n_);
+#else
+            rb_node *node = descend_(root_, key, &direction);
+#endif
             if (node == nullptr || direction != 0 || comp_(&key, &(node->key)) != 0)
                 ::abort();
             if (node->rns != nullptr) {
-                if (const rb_node *min_ = minimum_(node->rns))
+                if (rb_node *min_ = minimum_(node->rns))
                     return min_;
                 ::abort();
             }
@@ -154,11 +158,15 @@ namespace ex::data {
 
         rb_node *prev(const key_t &key) const {
             int direction;
-            const rb_node *node = descend_(root_, key, &direction);
+#ifdef UNIT_TEST
+            rb_node *node = descend_(root_, key, &direction, &metrics_n_);
+#else
+            rb_node *node = descend_(root_, key, &direction);
+#endif
             if (node == nullptr || direction != 0 || comp_(&key, &(node->key)) != 0)
                 ::abort();
             if (node->lns != nullptr) {
-                if (const rb_node *max_ = maximum_(node->lns))
+                if (rb_node *max_ = maximum_(node->lns))
                     return max_;
                 ::abort();
             }
@@ -827,16 +835,18 @@ namespace ex::data {
             b->col = tmp;
         }
 
-        static rb_node *minimum_(const rb_node *node) {
-            while (node != nullptr && node->lns != nullptr)
-                node = node->lns;
-            return node;
+        static rb_node *minimum_(rb_node *const node) {
+            rb_node *head = node;
+            while (head != nullptr && head->lns != nullptr)
+                head = head->lns;
+            return head;
         }
 
-        static rb_node *maximum_(const rb_node *node) {
-            while (node != nullptr && node->rns != nullptr)
-                node = node->rns;
-            return node;
+        static rb_node *maximum_(rb_node *const node) {
+            rb_node *head = node;
+            while (head != nullptr && head->rns != nullptr)
+                head = head->rns;
+            return head;
         }
 
         struct iterator {
