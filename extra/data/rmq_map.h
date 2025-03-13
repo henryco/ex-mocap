@@ -296,6 +296,8 @@ namespace ex::data {
                 root_->val = val;
                 root_->key = key;
                 root_->rmq = range;
+                root_->min = range;
+                root_->max = range;
                 root_->col = BLACK_;
                 ++size_;
                 return;
@@ -312,6 +314,7 @@ namespace ex::data {
             if (direction == 0 && comp_(&key, &(base->key)) == 0) {
                 base->rmq = range;
                 base->val = val;
+                update_ranges_(base);
                 return;
             }
 
@@ -321,18 +324,38 @@ namespace ex::data {
             node->par      = base;
             node->lns      = nullptr;
             node->rns      = nullptr;
-            node->rmq      = range;
             node->val      = val;
             node->key      = key;
+            node->rmq      = range;
+            node->min      = range;
+            node->max      = range;
             node->col      = RED_;
 
             if (direction >= 0) base->rns = node;
             else                base->lns = node;
 
+            update_ranges_(node);
             fix_insert_if_needed_(node);
 
             // if root_ is nullptr we have much bigger problem
             root_->col = BLACK_; // just in case
+        }
+
+        void set_range(const key_t &key, const rmq_t &range) {
+            int direction;
+#ifdef UNIT_TEST
+            rmq_node *node = descend_(root_, key, &direction, &metrics_n_);
+#else
+            rmq_node *node = descend_(root_, key, &direction);
+#endif
+            if (node == nullptr)
+                return;
+
+            if (direction != 0 || comp_(&key, &(node->key)) != 0)
+                return;
+
+            node->rmq = range;
+            update_ranges_(node);
         }
 
         void remove(const key_t &key) {
@@ -351,6 +374,29 @@ namespace ex::data {
                 return;
 
             remove_node_(node);
+        }
+
+        void update_ranges_(rmq_node *const node) {
+            rmq_node *head = node;
+            while (head != nullptr) {
+                int min_l = head->rmq, max_l = head->rmq;
+                int min_r = head->rmq, max_r = head->rmq;
+
+                if (head->lns != nullptr) {
+                    min_l = head->lns->min;
+                    max_l = head->lns->max;
+                }
+
+                if (head->rns != nullptr) {
+                    min_r = head->rns->min;
+                    max_r = head->rns->max;
+                }
+
+                head->min = min_val_(head->rmq, min_val_(min_l, min_r));
+                head->max = max_val_(head->rmq, max_val_(max_l, max_r));
+
+                head = head->par;
+            }
         }
 
         void remove_node_(rmq_node *node) {
@@ -585,8 +631,8 @@ namespace ex::data {
 
             // Case 1: Parent and uncle are both red -> Recolor and recurse up
             if (uncle != nullptr && uncle->col == RED_) {
-                parent->col       = BLACK_;
-                uncle->col        = BLACK_;
+                parent->col = BLACK_;
+                uncle->col  = BLACK_;
 
                 if (grand_parent != nullptr) {
                     grand_parent->col = RED_;
@@ -651,6 +697,7 @@ namespace ex::data {
         }
 
         void rotate_right_(rmq_node *node) {
+            // TODO: update ranges
             rmq_node *left = node->lns;
             if (left == nullptr)
                 return;
@@ -676,6 +723,7 @@ namespace ex::data {
         }
 
         void rotate_left_(rmq_node *node) {
+            // TODO: update ranges
             rmq_node *right = node->rns;
             if (right == nullptr)
                 return;
@@ -708,13 +756,18 @@ namespace ex::data {
             else
                 node->par->rns = child;
 
-            if (child != nullptr)
+            if (child != nullptr) {
                 child->par = node->par;
+                update_ranges_(child);
+            } else {
+                update_ranges_(node->par);
+            }
         }
 
         rmq_node *instance_node_() {
-            void *mem = malloc_<rmq_node>(this, allocator_, 1);
-            return new (mem) rmq_node;
+//            void *mem = malloc_<rmq_node>(this, allocator_, 1);
+//            return new (mem) rmq_node;
+            return new (malloc_<rmq_node>(this, allocator_, 1)) rmq_node;
         }
 
         rmq_node *copy_node_(const rmq_node *node) const {
@@ -986,6 +1039,16 @@ namespace ex::data {
         static void del_watcher_(const allocator &allocator, void *watcher, const watch_fn_t fn) {
             if (allocator.del_watcher != nullptr)
                 allocator.del_watcher(watcher, fn);
+        }
+
+        template <typename T>
+        static T min_val_(const T &a, const T &b) {
+            return (a < b) ? a : b;
+        }
+
+        template <typename T>
+        static T max_val_(const T &a, const T &b) {
+            return (a > b) ? a : b;
         }
     };
 

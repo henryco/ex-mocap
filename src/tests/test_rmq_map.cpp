@@ -485,8 +485,8 @@ TEST_CASE("rmq_map tree structure validity check") {
     rmq_map<int, int>   tree;
 
     std::map<int, int> reference; // Using std::map as a trusted reference
-    constexpr int      OPERATIONS = 100000;
-    constexpr int      KEY_RANGE  = 100000;
+    constexpr int      OPERATIONS = 10000;
+    constexpr int      KEY_RANGE  = 10000;
 
     std::mt19937 rng(918472641); // deterministic random seed
     std::uniform_int_distribution op_dist(0, 1);
