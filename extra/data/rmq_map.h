@@ -19,6 +19,7 @@ namespace ex::data {
         struct entry {
             key_t key;
             val_t val;
+            rmq_t rmq;
         };
 
         using col_t = bool;
@@ -269,12 +270,8 @@ namespace ex::data {
             return at(key);
         }
 
-        void put(const entry &entry, const rmq_t &range) {
-            put(entry.key, entry.val, range);
-        }
-
         void put(const entry &entry) {
-            put(entry.key, entry.val, entry.key);
+            put(entry.key, entry.val, entry.rmq);
         }
 
         void put(const key_t &key, const val_t &val) {
@@ -906,7 +903,7 @@ namespace ex::data {
                         down_ = false;
 
                         if (prev_ != nullptr)
-                            entr_ = { prev_->key, prev_->val };
+                            entr_ = { prev_->key, prev_->val, prev_->rmq };
                         idx__++;
                         return;
                     }
@@ -923,7 +920,7 @@ namespace ex::data {
                     down_ = false;
 
                     if (prev_ != nullptr)
-                        entr_ = { prev_->key, prev_->val };
+                        entr_ = { prev_->key, prev_->val, prev_->rmq };
                     idx__++;
                     return;
                 }
