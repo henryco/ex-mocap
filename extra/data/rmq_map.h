@@ -378,7 +378,8 @@ namespace ex::data {
 
         void update_ranges_(rmq_node *const node, const rmq_node *stop = nullptr) {
             rmq_node *head = node;
-            while (head != stop) {
+            while (head != nullptr && head != stop) {
+
                 int min_l = head->rmq, max_l = head->rmq;
                 int min_r = head->rmq, max_r = head->rmq;
 
@@ -720,7 +721,6 @@ namespace ex::data {
             left->rns = node;
             node->par = left;
 
-            // TODO: update ranges
             update_ranges_(node->par->lns, node->par);
             update_ranges_(node->par->rns, node->par);
             update_ranges_(node->par, node->par->par);
@@ -750,7 +750,6 @@ namespace ex::data {
             right->lns = node;
             node->par  = right;
 
-            // TODO: update ranges
             update_ranges_(node->par->lns, node->par);
             update_ranges_(node->par->rns, node->par);
             update_ranges_(node->par, node->par->par);
