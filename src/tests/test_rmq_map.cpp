@@ -594,9 +594,6 @@ void verify_rb_tree_(rmq_map<int, int> &map) {
     int        max            = 0;
     const bool is_ok_1        = verify_rb_tree_height_(map.root_, black_count);
     const bool is_ok_2        = verify_rmq_weights_(map.root_, min, max);
-    if (!is_ok_2) {
-        ;
-    }
     CHECK((map.root_ == nullptr || map.root_->col == BLACK_));
     CHECK(is_ok_1);
     CHECK(is_ok_2);
