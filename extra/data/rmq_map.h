@@ -780,8 +780,6 @@ namespace ex::data {
         }
 
         rmq_node *instance_node_() {
-//            void *mem = malloc_<rmq_node>(this, allocator_, 1);
-//            return new (mem) rmq_node;
             return new (malloc_<rmq_node>(this, allocator_, 1)) rmq_node;
         }
 

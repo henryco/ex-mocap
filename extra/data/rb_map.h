@@ -690,8 +690,7 @@ namespace ex::data {
         }
 
         rb_node *instance_node_() {
-            void *mem = malloc_<rb_node>(this, allocator_, 1);
-            return new (mem) rb_node;
+            return new (malloc_<rb_node>(this, allocator_, 1)) rb_node;
         }
 
         rb_node *copy_node_(const rb_node *node) const {
