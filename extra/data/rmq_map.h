@@ -439,6 +439,7 @@ namespace ex::data {
             // ---------[-x--------]----------------------
             // -----------x-[----]------------------------
             // d: min_(min,max)
+            // r: min_(min_(d_left, d_right), val)
 
             for (rmq_node *head = root_; head != nullptr;) {
                 const rmq_t &n_min = head->min;
