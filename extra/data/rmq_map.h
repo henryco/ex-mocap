@@ -372,7 +372,7 @@ namespace ex::data {
         }
 
         // TODO TEST
-        bool range_contains(const rmq_t &val) const {
+        bool range_overlap(const rmq_t &val) const {
             return overlap_(root_, val, val);
         }
 
