@@ -416,18 +416,21 @@ namespace ex::data {
             return nullptr;
         }
 
+        // TODO TEST
         rmq_node *range_min() const {
             if (root_ == nullptr)
                 return nullptr;
             return range_fit(root_->min, root_->min);
         }
 
+        // TODO TEST
         rmq_node *range_max() const {
             if (root_ == nullptr)
                 return nullptr;
             return range_fit(root_->max, root_->max);
         }
 
+        // TODO TEST
         rmq_node *range_minimize(const rmq_t &min) const {
             if (root_ == nullptr)
                 return nullptr;
@@ -442,13 +445,11 @@ namespace ex::data {
             // r: min_(min_(d_left, d_right), val)
 
             for (rmq_node *head = root_; head != nullptr;) {
-                const rmq_t &h_min = head->min;
                 const rmq_t &h_max = head->max;
                 const rmq_t &h_val = head->rmq;
 
-                if (mmeq_(&h_max, &min) < 0) {
+                if (mmeq_(&h_max, &min) < 0)
                     return nullptr; // non overlapping ranges
-                }
 
                 rmq_t *l_min = nullptr;
                 if (head->lns != nullptr) {
@@ -505,6 +506,7 @@ namespace ex::data {
             return nullptr;
         }
 
+        // TODO TEST
         rmq_node *range_maximize(const rmq_t &max) const {
             if (root_ == nullptr)
                 return nullptr;
@@ -518,13 +520,63 @@ namespace ex::data {
             // d: max_(min,max)
             // r: max_(max_(d_left, d_right), val)
 
-            for (rmq_node *head = root_; head != nullptr;) {
-                const rmq_t &n_min = head->min;
-                const rmq_t &n_max = head->max;
-                const rmq_t &n_val = head->rmq;
+           for (rmq_node *head = root_; head != nullptr;) {
+                const rmq_t &h_min = head->min;
+                const rmq_t &h_val = head->rmq;
 
-                // TODO
-                return head;
+                if (mmeq_(&h_min, &max) > 0)
+                    return nullptr; // non overlapping ranges
+
+                rmq_t *l_max = nullptr;
+                if (head->lns != nullptr) {
+                    l_max = &fit_d_max_(head->lns->min, head->lns->max, max);
+                    if (mmeq_(l_max, &max) > 0)
+                        l_max = nullptr;
+                }
+
+                rmq_t *r_max = nullptr;
+                if (head->rns != nullptr) {
+                    r_max = &fit_d_max_(head->rns->min, head->rns->max, max);
+                    if (mmeq_(r_max, &max) > 0)
+                        r_max = nullptr;
+                }
+
+                if (l_max == nullptr && r_max == nullptr) {
+                    if (mmeq_(&h_val, &max) > 0)
+                        return nullptr;
+                    return head;
+                }
+
+                if (l_max == nullptr) {
+                using_r:
+                    if (mmeq_(&h_val, &max) > 0) {
+                        head = head->rns;
+                        continue;
+                    }
+                    if (mmeq_(&h_val, r_max) < 0) {
+                        head = head->rns;
+                        continue;
+                    }
+                    return head;
+                }
+
+                if (r_max == nullptr) {
+                using_l:
+                    if (mmeq_(&h_val, &max) > 0) {
+                        head = head->lns;
+                        continue;
+                    }
+                    if (mmeq_(&h_val, l_max) < 0) {
+                        head = head->lns;
+                        continue;
+                    }
+                    return head;
+                }
+
+                if (mmeq_(l_max, r_max) > 0)
+                    goto using_l;
+
+                goto using_r;
             }
 
             return nullptr;
@@ -533,17 +585,13 @@ namespace ex::data {
         rmq_t &fit_d_min_(rmq_t &l, rmq_t &r, const rmq_t &min) const {
             if (mmeq_(&l, &min) < 0)
                 return r;
-            if (mmeq_(&l, &r) <= 0)
-                return l;
-            return r;
+            return l;
         }
 
         rmq_t &fit_d_max_(rmq_t &l, rmq_t &r, const rmq_t &max) const {
             if (mmeq_(&r, &max) > 0)
                 return l;
-            if (mmeq_(&r, &l) >= 0)
-                return r;
-            return l;
+            return r;
         }
 
         rmq_t &min_val_(rmq_t &a, rmq_t &b) const {
