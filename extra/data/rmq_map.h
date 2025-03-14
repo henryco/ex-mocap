@@ -440,7 +440,40 @@ namespace ex::data {
                 const rmq_t &n_max = head->max;
                 const rmq_t &n_val = head->rmq;
 
+                if (!overlap_(head, min, min))
+                    return nullptr;
 
+                if (mmeq_(&n_min, &n_val) == 0)
+                    return head;
+
+                const bool l_overlap = overlap_(head->lns, min, min);
+                const bool r_overlap = overlap_(head->rns, min, min);
+
+                if (l_overlap && r_overlap) {
+                    const bool  l_s_r = mmeq_ (&(head->lns->max), &(head->rns->max)) <= 0; // left <= right
+                    const rmq_t h_min = l_s_r ? (head->lns->min) : (head->rns->min);
+                    const rmq_t h_max = l_s_r ? (head->lns->max) : (head->rns->max);
+
+                    if (mmeq_(&n_val, &h_max) <= 0 && mmeq_(&n_val, &h_min) <= 0) {
+                        return head;
+                    }
+
+                    if (l_s_r) head = head->lns;
+                    else       head = head->rns;
+                    continue;
+                }
+
+                if (l_overlap) {
+
+                    continue;
+                }
+
+                if (r_overlap) {
+
+                    continue;
+                }
+
+                return head;
             }
 
             return nullptr;
@@ -457,6 +490,10 @@ namespace ex::data {
                 const rmq_t &n_min = head->min;
                 const rmq_t &n_max = head->max;
                 const rmq_t &n_val = head->rmq;
+
+                if (!overlap_(head, max, max))
+                    return nullptr;
+
                 // TODO
             }
 
@@ -473,14 +510,6 @@ namespace ex::data {
             // --------[---x--------------x---]-----------
             return (mmeq_(&max, &(node->min)) >= 0 &&
                     mmeq_(&min, &(node->max)) <= 0);
-        }
-
-        int select_min_(const rmq_t *l, const rmq_t *r, const rmq_t *v) const {
-            if (mmeq_(l, r) <= 0 && mmeq_(l, v) >= 0)
-                return -1; // left
-            if (mmeq_(r, l) <= 0 && mmeq_(r, v) >= 0)
-                return 1;  // right
-            return 0;
         }
 
         void update_ranges_(rmq_node *const node, const rmq_node *stop = nullptr) {
