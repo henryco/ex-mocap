@@ -366,11 +366,43 @@ namespace ex::data {
             update_ranges_(node);
         }
 
+        // TODO TEST
         bool range_overlap(const rmq_t &min, const rmq_t &max) const {
             return overlap_(root_, min, max);
         }
 
+        // TODO TEST
+        bool range_contains(const rmq_t &val) const {
+            return overlap_(root_, val, val);
+        }
+
+        // TODO TEST
+        rmq_node *range_find(const rmq_t &min, const rmq_t &max) const {
+            if (!overlap_(root_, min, max))
+                return nullptr;
+
+            for (rmq_node *head = root_;;) {
+                if (mmeq_(&min, &(head->rmq) <= 0) &&
+                    mmeq_(&max, &(head->rmq) >= 0))
+                    return head;
+
+                if (overlap_(head->lns, min, max)) {
+                    head = head->lns;
+                    continue;
+                }
+
+                if (overlap_(head->rns, min, max)) {
+                    head = head->rns;
+                    continue;
+                }
+
+                return nullptr;
+            }
+        }
+
         bool overlap_(const rmq_node *node, const rmq_t &min, const rmq_t &max) const {
+            if (node == nullptr)
+                return false;
             // ------------[--------------]--------------- NODE
             // ------[-----x---]--------------------------
             // -----------------------[---x-----]---------
