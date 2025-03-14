@@ -471,6 +471,22 @@ namespace ex::data {
             return nullptr;
         }
 
+        rmq_t fit_d_min_(const rmq_t &l, const rmq_t &r, const rmq_t &min) const {
+            if (mmeq_(&l, &min) < 0)
+                return r;
+            if (mmeq_(&l, &r) <= 0)
+                return l;
+            return r;
+        }
+
+        rmq_t fit_d_max_(const rmq_t &l, const rmq_t &r, const rmq_t &max) const {
+            if (mmeq_(&r, &max) > 0)
+                return l;
+            if (mmeq_(&r, &l) >= 0)
+                return r;
+            return l;
+        }
+
         bool overlap_(const rmq_node *node, const rmq_t &min, const rmq_t &max) const {
             if (node == nullptr)
                 return false;
