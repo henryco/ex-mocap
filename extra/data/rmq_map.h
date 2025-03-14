@@ -395,7 +395,7 @@ namespace ex::data {
             if (!overlap_(root_, min, max))
                 return nullptr;
 
-            for (rmq_node *head = root_;;) {
+            for (rmq_node *head = root_; head != nullptr;) {
                 if (mmeq_(&min, &(head->rmq) <= 0) &&
                     mmeq_(&max, &(head->rmq) >= 0))
                     return head;
@@ -412,6 +412,8 @@ namespace ex::data {
 
                 return nullptr;
             }
+
+            return nullptr;
         }
 
         rmq_node *range_min() const {
@@ -433,9 +435,15 @@ namespace ex::data {
             // -----------x-----<-| |---------------------
             // minimizing max value
 
-            for (rmq_node *head = root_;;) {
-                // TODO
+            for (rmq_node *head = root_; head != nullptr;) {
+                const rmq_t &n_min = head->min;
+                const rmq_t &n_max = head->max;
+                const rmq_t &n_val = head->rmq;
+
+
             }
+
+            return nullptr;
         }
 
         rmq_node *range_maximize(const rmq_t &max) const {
@@ -445,9 +453,14 @@ namespace ex::data {
             // ---------------| |->-----x----------------
             // maximizing min value
 
-            for (rmq_node *head = root_;;) {
+            for (rmq_node *head = root_; head != nullptr;) {
+                const rmq_t &n_min = head->min;
+                const rmq_t &n_max = head->max;
+                const rmq_t &n_val = head->rmq;
                 // TODO
             }
+
+            return nullptr;
         }
 
         bool overlap_(const rmq_node *node, const rmq_t &min, const rmq_t &max) const {
