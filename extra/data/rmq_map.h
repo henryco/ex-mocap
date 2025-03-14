@@ -381,13 +381,13 @@ namespace ex::data {
         }
 
         // TODO TEST
-        bool range_overlap(const rmq_t &min, const rmq_t &max) const {
-            return overlap_(root_, min, max);
+        bool range_in(const rmq_t &val) const {
+            return overlap_(root_, val, val);
         }
 
         // TODO TEST
-        bool range_overlap(const rmq_t &val) const {
-            return overlap_(root_, val, val);
+        bool range_overlap(const rmq_t &min, const rmq_t &max) const {
+            return overlap_(root_, min, max);
         }
 
         // TODO TEST
@@ -442,12 +442,64 @@ namespace ex::data {
             // r: min_(min_(d_left, d_right), val)
 
             for (rmq_node *head = root_; head != nullptr;) {
-                const rmq_t &n_min = head->min;
-                const rmq_t &n_max = head->max;
-                const rmq_t &n_val = head->rmq;
+                const rmq_t &h_min = head->min;
+                const rmq_t &h_max = head->max;
+                const rmq_t &h_val = head->rmq;
 
+                if (mmeq_(&h_max, &min) < 0) {
+                    return nullptr; // non overlapping ranges
+                }
 
-                return head;
+                rmq_t *l_min = nullptr;
+                if (head->lns != nullptr) {
+                    l_min = &fit_d_min_(head->lns->min, head->lns->max, min);
+                    if (mmeq_(l_min, &min) < 0)
+                        l_min = nullptr;
+                }
+
+                rmq_t *r_min = nullptr;
+                if (head->rns != nullptr) {
+                    r_min = &fit_d_min_(head->rns->min, head->rns->max, min);
+                    if (mmeq_(r_min, &min) < 0)
+                        r_min = nullptr;
+                }
+
+                if (l_min == nullptr && r_min == nullptr) {
+                    if (mmeq_(&h_val, &min) < 0)
+                        return nullptr;
+                    return head;
+                }
+
+                if (l_min == nullptr) {
+                using_r:
+                    if (mmeq_(&h_val, &min) < 0) {
+                        head = head->rns;
+                        continue;
+                    }
+                    if (mmeq_(&h_val, r_min) > 0) {
+                        head = head->rns;
+                        continue;
+                    }
+                    return head;
+                }
+
+                if (r_min == nullptr) {
+                using_l:
+                    if (mmeq_(&h_val, &min) < 0) {
+                        head = head->lns;
+                        continue;
+                    }
+                    if (mmeq_(&h_val, l_min) > 0) {
+                        head = head->lns;
+                        continue;
+                    }
+                    return head;
+                }
+
+                if (mmeq_(l_min, r_min) < 0)
+                    goto using_l;
+
+                goto using_r;
             }
 
             return nullptr;
@@ -478,7 +530,7 @@ namespace ex::data {
             return nullptr;
         }
 
-        rmq_t fit_d_min_(const rmq_t &l, const rmq_t &r, const rmq_t &min) const {
+        rmq_t &fit_d_min_(rmq_t &l, rmq_t &r, const rmq_t &min) const {
             if (mmeq_(&l, &min) < 0)
                 return r;
             if (mmeq_(&l, &r) <= 0)
@@ -486,12 +538,20 @@ namespace ex::data {
             return r;
         }
 
-        rmq_t fit_d_max_(const rmq_t &l, const rmq_t &r, const rmq_t &max) const {
+        rmq_t &fit_d_max_(rmq_t &l, rmq_t &r, const rmq_t &max) const {
             if (mmeq_(&r, &max) > 0)
                 return l;
             if (mmeq_(&r, &l) >= 0)
                 return r;
             return l;
+        }
+
+        rmq_t &min_val_(rmq_t &a, rmq_t &b) const {
+            return mmeq_(&a, &b) < 0 ? a : b;
+        }
+
+        rmq_t &max_val_(rmq_t &a, rmq_t &b) const {
+            return mmeq_(&a, &b) > 0 ? a : b;
         }
 
         bool overlap_(const rmq_node *node, const rmq_t &min, const rmq_t &max) const {
@@ -1175,16 +1235,6 @@ namespace ex::data {
         static void del_watcher_(const allocator &allocator, void *watcher, const watch_fn_t fn) {
             if (allocator.del_watcher != nullptr)
                 allocator.del_watcher(watcher, fn);
-        }
-
-        template <typename T>
-        static T min_val_(const T &a, const T &b) {
-            return (a < b) ? a : b;
-        }
-
-        template <typename T>
-        static T max_val_(const T &a, const T &b) {
-            return (a > b) ? a : b;
         }
     };
 
