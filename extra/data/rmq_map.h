@@ -433,45 +433,18 @@ namespace ex::data {
                 return nullptr;
             // -----------x---------<-| |-----------------
             // -----------x-----<-| |---------------------
-            // minimizing max value
+            // minimizing min/max value
+
+            // -------[---x------]------------------------
+            // ---------[-x--------]----------------------
+            // -----------x-[----]------------------------
+            // d: min_(min,max)
 
             for (rmq_node *head = root_; head != nullptr;) {
                 const rmq_t &n_min = head->min;
                 const rmq_t &n_max = head->max;
                 const rmq_t &n_val = head->rmq;
 
-                if (!overlap_(head, min, min))
-                    return nullptr;
-
-                if (mmeq_(&n_min, &n_val) == 0)
-                    return head;
-
-                const bool l_overlap = overlap_(head->lns, min, min);
-                const bool r_overlap = overlap_(head->rns, min, min);
-
-                if (l_overlap && r_overlap) {
-                    const bool  l_s_r = mmeq_ (&(head->lns->max), &(head->rns->max)) <= 0; // left <= right
-                    const rmq_t h_min = l_s_r ? (head->lns->min) : (head->rns->min);
-                    const rmq_t h_max = l_s_r ? (head->lns->max) : (head->rns->max);
-
-                    if (mmeq_(&n_val, &h_max) <= 0 && mmeq_(&n_val, &h_min) <= 0) {
-                        return head;
-                    }
-
-                    if (l_s_r) head = head->lns;
-                    else       head = head->rns;
-                    continue;
-                }
-
-                if (l_overlap) {
-
-                    continue;
-                }
-
-                if (r_overlap) {
-
-                    continue;
-                }
 
                 return head;
             }
@@ -490,9 +463,6 @@ namespace ex::data {
                 const rmq_t &n_min = head->min;
                 const rmq_t &n_max = head->max;
                 const rmq_t &n_val = head->rmq;
-
-                if (!overlap_(head, max, max))
-                    return nullptr;
 
                 // TODO
             }
