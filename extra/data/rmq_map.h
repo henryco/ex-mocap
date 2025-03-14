@@ -264,6 +264,58 @@ namespace ex::data {
             return true;
         }
 
+        rmq_node *fit(const rmq_t &min) {
+            return fit(&min, nullptr);
+        }
+
+        rmq_node *fit(const rmq_t *min, const rmq_t *max) {
+
+            rmq_node *head = root_;
+            while (head != nullptr) {
+
+                if (mmeq_(&(head->max), min) < 0)
+                    return nullptr;
+
+                // doesnt fit in a current node
+                if (mmeq_(&(head->rmq), min) < 0) {
+
+                    if (head->rns != nullptr && head->lns != nullptr) {
+                        const rmq_t max_l     = head->lns->max;
+                        const rmq_t max_r     = head->rns->max;
+                        const int   direction = select_branch_(&max_l, &max_r, min);
+
+                        if (direction > 0) {
+                            head = head->rns;
+                            continue;
+                        }
+
+                        if (direction < 0) {
+                            head = head->lns;
+                            continue;
+                        }
+                    }
+
+                    else if (head->lns != nullptr && mmeq_(&(head->lns->max), min) >= 0) {
+                        head = head->lns;
+                        continue;
+                    }
+
+                    else if (head->rns != nullptr && mmeq_(&(head->rns->max), min) >= 0) {
+                        head = head->rns;
+                        continue;
+                    }
+
+                    return nullptr;
+                }
+
+                // TODO
+
+                return head;
+            }
+
+            return nullptr;
+        }
+
         val_t &at(const key_t &key) const {
             int direction;
 
@@ -382,6 +434,14 @@ namespace ex::data {
                 return;
 
             remove_node_(node);
+        }
+
+        int select_branch_(const rmq_t *l, const rmq_t *r, const rmq_t *v) const {
+            if (mmeq_(l, r) <= 0 && mmeq_(l, v) >= 0)
+                return -1; // left
+            if (mmeq_(r, l) <= 0 && mmeq_(r, v) >= 0)
+                return 1;  // right
+            return 0;
         }
 
         void update_ranges_(rmq_node *const node, const rmq_node *stop = nullptr) {
