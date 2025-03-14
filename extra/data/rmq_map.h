@@ -427,19 +427,27 @@ namespace ex::data {
         }
 
         rmq_node *range_minimize(const rmq_t &min) const {
+            if (root_ == nullptr)
+                return nullptr;
             // -----------x---------<-| |-----------------
             // -----------x-----<-| |---------------------
             // minimizing max value
 
-            return nullptr;
+            for (rmq_node *head = root_;;) {
+                // TODO
+            }
         }
 
         rmq_node *range_maximize(const rmq_t &max) const {
+            if (root_ == nullptr)
+                return nullptr;
             // ----------| |->----------x----------------
             // ---------------| |->-----x----------------
             // maximizing min value
 
-            return nullptr;
+            for (rmq_node *head = root_;;) {
+                // TODO
+            }
         }
 
         bool overlap_(const rmq_node *node, const rmq_t &min, const rmq_t &max) const {
