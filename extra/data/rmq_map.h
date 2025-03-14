@@ -349,6 +349,20 @@ namespace ex::data {
             root_->col = BLACK_; // just in case
         }
 
+        void remove(const key_t &key) {
+            int direction;
+#ifdef UNIT_TEST
+            rmq_node *node = descend_(root_, key, &direction, &metrics_n_);
+#else
+            rmq_node *node = descend_(root_, key, &direction);
+#endif
+            if (node == nullptr)
+                return;
+            if (direction != 0 || comp_(&key, &(node->key)) != 0)
+                return;
+            remove_node_(node);
+        }
+
         void range_set(const key_t &key, const rmq_t &range) {
             int direction;
 #ifdef UNIT_TEST
@@ -400,15 +414,31 @@ namespace ex::data {
             }
         }
 
-        rmq_node *minimize(const rmq_t &min) const {
-            // -----------X---------<-| |-----------------
-            // -----------X-----<-| |---------------------
+        rmq_node *range_min() const {
+            if (root_ == nullptr)
+                return nullptr;
+            return range_fit(root_->min, root_->min);
+        }
+
+        rmq_node *range_max() const {
+            if (root_ == nullptr)
+                return nullptr;
+            return range_fit(root_->max, root_->max);
+        }
+
+        rmq_node *range_minimize(const rmq_t &min) const {
+            // -----------x---------<-| |-----------------
+            // -----------x-----<-| |---------------------
+            // minimizing max value
+
             return nullptr;
         }
 
-        rmq_node *maximize(const rmq_t &max) const {
-            // ----------| |->----------X----------------
-            // ---------------| |->-----X----------------
+        rmq_node *range_maximize(const rmq_t &max) const {
+            // ----------| |->----------x----------------
+            // ---------------| |->-----x----------------
+            // maximizing min value
+
             return nullptr;
         }
 
@@ -422,24 +452,6 @@ namespace ex::data {
             // --------[---x--------------x---]-----------
             return (mmeq_(&max, &(node->min)) >= 0 &&
                     mmeq_(&min, &(node->max)) <= 0);
-        }
-
-        void remove(const key_t &key) {
-            int direction;
-
-#ifdef UNIT_TEST
-            rmq_node *node = descend_(root_, key, &direction, &metrics_n_);
-#else
-            rmq_node *node = descend_(root_, key, &direction);
-#endif
-
-            if (node == nullptr)
-                return;
-
-            if (direction != 0 || comp_(&key, &(node->key)) != 0)
-                return;
-
-            remove_node_(node);
         }
 
         int select_branch_(const rmq_t *l, const rmq_t *r, const rmq_t *v) const {
