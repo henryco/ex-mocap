@@ -619,21 +619,24 @@ namespace ex::data {
             rmq_node *head = node;
             while (head != nullptr && head != stop) {
 
-                rmq_t min_l = head->rmq, max_l = head->rmq;
-                rmq_t min_r = head->rmq, max_r = head->rmq;
+                rmq_t *min_l = &(head->rmq),
+                      *max_l = &(head->rmq);
+
+                rmq_t *min_r = &(head->rmq),
+                      *max_r = &(head->rmq);
 
                 if (head->lns != nullptr) {
-                    min_l = head->lns->min;
-                    max_l = head->lns->max;
+                    min_l = &(head->lns->min);
+                    max_l = &(head->lns->max);
                 }
 
                 if (head->rns != nullptr) {
-                    min_r = head->rns->min;
-                    max_r = head->rns->max;
+                    min_r = &(head->rns->min);
+                    max_r = &(head->rns->max);
                 }
 
-                head->min = min_val_(head->rmq, min_val_(min_l, min_r));
-                head->max = max_val_(head->rmq, max_val_(max_l, max_r));
+                head->min = min_val_(head->rmq, min_val_(*min_l, *min_r));
+                head->max = max_val_(head->rmq, max_val_(*max_l, *max_r));
 
                 head = head->par;
             }
