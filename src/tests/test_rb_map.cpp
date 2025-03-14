@@ -7,7 +7,7 @@
 #include <iostream>
 #include <map>
 #include <random>
-#include "../../extra/data/data_utils.h"
+#include "../../extra/data/rb_map.h"
 
 using namespace ex::data;
 

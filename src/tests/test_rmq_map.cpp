@@ -8,7 +8,7 @@
 #include <iostream>
 #include <map>
 #include <random>
-#include "../../extra/data/data_utils.h"
+#include "../../extra/data/rmq_map.h"
 
 using namespace ex::data;
 

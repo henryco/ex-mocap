@@ -3,7 +3,7 @@
 //
 
 #include <doctest/doctest.h>
-#include "../../extra/data/data_utils.h"
+#include "../../extra/data/sorted_map.h"
 
 
 TEST_CASE("SortedMap test") {
