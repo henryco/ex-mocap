@@ -377,7 +377,7 @@ namespace ex::data {
         }
 
         // TODO TEST
-        rmq_node *range_find(const rmq_t &min, const rmq_t &max) const {
+        rmq_node *range_fit(const rmq_t &min, const rmq_t &max) const {
             if (!overlap_(root_, min, max))
                 return nullptr;
 
@@ -400,10 +400,22 @@ namespace ex::data {
             }
         }
 
+        rmq_node *minimize(const rmq_t &min) const {
+            // -----------X---------<-| |-----------------
+            // -----------X-----<-| |---------------------
+            return nullptr;
+        }
+
+        rmq_node *maximize(const rmq_t &max) const {
+            // ----------| |->----------X----------------
+            // ---------------| |->-----X----------------
+            return nullptr;
+        }
+
         bool overlap_(const rmq_node *node, const rmq_t &min, const rmq_t &max) const {
             if (node == nullptr)
                 return false;
-            // ------------[-x-x------x-x-]--------------- NODE
+            // ------------[-x-x------x-x-]---------- NODE
             // ------[-----x---]--------------------------
             // -----------------------[---x-----]---------
             // --------------[----------]-----------------
