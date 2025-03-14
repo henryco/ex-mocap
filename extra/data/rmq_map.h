@@ -460,6 +460,12 @@ namespace ex::data {
             // ---------------| |->-----x----------------
             // maximizing min value
 
+            // -----------------[-------x---]------------
+            // ----------------[--------x-]--------------
+            // ------------------[----]-x----------------
+            // d: max_(min,max)
+            // r: max_(max_(d_left, d_right), val)
+
             for (rmq_node *head = root_; head != nullptr;) {
                 const rmq_t &n_min = head->min;
                 const rmq_t &n_max = head->max;
