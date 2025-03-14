@@ -462,7 +462,7 @@ namespace ex::data {
                     mmeq_(&min, &(node->max)) <= 0);
         }
 
-        int select_branch_(const rmq_t *l, const rmq_t *r, const rmq_t *v) const {
+        int select_min_(const rmq_t *l, const rmq_t *r, const rmq_t *v) const {
             if (mmeq_(l, r) <= 0 && mmeq_(l, v) >= 0)
                 return -1; // left
             if (mmeq_(r, l) <= 0 && mmeq_(r, v) >= 0)
