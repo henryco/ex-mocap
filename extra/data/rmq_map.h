@@ -264,58 +264,6 @@ namespace ex::data {
             return true;
         }
 
-        rmq_node *fit(const rmq_t &min) {
-            return fit(&min, nullptr);
-        }
-
-        rmq_node *fit(const rmq_t *min, const rmq_t *max) {
-
-            rmq_node *head = root_;
-            while (head != nullptr) {
-
-                if (mmeq_(&(head->max), min) < 0)
-                    return nullptr;
-
-                // doesnt fit in a current node
-                if (mmeq_(&(head->rmq), min) < 0) {
-
-                    if (head->rns != nullptr && head->lns != nullptr) {
-                        const rmq_t max_l     = head->lns->max;
-                        const rmq_t max_r     = head->rns->max;
-                        const int   direction = select_branch_(&max_l, &max_r, min);
-
-                        if (direction > 0) {
-                            head = head->rns;
-                            continue;
-                        }
-
-                        if (direction < 0) {
-                            head = head->lns;
-                            continue;
-                        }
-                    }
-
-                    else if (head->lns != nullptr && mmeq_(&(head->lns->max), min) >= 0) {
-                        head = head->lns;
-                        continue;
-                    }
-
-                    else if (head->rns != nullptr && mmeq_(&(head->rns->max), min) >= 0) {
-                        head = head->rns;
-                        continue;
-                    }
-
-                    return nullptr;
-                }
-
-                // TODO
-
-                return head;
-            }
-
-            return nullptr;
-        }
-
         val_t &at(const key_t &key) const {
             int direction;
 
@@ -401,7 +349,7 @@ namespace ex::data {
             root_->col = BLACK_; // just in case
         }
 
-        void set_range(const key_t &key, const rmq_t &range) {
+        void range_set(const key_t &key, const rmq_t &range) {
             int direction;
 #ifdef UNIT_TEST
             rmq_node *node = descend_(root_, key, &direction, &metrics_n_);
@@ -416,6 +364,20 @@ namespace ex::data {
 
             node->rmq = range;
             update_ranges_(node);
+        }
+
+        bool range_overlap(const rmq_t &min, const rmq_t &max) const {
+            return overlap_(root_, min, max);
+        }
+
+        bool overlap_(const rmq_node *node, const rmq_t &min, const rmq_t &max) const {
+            // ------------[--------------]--------------- NODE
+            // ------[-----x---]--------------------------
+            // -----------------------[---x-----]---------
+            // --------------[----------]-----------------
+            // --------[---x--------------x---]-----------
+            return (mmeq_(&max, &(node->min)) >= 0 &&
+                    mmeq_(&min, &(node->max)) <= 0);
         }
 
         void remove(const key_t &key) {
