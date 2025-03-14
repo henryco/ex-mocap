@@ -363,6 +363,7 @@ namespace ex::data {
             remove_node_(node);
         }
 
+        // TODO TEST
         void range_set(const key_t &key, const rmq_t &range) {
             int direction;
 #ifdef UNIT_TEST
@@ -618,8 +619,8 @@ namespace ex::data {
             rmq_node *head = node;
             while (head != nullptr && head != stop) {
 
-                int min_l = head->rmq, max_l = head->rmq;
-                int min_r = head->rmq, max_r = head->rmq;
+                rmq_t min_l = head->rmq, max_l = head->rmq;
+                rmq_t min_r = head->rmq, max_r = head->rmq;
 
                 if (head->lns != nullptr) {
                     min_l = head->lns->min;
