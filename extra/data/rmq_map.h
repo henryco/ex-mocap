@@ -465,6 +465,7 @@ namespace ex::data {
                 const rmq_t &n_val = head->rmq;
 
                 // TODO
+                return head;
             }
 
             return nullptr;
