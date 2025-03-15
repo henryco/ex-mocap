@@ -425,7 +425,9 @@ namespace ex::data {
             return range_fit(root_->max, root_->max);
         }
 
-        // TODO TEST
+        /**
+         * Finds smallest value that is greater or equal to limit
+         */
         rmq_node *range_minimize(const rmq_t &limit) const {
             if (root_ == nullptr)
                 return nullptr;
@@ -501,7 +503,9 @@ namespace ex::data {
             return nullptr;
         }
 
-        // TODO TEST
+        /**
+         * Finds largest value that is smaller or equal to limit
+         */
         rmq_node *range_maximize(const rmq_t &limit) const {
             if (root_ == nullptr)
                 return nullptr;
