@@ -429,6 +429,7 @@ namespace ex::data {
          * Finds smallest value that is greater or equal to limit
          */
         rmq_node *range_minimize(const rmq_t &limit) const {
+            // TODO FIXME
             if (root_ == nullptr)
                 return nullptr;
             // -----------x---------<-| |----------------
@@ -507,6 +508,7 @@ namespace ex::data {
          * Finds largest value that is smaller or equal to limit
          */
         rmq_node *range_maximize(const rmq_t &limit) const {
+            // TODO FIXME
             if (root_ == nullptr)
                 return nullptr;
             // ----------| |->----------x----------------
