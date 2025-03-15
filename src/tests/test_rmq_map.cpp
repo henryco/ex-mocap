@@ -197,6 +197,11 @@ TEST_CASE("RMQ Tree map range tests") {
 
             const bool overlap = tree.range_overlap(lo, hi);
             CHECK(overlap);
+
+            const bool in_lo = tree.range_in(lo - 1);
+            const bool in_hi = tree.range_in(hi);
+            CHECK_FALSE(in_lo);
+            CHECK(in_hi);
         }
     }
 
@@ -220,6 +225,11 @@ TEST_CASE("RMQ Tree map range tests") {
 
             const bool overlap = tree.range_overlap(lo, hi);
             CHECK(overlap);
+
+            const bool in_lo = tree.range_in(lo);
+            const bool in_hi = tree.range_in(hi + 1);
+            CHECK(in_lo);
+            CHECK_FALSE(in_hi);
         }
     }
 
@@ -243,6 +253,11 @@ TEST_CASE("RMQ Tree map range tests") {
 
             const bool overlap = tree.range_overlap(lo, hi);
             CHECK(overlap);
+
+            const bool in_lo = tree.range_in(lo - 1);
+            const bool in_hi = tree.range_in(hi + 1);
+            CHECK_FALSE(in_lo);
+            CHECK_FALSE(in_hi);
         }
     }
 
