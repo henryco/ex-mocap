@@ -397,12 +397,15 @@ namespace ex::data {
                     mmeq_(&max, &(head->rmq)) >= 0)
                     return head;
 
-                if (overlap_(head->lns, min, max)) {
+                const bool overlap_l = overlap_(head->lns, min, max);
+                const bool overlap_r = overlap_(head->rns, min, max);
+
+                if (overlap_l) {
                     head = head->lns;
                     continue;
                 }
 
-                if (overlap_(head->rns, min, max)) {
+                if (overlap_r) {
                     head = head->rns;
                     continue;
                 }

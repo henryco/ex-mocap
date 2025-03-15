@@ -470,6 +470,8 @@ TEST_CASE("RMQ Tree map range tests") {
 
         CHECK(max_value != (-1));
 
+//        const bool contains = tree.range_fit()
+
         const auto max_ = tree.range_maximize(lim);
         CHECK(max_ != nullptr);
 
