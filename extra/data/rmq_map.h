@@ -426,7 +426,7 @@ namespace ex::data {
         }
 
         // TODO TEST
-        rmq_node *range_minimize(const rmq_t &min) const {
+        rmq_node *range_minimize(const rmq_t &limit) const {
             if (root_ == nullptr)
                 return nullptr;
             // -----------x---------<-| |----------------
@@ -436,39 +436,39 @@ namespace ex::data {
             // -------[---x------]------------------- rns
             // ---------[-x--------]----------------- rns
             // -----------x-[----]------------------- lns
-            // d: min_(range_min, range_max) && >= x (min)
+            // d: min_(range_min, range_max) &&  >= limit
             // r: min_(min_(d_left, d_right), val)
 
             for (rmq_node *head = root_; head != nullptr;) {
                 const rmq_t &h_max = head->max;
                 const rmq_t &h_val = head->rmq;
 
-                if (mmeq_(&h_max, &min) < 0)
+                if (mmeq_(&h_max, &limit) < 0)
                     return nullptr; // non overlapping ranges
 
                 rmq_t *l_min = nullptr;
                 if (head->lns != nullptr) {
-                    l_min = &fit_d_min_(head->lns->min, head->lns->max, min);
-                    if (mmeq_(l_min, &min) < 0)
+                    l_min = &fit_d_min_(head->lns->min, head->lns->max, limit);
+                    if (mmeq_(l_min, &limit) < 0)
                         l_min = nullptr;
                 }
 
                 rmq_t *r_min = nullptr;
                 if (head->rns != nullptr) {
-                    r_min = &fit_d_min_(head->rns->min, head->rns->max, min);
-                    if (mmeq_(r_min, &min) < 0)
+                    r_min = &fit_d_min_(head->rns->min, head->rns->max, limit);
+                    if (mmeq_(r_min, &limit) < 0)
                         r_min = nullptr;
                 }
 
                 if (l_min == nullptr && r_min == nullptr) {
-                    if (mmeq_(&h_val, &min) < 0)
+                    if (mmeq_(&h_val, &limit) < 0)
                         return nullptr;
                     return head;
                 }
 
                 if (l_min == nullptr) {
                 using_r:
-                    if (mmeq_(&h_val, &min) < 0) {
+                    if (mmeq_(&h_val, &limit) < 0) {
                         head = head->rns;
                         continue;
                     }
@@ -481,7 +481,7 @@ namespace ex::data {
 
                 if (r_min == nullptr) {
                 using_l:
-                    if (mmeq_(&h_val, &min) < 0) {
+                    if (mmeq_(&h_val, &limit) < 0) {
                         head = head->lns;
                         continue;
                     }
@@ -502,7 +502,7 @@ namespace ex::data {
         }
 
         // TODO TEST
-        rmq_node *range_maximize(const rmq_t &max) const {
+        rmq_node *range_maximize(const rmq_t &limit) const {
             if (root_ == nullptr)
                 return nullptr;
             // ----------| |->----------x----------------
@@ -512,39 +512,39 @@ namespace ex::data {
             // -----------------[-------x---]-------- lns
             // ----------------[--------x-]---------- lsn
             // ------------------[----]-x------------ rns
-            // d: max_(range_min, range_max) && <= x (max)
+            // d: max_(range_min, range_max) &&  <= limit
             // r: max_(max_(d_left, d_right), val)
 
            for (rmq_node *head = root_; head != nullptr;) {
                 const rmq_t &h_min = head->min;
                 const rmq_t &h_val = head->rmq;
 
-                if (mmeq_(&h_min, &max) > 0)
+                if (mmeq_(&h_min, &limit) > 0)
                     return nullptr; // non overlapping ranges
 
                 rmq_t *l_max = nullptr;
                 if (head->lns != nullptr) {
-                    l_max = &fit_d_max_(head->lns->min, head->lns->max, max);
-                    if (mmeq_(l_max, &max) > 0)
+                    l_max = &fit_d_max_(head->lns->min, head->lns->max, limit);
+                    if (mmeq_(l_max, &limit) > 0)
                         l_max = nullptr;
                 }
 
                 rmq_t *r_max = nullptr;
                 if (head->rns != nullptr) {
-                    r_max = &fit_d_max_(head->rns->min, head->rns->max, max);
-                    if (mmeq_(r_max, &max) > 0)
+                    r_max = &fit_d_max_(head->rns->min, head->rns->max, limit);
+                    if (mmeq_(r_max, &limit) > 0)
                         r_max = nullptr;
                 }
 
                 if (l_max == nullptr && r_max == nullptr) {
-                    if (mmeq_(&h_val, &max) > 0)
+                    if (mmeq_(&h_val, &limit) > 0)
                         return nullptr;
                     return head;
                 }
 
                 if (l_max == nullptr) {
                 using_r:
-                    if (mmeq_(&h_val, &max) > 0) {
+                    if (mmeq_(&h_val, &limit) > 0) {
                         head = head->rns;
                         continue;
                     }
@@ -557,7 +557,7 @@ namespace ex::data {
 
                 if (r_max == nullptr) {
                 using_l:
-                    if (mmeq_(&h_val, &max) > 0) {
+                    if (mmeq_(&h_val, &limit) > 0) {
                         head = head->lns;
                         continue;
                     }
