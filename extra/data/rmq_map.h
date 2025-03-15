@@ -381,7 +381,6 @@ namespace ex::data {
             update_ranges_(node);
         }
 
-        // TODO TEST
         bool range_in(const rmq_t &val) const {
             return overlap_(root_, val, val);
         }
