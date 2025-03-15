@@ -349,6 +349,46 @@ TEST_CASE("RMQ Tree map range tests") {
         CHECK(min_v == min_value);
         CHECK(max_v == max_value);
     }
+
+    SUBCASE("rmq_map range fit checks") {
+        rmq_map<int, int> tree;
+
+        for (int i = 1; i <= 1000; ++i) {
+            const int val = i * 2500;
+            tree.put(i, i, val);
+        }
+
+        std::mt19937 rng(231504987);
+        std::uniform_int_distribution dist(0, 5000000);
+
+        for (int i = 0; i < 100000; ++i) {
+            const int a_ = dist(rng);
+            const int b_ = dist(rng);
+            const int lo = a_ < b_ ? a_ : b_;
+            const int hi = a_ > b_ ? a_ : b_;
+
+            const int a = lo / 2500;
+            const int b = hi / 2500;
+
+            const auto fit = tree.range_fit(lo, hi);
+            const bool is_nullptr = fit == nullptr;
+
+            if (hi < 2500 || lo > 2500000) {
+                // outside the range
+                CHECK(is_nullptr);
+                continue;
+            }
+
+            if (b - a == 0 && a * 2500 != lo && b * 2500 != hi) {
+                // smaller than discrete insert steps of 2500
+                CHECK(is_nullptr);
+                continue;
+            }
+
+            CHECK_FALSE(is_nullptr);
+            CHECK( (fit->rmq % 2500) == 0 );
+        }
+    }
 }
 
 TEST_CASE("RMQ Tree map stress tests") {
