@@ -412,7 +412,32 @@ TEST_CASE("RMQ Tree map range tests") {
         }
     }
 
-    // TODO SINGULAR FIT TEST
+    SUBCASE("rmq_map range random fit checks") {
+        constexpr int max_size = 1000000;
+
+        rmq_map<int, int> tree;
+        std::mt19937 rng(138563984);
+        std::uniform_int_distribution dist(0, max_size - 1);
+
+        for (int i = 0; i < max_size; ++i) {
+            tree.put(i, i, (i % 2 == 0) ? i :(i + 1));
+        }
+
+        for (int i = 0; i < 10000; ++i) {
+            const int  index = dist(rng);
+            const auto fit   = tree.range_fit(index);
+            const int  value = fit ? fit->rmq : (-1);
+
+            if (index % 2 != 0) {
+                CHECK(fit == nullptr);
+                continue;
+            }
+
+            INFO("FIT VALUE, SHOULD: " << index << " vs HAVE: " << value);
+            CHECK(fit != nullptr);
+            CHECK(value == index);
+        }
+    }
 
     SUBCASE("rmq_map range update checks") {
         rmq_map<int, int> tree;
