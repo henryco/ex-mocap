@@ -493,8 +493,11 @@ TEST_CASE("RMQ Tree map range tests") {
 
         CHECK(min_value != values_range);
 
+        const auto min_node = tree.range_fit(min_value);
+        CHECK(min_node != nullptr);
+
         const auto min_ = tree.range_minimize(lim);
-        CHECK(min_ != nullptr);
+        CHECK(min_ != nullptr); // TODO FIXME
 
         const int have_value = min_->rmq;
 
@@ -525,10 +528,11 @@ TEST_CASE("RMQ Tree map range tests") {
 
         CHECK(max_value != (-1));
 
-//        const bool contains = tree.range_fit(max_value);
+        const auto max_node = tree.range_fit(max_value);
+        CHECK(max_node != nullptr);
 
         const auto max_ = tree.range_maximize(lim);
-        CHECK(max_ != nullptr);
+        CHECK(max_ != nullptr); // TODO FIXME
 
         const int have_value = max_->rmq;
 
