@@ -396,9 +396,10 @@ namespace ex::data {
             if (!overlap_(root_, min, max))
                 return nullptr;
 
-            rmq_node *stack_[64] = {};
-            bool      stack_jump = false;
-            int       stack_size = 0;
+#define MAX_STACK_SIZE__ 64
+            rmq_node *stack_[MAX_STACK_SIZE__] = {};
+            bool      stack_jump               = false;
+            int       stack_size               = 0;
 
             for (rmq_node *head = root_; head != nullptr;) {
                 if (mmeq_(&min, &(head->rmq)) <= 0 &&
@@ -413,6 +414,10 @@ namespace ex::data {
                         stack_jump = false;
                         head = head->rns;
                         continue;
+                    }
+
+                    if (stack_size >= MAX_STACK_SIZE__) {
+                        ::abort();
                     }
 
                     stack_[stack_size++] = head;
