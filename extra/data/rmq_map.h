@@ -436,7 +436,7 @@ namespace ex::data {
             // -------[---x------]------------------------
             // ---------[-x--------]----------------------
             // -----------x-[----]------------------------
-            // d: min_(min,max)
+            // d: min_(range_min, range_max) && >= min
             // r: min_(min_(d_left, d_right), val)
 
             for (rmq_node *head = root_; head != nullptr;) {
@@ -512,7 +512,7 @@ namespace ex::data {
             // -----------------[-------x---]------------
             // ----------------[--------x-]--------------
             // ------------------[----]-x----------------
-            // d: max_(min,max)
+            // d: max_(range_min, range_max) && <= max
             // r: max_(max_(d_left, d_right), val)
 
            for (rmq_node *head = root_; head != nullptr;) {
