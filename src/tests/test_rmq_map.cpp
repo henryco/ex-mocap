@@ -420,7 +420,7 @@ TEST_CASE("RMQ Tree map range tests") {
         std::mt19937 rng(213769420);
 
         constexpr int values_range = 100000000;
-        constexpr int tree_size    = 10000;
+        constexpr int tree_size    = 100000;
 
         std::uniform_int_distribution dist_1(0, values_range - 1);
 
@@ -441,8 +441,10 @@ TEST_CASE("RMQ Tree map range tests") {
         const auto min = tree.range_minimize(lim);
         CHECK(min != nullptr);
 
-        INFO("Min value for given limit: " << lim << " SHOULD: " << min_value);
-        CHECK(min_value == (min->rmq));
+        const int have_value = min->rmq;
+
+        INFO("Min value for given limit: " << lim << " SHOULD: " << min_value << " HAVE: " << have_value);
+        CHECK(min_value == have_value);
     }
 
     SUBCASE("rmq_map range maximize checks") {
