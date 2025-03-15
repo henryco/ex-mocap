@@ -429,14 +429,14 @@ namespace ex::data {
         rmq_node *range_minimize(const rmq_t &min) const {
             if (root_ == nullptr)
                 return nullptr;
-            // -----------x---------<-| |-----------------
-            // -----------x-----<-| |---------------------
+            // -----------x---------<-| |----------------
+            // -----------x-----<-| |--------------------
             // minimizing min/max value
 
-            // -------[---x------]-------------------- max
-            // ---------[-x--------]------------------ max
-            // -----------x-[----]-------------------- min
-            // d: min_(range_min, range_max) && >= min
+            // -------[---x------]------------------- max
+            // ---------[-x--------]----------------- max
+            // -----------x-[----]------------------- min
+            // d: min_(range_min, range_max) && >= x (min)
             // r: min_(min_(d_left, d_right), val)
 
             for (rmq_node *head = root_; head != nullptr;) {
@@ -512,7 +512,7 @@ namespace ex::data {
             // -----------------[-------x---]-------- min
             // ----------------[--------x-]---------- min
             // ------------------[----]-x------------ max
-            // d: max_(range_min, range_max) && <= max
+            // d: max_(range_min, range_max) && <= x (max)
             // r: max_(max_(d_left, d_right), val)
 
            for (rmq_node *head = root_; head != nullptr;) {
