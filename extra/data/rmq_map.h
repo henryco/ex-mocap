@@ -392,6 +392,10 @@ namespace ex::data {
             if (!overlap_(root_, min, max))
                 return nullptr;
 
+            rmq_node *stack_[64] = {};
+            bool      stack_jump = false;
+            int       stack_size = 0;
+
             for (rmq_node *head = root_; head != nullptr;) {
                 if (mmeq_(&min, &(head->rmq)) <= 0 &&
                     mmeq_(&max, &(head->rmq)) >= 0)
@@ -400,6 +404,18 @@ namespace ex::data {
                 const bool overlap_l = overlap_(head->lns, min, max);
                 const bool overlap_r = overlap_(head->rns, min, max);
 
+                if (overlap_l && overlap_r) {
+                    if (stack_jump) {
+                        stack_jump = false;
+                        head = head->rns;
+                        continue;
+                    }
+
+                    stack_[stack_size++] = head;
+                    head = head->lns;
+                    continue;
+                }
+
                 if (overlap_l) {
                     head = head->lns;
                     continue;
@@ -407,6 +423,12 @@ namespace ex::data {
 
                 if (overlap_r) {
                     head = head->rns;
+                    continue;
+                }
+
+                if (stack_size > 0) {
+                    stack_jump = true;
+                    head = stack_[--stack_size];
                     continue;
                 }
 
