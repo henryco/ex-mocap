@@ -413,15 +413,21 @@ TEST_CASE("RMQ Tree map range tests") {
     }
 
     SUBCASE("rmq_map range random fit checks") {
-        constexpr int max_size = 1000000;
+        constexpr int max_size   = 250000;
+        constexpr int duplicates = 4;
 
         rmq_map<int, int> tree;
         std::mt19937 rng(138563984);
         std::uniform_int_distribution dist(0, max_size - 1);
 
-        for (int i = 0; i < max_size; ++i) {
-            tree.put(i, i, (i % 2 == 0) ? i :(i + 1));
+        for (int j = 0; j < duplicates; ++j) {
+            for (int i = 0; i < max_size; ++i) {
+                const int k = i + (j * max_size);
+                tree.put(k, k, (i % 2 == 0) ? i : (i + 1));
+            }
         }
+
+        CHECK(tree.size() == (max_size * duplicates));
 
         for (int i = 0; i < 10000; ++i) {
             const int  index = dist(rng);
