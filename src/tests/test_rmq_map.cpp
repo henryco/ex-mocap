@@ -149,6 +149,148 @@ TEST_CASE("RMQ Tree map tests") {
 
 }
 
+TEST_CASE("RMQ Tree map range tests") {
+    SUBCASE("rmq_map basic range overlap mid checks") {
+        rmq_map<int, int> tree;
+
+        for (int i = 1; i <= 1000; ++i) {
+            const int val = i * 25;
+            tree.put(i, i, val);
+        }
+
+        std::mt19937 rng(231504987);
+        std::uniform_int_distribution op_dist(25, 25000);
+
+        for (int i = 0; i < 100000; ++i) {
+            const int a_ = op_dist(rng);
+            const int b_ = op_dist(rng);
+            const int lo = a_ < b_ ? a_ : b_;
+            const int hi = a_ > b_ ? a_ : b_;
+
+            const bool overlap = tree.range_overlap(lo, hi);
+            CHECK(overlap);
+
+            const bool in_lo = tree.range_in(lo);
+            const bool in_hi = tree.range_in(hi);
+            CHECK(in_lo);
+            CHECK(in_hi);
+        }
+    }
+
+    SUBCASE("rmq_map basic range overlap left checks") {
+        rmq_map<int, int> tree;
+
+        for (int i = 1; i <= 1000; ++i) {
+            const int val = i * 2500;
+            tree.put(i, i, val);
+        }
+
+        std::mt19937 rng(231504987);
+        std::uniform_int_distribution dist_l(0, 2500);
+        std::uniform_int_distribution dist_r(2500, 2500000);
+
+        for (int i = 0; i < 100000; ++i) {
+            const int a_ = dist_l(rng);
+            const int b_ = dist_r(rng);
+            const int lo = a_ < b_ ? a_ : b_;
+            const int hi = a_ > b_ ? a_ : b_;
+
+            const bool overlap = tree.range_overlap(lo, hi);
+            CHECK(overlap);
+        }
+    }
+
+    SUBCASE("rmq_map basic range overlap right checks") {
+        rmq_map<int, int> tree;
+
+        for (int i = 1; i <= 1000; ++i) {
+            const int val = i * 2500;
+            tree.put(i, i, val);
+        }
+
+        std::mt19937 rng(231504987);
+        std::uniform_int_distribution dist_l(2500, 2500000);
+        std::uniform_int_distribution dist_r(2500000, 5000000);
+
+        for (int i = 0; i < 100000; ++i) {
+            const int a_ = dist_l(rng);
+            const int b_ = dist_r(rng);
+            const int lo = a_ < b_ ? a_ : b_;
+            const int hi = a_ > b_ ? a_ : b_;
+
+            const bool overlap = tree.range_overlap(lo, hi);
+            CHECK(overlap);
+        }
+    }
+
+    SUBCASE("rmq_map basic range overlap full checks") {
+        rmq_map<int, int> tree;
+
+        for (int i = 1; i <= 1000; ++i) {
+            const int val = i * 2500;
+            tree.put(i, i, val);
+        }
+
+        std::mt19937 rng(231504987);
+        std::uniform_int_distribution dist_l(0, 2500);
+        std::uniform_int_distribution dist_r(2500000, 5000000);
+
+        for (int i = 0; i < 100000; ++i) {
+            const int a_ = dist_l(rng);
+            const int b_ = dist_r(rng);
+            const int lo = a_ < b_ ? a_ : b_;
+            const int hi = a_ > b_ ? a_ : b_;
+
+            const bool overlap = tree.range_overlap(lo, hi);
+            CHECK(overlap);
+        }
+    }
+
+    SUBCASE("rmq_map basic range overlap out left checks") {
+        rmq_map<int, int> tree;
+
+        for (int i = 1; i <= 1000; ++i) {
+            const int val = i * 2500;
+            tree.put(i, i, val);
+        }
+
+        std::mt19937 rng(231504987);
+        std::uniform_int_distribution dist(0, 2499);
+
+        for (int i = 0; i < 100000; ++i) {
+            const int a_ = dist(rng);
+            const int b_ = dist(rng);
+            const int lo = a_ < b_ ? a_ : b_;
+            const int hi = a_ > b_ ? a_ : b_;
+
+            const bool overlap = tree.range_overlap(lo, hi);
+            CHECK_FALSE(overlap);
+        }
+    }
+
+    SUBCASE("rmq_map basic range overlap out right checks") {
+        rmq_map<int, int> tree;
+
+        for (int i = 1; i <= 1000; ++i) {
+            const int val = i * 2500;
+            tree.put(i, i, val);
+        }
+
+        std::mt19937 rng(231504987);
+        std::uniform_int_distribution dist(2500001, 9000000);
+
+        for (int i = 0; i < 100000; ++i) {
+            const int a_ = dist(rng);
+            const int b_ = dist(rng);
+            const int lo = a_ < b_ ? a_ : b_;
+            const int hi = a_ > b_ ? a_ : b_;
+
+            const bool overlap = tree.range_overlap(lo, hi);
+            CHECK_FALSE(overlap);
+        }
+    }
+}
+
 TEST_CASE("RMQ Tree map stress tests") {
 
     SUBCASE("rmq_map sequential insertion ascending order") {

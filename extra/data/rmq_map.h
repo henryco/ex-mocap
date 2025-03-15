@@ -386,7 +386,6 @@ namespace ex::data {
             return overlap_(root_, val, val);
         }
 
-        // TODO TEST
         bool range_overlap(const rmq_t &min, const rmq_t &max) const {
             return overlap_(root_, min, max);
         }
