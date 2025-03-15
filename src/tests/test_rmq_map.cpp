@@ -438,17 +438,45 @@ TEST_CASE("RMQ Tree map range tests") {
 
         CHECK(min_value != values_range);
 
-        const auto min = tree.range_minimize(lim);
-        CHECK(min != nullptr);
+        const auto min_ = tree.range_minimize(lim);
+        CHECK(min_ != nullptr);
 
-        const int have_value = min->rmq;
+        const int have_value = min_->rmq;
 
-        INFO("Min value for given limit: " << lim << " SHOULD: " << min_value << " HAVE: " << have_value);
+        INFO("MIN value for given limit: " << lim << ", SHOULD: " << min_value << " vs HAVE: " << have_value);
         CHECK(min_value == have_value);
     }
 
     SUBCASE("rmq_map range maximize checks") {
-        // TODO
+        rmq_map<int, int> tree;
+        std::mt19937 rng(213769420);
+
+        constexpr int values_range = 100000000;
+        constexpr int tree_size    = 100000;
+
+        std::uniform_int_distribution dist_1(0, values_range - 1);
+
+        const int lim        = dist_1(rng);
+        const int init_value = dist_1(rng);
+        int       max_value  = init_value <= lim ? init_value : (-1);
+
+        tree.put(0, 0, init_value);
+
+        for (int i = 1; i < tree_size; ++i) {
+            const int val = dist_1(rng);
+            tree.put(i, i, val);
+            max_value = (val > max_value && val <= lim) ? val : max_value;
+        }
+
+        CHECK(max_value != (-1));
+
+        const auto max_ = tree.range_maximize(lim);
+        CHECK(max_ != nullptr);
+
+        const int have_value = max_->rmq;
+
+        INFO("MAX value for given limit: " << lim << ", SHOULD: " << max_value << " vs HAVE: " << have_value);
+        CHECK(max_value == have_value);
     }
 }
 
