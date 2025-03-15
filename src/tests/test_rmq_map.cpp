@@ -412,6 +412,8 @@ TEST_CASE("RMQ Tree map range tests") {
         }
     }
 
+    // TODO SINGULAR FIT TEST
+
     SUBCASE("rmq_map range update checks") {
         rmq_map<int, int> tree;
         std::mt19937 rng_1(1324059768);
