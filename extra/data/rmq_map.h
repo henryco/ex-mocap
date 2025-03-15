@@ -388,7 +388,6 @@ namespace ex::data {
             return overlap_(root_, min, max);
         }
 
-        // TODO
         rmq_node *range_fit(const rmq_t &val) const {
             return range_fit(val, val);
         }

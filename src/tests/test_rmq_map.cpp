@@ -373,7 +373,27 @@ TEST_CASE("RMQ Tree map range tests") {
             const auto fit = tree.range_fit(lo, hi);
             const bool is_nullptr = fit == nullptr;
 
-            // TODO
+            if (const int A = a * 2500; A >= 2500 && A <= 2500000) {
+                const auto fit_a = tree.range_fit(A);
+                INFO("Fit A != nullptr: " << A);
+                CHECK(fit_a != nullptr);
+                CHECK(fit_a->rmq == A);
+            } else {
+                const auto fit_a = tree.range_fit(A);
+                INFO("Fit A == nullptr: " << A);
+                CHECK(fit_a == nullptr);
+            }
+
+            if (const int B = b * 2500; B >= 2500 && B <= 2500000) {
+                const auto fit_b = tree.range_fit(B);
+                INFO("Fit B != nullptr: " << B);
+                CHECK(fit_b != nullptr);
+                CHECK(fit_b->rmq == B);
+            } else {
+                const auto fit_b = tree.range_fit(B);
+                INFO("Fit B == nullptr: " << B);
+                CHECK(fit_b == nullptr);
+            }
 
             if (hi < 2500 || lo > 2500000) {
                 // outside the range
