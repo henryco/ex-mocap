@@ -555,7 +555,7 @@ namespace ex::data {
             // d: max_(range_min, range_max) &&  <= limit
             // r: max_(max_(d_left, d_right), val)
 
-           for (rmq_node *head = root_; head != nullptr;) {
+            for (rmq_node *head = root_; head != nullptr;) {
                 const rmq_t &h_min = head->min;
                 const rmq_t &h_val = head->rmq;
 
