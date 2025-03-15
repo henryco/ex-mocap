@@ -397,9 +397,9 @@ namespace ex::data {
                 return nullptr;
 
 #define MAX_STACK_SIZE__ 64
-            rmq_node *stack_[MAX_STACK_SIZE__] = {};
-            bool      stack_jump               = false;
-            int       stack_size               = 0;
+            rmq_node *stack_[MAX_STACK_SIZE__];
+            bool      stack_jump = false;
+            int       stack_size = 0;
 
             for (rmq_node *head = root_; head != nullptr;) {
                 if (mmeq_(&min, &(head->rmq)) <= 0 &&
