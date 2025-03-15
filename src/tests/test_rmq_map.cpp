@@ -150,7 +150,7 @@ TEST_CASE("RMQ Tree map tests") {
 }
 
 TEST_CASE("RMQ Tree map range tests") {
-    SUBCASE("rmq_map basic range overlap mid checks") {
+    SUBCASE("rmq_map range overlap mid checks") {
         rmq_map<int, int> tree;
 
         for (int i = 1; i <= 1000; ++i) {
@@ -177,7 +177,7 @@ TEST_CASE("RMQ Tree map range tests") {
         }
     }
 
-    SUBCASE("rmq_map basic range overlap left checks") {
+    SUBCASE("rmq_map range overlap left checks") {
         rmq_map<int, int> tree;
 
         for (int i = 1; i <= 1000; ++i) {
@@ -205,7 +205,7 @@ TEST_CASE("RMQ Tree map range tests") {
         }
     }
 
-    SUBCASE("rmq_map basic range overlap right checks") {
+    SUBCASE("rmq_map range overlap right checks") {
         rmq_map<int, int> tree;
 
         for (int i = 1; i <= 1000; ++i) {
@@ -233,7 +233,7 @@ TEST_CASE("RMQ Tree map range tests") {
         }
     }
 
-    SUBCASE("rmq_map basic range overlap full checks") {
+    SUBCASE("rmq_map range overlap full checks") {
         rmq_map<int, int> tree;
 
         for (int i = 1; i <= 1000; ++i) {
@@ -261,7 +261,7 @@ TEST_CASE("RMQ Tree map range tests") {
         }
     }
 
-    SUBCASE("rmq_map basic range overlap out left checks") {
+    SUBCASE("rmq_map range overlap out left checks") {
         rmq_map<int, int> tree;
 
         for (int i = 1; i <= 1000; ++i) {
@@ -288,7 +288,7 @@ TEST_CASE("RMQ Tree map range tests") {
         }
     }
 
-    SUBCASE("rmq_map basic range overlap out right checks") {
+    SUBCASE("rmq_map range overlap out right checks") {
         rmq_map<int, int> tree;
 
         for (int i = 1; i <= 1000; ++i) {
@@ -313,6 +313,41 @@ TEST_CASE("RMQ Tree map range tests") {
             CHECK_FALSE(in_lo);
             CHECK_FALSE(in_hi);
         }
+    }
+
+    SUBCASE("rmq_map range min max checks") {
+        rmq_map<int, int> tree;
+
+        std::mt19937 rng(1324059768);
+        std::uniform_int_distribution dist(0, 9000000);
+        int min_value = 0;
+        int max_value = 0;
+
+        for (int i = 1; i <= 100000; ++i) {
+            const int val = dist(rng);
+            tree.put(i, i, val);
+
+            if (i <= 1) {
+                min_value = val;
+                max_value = val;
+                continue;
+            }
+
+            min_value = (val < min_value) ? val : min_value;
+            max_value = (val > max_value) ? val : max_value;
+        }
+
+        const auto min_ = tree.range_min();
+        const auto max_ = tree.range_max();
+
+        CHECK(min_ != nullptr);
+        CHECK(max_ != nullptr);
+
+        const int min_v = min_->rmq;
+        const int max_v = max_->rmq;
+
+        CHECK(min_v == min_value);
+        CHECK(max_v == max_value);
     }
 }
 

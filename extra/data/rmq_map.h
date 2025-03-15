@@ -395,8 +395,8 @@ namespace ex::data {
                 return nullptr;
 
             for (rmq_node *head = root_; head != nullptr;) {
-                if (mmeq_(&min, &(head->rmq) <= 0) &&
-                    mmeq_(&max, &(head->rmq) >= 0))
+                if (mmeq_(&min, &(head->rmq)) <= 0 &&
+                    mmeq_(&max, &(head->rmq)) >= 0)
                     return head;
 
                 if (overlap_(head->lns, min, max)) {
@@ -415,14 +415,12 @@ namespace ex::data {
             return nullptr;
         }
 
-        // TODO TEST
         rmq_node *range_min() const {
             if (root_ == nullptr)
                 return nullptr;
             return range_fit(root_->min, root_->min);
         }
 
-        // TODO TEST
         rmq_node *range_max() const {
             if (root_ == nullptr)
                 return nullptr;
