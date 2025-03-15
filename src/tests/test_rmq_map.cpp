@@ -389,6 +389,31 @@ TEST_CASE("RMQ Tree map range tests") {
             CHECK( (fit->rmq % 2500) == 0 );
         }
     }
+
+    SUBCASE("rmq_map range update checks") {
+        rmq_map<int, int> tree;
+        std::mt19937 rng_1(1324059768);
+        std::mt19937 rng_2(1124053748);
+        std::mt19937 rng_3(1020105769);
+        std::uniform_int_distribution dist_1(0, 99999999);
+        std::uniform_int_distribution dist_2(0, 99999);
+
+        for (int i = 0; i < 100000; ++i) {
+            tree.put(i, i, dist_1(rng_1));
+        }
+
+        int min = 0, max = 0;
+        const bool is_ok_1 = verify_rmq_weights_(tree.root_, min, max);
+        CHECK(is_ok_1);
+
+        for (int i = 0; i < 10000; ++i) {
+            tree.range_set(dist_2(rng_2), dist_1(rng_3));
+        }
+
+        int min_ = 0, max_ = 0;
+        const bool is_ok_2 = verify_rmq_weights_(tree.root_, min_, max_);
+        CHECK(is_ok_2);
+    }
 }
 
 TEST_CASE("RMQ Tree map stress tests") {

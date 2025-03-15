@@ -363,7 +363,6 @@ namespace ex::data {
             remove_node_(node);
         }
 
-        // TODO TEST
         void range_set(const key_t &key, const rmq_t &range) {
             int direction;
 #ifdef UNIT_TEST
