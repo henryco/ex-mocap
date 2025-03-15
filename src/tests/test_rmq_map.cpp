@@ -414,6 +414,14 @@ TEST_CASE("RMQ Tree map range tests") {
         const bool is_ok_2 = verify_rmq_weights_(tree.root_, min_, max_);
         CHECK(is_ok_2);
     }
+
+    SUBCASE("rmq_map range minimize checks") {
+        // TODO
+    }
+
+    SUBCASE("rmq_map range maximize checks") {
+        // TODO
+    }
 }
 
 TEST_CASE("RMQ Tree map stress tests") {
