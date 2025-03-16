@@ -21,17 +21,24 @@ namespace ex::data {
             val_t val;
         };
 
+        using idx_t = u_int32_t;
+        using own_t = char;
         using col_t = bool;
 #define BLACK_        false
 #define RED_          true
+
+#define HAS_LNS_ (1 << 0)
+#define HAS_RNS_ (1 << 1)
 
         struct rb_node {
             rb_node *par;
             rb_node *lns;
             rb_node *rns;
+            idx_t    idx;
             val_t    val;
             key_t    key;
             col_t    col;
+            own_t    own;
         };
 
 #ifdef UNIT_TEST
@@ -49,23 +56,25 @@ namespace ex::data {
         comparator_fn comp_;
         int64_t       size_;
         rb_node      *root_;
+        rb_node      *data_;
 
         rb_map():
-            comp_(&rb_map::default_comparator), size_(0), root_(nullptr) {
+            comp_(&rb_map::default_comparator), size_(0), root_(nullptr), data_(nullptr) {
         }
 
         rb_map(const comparator_fn compare):
-            comp_(compare), size_(0), root_(nullptr) {
+            comp_(compare), size_(0), root_(nullptr), data_(nullptr) {
             add_watcher_(allocator_, this, &watch_allocator);
         }
 
         rb_map(const allocator &allocator_):
-            allocator_(allocator_), comp_(&rb_map::default_comparator), size_(0), root_(nullptr) {
+            allocator_(allocator_), comp_(&rb_map::default_comparator),
+            size_(0), root_(nullptr), data_(nullptr) {
             add_watcher_(allocator_, this, &watch_allocator);
         }
 
         rb_map(const allocator &allocator_, const comparator_fn compare):
-            allocator_(allocator_), comp_(compare), size_(0), root_(nullptr) {
+            allocator_(allocator_), comp_(compare), size_(0), root_(nullptr), data_(nullptr) {
             add_watcher_(allocator_, this, &watch_allocator);
         }
 
@@ -76,8 +85,10 @@ namespace ex::data {
         }
 
         rb_map(rb_map &&other) noexcept:
-            allocator_(other.allocator_), comp_(other.comp_), size_(other.size_), root_(other.root_) {
+            allocator_(other.allocator_), comp_(other.comp_),
+            size_(other.size_), root_(other.root_), data_(other.data_) {
             other.root_ = nullptr;
+            other.data_ = nullptr;
             other.size_ = 0;
             del_watcher_(other.allocator_, this, &watch_allocator);
             add_watcher_(allocator_, this, &watch_allocator);
@@ -106,8 +117,10 @@ namespace ex::data {
             comp_      = other.comp_;
             size_      = other.size_;
             root_      = other.root_;
+            data_      = other.data_;
             add_watcher_(allocator_, this, &watch_allocator);
             other.root_ = nullptr;
+            other.data_ = nullptr;
             other.size_ = 0;
             return *this;
         }
@@ -962,6 +975,76 @@ namespace ex::data {
         static void del_watcher_(const allocator &allocator, void *watcher, const watch_fn_t fn) {
             if (allocator.del_watcher != nullptr)
                 allocator.del_watcher(watcher, fn);
+        }
+
+        static bool has_par_(const idx_t idx) {
+            return idx > 0;
+        }
+
+        static bool has_lns_(const own_t own) {
+            return own & HAS_LNS_;
+        }
+
+        static bool has_rns_(const own_t own) {
+            return own & HAS_RNS_;
+        }
+
+        static void set_lns_(own_t *own) {
+            (*own) |= HAS_LNS_;
+        }
+
+        static void set_rns_(own_t *own) {
+            (*own) |= HAS_RNS_;
+        }
+
+        static void del_lns_(own_t *own) {
+            (*own) &= ~HAS_LNS_;
+        }
+
+        static void del_rns_(own_t *own) {
+            (*own) &= ~HAS_RNS_;
+        }
+
+        static idx_t idx_par_(const idx_t idx) {
+            return (idx <= 0) ? 0 : ((idx - 1) / 2);
+        }
+
+        static idx_t idx_lns_(const idx_t idx) {
+            return (idx * 2) + 1;
+        }
+
+        static idx_t idx_rns_(const idx_t idx) {
+            return (idx * 2) + 2;
+        }
+
+        rb_node *par_(const rb_node *node) const {
+            if (node == nullptr || !has_par_(node->idx))
+                return nullptr;
+            return par_(node->idx);
+        }
+
+        rb_node *lns_(const rb_node *node) const {
+            if (node == nullptr || !has_lns_(node->own))
+                return nullptr;
+            return lns_(node->idx);
+        }
+
+        rb_node *rns_(const rb_node *node) const {
+            if (node == nullptr || !has_rns_(node->own))
+                return nullptr;
+            return rns_(node->idx);
+        }
+
+        rb_node *par_(const idx_t index) const {
+            return data_[idx_par_(index)];
+        }
+
+        rb_node *lns_(const idx_t index) const {
+            return data_[idx_lns_(index)];
+        }
+
+        rb_node *rns_(const idx_t index) const {
+            return data_[idx_rns_(index)];
         }
     };
 
