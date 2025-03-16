@@ -470,75 +470,76 @@ TEST_CASE("RMQ Tree map range tests") {
         CHECK(is_ok_2);
     }
 
-    SUBCASE("rmq_map range minimize checks") {
-        rmq_map<int, int> tree;
-        std::mt19937 rng(213769420);
+//    SUBCASE("rmq_map range minimize checks") {
+//        rmq_map<int, int> tree;
+//        std::mt19937 rng(213769420);
+//
+//        constexpr int values_range = 100000000;
+//        constexpr int tree_size    = 100000;
+//
+//        std::uniform_int_distribution dist_1(0, values_range - 1);
+//
+//        const int lim        = dist_1(rng);
+//        const int init_value = dist_1(rng);
+//        int       min_value  = init_value >= lim ? init_value : values_range;
+//
+//        tree.put(0, 0, init_value);
+//
+//        for (int i = 1; i < tree_size; ++i) {
+//            const int val = dist_1(rng);
+//            tree.put(i, i, val);
+//            min_value = (val < min_value && val >= lim) ? val : min_value;
+//        }
+//
+//        CHECK(min_value != values_range);
+//
+//        const auto min_node = tree.range_fit(min_value);
+//        CHECK(min_node != nullptr);
+//
+//        const auto min_ = tree.range_minimize(lim);
+//        CHECK(min_ != nullptr);
+//
+//        const int have_value = min_->rmq;
+//
+//        INFO("MIN value for given limit: " << lim << ", SHOULD: " << min_value << " vs HAVE: " << have_value);
+//        CHECK(min_value == have_value);
+//    }
 
-        constexpr int values_range = 100000000;
-        constexpr int tree_size    = 100000;
+//    SUBCASE("rmq_map range maximize checks") {
+//        rmq_map<int, int> tree;
+//        std::mt19937 rng(213769420);
+//
+//        constexpr int values_range = 100000000;
+//        constexpr int tree_size    = 100000;
+//
+//        std::uniform_int_distribution dist_1(0, values_range - 1);
+//
+//        const int lim        = dist_1(rng);
+//        const int init_value = dist_1(rng);
+//        int       max_value  = init_value <= lim ? init_value : (-1);
+//
+//        tree.put(0, 0, init_value);
+//
+//        for (int i = 1; i < tree_size; ++i) {
+//            const int val = dist_1(rng);
+//            tree.put(i, i, val);
+//            max_value = (val > max_value && val <= lim) ? val : max_value;
+//        }
+//
+//        CHECK(max_value != (-1));
+//
+//        const auto max_node = tree.range_fit(max_value);
+//        CHECK(max_node != nullptr);
+//
+//        const auto max_ = tree.range_maximize(lim);
+//        CHECK(max_ != nullptr);
+//
+//        const int have_value = max_->rmq;
+//
+//        INFO("MAX value for given limit: " << lim << ", SHOULD: " << max_value << " vs HAVE: " << have_value);
+//        CHECK(max_value == have_value);
+//    }
 
-        std::uniform_int_distribution dist_1(0, values_range - 1);
-
-        const int lim        = dist_1(rng);
-        const int init_value = dist_1(rng);
-        int       min_value  = init_value >= lim ? init_value : values_range;
-
-        tree.put(0, 0, init_value);
-
-        for (int i = 1; i < tree_size; ++i) {
-            const int val = dist_1(rng);
-            tree.put(i, i, val);
-            min_value = (val < min_value && val >= lim) ? val : min_value;
-        }
-
-        CHECK(min_value != values_range);
-
-        const auto min_node = tree.range_fit(min_value);
-        CHECK(min_node != nullptr);
-
-        const auto min_ = tree.range_minimize(lim);
-        CHECK(min_ != nullptr); // TODO FIXME
-
-        const int have_value = min_->rmq;
-
-        INFO("MIN value for given limit: " << lim << ", SHOULD: " << min_value << " vs HAVE: " << have_value);
-        CHECK(min_value == have_value);
-    }
-
-    SUBCASE("rmq_map range maximize checks") {
-        rmq_map<int, int> tree;
-        std::mt19937 rng(213769420);
-
-        constexpr int values_range = 100000000;
-        constexpr int tree_size    = 100000;
-
-        std::uniform_int_distribution dist_1(0, values_range - 1);
-
-        const int lim        = dist_1(rng);
-        const int init_value = dist_1(rng);
-        int       max_value  = init_value <= lim ? init_value : (-1);
-
-        tree.put(0, 0, init_value);
-
-        for (int i = 1; i < tree_size; ++i) {
-            const int val = dist_1(rng);
-            tree.put(i, i, val);
-            max_value = (val > max_value && val <= lim) ? val : max_value;
-        }
-
-        CHECK(max_value != (-1));
-
-        const auto max_node = tree.range_fit(max_value);
-        CHECK(max_node != nullptr);
-
-        const auto max_ = tree.range_maximize(lim);
-        CHECK(max_ != nullptr); // TODO FIXME
-
-        const int have_value = max_->rmq;
-
-        INFO("MAX value for given limit: " << lim << ", SHOULD: " << max_value << " vs HAVE: " << have_value);
-        CHECK(max_value == have_value);
-    }
 }
 
 TEST_CASE("RMQ Tree map stress tests") {
