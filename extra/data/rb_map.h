@@ -6,7 +6,6 @@
 #define EX_LIMBO_DATA_RB_MAP_H
 
 #include "datalloc.h"
-#include <new>
 
 namespace ex::data {
 
@@ -27,13 +26,11 @@ namespace ex::data {
 #define BLACK_        false
 #define RED_          true
 
+#define HAS_NIL_ (0 << 0)
 #define HAS_LNS_ (1 << 0)
 #define HAS_RNS_ (1 << 1)
 
         struct rb_node {
-            rb_node *par;
-            rb_node *lns;
-            rb_node *rns;
             idx_t    idx;
             val_t    val;
             key_t    key;
@@ -55,39 +52,41 @@ namespace ex::data {
 
         comparator_fn comp_;
         int64_t       size_;
-        rb_node      *root_;
         rb_node      *data_;
 
         rb_map():
-            comp_(&rb_map::default_comparator), size_(0), root_(nullptr), data_(nullptr) {
+            comp_(&rb_map::default_comparator), size_(0), data_(nullptr) {
         }
 
         rb_map(const comparator_fn compare):
-            comp_(compare), size_(0), root_(nullptr), data_(nullptr) {
+            comp_(compare), size_(0), data_(nullptr) {
             add_watcher_(allocator_, this, &watch_allocator);
         }
 
         rb_map(const allocator &allocator_):
             allocator_(allocator_), comp_(&rb_map::default_comparator),
-            size_(0), root_(nullptr), data_(nullptr) {
+            size_(0), data_(nullptr) {
             add_watcher_(allocator_, this, &watch_allocator);
         }
 
         rb_map(const allocator &allocator_, const comparator_fn compare):
-            allocator_(allocator_), comp_(compare), size_(0), root_(nullptr), data_(nullptr) {
+            allocator_(allocator_), comp_(compare), size_(0), data_(nullptr) {
             add_watcher_(allocator_, this, &watch_allocator);
         }
 
         rb_map(const rb_map &other):
             allocator_(other.allocator_), comp_(other.comp_), size_(other.size_) {
-            root_ = other.iterative_copy_(other.root_);
             add_watcher_(allocator_, this, &watch_allocator);
+
+            if (other.size_ > 0 && other.data_ != nullptr) {
+                data_ = malloc_<rb_node>(this, other.allocator_, other.size_);
+                ::memcpy(data_, other.data_, other.size_ * sizeof(rb_node));
+            }
         }
 
         rb_map(rb_map &&other) noexcept:
             allocator_(other.allocator_), comp_(other.comp_),
-            size_(other.size_), root_(other.root_), data_(other.data_) {
-            other.root_ = nullptr;
+            size_(other.size_), data_(other.data_) {
             other.data_ = nullptr;
             other.size_ = 0;
             del_watcher_(other.allocator_, this, &watch_allocator);
@@ -99,11 +98,16 @@ namespace ex::data {
                 return *this;
             clean();
             del_watcher_(allocator_, this, &watch_allocator);
-            root_      = other.iterative_copy_(other.root_);
             allocator_ = other.allocator_;
             comp_      = other.comp_;
             size_      = other.size_;
             add_watcher_(allocator_, this, &watch_allocator);
+
+            if (other.size_ > 0 && other.data_ != nullptr) {
+                data_ = malloc_<rb_node>(this, other.allocator_, other.size_);
+                ::memcpy(data_, other.data_, other.size_ * sizeof(rb_node));
+            }
+
             return *this;
         }
 
@@ -116,10 +120,8 @@ namespace ex::data {
             allocator_ = other.allocator_;
             comp_      = other.comp_;
             size_      = other.size_;
-            root_      = other.root_;
             data_      = other.data_;
             add_watcher_(allocator_, this, &watch_allocator);
-            other.root_ = nullptr;
             other.data_ = nullptr;
             other.size_ = 0;
             return *this;
@@ -127,13 +129,13 @@ namespace ex::data {
 
         ~rb_map() {
             del_watcher_(allocator_, this, &watch_allocator);
-            iterative_free_(root_);
-            root_ = nullptr;
+            free_(this, allocator_, data_);
+            data_ = nullptr;
         }
 
         void clean() {
-            iterative_free_(root_);
-            root_ = nullptr;
+            free_(this, allocator_, data_);
+            data_ = nullptr;
             size_ = 0;
         }
 
@@ -148,9 +150,9 @@ namespace ex::data {
         rb_node *next(const key_t &key) const {
             int direction;
 #ifdef UNIT_TEST
-            rb_node *node = descend_(root_, key, &direction, &metrics_n_);
+            rb_node *node = descend_(data_, key, &direction, &metrics_n_);
 #else
-            rb_node *node = descend_(root_, key, &direction);
+            rb_node *node = descend_(data_, key, &direction);
 #endif
             if (node == nullptr || direction != 0 || comp_(&key, &(node->key)) != 0)
                 ::abort();
@@ -172,9 +174,9 @@ namespace ex::data {
         rb_node *prev(const key_t &key) const {
             int direction;
 #ifdef UNIT_TEST
-            rb_node *node = descend_(root_, key, &direction, &metrics_n_);
+            rb_node *node = descend_(data_, key, &direction, &metrics_n_);
 #else
-            rb_node *node = descend_(root_, key, &direction);
+            rb_node *node = descend_(data_, key, &direction);
 #endif
             if (node == nullptr || direction != 0 || comp_(&key, &(node->key)) != 0)
                 ::abort();
@@ -196,9 +198,9 @@ namespace ex::data {
         bool contains(const key_t &key) const {
             int direction;
 #ifdef UNIT_TEST
-            rb_node *node = descend_(root_, key, &direction, &metrics_n_);
+            rb_node *node = descend_(data_, key, &direction, &metrics_n_);
 #else
-            rb_node *node = descend_(root_, key, &direction);
+            rb_node *node = descend_(data_, key, &direction);
 #endif
             if (node == nullptr)
                 return false;
@@ -213,9 +215,9 @@ namespace ex::data {
             int direction;
 
 #ifdef UNIT_TEST
-            rb_node *node = descend_(root_, key, &direction, &metrics_n_);
+            rb_node *node = descend_(data_, key, &direction, &metrics_n_);
 #else
-            rb_node *node = descend_(root_, key, &direction);
+            rb_node *node = descend_(data_, key, &direction);
 #endif
 
             if (node == nullptr)
@@ -229,24 +231,20 @@ namespace ex::data {
 
         val_t &operator [] (const key_t &key) {
 
-            if (root_ == nullptr) {
-                root_      = instance_node_();
-                root_->par = nullptr;
-                root_->lns = nullptr;
-                root_->rns = nullptr;
-                root_->val = val_t();
-                root_->key = key;
-                root_->col = BLACK_;
+            if (data_ == nullptr) {
+                data_             = create_root_();
+                const rb_node tmp = { 0, val_t(), key, BLACK_, HAS_NIL_ };
+                ::memcpy(data_, &tmp, sizeof(rb_node));
                 ++size_;
-                return root_->val;
+                return data_->val;
             }
 
             int direction;
 
 #ifdef UNIT_TEST
-            rb_node *base = descend_(root_, key, &direction, &metrics_n_);
+            rb_node *base = descend_(data_, key, &direction, &metrics_n_);
 #else
-            rb_node *base = descend_(root_, key, &direction);
+            rb_node *base = descend_(data_, key, &direction);
 #endif
 
             if (direction == 0 && base != nullptr && comp_(&key, &(base->key)) == 0)
@@ -254,20 +252,17 @@ namespace ex::data {
 
             ++size_;
 
-            rb_node *node = instance_node_();
-            node->par     = base;
-            node->lns     = nullptr;
-            node->rns     = nullptr;
-            node->val     = val_t();
-            node->key     = key;
-            node->col     = RED_;
+            const idx_t   c_idx = child_idx_(base, (direction < 0) ? HAS_LNS_ : HAS_RNS_);
+            const rb_node tmp_  = { c_idx, val_t(), key, RED_, HAS_NIL_ };
+            rb_node      *node  = create_node_(c_idx);
+            ::memcpy(node, &tmp_, sizeof(rb_node));
 
-            if (direction >= 0) base->rns = node;
-            else                base->lns = node;
+            if (direction < 0) set_lns_(&(base->own));
+            else               set_rns_(&(base->own));
 
             fix_insert_if_needed_(node);
 
-            root_->col = BLACK_; // just in case
+            data_->col = BLACK_; // just in case
             return node->val;
         }
 
@@ -281,14 +276,10 @@ namespace ex::data {
 
         void put(const key_t &key, const val_t &val) {
 
-            if (root_ == nullptr) {
-                root_      = instance_node_();
-                root_->par = nullptr;
-                root_->lns = nullptr;
-                root_->rns = nullptr;
-                root_->val = val;
-                root_->key = key;
-                root_->col = BLACK_;
+            if (data_ == nullptr) {
+                data_             = create_root_();
+                const rb_node tmp = { 0, val_t(), key, BLACK_, HAS_NIL_ };
+                ::memcpy(data_, &tmp, sizeof(rb_node));
                 ++size_;
                 return;
             }
@@ -296,9 +287,9 @@ namespace ex::data {
             int direction;
 
 #ifdef UNIT_TEST
-            rb_node *base = descend_(root_, key, &direction, &metrics_n_);
+            rb_node *base = descend_(data_, key, &direction, &metrics_n_);
 #else
-            rb_node *base = descend_(root_, key, &direction);
+            rb_node *base = descend_(data_, key, &direction);
 #endif
 
             if (direction == 0 && comp_(&key, &(base->key)) == 0) {
@@ -308,30 +299,25 @@ namespace ex::data {
 
             ++size_;
 
-            rb_node *node = instance_node_();
-            node->par     = base;
-            node->lns     = nullptr;
-            node->rns     = nullptr;
-            node->val     = val;
-            node->key     = key;
-            node->col     = RED_;
+            const idx_t   c_idx = child_idx_(base, (direction < 0) ? HAS_LNS_ : HAS_RNS_);
+            const rb_node tmp_  = { c_idx, val_t(), key, RED_, HAS_NIL_ };
+            rb_node      *node  = create_node_(c_idx);
+            ::memcpy(node, &tmp_, sizeof(rb_node));
 
-            if (direction >= 0) base->rns = node;
-            else                base->lns = node;
-
-            fix_insert_if_needed_(node);
+            if (direction < 0) set_lns_(&(base->own));
+            else               set_rns_(&(base->own));
 
             // if root_ is nullptr we have much bigger problem
-            root_->col = BLACK_; // just in case
+            data_->col = BLACK_; // just in case
         }
 
         void remove(const key_t &key) {
             int direction;
 
 #ifdef UNIT_TEST
-            rb_node *node = descend_(root_, key, &direction, &metrics_n_);
+            rb_node *node = descend_(data_, key, &direction, &metrics_n_);
 #else
-            rb_node *node = descend_(root_, key, &direction);
+            rb_node *node = descend_(data_ key, &direction);
 #endif
 
             if (node == nullptr)
@@ -350,7 +336,7 @@ namespace ex::data {
             }
 
             if (node->lns == nullptr && node->rns == nullptr) {
-                if (node == root_) {
+                if (node == data_) {
                     // node is a root, and node has no any children
                     clean();
                     return;
@@ -384,7 +370,7 @@ namespace ex::data {
                 // left
                 rb_node *child = node->lns;
 
-                if (node == root_) {
+                if (node == data_) {
                     root_ = child;
                     root_->par = nullptr;
                     root_->col = BLACK_;
@@ -404,7 +390,7 @@ namespace ex::data {
                 // right
                 rb_node *child = node->rns;
 
-                if (node == root_) {
+                if (node == data_) {
                     root_ = child;
                     root_->par = nullptr;
                     root_->col = BLACK_;
@@ -435,8 +421,8 @@ namespace ex::data {
             }
 
             fix_double_black_(child, sibling, node->par);
-            if (root_ != nullptr)
-                root_->col = BLACK_; // just in case
+            if (data_ != nullptr)
+                data_->col = BLACK_; // just in case
         }
 
         void fix_double_black_(rb_node *current, rb_node *sibling, rb_node *parent) {
@@ -445,7 +431,7 @@ namespace ex::data {
 
             // case 2: deleted was black with black sibling (NULL is implicitly black)
             if (sibling == nullptr) {
-                if (parent == root_)
+                if (parent == data_)
                     return;
 
                 if (parent->col == RED_) {
@@ -484,7 +470,7 @@ namespace ex::data {
 
                 sibling->col = RED_;
 
-                if (parent == root_ || parent->col == RED_) {
+                if (parent == data_ || parent->col == RED_) {
                     parent->col = BLACK_;
                     return;
                 }
@@ -554,7 +540,7 @@ namespace ex::data {
             rb_node *parent = node->par;
 
             if (parent == nullptr) {
-                if (node != root_)
+                if (node != data_)
                     ::abort();
 
                 // just in case, root is always black
@@ -611,8 +597,8 @@ namespace ex::data {
                 rotate_right_(grand_parent);
             }
 
-            if (root_ != nullptr)
-                root_->col = BLACK_; // just in case
+            if (data_ != nullptr)
+                data_->col = BLACK_; // just in case
         }
 
         rb_node *descend_(rb_node *node, const key_t &key, int *direction, int *n = nullptr) const {
@@ -702,125 +688,28 @@ namespace ex::data {
                 child->par = node->par;
         }
 
-        rb_node *instance_node_() {
-            return new (malloc_<rb_node>(this, allocator_, 1)) rb_node;
+        rb_node *create_root_() {
+            if (data_!= nullptr || size_ > 0)
+                ::abort(); /// wtf
+            data_ = malloc_<rb_node>(this, allocator_, 1);
+            size_ = 1;
+            return &(data_[index]);
         }
 
-        rb_node *copy_node_(const rb_node *node) const {
-            if (node == nullptr)
-                return nullptr;
-            rb_node *copy = instance_node_();
-            *copy = *node;
-            return copy;
-        }
-
-        void iterative_copy_(rb_node *const node) {
-            rb_node *copy = copy_node_(node);
-            rb_node *head = node;
-            rb_node *prev = node;
-            bool     down = true;
-
-            while (head != nullptr) {
-                if (down && head->lns != nullptr) {
-                    prev = head;
-                    head = head->lns;
-
-                    *copy->lns = copy_node_(head);
-                    copy = copy->lns;
-                    continue;
-                }
-
-                if (down && head->rns != nullptr) {
-                    prev = head;
-                    head = head->rns;
-
-                    *copy->rns = copy_node_(head);
-                    copy = copy->rns;
-                    continue;
-                }
-
-                if (down || prev == head->rns) {
-                    prev = head;
-                    head = head->par;
-                    copy = copy->par;
-                    down = false;
-                    continue;
-                }
-
-                if (head->rns != nullptr) {
-                    prev = head;
-                    head = head->rns;
-
-                    *copy->rns = copy_node_(head);
-                    copy = copy->rns;
-                    down = true;
-                    continue;
-                }
-
-                prev = head;
-                head = head->par;
-                copy = copy->par;
-                down = false;
+        rb_node *create_node_(const idx_t index) {
+            if (index >= size_) {
+                size_ = (size_ * 2) + (index - size_);
+                data_ = realloc_<rb_node>(this, allocator_, data_, size_);
             }
+            return &(data_[index]);
         }
 
-        void free_node_(rb_node *node) {
-            if (node == nullptr)
-                return;
-            if (node->par != nullptr) {
-                if (node->par->lns == node)
-                    node->par->lns = nullptr;
-                if (node->par->rns == node)
-                    node->par->rns = nullptr;
-            }
-            release_node_(node);
-        }
-
-        void release_node_(rb_node *node) {
-            if (node == nullptr)
-                return;
-            node->~rb_node();
-            free_(this, allocator_, node);
-        }
-
-        void iterative_free_(rb_node *const node) {
-            rb_node *head = node;
-            rb_node *prev = node;
-            bool     down = true;
-
-            while (head != nullptr) {
-                if (down && head->lns != nullptr) {
-                    prev = head;
-                    head = head->lns;
-                    continue;
-                }
-
-                if (down && head->rns != nullptr) {
-                    prev = head;
-                    head = head->rns;
-                    continue;
-                }
-
-                if (down || prev == head->rns) {
-                    prev = head;
-                    head = head->par;
-                    down = false;
-                    release_node_(prev);
-                    continue;
-                }
-
-                if (head->rns != nullptr) {
-                    prev = head;
-                    head = head->rns;
-                    down = true;
-                    continue;
-                }
-
-                prev = head;
-                head = head->par;
-                down = false;
-                release_node_(prev);
-            }
+        static idx_t child_idx_(const rb_node *parent, const own_t side) {
+            if (side != HAS_LNS_ && side != HAS_RNS_)
+                ::abort(); /// wtf
+            return (side == HAS_LNS_)
+                ? idx_lns_(parent->idx)
+                : idx_rns_(parent->idx);
         }
 
         static rb_node *get_largest_(rb_node *node) {
@@ -940,7 +829,7 @@ namespace ex::data {
         };
 
         iterator begin() const {
-            return iterator(root_);
+            return iterator(data_);
         }
 
         iterator end() const {
@@ -954,6 +843,8 @@ namespace ex::data {
 
         template <typename T>
         T *malloc_(void *, const allocator &allocator, const std::size_t size_n) {
+            if (size_n <= 0)
+                ::abort();
             return static_cast<T *>(allocator.malloc(size_n * sizeof(T), alignof(T)));
         }
 
