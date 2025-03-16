@@ -8,6 +8,8 @@
 #include <iostream>
 #include <map>
 #include <random>
+#include <set>
+
 #include "../../extra/data/rmq_map.h"
 
 using namespace ex::data;
@@ -970,18 +972,19 @@ TEST_CASE("rmq_map tree structure validity check") {
 }
 
 TEST_CASE("RMQ Map iterator tests") {
-
     SUBCASE("rmq_map tree basic iterator check") {
+        std::set<int>     ref_set;
         rmq_map<int, int> tree;
         for (int i = 100; i >= 0; --i) {
             tree.put(i, i);
         }
-
         for (const auto &entry : tree) {
-            std::cout << entry.key << ", " << entry.rmq << ", [ " << entry.min << " | " << entry.max << " ]\n";
+//            std::cout << entry.key << ", " << entry.rmq << ", [ " << entry.min << " | " << entry.max << " ]\n";
+            const bool contains = ref_set.contains(entry.key);
+            CHECK_FALSE(contains);
+            ref_set.insert(contains);
         }
     }
-
 }
 
 void verify_rb_tree_(rmq_map<int, int> &map) {

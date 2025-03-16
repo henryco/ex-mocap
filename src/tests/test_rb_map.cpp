@@ -7,6 +7,8 @@
 #include <iostream>
 #include <map>
 #include <random>
+#include <set>
+
 #include "../../extra/data/rb_map.h"
 
 using namespace ex::data;
@@ -584,6 +586,22 @@ TEST_CASE("rb_map tree structure validity check") {
     << static_cast<int>((2. * (std::log2(OPERATIONS + 1.))) + 1)
     << "]"
     << std::endl;
+}
+
+TEST_CASE("RB Map iterator tests") {
+    SUBCASE("rmq_map tree basic iterator check") {
+        std::set<int>    ref_set;
+        rb_map<int, int> tree;
+        for (int i = 100; i >= 0; --i) {
+            tree.put(i, i);
+        }
+        for (const auto &entry : tree) {
+//            std::cout << entry.key << '\n';
+            const bool contains = ref_set.contains(entry.key);
+            CHECK_FALSE(contains);
+            ref_set.insert(contains);
+        }
+    }
 }
 
 void verify_rb_tree_(rb_map<int, int> &map) {
