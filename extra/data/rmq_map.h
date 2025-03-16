@@ -464,7 +464,6 @@ namespace ex::data {
          * Only works if range values are sorted (ie range == key).
          */
         rmq_node *range_minimize(const rmq_t &limit) const {
-            // TODO FIXME
             if (root_ == nullptr)
                 return nullptr;
             // -----------x---------<-| |----------------
@@ -549,7 +548,6 @@ namespace ex::data {
          * Only works if range values are sorted (ie range == key).
          */
         rmq_node *range_maximize(const rmq_t &limit) const {
-            // TODO FIXME
             if (root_ == nullptr)
                 return nullptr;
             // ----------| |->----------x----------------
@@ -562,31 +560,46 @@ namespace ex::data {
             // d: max_(range_min, range_max) &&  <= limit
             // r: max_(max_(d_left, d_right), val)
 
-            for (rmq_node *head = root_; head != nullptr;) {
+            for (rmq_node *head = root_, *last = nullptr; head != nullptr;) {
                 const rmq_t &h_min = head->min;
                 const rmq_t &h_val = head->rmq;
 
                 if (mmeq_(&h_min, &limit) > 0)
-                    return nullptr; // non overlapping ranges
+                    return last; // non overlapping ranges
 
+                if (mmeq_(&h_val, &limit) <= 0) {
+                    if (last == nullptr || mmeq_(&h_val, &(last->rmq)) >= 0)
+                        last = head;
+                }
+
+                rmq_t *l_min = nullptr;
                 rmq_t *l_max = nullptr;
-                if (head->lns != nullptr) {
-                    l_max = &fit_d_max_(head->lns->min, head->lns->max, limit);
-                    if (mmeq_(l_max, &limit) > 0)
-                        l_max = nullptr;
+                if (head->lns != nullptr && mmeq_(&(head->lns->min), &limit) <= 0) {
+                    l_min = &(head->lns->min);
+                    l_max = &(head->lns->max);
                 }
 
+                rmq_t *r_min = nullptr;
                 rmq_t *r_max = nullptr;
-                if (head->rns != nullptr) {
-                    r_max = &fit_d_max_(head->rns->min, head->rns->max, limit);
-                    if (mmeq_(r_max, &limit) > 0)
-                        r_max = nullptr;
+                if (head->rns != nullptr && mmeq_(&(head->rns->min), &limit) <= 0) {
+                    r_min = &(head->rns->min);
+                    r_max = &(head->rns->max);
                 }
 
-                if (l_max == nullptr && r_max == nullptr) {
-                    if (mmeq_(&h_val, &limit) > 0)
-                        return nullptr;
-                    return head;
+                if (l_min == nullptr && r_min == nullptr)
+                    return last;
+
+                if (r_max == nullptr) {
+                using_l:
+                    if (mmeq_(&h_val, &limit) > 0) {
+                        head = head->lns;
+                        continue;
+                    }
+                    if (mmeq_(&h_val, l_max) <= 0) {
+                        head = head->lns;
+                        continue;
+                    }
+                    return last;
                 }
 
                 if (l_max == nullptr) {
@@ -595,28 +608,17 @@ namespace ex::data {
                         head = head->rns;
                         continue;
                     }
-                    if (mmeq_(&h_val, r_max) < 0) {
+                    if (mmeq_(&h_val, r_max) <= 0) {
                         head = head->rns;
                         continue;
                     }
-                    return head;
+                    return last;
                 }
 
-                if (r_max == nullptr) {
-                using_l:
-                    if (mmeq_(&h_val, &limit) > 0) {
-                        head = head->lns;
-                        continue;
-                    }
-                    if (mmeq_(&h_val, l_max) < 0) {
-                        head = head->lns;
-                        continue;
-                    }
-                    return head;
-                }
-
-                if (mmeq_(l_max, r_max) > 0)
+                if (const auto eq = mmeq_(l_min, r_min);
+                               eq > 0 || (eq == 0 && mmeq_(l_max, r_max) >= 0)) {
                     goto using_l;
+                }
 
                 goto using_r;
             }
