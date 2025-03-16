@@ -6,6 +6,7 @@
 #define EX_LIMBO_DATA_RB_MAP_H
 
 #include "datalloc.h"
+#include <cstring>
 #include <new>
 
 namespace ex::data {

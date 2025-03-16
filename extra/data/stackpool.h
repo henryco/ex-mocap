@@ -5,9 +5,16 @@
 #ifndef EX_LIMBO_DATA_STACKPOOL_H
 #define EX_LIMBO_DATA_STACKPOOL_H
 
+#include <iostream>
 #include <cstdlib>
 
 namespace ex::data::stackpool {
+
+#ifndef UNIT_TEST
+    #define abort_(msg) do { std::cerr << msg << std::endl; ::abort(); } while(false)
+#else
+    #define abort_(msg) throw std::runtime_error("Generic abort exception")
+#endif
 
     template <std::size_t block_s, std::size_t pool_s, std::size_t stack_s>
     struct allocator {
@@ -27,8 +34,8 @@ namespace ex::data::stackpool {
         void *allocate() {
             if (free_n > 0)
                 return freed_[--free_n];
-            if (offset >= pool_s)
-                ::abort();
+            if (offset >= data_s)
+                abort_("out of memory: " << offset << "b");
             void *ptr = static_cast<void *>(stack_ + offset);
             offset += block_s;
             return ptr;
@@ -40,6 +47,11 @@ namespace ex::data::stackpool {
         void free(void *ptr) {
             if (free_n < free_s)
                 freed_[free_n++] = ptr;
+        }
+
+        void clean() {
+            offset = 0;
+            free_n = 0;
         }
     };
 
