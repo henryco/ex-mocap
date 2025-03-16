@@ -329,7 +329,7 @@ namespace ex::data {
             remove_node_(node);
         }
 
-        void remove_node_(rb_node *node) {
+        void remove_node_(rb_node *node) { // TODO
             if (--size_ == 0) {
                 clean();
                 return;
@@ -626,7 +626,7 @@ namespace ex::data {
             return nullptr;
         }
 
-        void rotate_right_(rb_node *node) {
+        void rotate_right_(rb_node *node) { // TODO
             rb_node *left = node->lns;
             if (left == nullptr)
                 return;
@@ -651,7 +651,7 @@ namespace ex::data {
             node->par = left;
         }
 
-        void rotate_left_(rb_node *node) {
+        void rotate_left_(rb_node *node) { // TODO
             rb_node *right = node->rns;
             if (right == nullptr)
                 return;
@@ -676,7 +676,7 @@ namespace ex::data {
             node->par  = right;
         }
 
-        void replace_with_child_(rb_node *node, rb_node *child) {
+        void replace_with_child_(rb_node *node, rb_node *child) { // TODO
             if (node->par == nullptr)
                 root_ = child;
             else if (node == node->par->lns)
@@ -712,22 +712,26 @@ namespace ex::data {
                 : idx_rns_(parent->idx);
         }
 
-        static rb_node *get_largest_(rb_node *node) {
+        static rb_node *get_largest_(const rb_node *node) {
             if (node == nullptr)
                 return nullptr;
-            if (node->rns == nullptr)
+
+            rb_node *rns = rns_(node);
+            if (rns == nullptr)
                 return node;
-            return get_largest_(node->rns);
+            return get_largest_(rns);
         }
 
         static rb_node *get_sibling_(const rb_node *node) {
             if (node == nullptr)
                 ::abort();
 
-            const rb_node *parent = node->par;
+            const rb_node *parent = par_(node);
             if (parent == nullptr)
                 return nullptr;
-            return parent->lns == node ? parent->rns : parent->lns;
+
+            rb_node *left = lns_(parent);
+            return left == node ? rns_(parent) : left;
         }
 
         static void swap_colors(rb_node *a, rb_node *b) {
@@ -738,20 +742,32 @@ namespace ex::data {
 
         static rb_node *minimum_(rb_node *const node) {
             rb_node *head = node;
-            while (head != nullptr && head->lns != nullptr)
-                head = head->lns;
+
+            while (head != nullptr) {
+                rb_node *left = lns_(head);
+                if (left == nullptr)
+                    return head;
+                head = left;
+            }
+
             return head;
         }
 
         static rb_node *maximum_(rb_node *const node) {
             rb_node *head = node;
-            while (head != nullptr && head->rns != nullptr)
-                head = head->rns;
+
+            while (head != nullptr) {
+                rb_node *right = rns_(head);
+                if (right == nullptr)
+                    return head;
+                head = right;
+            }
+
             return head;
         }
 
         // DSF Post-Order iterator
-        struct iterator {
+        struct iterator { // TODO FIXME
             entry    entr_;
             rb_node *node_;
             rb_node *head_;
@@ -908,6 +924,18 @@ namespace ex::data {
             return (idx * 2) + 2;
         }
 
+        static bool has_par_(const rb_node *node) {
+            return has_par_(node->idx);
+        }
+
+        static bool has_lns_(const rb_node *node) {
+            return has_lns_(node->own);
+        }
+
+        static bool has_rns_(const rb_node *node) {
+            return has_rns_(node->own);
+        }
+
         rb_node *par_(const rb_node *node) const {
             if (node == nullptr || !has_par_(node->idx))
                 return nullptr;
@@ -927,15 +955,15 @@ namespace ex::data {
         }
 
         rb_node *par_(const idx_t index) const {
-            return data_[idx_par_(index)];
+            return &(data_[idx_par_(index)]);
         }
 
         rb_node *lns_(const idx_t index) const {
-            return data_[idx_lns_(index)];
+            return &(data_[idx_lns_(index)]);
         }
 
         rb_node *rns_(const idx_t index) const {
-            return data_[idx_rns_(index)];
+            return &(data_[idx_rns_(index)]);
         }
     };
 
