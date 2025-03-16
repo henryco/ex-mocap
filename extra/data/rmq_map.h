@@ -460,7 +460,8 @@ namespace ex::data {
         }
 
         /**
-         * Finds smallest value that is greater or equal to limit
+         * Finds smallest value that is greater or equal to limit.
+         * Only works if range values are sorted (ie range == key).
          */
         rmq_node *range_minimize(const rmq_t &limit) const {
             // TODO FIXME
@@ -476,31 +477,47 @@ namespace ex::data {
             // d: min_(range_min, range_max) &&  >= limit
             // r: min_(min_(d_left, d_right), val)
 
-            for (rmq_node *head = root_; head != nullptr;) {
+
+            for (rmq_node *head = root_, *last = nullptr; head != nullptr;) {
                 const rmq_t &h_max = head->max;
                 const rmq_t &h_val = head->rmq;
 
                 if (mmeq_(&h_max, &limit) < 0)
-                    return nullptr; // non overlapping ranges
+                    return last; // non overlapping ranges
+
+                if (mmeq_(&h_val, &limit) >= 0) {
+                    if (last == nullptr || mmeq_(&h_val, &(last->rmq)) <= 0)
+                        last = head;
+                }
 
                 rmq_t *l_min = nullptr;
-                if (head->lns != nullptr) {
-                    l_min = &fit_d_min_(head->lns->min, head->lns->max, limit);
-                    if (mmeq_(l_min, &limit) < 0)
-                        l_min = nullptr;
+                rmq_t *l_max = nullptr;
+                if (head->lns != nullptr && mmeq_(&(head->lns->max), &limit) >= 0) {
+                    l_min = &(head->lns->min);
+                    l_max = &(head->lns->max);
                 }
 
                 rmq_t *r_min = nullptr;
-                if (head->rns != nullptr) {
-                    r_min = &fit_d_min_(head->rns->min, head->rns->max, limit);
-                    if (mmeq_(r_min, &limit) < 0)
-                        r_min = nullptr;
+                rmq_t *r_max = nullptr;
+                if (head->rns != nullptr && mmeq_(&(head->rns->max), &limit) >= 0) {
+                    r_min = &(head->rns->min);
+                    r_max = &(head->rns->max);
                 }
 
-                if (l_min == nullptr && r_min == nullptr) {
-                    if (mmeq_(&h_val, &limit) < 0)
-                        return nullptr;
-                    return head;
+                if (l_min == nullptr && r_min == nullptr)
+                    return last;
+
+                if (r_min == nullptr) {
+                    using_l:
+                    if (mmeq_(&h_val, &limit) < 0) {
+                        head = head->lns;
+                        continue;
+                    }
+                    if (mmeq_(&h_val, l_min) > 0) {
+                        head = head->lns;
+                        continue;
+                    }
+                    return last;
                 }
 
                 if (l_min == nullptr) {
@@ -513,24 +530,13 @@ namespace ex::data {
                         head = head->rns;
                         continue;
                     }
-                    return head;
+                    return last;
                 }
 
-                if (r_min == nullptr) {
-                using_l:
-                    if (mmeq_(&h_val, &limit) < 0) {
-                        head = head->lns;
-                        continue;
-                    }
-                    if (mmeq_(&h_val, l_min) > 0) {
-                        head = head->lns;
-                        continue;
-                    }
-                    return head;
-                }
-
-                if (mmeq_(l_min, r_min) < 0)
+                if (const auto eq = mmeq_(l_min, r_min);
+                               eq < 0 || (eq == 0 && mmeq_(l_max, r_max) <= 0)) {
                     goto using_l;
+                }
 
                 goto using_r;
             }
@@ -539,7 +545,8 @@ namespace ex::data {
         }
 
         /**
-         * Finds largest value that is smaller or equal to limit
+         * Finds largest value that is smaller or equal to limit.
+         * Only works if range values are sorted (ie range == key).
          */
         rmq_node *range_maximize(const rmq_t &limit) const {
             // TODO FIXME
