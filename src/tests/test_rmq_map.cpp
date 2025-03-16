@@ -2,7 +2,6 @@
 // Created by henryco on 12/03/25.
 //
 
-
 #include <cstdint>
 #include <doctest/doctest.h>
 #include <iostream>
@@ -10,6 +9,7 @@
 #include <random>
 #include <set>
 
+#include "../../extra/data/stackpool.h"
 #include "../../extra/data/rmq_map.h"
 
 using namespace ex::data;
@@ -18,19 +18,66 @@ bool verify_rb_tree_height_(rmq_map<int,int>::rmq_node *node, int &black_count, 
 bool verify_rmq_weights_(rmq_map<int,int>::rmq_node *node, int &min, int &max);
 void verify_rb_tree_(rmq_map<int, int> &map);
 
+#define BLOCK_SIZE (sizeof(rmq_map<int,int>::rmq_node))
+#define POOL_SIZE  (BLOCK_SIZE * 50000000)
+#define STACK_SIZE (5000000)
+
+namespace allocator_rmq_ {
+    static ex::data::stackpool::allocator<BLOCK_SIZE, POOL_SIZE, STACK_SIZE> stack;
+
+    void *stack_malloc_(std::size_t, std::size_t) {
+        return stack.allocate();
+    }
+
+    void *stack_realloc_(void *, std::size_t) {
+        ::abort();
+    }
+
+    void stack_free_(void *ptr) {
+        stack.free(ptr);
+    }
+
+    void stack_nop_(void *, watch_fn_t) {
+    }
+
+    long stack_size_total_() {
+        return stack.data_s;
+    }
+
+    long stack_size_used_() {
+        return stack.offset;
+    }
+}
+
+static ex::data::allocator stack_rmq = {
+    .malloc = &allocator_rmq_::stack_malloc_,
+    .realloc = &allocator_rmq_::stack_realloc_,
+    .free = &allocator_rmq_::stack_free_,
+    .add_watcher = &allocator_rmq_::stack_nop_,
+    .del_watcher = &allocator_rmq_::stack_nop_,
+    .size_total = &allocator_rmq_::stack_size_total_,
+    .size_used = &allocator_rmq_::stack_size_used_,
+};
+
+ex::data::allocator &stack_rmq_allocator() {
+    std::cout << "allocator size: " << POOL_SIZE << "b (" << (POOL_SIZE / (1024 * 1024)) << "mb)" << std::endl;
+    allocator_rmq_::stack.clean();
+    return stack_rmq;
+}
+
 // guaranteed worst case scenario for red black tree
 #define MAX_HEIGHT_(tree) static_cast<int>((2. * (std::log2(tree.size() + 1.))) + 1)
 
 TEST_CASE("RMQ Tree map tests") {
 
     SUBCASE("rmq_map empty and size") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         CHECK(tree.empty());
         CHECK(tree.size() == 0);
     }
 
     SUBCASE("rmq_map insertion and retrieval") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         tree.put(5, 10);
         tree.put(3, 6);
         tree.put(7, 14);
@@ -42,7 +89,7 @@ TEST_CASE("RMQ Tree map tests") {
     }
 
     SUBCASE("rmq_map insertion balancing test") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         for(int i = 0; i < 1000; i++)
             tree.put(i, i * 10);
 
@@ -53,7 +100,7 @@ TEST_CASE("RMQ Tree map tests") {
     }
 
     SUBCASE("rmq_map deletion robustness") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         tree.put(1, 100);
         tree.put(2, 200);
         tree.put(3, 300);
@@ -77,7 +124,7 @@ TEST_CASE("RMQ Tree map tests") {
     }
 
     SUBCASE("rmq_map update existing key") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         tree.put(1, 100);
         CHECK(tree.at(1) == 100);
         tree.put(1, 200);
@@ -86,7 +133,7 @@ TEST_CASE("RMQ Tree map tests") {
     }
 
     SUBCASE("rmq_map empty checks and clean") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         CHECK(tree.empty());
 
         tree.put(1, 1);
@@ -98,7 +145,7 @@ TEST_CASE("RMQ Tree map tests") {
     }
 
     SUBCASE("rmq_map contains method accuracy") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         tree.put(10, 100);
         tree.put(20, 200);
 
@@ -113,7 +160,7 @@ TEST_CASE("RMQ Tree map tests") {
     }
 
     SUBCASE("rmq_map insertion-deletion sequence") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         for(int i = 0; i < 50; ++i)
             tree.put(i, i*i);
 
@@ -132,7 +179,7 @@ TEST_CASE("RMQ Tree map tests") {
     }
 
     SUBCASE("rmq_map key boundary checks") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         constexpr int min = INT32_MIN;
         constexpr int max = INT32_MAX;
 
@@ -153,7 +200,7 @@ TEST_CASE("RMQ Tree map tests") {
 
 TEST_CASE("RMQ Tree map range tests") {
     SUBCASE("rmq_map range overlap mid checks") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
 
         for (int i = 1; i <= 1000; ++i) {
             const int val = i * 25;
@@ -180,7 +227,7 @@ TEST_CASE("RMQ Tree map range tests") {
     }
 
     SUBCASE("rmq_map range overlap left checks") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
 
         for (int i = 1; i <= 1000; ++i) {
             const int val = i * 2500;
@@ -208,7 +255,7 @@ TEST_CASE("RMQ Tree map range tests") {
     }
 
     SUBCASE("rmq_map range overlap right checks") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
 
         for (int i = 1; i <= 1000; ++i) {
             const int val = i * 2500;
@@ -236,7 +283,7 @@ TEST_CASE("RMQ Tree map range tests") {
     }
 
     SUBCASE("rmq_map range overlap full checks") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
 
         for (int i = 1; i <= 1000; ++i) {
             const int val = i * 2500;
@@ -264,7 +311,7 @@ TEST_CASE("RMQ Tree map range tests") {
     }
 
     SUBCASE("rmq_map range overlap out left checks") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
 
         for (int i = 1; i <= 1000; ++i) {
             const int val = i * 2500;
@@ -291,7 +338,7 @@ TEST_CASE("RMQ Tree map range tests") {
     }
 
     SUBCASE("rmq_map range overlap out right checks") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
 
         for (int i = 1; i <= 1000; ++i) {
             const int val = i * 2500;
@@ -318,7 +365,7 @@ TEST_CASE("RMQ Tree map range tests") {
     }
 
     SUBCASE("rmq_map range min max checks") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
 
         std::mt19937 rng(1324059768);
         std::uniform_int_distribution dist(0, 9000000);
@@ -353,7 +400,7 @@ TEST_CASE("RMQ Tree map range tests") {
     }
 
     SUBCASE("rmq_map range fit checks") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
 
         for (int i = 1; i <= 1000; ++i) {
             const int val = i * 2500;
@@ -418,7 +465,7 @@ TEST_CASE("RMQ Tree map range tests") {
         constexpr int max_size   = 250000;
         constexpr int duplicates = 4;
 
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         std::mt19937 rng(138563984);
         std::uniform_int_distribution dist(0, max_size - 1);
 
@@ -448,7 +495,7 @@ TEST_CASE("RMQ Tree map range tests") {
     }
 
     SUBCASE("rmq_map range update checks") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         std::mt19937 rng_1(1324059768);
         std::mt19937 rng_2(1124053748);
         std::mt19937 rng_3(1020105769);
@@ -473,7 +520,7 @@ TEST_CASE("RMQ Tree map range tests") {
     }
 
     SUBCASE("rmq_map range minimize checks") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         std::mt19937 rng(253789421);
 
         constexpr int tree_size = 1000000;
@@ -502,7 +549,7 @@ TEST_CASE("RMQ Tree map range tests") {
     }
 
     SUBCASE("rmq_map range maximize checks") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         std::mt19937 rng(253789421);
 
         constexpr int tree_size = 1000000;
@@ -535,7 +582,7 @@ TEST_CASE("RMQ Tree map range tests") {
 TEST_CASE("RMQ Tree map stress tests") {
 
     SUBCASE("rmq_map sequential insertion ascending order") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         for (int i = 1; i <= 1000; ++i)
             tree.put(i, i * 10);
 
@@ -546,7 +593,7 @@ TEST_CASE("RMQ Tree map stress tests") {
     }
 
     SUBCASE("rmq_map sequential insertion descending order") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         for (int i = 1000; i >= 1; --i)
             tree.put(i, i * 10);
 
@@ -557,7 +604,7 @@ TEST_CASE("RMQ Tree map stress tests") {
     }
 
     SUBCASE("rmq_map next op test") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         for (int i = 10000; i >= 0; --i) {
             tree.put(i, i);
         }
@@ -571,7 +618,7 @@ TEST_CASE("RMQ Tree map stress tests") {
     }
 
     SUBCASE("rmq_map prev op test") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         for (int i = 10000; i >= 0; --i) {
             tree.put(i, i);
         }
@@ -585,7 +632,7 @@ TEST_CASE("RMQ Tree map stress tests") {
     }
 
     SUBCASE("rmq_map random insert and remove stress test") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         constexpr int N = 10000;
         for (int i = 0; i < N; ++i)
             tree.put(i, i + 1);
@@ -605,7 +652,7 @@ TEST_CASE("RMQ Tree map stress tests") {
     }
 
     SUBCASE("rmq_map duplicate insertions") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
 
         tree.put(42, 100);
         CHECK(tree.size() == 1);
@@ -621,7 +668,7 @@ TEST_CASE("RMQ Tree map stress tests") {
     }
 
     SUBCASE("rmq_map insertions causing multiple recolors and rotations") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
 
         const int keys[] = {10, 20, 30, 15, 25, 5, 1, 50, 40, 60};
         for (int key : keys)
@@ -634,7 +681,7 @@ TEST_CASE("RMQ Tree map stress tests") {
     }
 
     SUBCASE("rmq_map large scale removals and reinserts") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
 
         constexpr int N = 5000;
         for (int i = 0; i < N; ++i)
@@ -663,7 +710,7 @@ TEST_CASE("RMQ Tree map stress tests") {
     }
 
     SUBCASE("rmq_map deep balancing check") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         constexpr int N = 1024;
 
         // Insert power-of-two spaced keys to force deeper tree structures
@@ -678,7 +725,7 @@ TEST_CASE("RMQ Tree map stress tests") {
     }
 
     SUBCASE("rmq_map stress test alternating inserts and deletes") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         constexpr int cycles = 1000;
 
         for (int i = 0; i < cycles; ++i) {
@@ -696,7 +743,7 @@ TEST_CASE("RMQ Tree map stress tests") {
     }
 
     SUBCASE("rmq_map edge case: repeated insert-remove same key") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
 
         for (int i = 0; i < 100; ++i) {
             constexpr int key = 123456;
@@ -711,7 +758,7 @@ TEST_CASE("RMQ Tree map stress tests") {
     }
 
     SUBCASE("rmq_map traversal and ordering correctness") {
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
 
         const int keys[] = {50, 30, 70, 20, 40, 60, 80};
         for (int key : keys)
@@ -760,7 +807,7 @@ TEST_CASE("RMQ Tree map stress tests") {
 }
 
 TEST_CASE("rmq_map extensive data integrity check") {
-    rmq_map<int, int>   tree;
+    rmq_map<int, int> tree = stack_rmq_allocator();
 
     std::map<int, int> reference; // Using std::map as a trusted reference
     constexpr int      OPERATIONS = 1000000;
@@ -865,7 +912,7 @@ TEST_CASE("rmq_map extensive data integrity check") {
 }
 
 TEST_CASE("rmq_map tree structure validity check") {
-    rmq_map<int, int>   tree;
+    rmq_map<int, int> tree = stack_rmq_allocator();
 
     std::map<int, int> reference; // Using std::map as a trusted reference
     constexpr int      OPERATIONS = 10000;
@@ -974,7 +1021,7 @@ TEST_CASE("rmq_map tree structure validity check") {
 TEST_CASE("RMQ Map iterator tests") {
     SUBCASE("rmq_map tree basic iterator check") {
         std::set<int>     ref_set;
-        rmq_map<int, int> tree;
+        rmq_map<int, int> tree = stack_rmq_allocator();
         for (int i = 100; i >= 0; --i) {
             tree.put(i, i);
         }

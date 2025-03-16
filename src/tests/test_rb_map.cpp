@@ -21,7 +21,7 @@ void verify_rb_tree_(rb_map<int, int> &map);
 #define POOL_SIZE  (BLOCK_SIZE * 50000000)
 #define STACK_SIZE (5000000)
 
-namespace allocator_ {
+namespace allocator_rb_ {
     static ex::data::stackpool::allocator<BLOCK_SIZE, POOL_SIZE, STACK_SIZE> stack;
 
     void *stack_malloc_(std::size_t, std::size_t) {
@@ -48,20 +48,20 @@ namespace allocator_ {
     }
 }
 
-static ex::data::allocator stack = {
-    .malloc = &allocator_::stack_malloc_,
-    .realloc = &allocator_::stack_realloc_,
-    .free = &allocator_::stack_free_,
-    .add_watcher = &allocator_::stack_nop_,
-    .del_watcher = &allocator_::stack_nop_,
-    .size_total = &allocator_::stack_size_total_,
-    .size_used = &allocator_::stack_size_used_,
+static ex::data::allocator stack_rb = {
+    .malloc = &allocator_rb_::stack_malloc_,
+    .realloc = &allocator_rb_::stack_realloc_,
+    .free = &allocator_rb_::stack_free_,
+    .add_watcher = &allocator_rb_::stack_nop_,
+    .del_watcher = &allocator_rb_::stack_nop_,
+    .size_total = &allocator_rb_::stack_size_total_,
+    .size_used = &allocator_rb_::stack_size_used_,
 };
 
-ex::data::allocator &stack_allocator() {
+ex::data::allocator &stack_rb_allocator() {
     std::cout << "allocator size: " << POOL_SIZE << "b (" << (POOL_SIZE / (1024 * 1024)) << "mb)" << std::endl;
-    allocator_::stack.clean();
-    return stack;
+    allocator_rb_::stack.clean();
+    return stack_rb;
 }
 
 // guaranteed worst case scenario for red black tree
@@ -70,13 +70,13 @@ ex::data::allocator &stack_allocator() {
 TEST_CASE("RB Tree map tests") {
 
     SUBCASE("rb_map empty and size") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
         CHECK(tree.empty());
         CHECK(tree.size() == 0);
     }
 
     SUBCASE("rb_map insertion and retrieval") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
         tree.put(5, 10);
         tree.put(3, 6);
         tree.put(7, 14);
@@ -88,7 +88,7 @@ TEST_CASE("RB Tree map tests") {
     }
 
     SUBCASE("rb_map insertion balancing test") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
         for(int i = 0; i < 1000; i++)
             tree.put(i, i * 10);
 
@@ -99,7 +99,7 @@ TEST_CASE("RB Tree map tests") {
     }
 
     SUBCASE("rb_map deletion robustness") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
         tree.put(1, 100);
         tree.put(2, 200);
         tree.put(3, 300);
@@ -123,7 +123,7 @@ TEST_CASE("RB Tree map tests") {
     }
 
     SUBCASE("rb_map update existing key") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
         tree.put(1, 100);
         CHECK(tree.at(1) == 100);
         tree.put(1, 200);
@@ -132,7 +132,7 @@ TEST_CASE("RB Tree map tests") {
     }
 
     SUBCASE("rb_map empty checks and clean") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
         CHECK(tree.empty());
 
         tree.put(1, 1);
@@ -144,7 +144,7 @@ TEST_CASE("RB Tree map tests") {
     }
 
     SUBCASE("rb_map contains method accuracy") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
         tree.put(10, 100);
         tree.put(20, 200);
 
@@ -159,7 +159,7 @@ TEST_CASE("RB Tree map tests") {
     }
 
     SUBCASE("rb_map insertion-deletion sequence") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
         for(int i = 0; i < 50; ++i)
             tree.put(i, i*i);
 
@@ -178,7 +178,7 @@ TEST_CASE("RB Tree map tests") {
     }
 
     SUBCASE("rb_map key boundary checks") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
         constexpr int min = INT32_MIN;
         constexpr int max = INT32_MAX;
 
@@ -200,7 +200,7 @@ TEST_CASE("RB Tree map tests") {
 TEST_CASE("RB Tree map stress tests") {
 
     SUBCASE("rb_map sequential insertion ascending order") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
         for (int i = 1; i <= 1000; ++i)
             tree.put(i, i * 10);
 
@@ -211,7 +211,7 @@ TEST_CASE("RB Tree map stress tests") {
     }
 
     SUBCASE("rb_map sequential insertion descending order") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
         for (int i = 1000; i >= 1; --i)
             tree.put(i, i * 10);
 
@@ -222,7 +222,7 @@ TEST_CASE("RB Tree map stress tests") {
     }
 
     SUBCASE("rb_map next op test") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
         for (int i = 10000; i >= 0; --i) {
             tree.put(i, i);
         }
@@ -236,7 +236,7 @@ TEST_CASE("RB Tree map stress tests") {
     }
 
     SUBCASE("rb_map prev op test") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
         for (int i = 10000; i >= 0; --i) {
             tree.put(i, i);
         }
@@ -250,7 +250,7 @@ TEST_CASE("RB Tree map stress tests") {
     }
 
     SUBCASE("rb_map random insert and remove stress test") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
         constexpr int N = 10000;
         for (int i = 0; i < N; ++i)
             tree.put(i, i + 1);
@@ -270,7 +270,7 @@ TEST_CASE("RB Tree map stress tests") {
     }
 
     SUBCASE("rb_map duplicate insertions") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
 
         tree.put(42, 100);
         CHECK(tree.size() == 1);
@@ -286,7 +286,7 @@ TEST_CASE("RB Tree map stress tests") {
     }
 
     SUBCASE("rb_map insertions causing multiple recolors and rotations") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
 
         const int keys[] = {10, 20, 30, 15, 25, 5, 1, 50, 40, 60};
         for (int key : keys)
@@ -299,7 +299,7 @@ TEST_CASE("RB Tree map stress tests") {
     }
 
     SUBCASE("rb_map large scale removals and reinserts") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
 
         constexpr int N = 5000;
         for (int i = 0; i < N; ++i)
@@ -328,7 +328,7 @@ TEST_CASE("RB Tree map stress tests") {
     }
 
     SUBCASE("rb_map deep balancing check") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
         constexpr int N = 1024;
 
         // Insert power-of-two spaced keys to force deeper tree structures
@@ -343,7 +343,7 @@ TEST_CASE("RB Tree map stress tests") {
     }
 
     SUBCASE("rb_map stress test alternating inserts and deletes") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
         constexpr int cycles = 1000;
 
         for (int i = 0; i < cycles; ++i) {
@@ -361,7 +361,7 @@ TEST_CASE("RB Tree map stress tests") {
     }
 
     SUBCASE("rb_map edge case: repeated insert-remove same key") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
 
         for (int i = 0; i < 100; ++i) {
             constexpr int key = 123456;
@@ -376,7 +376,7 @@ TEST_CASE("RB Tree map stress tests") {
     }
 
     SUBCASE("rb_map traversal and ordering correctness") {
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
 
         const int keys[] = {50, 30, 70, 20, 40, 60, 80};
         for (int key : keys)
@@ -425,7 +425,7 @@ TEST_CASE("RB Tree map stress tests") {
 }
 
 TEST_CASE("rb_map extensive data integrity check") {
-    rb_map<int, int> tree = stack_allocator();
+    rb_map<int, int> tree = stack_rb_allocator();
 //    rb_map<int, int> tree;
 
     std::map<int, int> reference; // Using std::map as a trusted reference
@@ -531,7 +531,7 @@ TEST_CASE("rb_map extensive data integrity check") {
 }
 
 TEST_CASE("rb_map tree structure validity check") {
-    rb_map<int, int> tree = stack_allocator();
+    rb_map<int, int> tree = stack_rb_allocator();
 
     std::map<int, int> reference; // Using std::map as a trusted reference
     constexpr int      OPERATIONS = 100000;
@@ -640,7 +640,7 @@ TEST_CASE("rb_map tree structure validity check") {
 TEST_CASE("RB Map iterator tests") {
     SUBCASE("rmq_map tree basic iterator check") {
         std::set<int>    ref_set;
-        rb_map<int, int> tree = stack_allocator();
+        rb_map<int, int> tree = stack_rb_allocator();
         for (int i = 100; i >= 0; --i) {
             tree.put(i, i);
         }
