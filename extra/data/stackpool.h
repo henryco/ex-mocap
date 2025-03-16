@@ -6,7 +6,6 @@
 #define EX_LIMBO_DATA_STACKPOOL_H
 
 #include <cstdlib>
-#include <cstring>
 
 namespace ex::data::stackpool {
 
@@ -28,10 +27,8 @@ namespace ex::data::stackpool {
         void *allocate() {
             if (free_n > 0)
                 return freed_[--free_n];
-
             if (offset >= pool_s)
                 ::abort();
-
             void *ptr = static_cast<void *>(stack_ + offset);
             offset += block_s;
             return ptr;
