@@ -461,7 +461,7 @@ namespace ex::data {
 
         /**
          * Finds smallest value that is greater or equal to limit.
-         * Only works if range values are sorted (ie range == key).
+         * <b> Only works for range values that have been sorted (i.e. range == key). </b>
          */
         rmq_node *range_minimize(const rmq_t &limit) const {
             if (root_ == nullptr)
@@ -475,7 +475,6 @@ namespace ex::data {
             // -----------x-[----]------------------- lns
             // d: min_(range_min, range_max) &&  >= limit
             // r: min_(min_(d_left, d_right), val)
-
 
             for (rmq_node *head = root_, *last = nullptr; head != nullptr;) {
                 const rmq_t &h_max = head->max;
@@ -545,7 +544,7 @@ namespace ex::data {
 
         /**
          * Finds largest value that is smaller or equal to limit.
-         * Only works if range values are sorted (ie range == key).
+         * <b> Only works for range values that have been sorted (i.e. range == key). </b>
          */
         rmq_node *range_maximize(const rmq_t &limit) const {
             if (root_ == nullptr)
