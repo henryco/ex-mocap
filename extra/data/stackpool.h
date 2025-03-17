@@ -45,6 +45,14 @@ namespace ex::data::stackpool {
          * releases block
          */
         void free(void *ptr) {
+            const unsigned char *have = static_cast<unsigned char *>(ptr) + block_s;
+            const unsigned char *last = stack_ + offset;
+
+            if (have == last) {
+                offset -= block_s;
+                return;
+            }
+
             if (free_n < free_s)
                 freed_[free_n++] = ptr;
         }
