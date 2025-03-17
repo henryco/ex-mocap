@@ -57,12 +57,12 @@ namespace ex::data::stackarena {
                 stack_[free_n++] = ptr;
         }
 
-        constexpr std::size_t size_total() const {
-            return ((arena_s / block_s) * block_s) + stack_s;
+        constexpr long size_total() const {
+            return static_cast<long>(((arena_s / block_s) * block_s) + stack_s);
         }
 
-        std::size_t size_used() const {
-            return offset + (free_n * sizeof(void *));
+        long size_used() const {
+            return static_cast<long>(offset + (free_n * sizeof(void *)));
         }
 
         void clean() {

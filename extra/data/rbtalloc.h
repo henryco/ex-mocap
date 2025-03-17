@@ -34,46 +34,6 @@ namespace ex::data::rbtalloc {
     using block_map_t  = rmq_map<block_addr_t, memory_block, block_size_t>;
     using watch_map_t  = array_map<watch_id_t, watch_fn_t>;
 
-    // static allocator for rmq_tree structure
-    namespace static_allocator_ {
-
-#define STACK_BLOCK_SIZE (sizeof(block_map_t::rmq_node))
-        static inline ex::data::stackarena::allocator<STACK_BLOCK_SIZE, STACK_ARENA_SIZE> arena_;
-
-        inline void *arena_malloc_(std::size_t, std::size_t) {
-            return arena_.allocate();
-        }
-
-        inline void *arena_realloc_(void *, std::size_t) {
-            ::abort();
-        }
-
-        inline void arena_free_(void *ptr) {
-            arena_.free(ptr);
-        }
-
-        inline void arena_nop_(void *, watch_fn_t) {
-        }
-
-        inline long arena_size_total_() {
-            return arena_.size_total();
-        }
-
-        inline long arena_size_used_() {
-            return arena_.size_used();
-        }
-
-        inline static ex::data::allocator static_arena_ = {
-            .malloc      = &arena_malloc_,
-            .realloc     = &arena_realloc_,
-            .free        = &arena_free_,
-            .add_watcher = &arena_nop_,
-            .del_watcher = &arena_nop_,
-            .size_total  = &arena_size_total_,
-            .size_used   = &arena_size_used_,
-        };
-    }
-
     namespace providers_ {
         // TODO REPLACE WITH SYS-CALLS
         struct mem_provider {
@@ -143,9 +103,11 @@ namespace ex::data::rbtalloc {
             return (aa > bb) - (aa < bb);
         }
 
-        block_map_t              blocks_ = { static_allocator_::static_arena_, &ptr_compare };
+        block_map_t              blocks_ = { static_arena_, &ptr_compare };
         watch_map_t              watche_;
         providers_::mem_provider memory_;
+
+        std::size_t used_mem_ = 0;
 
         allocator(const std::size_t pre_allocated = ALLOCATOR_SIZE_B) {
             if (pre_allocated <= 0)
@@ -190,18 +152,61 @@ namespace ex::data::rbtalloc {
         void free(void *ptr) {
             if (ptr == nullptr)
                 return;
+            const memory_block block = blocks_.at(ptr);
+            if (block.is_free)
+                abort_("Memory block double free");
+
+            used_mem_ -= block.size_b;
+
+            block_map_t::rmq_node *prev = blocks_.prev(ptr);
+            block_map_t::rmq_node *next = blocks_.next(ptr);
+
             // TODO
         }
 
         long memory_used_b() const {
-            // TODO
-            return 0 + static_allocator_::static_arena_.size_used();
+            return used_mem_ + arena_.size_used();
         }
 
         long memory_total_b() const {
-            return memory_.size() + static_allocator_::static_arena_.size_total();
+            return memory_.size() + arena_.size_total();
         }
 
+#define STACK_BLOCK_SIZE (sizeof(block_map_t::rmq_node))
+        static inline ex::data::stackarena::allocator<STACK_BLOCK_SIZE, STACK_ARENA_SIZE> arena_;
+
+        ex::data::allocator static_arena_ = {
+            .malloc      = &arena_malloc_,
+            .realloc     = &arena_realloc_,
+            .free        = &arena_free_,
+            .add_watcher = &arena_nop_,
+            .del_watcher = &arena_nop_,
+            .size_total  = &arena_size_total_,
+            .size_used   = &arena_size_used_,
+        };
+
+        static void *arena_malloc_(std::size_t, std::size_t) {
+            return arena_.allocate();
+        }
+
+        static void *arena_realloc_(void *, std::size_t) {
+            ::abort();
+        }
+
+        static void arena_free_(void *ptr) {
+            arena_.free(ptr);
+        }
+
+        static void arena_nop_(void *, watch_fn_t) {
+        }
+
+        static long arena_size_total_() {
+            return arena_.size_total();
+        }
+
+        static long arena_size_used_() {
+            return arena_.size_used();
+        }
     };
 
 }
