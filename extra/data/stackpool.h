@@ -19,7 +19,7 @@ namespace ex::data::stackpool {
     template <std::size_t block_s, std::size_t pool_s, std::size_t stack_s>
     struct allocator {
 
-        static constexpr std::size_t data_s = pool_s / block_s;
+        static constexpr std::size_t data_s = (pool_s / block_s) * block_s;
         static constexpr std::size_t free_s = stack_s / sizeof(void *);
 
         unsigned char stack_[data_s];
@@ -47,6 +47,15 @@ namespace ex::data::stackpool {
         void free(void *ptr) {
             if (free_n < free_s)
                 freed_[free_n++] = ptr;
+        }
+
+        constexpr std::size_t size_total() const {
+            static constexpr std::size_t total_= data_s + stack_s;
+            return total_;
+        }
+
+        std::size_t size_used() const {
+            return offset + (freed_ * sizeof(void *));
         }
 
         void clean() {
