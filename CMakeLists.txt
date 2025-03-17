@@ -79,14 +79,13 @@ set(EXTRA_FILES
 
         # undo history
         extra/undo/undo_history.h
+        # graph (nodes)
+        extra/graph/graph.h
 
         # data utils
         extra/data/data_utils.h
         extra/data/datalloc.h
         extra/data/mempool.h
-
-        # graph (nodes)
-        extra/graph/graph.h
         extra/data/rb_map.h
         extra/data/rmq_map.h
         extra/data/array.h
