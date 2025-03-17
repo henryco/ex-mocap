@@ -60,7 +60,7 @@ static ex::data::allocator stack_rmq = {
 };
 
 ex::data::allocator &stack_rmq_allocator() {
-    std::cout << "allocator size: " << POOL_SIZE << "b (" << (POOL_SIZE / (1024 * 1024)) << "mb)" << std::endl;
+    std::cout << "allocator size: " << allocator_rmq_::stack.size_total() << "b (" << (allocator_rmq_::stack.size_total() / (1024 * 1024)) << "mb)" << std::endl;
     allocator_rmq_::stack.clean();
     return stack_rmq;
 }

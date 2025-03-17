@@ -59,7 +59,7 @@ static ex::data::allocator stack_rb = {
 };
 
 ex::data::allocator &stack_rb_allocator() {
-    std::cout << "allocator size: " << POOL_SIZE << "b (" << (POOL_SIZE / (1024 * 1024)) << "mb)" << std::endl;
+    std::cout << "allocator size: " << allocator_rb_::stack.size_total() << "b (" << (allocator_rb_::stack.size_total() / (1024 * 1024)) << "mb)" << std::endl;
     allocator_rb_::stack.clean();
     return stack_rb;
 }
