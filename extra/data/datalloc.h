@@ -9,6 +9,11 @@
 
 namespace ex::data {
 
+#define KB * 1024
+#define MB * 1024 KB
+#define GB * 1024 MB
+#define TB * 1024 GB
+
     using malloc_fn_t  = void *(*) (std::size_t size_new_b, std::size_t alignment_b);
     using realloc_fn_t = void *(*) (void *ptr, std::size_t size_new_b);
     using watch_fn_t   = void  (*) (void *instance, long int ptr_offset);

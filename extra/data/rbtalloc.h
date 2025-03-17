@@ -32,8 +32,6 @@ namespace ex::data::rbtalloc {
     // static allocator for rmq_tree structure
     namespace static_allocator_ {
 
-#define MB * (1024 * 1024)
-
 #define BLOCK_SIZE (sizeof(block_map_t::rmq_node))
 #define ARENA_SIZE (10 MB)
 
@@ -74,6 +72,7 @@ namespace ex::data::rbtalloc {
     }
 
     namespace providers_ {
+        // TODO REPLACE WITH SYS-CALLS
         struct mem_provider {
             void       *data     = nullptr;
             std::size_t offset   = 0;
@@ -135,8 +134,6 @@ namespace ex::data::rbtalloc {
 
     struct allocator {
 
-#define DEFAULT_ARENA_SIZE_B 1048576
-
         static int32_t ptr_compare(const block_addr_t *a, const block_addr_t *b) {
             const u_int64_t aa = reinterpret_cast<u_int64_t>(*a);
             const u_int64_t bb = reinterpret_cast<u_int64_t>(*b);
@@ -146,6 +143,8 @@ namespace ex::data::rbtalloc {
         block_map_t              blocks_ = { static_allocator_::static_arena_, &ptr_compare };
         watch_map_t              watche_;
         providers_::mem_provider memory_;
+
+#define DEFAULT_ARENA_SIZE_B (1 MB)
 
         allocator(const std::size_t pre_allocated = DEFAULT_ARENA_SIZE_B) {
             if (pre_allocated <= 0)
@@ -172,7 +171,35 @@ namespace ex::data::rbtalloc {
             watche_.remove(id);
         }
 
-        // TODO
+        void *allocate(const std::size_t size_b, const std::size_t alignment_b) {
+            if (size_b <= 0) abort_("Empty memory block allocation");
+            // TODO
+            abort_("Out of free space");
+        }
+
+        void *reallocate(void *ptr, const std::size_t size_new_b) {
+            if (size_new_b <= 0 || ptr == nullptr) {
+                free(ptr);
+                return nullptr;
+            }
+            // TODO
+            abort_("Out of free space");
+        }
+
+        void free(void *ptr) {
+            if (ptr == nullptr)
+                return;
+            // TODO
+        }
+
+        long memory_used_b() const {
+            // TODO
+            return 0 + static_allocator_::static_arena_.size_used();
+        }
+
+        long memory_total_b() const {
+            return memory_.size() + static_allocator_::static_arena_.size_total();
+        }
 
     };
 
