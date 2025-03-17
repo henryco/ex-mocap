@@ -12,6 +12,11 @@
 
 namespace ex::data::rbtalloc {
 
+// -----------------------------
+#define ALLOCATOR_SIZE_B (1 MB)
+#define STACK_ARENA_SIZE (10 MB)
+// -----------------------------
+
 #ifndef UNIT_TEST
     #define abort_(msg) do { std::cerr << msg << std::endl; ::abort(); } while(false)
 #else
@@ -32,10 +37,8 @@ namespace ex::data::rbtalloc {
     // static allocator for rmq_tree structure
     namespace static_allocator_ {
 
-#define BLOCK_SIZE (sizeof(block_map_t::rmq_node))
-#define ARENA_SIZE (10 MB)
-
-        static inline ex::data::stackarena::allocator<BLOCK_SIZE, ARENA_SIZE> arena_;
+#define STACK_BLOCK_SIZE (sizeof(block_map_t::rmq_node))
+        static inline ex::data::stackarena::allocator<STACK_BLOCK_SIZE, STACK_ARENA_SIZE> arena_;
 
         inline void *arena_malloc_(std::size_t, std::size_t) {
             return arena_.allocate();
@@ -144,17 +147,15 @@ namespace ex::data::rbtalloc {
         watch_map_t              watche_;
         providers_::mem_provider memory_;
 
-#define DEFAULT_ARENA_SIZE_B (1 MB)
-
-        allocator(const std::size_t pre_allocated = DEFAULT_ARENA_SIZE_B) {
+        allocator(const std::size_t pre_allocated = ALLOCATOR_SIZE_B) {
             if (pre_allocated <= 0)
                 abort_("Allocation size must be greater than 0");
 
             std::size_t allocated_size = 0;
             void *const allocated_ptr  = memory_.request(pre_allocated, &allocated_size);
 
-            // TODO
-//            blocks_.put(allocated_ptr, { static_cast<u_int32_t>(allocated_size), 1, true });
+            const auto size_b = static_cast<block_size_t>(allocated_size);
+            blocks_.put(allocated_ptr, { size_b, 1, true }, size_b);
         }
 
         void cleanup() {
