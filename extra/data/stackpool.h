@@ -49,8 +49,8 @@ namespace ex::data::stackpool {
                 freed_[free_n++] = ptr;
         }
 
-        constexpr std::size_t size_total() const {
-            static constexpr std::size_t total_= data_s + stack_s;
+        std::size_t size_total() const {
+            static std::size_t total_= data_s + stack_s;
             return total_;
         }
 
