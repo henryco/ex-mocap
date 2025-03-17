@@ -15,6 +15,7 @@ namespace ex::data {
     using reg_fn_t     = void  (*) (void *ptr, watch_fn_t watch_fn);
     using free_fn_t    = void  (*) (void *ptr);
     using size_fn_t    = long  (*) ();
+    using watch_id_t   = void *;
 
     inline void *default_malloc_(const std::size_t size_new_b, std::size_t) {
         void *mem = ::malloc(size_new_b);

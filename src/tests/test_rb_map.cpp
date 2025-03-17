@@ -17,8 +17,10 @@ using namespace ex::data;
 bool verify_tree_(rb_map<int,int>::rb_node *node, int &black_count, int path_black = 0);
 void verify_rb_tree_(rb_map<int, int> &map);
 
+#define MB * (1024 * 1024)
+
 #define BLOCK_SIZE (sizeof(rb_map<int,int>::rb_node))
-#define POOL_SIZE  (100000000)
+#define POOL_SIZE  (100 MB)
 
 namespace allocator_rb_ {
     static ex::data::stackarena::allocator<BLOCK_SIZE, POOL_SIZE> stack;

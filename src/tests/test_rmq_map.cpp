@@ -18,8 +18,10 @@ bool verify_rb_tree_height_(rmq_map<int,int>::rmq_node *node, int &black_count, 
 bool verify_rmq_weights_(rmq_map<int,int>::rmq_node *node, int &min, int &max);
 void verify_rb_tree_(rmq_map<int, int> &map);
 
+#define MB * (1024 * 1024)
+
 #define BLOCK_SIZE (sizeof(rmq_map<int,int>::rmq_node))
-#define POOL_SIZE  (100000000)
+#define POOL_SIZE  (100 MB)
 
 namespace allocator_rmq_ {
     static ex::data::stackarena::allocator<BLOCK_SIZE, POOL_SIZE> stack;
