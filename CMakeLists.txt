@@ -79,6 +79,7 @@ set(EXTRA_FILES
 
         # undo history
         extra/undo/undo_history.h
+
         # graph (nodes)
         extra/graph/graph.h
 
