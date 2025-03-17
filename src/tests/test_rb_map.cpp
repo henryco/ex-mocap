@@ -9,7 +9,7 @@
 #include <map>
 #include <set>
 
-#include "../../extra/data/stackpool.h"
+#include "../../extra/data/stackarena.h"
 #include "../../extra/data/rb_map.h"
 
 using namespace ex::data;
@@ -21,7 +21,7 @@ void verify_rb_tree_(rb_map<int, int> &map);
 #define POOL_SIZE  (100000000)
 
 namespace allocator_rb_ {
-    static ex::data::stackpool::allocator<BLOCK_SIZE, POOL_SIZE> stack;
+    static ex::data::stackarena::allocator<BLOCK_SIZE, POOL_SIZE> stack;
 
     void *stack_malloc_(std::size_t, std::size_t) {
         return stack.allocate();

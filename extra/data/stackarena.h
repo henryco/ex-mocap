@@ -2,13 +2,13 @@
 // Created by xd on 3/16/25.
 //
 
-#ifndef EX_LIMBO_DATA_STACKPOOL_H
-#define EX_LIMBO_DATA_STACKPOOL_H
+#ifndef EX_LIMBO_DATA_STACK_ARENA_H
+#define EX_LIMBO_DATA_STACK_ARENA_H
 
-#include <iostream>
 #include <cstdlib>
+#include <iostream>
 
-namespace ex::data::stackpool {
+namespace ex::data::stackarena {
 
 #ifndef UNIT_TEST
     #define abort_(msg) do { std::cerr << msg << std::endl; ::abort(); } while(false)
@@ -16,14 +16,14 @@ namespace ex::data::stackpool {
     #define abort_(msg) throw std::runtime_error("Generic abort exception")
 #endif
 
-    template <std::size_t block_s, std::size_t pool_s, std::size_t stack_s = pool_s / block_s * sizeof(void *)>
+    template <std::size_t block_s, std::size_t arena_s, std::size_t stack_s = arena_s / block_s * sizeof(void *)>
     struct allocator {
 
-        static constexpr std::size_t data_s = pool_s / block_s * block_s;
+        static constexpr std::size_t data_s = arena_s / block_s * block_s;
         static constexpr std::size_t free_s = stack_s / sizeof(void *);
 
-        unsigned char stack_[data_s];
-        void         *freed_[free_s];
+        unsigned char arena_[data_s];
+        void         *stack_[free_s];
 
         std::size_t offset = 0;
         std::size_t free_n = 0;
@@ -33,10 +33,10 @@ namespace ex::data::stackpool {
          */
         void *allocate() {
             if (free_n > 0)
-                return freed_[--free_n];
+                return stack_[--free_n];
             if (offset >= data_s)
                 abort_("out of memory: " << offset << "b");
-            void *ptr = static_cast<void *>(stack_ + offset);
+            void *ptr = static_cast<void *>(arena_ + offset);
             offset += block_s;
             return ptr;
         }
@@ -46,7 +46,7 @@ namespace ex::data::stackpool {
          */
         void free(void *ptr) {
             const unsigned char *have = static_cast<unsigned char *>(ptr) + block_s;
-            const unsigned char *last = stack_ + offset;
+            const unsigned char *last = arena_ + offset;
 
             if (have == last) {
                 offset -= block_s;
@@ -54,15 +54,15 @@ namespace ex::data::stackpool {
             }
 
             if (free_n < free_s)
-                freed_[free_n++] = ptr;
+                stack_[free_n++] = ptr;
         }
 
         constexpr std::size_t size_total() const {
-            return ((pool_s / block_s) * block_s) + stack_s;
+            return ((arena_s / block_s) * block_s) + stack_s;
         }
 
         std::size_t size_used() const {
-            return offset + (freed_ * sizeof(void *));
+            return offset + (free_n * sizeof(void *));
         }
 
         void clean() {
@@ -73,4 +73,4 @@ namespace ex::data::stackpool {
 
 }
 
-#endif //EX_LIMBO_DATA_STACKPOOL_H
+#endif //EX_LIMBO_DATA_STACK_ARENA_H

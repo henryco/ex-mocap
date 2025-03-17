@@ -94,7 +94,7 @@ set(EXTRA_FILES
         extra/data/array_map.h
         extra/data/sorted_map.h
         extra/data/cache.h
-        extra/data/stackpool.h
+        extra/data/stackarena.h
 )
 
 set(PLATFORM_FILES
