@@ -85,16 +85,19 @@ set(EXTRA_FILES
 
         # data utils
         extra/data/data_utils.h
-        extra/data/datalloc.h
-        extra/data/mempool.h
-        extra/data/rb_map.h
-        extra/data/rmq_map.h
-        extra/data/array.h
-        extra/data/buffer.h
-        extra/data/array_map.h
         extra/data/sorted_map.h
+        extra/data/array_map.h
+        extra/data/rmq_map.h
+        extra/data/rb_map.h
+        extra/data/buffer.h
         extra/data/cache.h
+        extra/data/array.h
+
+        extra/data/mempool.h # this MFer goes out
+
+        extra/data/datalloc.h
         extra/data/stackarena.h
+        extra/data/rbtalloc.h
 )
 
 set(PLATFORM_FILES
