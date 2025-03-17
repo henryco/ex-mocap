@@ -18,11 +18,10 @@ bool verify_tree_(rb_map<int,int>::rb_node *node, int &black_count, int path_bla
 void verify_rb_tree_(rb_map<int, int> &map);
 
 #define BLOCK_SIZE (sizeof(rb_map<int,int>::rb_node))
-#define POOL_SIZE  (BLOCK_SIZE * 10000000)
-#define STACK_SIZE (1000000)
+#define POOL_SIZE  (100000000)
 
 namespace allocator_rb_ {
-    static ex::data::stackpool::allocator<BLOCK_SIZE, POOL_SIZE, STACK_SIZE> stack;
+    static ex::data::stackpool::allocator<BLOCK_SIZE, POOL_SIZE> stack;
 
     void *stack_malloc_(std::size_t, std::size_t) {
         return stack.allocate();

@@ -19,11 +19,10 @@ bool verify_rmq_weights_(rmq_map<int,int>::rmq_node *node, int &min, int &max);
 void verify_rb_tree_(rmq_map<int, int> &map);
 
 #define BLOCK_SIZE (sizeof(rmq_map<int,int>::rmq_node))
-#define POOL_SIZE  (BLOCK_SIZE * 10000000)
-#define STACK_SIZE (1000000)
+#define POOL_SIZE  (100000000)
 
 namespace allocator_rmq_ {
-    static ex::data::stackpool::allocator<BLOCK_SIZE, POOL_SIZE, STACK_SIZE> stack;
+    static ex::data::stackpool::allocator<BLOCK_SIZE, POOL_SIZE> stack;
 
     void *stack_malloc_(std::size_t, std::size_t) {
         return stack.allocate();

@@ -16,10 +16,10 @@ namespace ex::data::stackpool {
     #define abort_(msg) throw std::runtime_error("Generic abort exception")
 #endif
 
-    template <std::size_t block_s, std::size_t pool_s, std::size_t stack_s>
+    template <std::size_t block_s, std::size_t pool_s, std::size_t stack_s = pool_s / block_s * sizeof(void *)>
     struct allocator {
 
-        static constexpr std::size_t data_s = (pool_s / block_s) * block_s;
+        static constexpr std::size_t data_s = pool_s / block_s * block_s;
         static constexpr std::size_t free_s = stack_s / sizeof(void *);
 
         unsigned char stack_[data_s];
@@ -49,9 +49,8 @@ namespace ex::data::stackpool {
                 freed_[free_n++] = ptr;
         }
 
-        std::size_t size_total() const {
-            static std::size_t total_= data_s + stack_s;
-            return total_;
+        constexpr std::size_t size_total() const {
+            return ((pool_s / block_s) * block_s) + stack_s;
         }
 
         std::size_t size_used() const {
