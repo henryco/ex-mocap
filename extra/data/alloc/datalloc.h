@@ -21,32 +21,32 @@ namespace ex::data {
     using realloc_fn_t = void *(*) (instance_t this_, void *ptr, std::size_t size_new_b);
     using free_fn_t    = void  (*) (instance_t this_, void *ptr);
     using watch_fn_t   = void  (*) (watch_id_t watch, long int ptr_offset);
-    using reg_fn_t     = void  (*) (instance_t this_, void *ptr, watch_fn_t watch_fn);
+    using reg_fn_t     = void  (*) (instance_t this_, watch_id_t watcher, watch_fn_t watch_fn);
     using size_fn_t    = long  (*) (instance_t this_);
 
-    inline void *default_malloc_(void *, const std::size_t size_new_b, std::size_t) {
+    inline void *default_malloc_(instance_t, const std::size_t size_new_b, std::size_t) {
         void *mem = ::malloc(size_new_b);
         if (mem == nullptr)
             ::abort();
         return mem;
     }
 
-    inline void *default_realloc_(void *, void *ptr, const std::size_t size_new_b) {
+    inline void *default_realloc_(instance_t, void *ptr, const std::size_t size_new_b) {
         void *mem = ::realloc(ptr, size_new_b);
         if (mem == nullptr)
             ::abort();
         return mem;
     }
 
-    inline void default_free_(void *, void *ptr) {
+    inline void default_free_(instance_t, void *ptr) {
         ::free(ptr);
     }
 
-    inline void default_reg_(void *, void *, watch_fn_t) {
+    inline void default_reg_(instance_t, watch_id_t, watch_fn_t) {
         /*NOP*/
     }
 
-    inline long default_size_(void *) {
+    inline long default_size_(instance_t) {
         return 0;
     }
 
