@@ -5,7 +5,7 @@
 #include <iostream>
 #include <doctest/doctest.h>
 #include "../../extra/graph/graph.h"
-#include "../../extra/data/mempool.h"
+#include "../../extra/data/alloc/mempool.h"
 #include "../../src/headers/utils/time_utils.h"
 
 struct node_test_one final : limbo::graph::BaseNode,

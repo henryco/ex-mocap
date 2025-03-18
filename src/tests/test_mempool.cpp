@@ -2,7 +2,7 @@
 // Created by henryco on 06/03/25.
 //
 
-#include "../../extra/data/mempool.h"
+#include "../../extra/data/alloc/mempool.h"
 
 #include <doctest/doctest.h>
 #include <iostream>

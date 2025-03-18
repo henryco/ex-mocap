@@ -9,7 +9,7 @@
 #include <map>
 #include <set>
 
-#include "../../extra/data/stackarena.h"
+#include "../../extra/data/alloc/stackarena.h"
 #include "../../extra/data/rb_map.h"
 
 using namespace ex::data;

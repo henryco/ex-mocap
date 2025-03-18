@@ -7,8 +7,8 @@
 
 #include "datalloc.h"
 #include "stackarena.h"
-#include "array_map.h"
-#include "rmq_map.h"
+#include "../array_map.h"
+#include "../rmq_map.h"
 
 namespace ex::data::rbtalloc {
 

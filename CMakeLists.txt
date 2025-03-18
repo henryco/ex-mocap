@@ -93,11 +93,11 @@ set(EXTRA_FILES
         extra/data/cache.h
         extra/data/array.h
 
-        extra/data/mempool.h # this MFer goes out
+        extra/data/alloc/mempool.h # this MFer goes out
 
-        extra/data/datalloc.h
-        extra/data/stackarena.h
-        extra/data/rbtalloc.h
+        extra/data/alloc/datalloc.h
+        extra/data/alloc/stackarena.h
+        extra/data/alloc/rbtalloc.h
 )
 
 set(PLATFORM_FILES

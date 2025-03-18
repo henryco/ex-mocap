@@ -5,7 +5,7 @@
 #ifndef EX_LIMBO_DATA_RMQ_MAP_H
 #define EX_LIMBO_DATA_RMQ_MAP_H
 
-#include "datalloc.h"
+#include "alloc/datalloc.h"
 #include <new>
 
 namespace ex::data {

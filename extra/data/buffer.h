@@ -5,7 +5,7 @@
 #ifndef EX_LIMBO_DATA_BUFFER_H
 #define EX_LIMBO_DATA_BUFFER_H
 
-#include "datalloc.h"
+#include "alloc/datalloc.h"
 #include <cstring>
 
 namespace ex::data {
