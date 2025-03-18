@@ -468,17 +468,6 @@ namespace ex::data::mempool {
 
         // There is some compatibility layer type/mem-layout tricknology
 
-        struct tricklocator {
-            malloc_fn_t  malloc      ;
-            realloc_fn_t realloc     ;
-            free_fn_t    free        ;
-            reg_fn_t     add_watcher ;
-            reg_fn_t     del_watcher ;
-            size_fn_t    size_total  ;
-            size_fn_t    size_used   ;
-            allocator   *instance    ;
-        };
-
         const ex::data::allocator tricklocator_ = { .malloc      = &allocator::pool_malloc_,
                                                     .realloc     = &allocator::pool_realloc_,
                                                     .free        = &allocator::pool_free_,
@@ -493,33 +482,33 @@ namespace ex::data::mempool {
         }
 
         static void *pool_malloc_(void *this_, const std::size_t size_new_b, const std::size_t alignment_b) {
-            return static_cast<const tricklocator *>(this_)->instance->allocate(size_new_b, alignment_b);
+
+            return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->allocate(size_new_b, alignment_b);
         }
 
         static void *pool_realloc_(void *this_, void *ptr, const std::size_t size_new_b) {
-            return static_cast<const tricklocator *>(this_)->instance->reallocate(ptr, size_new_b);
+            return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->reallocate(ptr, size_new_b);
         }
 
         static void pool_free_(void *this_, void *ptr) {
-            static_cast<const tricklocator *>(this_)->instance->free(ptr);
+            static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->free(ptr);
         }
 
         static void pool_watch_add_(void *this_, void *const ptr, const ex::data::watch_fn_t fn) {
-            static_cast<const tricklocator *>(this_)->instance->add_watcher(ptr, fn);
+            static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->add_watcher(ptr, fn);
         }
 
         static void pool_watch_del_(void *this_, void *const ptr, const ex::data::watch_fn_t fn) {
-            static_cast<const tricklocator *>(this_)->instance->del_watcher(ptr, fn);
+            static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->del_watcher(ptr, fn);
         }
 
         static long pool_size_total_(void *this_) {
-            return static_cast<const tricklocator *>(this_)->instance->memory_total_b();
+            return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->memory_total_b();
         }
 
         static long pool_size_used_(void *this_) {
-            return static_cast<const tricklocator *>(this_)->instance->memory_used_b();
+            return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->memory_used_b();
         }
-
     };
 
 }

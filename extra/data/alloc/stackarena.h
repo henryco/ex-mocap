@@ -73,17 +73,6 @@ namespace ex::data::stackarena {
 
         // There is some compatibility layer type/mem-layout tricknology
 
-        struct tricklocator {
-            malloc_fn_t       malloc;
-            realloc_fn_t      realloc;
-            free_fn_t         free;
-            reg_fn_t          add_watcher;
-            reg_fn_t          del_watcher;
-            size_fn_t         size_total;
-            size_fn_t         size_used;
-            static_allocator *instance;
-        };
-
         const ex::data::allocator tricklocator_ = { .malloc      = &static_allocator::malloc_,
                                                     .realloc     = &static_allocator::realloc_,
                                                     .free        = &static_allocator::free_,
@@ -98,7 +87,7 @@ namespace ex::data::stackarena {
         }
 
         static void *malloc_(void *this_, std::size_t, std::size_t) {
-            return static_cast<const tricklocator *>(this_)->instance->allocate();
+            return static_cast<static_allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->allocate();
         }
 
         static void *realloc_(void *, void *, const std::size_t) {
@@ -106,18 +95,18 @@ namespace ex::data::stackarena {
         }
 
         static void free_(void *this_, void *ptr) {
-            static_cast<const tricklocator *>(this_)->instance->free(ptr);
+            static_cast<static_allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->free(ptr);
         }
 
         static void nop_(void *, void *const, const ex::data::watch_fn_t) {
         }
 
         static long size_total_(void *this_) {
-            return static_cast<const tricklocator *>(this_)->instance->data_s;
+            return static_cast<static_allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->data_s;
         }
 
         static long size_used_(void *this_) {
-            return static_cast<const tricklocator *>(this_)->instance->offset;
+            return static_cast<static_allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->offset;
         }
     };
 
