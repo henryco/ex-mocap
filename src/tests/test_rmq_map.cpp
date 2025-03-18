@@ -993,10 +993,10 @@ TEST_CASE("RMQ Map iterator tests") {
             tree.put(i, i);
         }
         for (const auto &entry : tree) {
-//            std::cout << entry.key << ", " << entry.rmq << ", [ " << entry.min << " | " << entry.max << " ]\n";
+            std::cout << entry.key << ", " << entry.rmq << ", [ " << entry.min << " | " << entry.max << " ]\n";
             const bool contains = ref_set.contains(entry.key);
             CHECK_FALSE(contains);
-            ref_set.insert(contains);
+            ref_set.insert(entry.key);
         }
     }
 }

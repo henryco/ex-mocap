@@ -185,6 +185,18 @@ namespace ex::data {
             }
         }
 
+        rb_node *last() const {
+            if (root_ == nullptr)
+                return nullptr;
+            return maximum_(root_);
+        }
+
+        rb_node *first() const {
+            if (root_ == nullptr)
+                return nullptr;
+            return minimum_(root_);
+        }
+
         bool contains(const key_t &key) const {
             int direction;
 #ifdef UNIT_TEST
@@ -855,25 +867,29 @@ namespace ex::data {
 
         // DSF Post-Order iterator
         struct iterator {
-            entry    entr_;
-            rb_node *node_;
+//            entry    entr_;
             rb_node *head_;
             rb_node *prev_;
             long     idx__;
             bool     down_;
 
-            iterator(rb_node *node):
-                node_(node) {
+            iterator(rb_node *node) {
+//                entr_ = {};
                 head_ = node;
                 prev_ = node;
                 down_ = true;
                 idx__ = -1;
-                entr_ = {};
                 spin_();
             }
 
-            entry &operator * () {
-                return entr_;
+//            entry &operator * () {
+//                return entr_;
+//            }
+
+            rb_node &operator * () {
+                if (prev_ == nullptr)
+                    ::abort();
+                return *prev_;
             }
 
             void spin_() {
@@ -895,8 +911,8 @@ namespace ex::data {
                         head_ = head_->par;
                         down_ = false;
 
-                        if (prev_ != nullptr)
-                            entr_ = { prev_->key, prev_->val };
+//                        if (prev_ != nullptr)
+//                            entr_ = { prev_->key, prev_->val };
                         idx__++;
                         return;
                     }
@@ -912,8 +928,8 @@ namespace ex::data {
                     head_ = head_->par;
                     down_ = false;
 
-                    if (prev_ != nullptr)
-                        entr_ = { prev_->key, prev_->val };
+//                    if (prev_ != nullptr)
+//                        entr_ = { prev_->key, prev_->val };
                     idx__++;
                     return;
                 }

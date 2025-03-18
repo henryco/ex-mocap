@@ -612,10 +612,10 @@ TEST_CASE("RB Map iterator tests") {
             tree.put(i, i);
         }
         for (const auto &entry : tree) {
-//            std::cout << entry.key << '\n';
+            std::cout << entry.key << '\n';
             const bool contains = ref_set.contains(entry.key);
             CHECK_FALSE(contains);
-            ref_set.insert(contains);
+            ref_set.insert(entry.key);
         }
     }
 }

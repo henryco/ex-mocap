@@ -235,8 +235,8 @@ namespace ex::main {
         log->debug("rewire");
 
         logic.clock_.reset();
-        for (const auto &[_, node] : ex::logic::state::node_storage())
-            node->detach_all();
+        for (const auto &node : ex::logic::state::node_storage())
+            node.val->detach_all();
 
         simple_list current = { state.logic.work_tree };
         build_tree_(state, state.logic.work_tree, nullptr, &current);

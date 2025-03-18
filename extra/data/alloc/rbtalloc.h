@@ -78,10 +78,64 @@ namespace ex::data::rbtalloc {
             watche_.remove(id);
         }
 
+        /**
+         * Allocate at least additional <b>min_size_b</b> bytes of memory
+         */
+        void block_request(const std::size_t min_size_b) {
+            block_map_t::rmq_node *last = blocks_.last();
+            if (last == nullptr)
+                abort_("");
+
+            const block_addr_t last_ptr   = last->key;
+            const memory_block last_block = last->val;
+
+            int64_t     address_shift  = 0;
+            std::size_t allocated_size = 0;
+
+            void *allocated_ptr = memory_.request(min_size_b, &allocated_size, &address_shift);
+
+            // validate data continuity
+            if ((static_cast<unsigned char *>(last_ptr) + address_shift + last_block.size_b) != allocated_ptr) {
+                abort_("Data fragmentation error: requested block alignment error");
+            }
+
+            // update pointers in case of data relocation
+            if (address_shift != 0) {
+                for (auto &node : blocks_) { // not very safe btw
+                    node.key = static_cast<unsigned char *>(node.key) + address_shift;
+                }
+
+                for (int i = 0; i < watche_.size; ++i) {
+                    if (const auto fn = watche_.val_entries[i])
+                        fn(watche_.key_entries[i], address_shift);
+                }
+            }
+
+            // extend last free block
+            if (last_block.is_free == true) {
+                last->val.size_b += allocated_size;
+                return;
+            }
+
+            // append new free block
+            const auto size_b = static_cast<block_free_t>(allocated_size);
+            blocks_.put(allocated_ptr, { size_b, 1, true }, size_b);
+        }
+
+        block_addr_t block_acquire() {
+            // TODO
+            return nullptr;
+        }
+
         block_addr_t allocate(const std::size_t size_b, const std::size_t alignment_b) {
             if (size_b <= 0)
                 abort_("Empty memory block allocation");
 
+            // TODO
+
+            block_request(size_b + alignment_b);
+
+            // TODO
 
             abort_("Out of free space");
         }

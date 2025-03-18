@@ -248,6 +248,18 @@ namespace ex::data {
             }
         }
 
+        rmq_node *last() const {
+            if (root_ == nullptr)
+                return nullptr;
+            return maximum_(root_);
+        }
+
+        rmq_node *first() const {
+            if (root_ == nullptr)
+                return nullptr;
+            return minimum_(root_);
+        }
+
         bool contains(const key_t &key) const {
             int direction;
 #ifdef UNIT_TEST
@@ -1217,25 +1229,29 @@ namespace ex::data {
 
         // DSF Post-Order iterator
         struct iterator {
-            it_entry  entr_;
-            rmq_node *node_;
+//            it_entry  entr_;
             rmq_node *head_;
             rmq_node *prev_;
             long      idx__;
             bool      down_;
 
-            iterator(rmq_node *node):
-                node_(node) {
+            iterator(rmq_node *node) {
+//                entr_ = {};
                 head_ = node;
                 prev_ = node;
                 down_ = true;
                 idx__ = -1;
-                entr_ = {};
                 spin_();
             }
 
-            it_entry &operator * () {
-                return entr_;
+//            it_entry &operator * () {
+//                return entr_;
+//            }
+
+            rmq_node &operator * () {
+                if (prev_ == nullptr)
+                    ::abort();
+                return *prev_;
             }
 
             void spin_() {
@@ -1257,8 +1273,8 @@ namespace ex::data {
                         head_ = head_->par;
                         down_ = false;
 
-                        if (prev_ != nullptr)
-                            entr_ = { prev_->key, prev_->val, prev_->rmq, prev_->min, prev_->max };
+//                        if (prev_ != nullptr)
+//                            entr_ = { prev_->key, prev_->val, prev_->rmq, prev_->min, prev_->max };
                         idx__++;
                         return;
                     }
@@ -1274,8 +1290,8 @@ namespace ex::data {
                     head_ = head_->par;
                     down_ = false;
 
-                    if (prev_ != nullptr)
-                        entr_ = { prev_->key, prev_->val, prev_->rmq, prev_->min, prev_->max };
+//                    if (prev_ != nullptr)
+//                        entr_ = { prev_->key, prev_->val, prev_->rmq, prev_->min, prev_->max };
                     idx__++;
                     return;
                 }
