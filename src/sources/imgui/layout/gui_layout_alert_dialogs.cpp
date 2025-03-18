@@ -2,7 +2,7 @@
 // Created by xd on 2/18/25.
 //
 
-#include "../../../extra/data/buffer.h"
+#include "../../../extra/data/struct/buffer.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/logic/logic_globals.h"
 #include "../../../headers/utils/gui_utils.h"

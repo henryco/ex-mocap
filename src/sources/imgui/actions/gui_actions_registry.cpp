@@ -3,7 +3,7 @@
 //
 
 #include "../../../headers/imgui/actions/gui_actions_registry.h"
-#include "../../../extra/data/array.h"
+#include "../../../extra/data/struct/array.h"
 
 namespace ex::gui::actions::registry {
 

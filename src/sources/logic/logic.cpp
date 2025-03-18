@@ -2,7 +2,7 @@
 // Created by xd on 17/12/24.
 //
 
-#include "../../extra/data/cache.h"
+#include "../../extra/data/struct/cache.h"
 #include "../../headers/logic/logic.h"
 #include "../../headers/io/byte_serializer.h"
 #include "../../headers/logic/logic_globals.h"

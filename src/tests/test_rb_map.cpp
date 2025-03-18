@@ -10,7 +10,7 @@
 #include <set>
 
 #include "../../extra/data/alloc/stackarena.h"
-#include "../../extra/data/rb_map.h"
+#include "../../extra/data/struct/rb_map.h"
 
 using namespace ex::data;
 

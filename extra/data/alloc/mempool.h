@@ -5,8 +5,8 @@
 #ifndef EX_DATA_MEMPOOL_H
 #define EX_DATA_MEMPOOL_H
 
-#include "../sorted_map.h"
-#include "../array_map.h"
+#include "../struct/sorted_map.h"
+#include "../struct/array_map.h"
 
 #include <cstring>
 #include <iostream>

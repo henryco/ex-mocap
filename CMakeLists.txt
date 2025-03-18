@@ -83,18 +83,18 @@ set(EXTRA_FILES
         # graph (nodes)
         extra/graph/graph.h
 
-        # data utils
+        # data structures
         extra/data/data_utils.h
-        extra/data/sorted_map.h
-        extra/data/array_map.h
-        extra/data/rmq_map.h
-        extra/data/rb_map.h
-        extra/data/buffer.h
-        extra/data/cache.h
-        extra/data/array.h
+        extra/data/struct/sorted_map.h
+        extra/data/struct/array_map.h
+        extra/data/struct/rmq_map.h
+        extra/data/struct/rb_map.h
+        extra/data/struct/buffer.h
+        extra/data/struct/cache.h
+        extra/data/struct/array.h
 
+        # mem allocators
         extra/data/alloc/mempool.h # this MFer goes out
-
         extra/data/alloc/datalloc.h
         extra/data/alloc/stackarena.h
         extra/data/alloc/rbtalloc.h

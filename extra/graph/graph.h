@@ -5,8 +5,8 @@
 #ifndef EX_MOTION_GRAPH_H
 #define EX_MOTION_GRAPH_H
 
-#include "../data/array_map.h"
-#include "../data/array.h"
+#include "../data/struct/array_map.h"
+#include "../data/struct/array.h"
 #include <typeinfo>
 
 namespace limbo::graph {
