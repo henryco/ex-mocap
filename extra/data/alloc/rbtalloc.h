@@ -6,6 +6,7 @@
 #define EX_LIMBO_DATA_RBTALLOC_H
 
 #include "datalloc.h"
+#include "provider.h"
 #include "stackarena.h"
 #include "../struct/array_map.h"
 #include "../struct/rmq_map.h"
@@ -34,67 +35,6 @@ namespace ex::data::rbtalloc {
     using block_map_t  = rmq_map<block_addr_t, memory_block, block_free_t>;
     using watch_map_t  = array_map<watch_id_t, watch_fn_t>;
 
-    namespace providers_ {
-        // TODO REPLACE WITH SYS-CALLS
-        struct mem_provider {
-            void       *data     = nullptr;
-            std::size_t offset   = 0;
-            std::size_t capacity = 0;
-
-            mem_provider() = default;
-
-            ~mem_provider() {
-                if (data == nullptr)
-                    return;
-                ::free(data);
-            }
-
-            void clean() {
-                offset   = 0;
-                capacity = 0;
-                if (data == nullptr)
-                    return;
-                ::free(data);
-            }
-
-            long size() const {
-                return offset;
-            }
-
-            void *data_ptr() const {
-                return data;
-            }
-
-            void *request(const std::size_t size, std::size_t *size_allocated = nullptr, int64_t *addr_diff = nullptr) {
-                const std::size_t curr_offset = offset;
-                const std::size_t real_size   = capacity + size;
-
-                const void *old_data_ptr = data;
-                {
-                    capacity += real_size;
-                    offset   += real_size;
-                    if (data == nullptr) data = ::malloc(capacity);
-                    else                 data = ::realloc(data, capacity);
-                }
-                const void *new_data_ptr = data;
-
-                if (addr_diff != nullptr && old_data_ptr != nullptr) {
-                    if (old_data_ptr == new_data_ptr)
-                        *addr_diff = 0;
-                    else
-                        *addr_diff = reinterpret_cast<unsigned long int>(new_data_ptr) -
-                                     reinterpret_cast<unsigned long int>(old_data_ptr);
-                }
-
-                if (size_allocated != nullptr) {
-                    *size_allocated = real_size;
-                }
-
-                return static_cast<unsigned char *>(data) + curr_offset;
-            }
-        };
-    }
-
     struct allocator {
 #define STACK_BLOCK_SIZE (sizeof(block_map_t::rmq_node))
         // todo replace with dynamic
@@ -106,9 +46,9 @@ namespace ex::data::rbtalloc {
             return (aa > bb) - (aa < bb);
         }
 
-        block_map_t              blocks_ = { arena_.compat_allocator(), &ptr_compare };
-        watch_map_t              watche_;
-        providers_::mem_provider memory_;
+        block_map_t  blocks_ = { arena_.compat_allocator(), &ptr_compare };
+        watch_map_t  watche_;
+        mem_provider memory_;
 
         std::size_t used_mem_ = 0;
 

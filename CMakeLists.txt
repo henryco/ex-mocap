@@ -98,6 +98,7 @@ set(EXTRA_FILES
         extra/data/alloc/datalloc.h
         extra/data/alloc/stackarena.h
         extra/data/alloc/rbtalloc.h
+        extra/data/alloc/provider.h
 )
 
 set(PLATFORM_FILES

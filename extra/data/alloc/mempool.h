@@ -7,6 +7,7 @@
 
 #include "../struct/sorted_map.h"
 #include "../struct/array_map.h"
+#include "provider.h"
 
 #include <cstring>
 #include <iostream>
@@ -18,68 +19,6 @@ namespace ex::data::mempool {
     #else
     #define abort_(msg) throw std::runtime_error(msg)
     #endif
-
-    // ---- DEFAULT FALLBACK (malloc/realloc)
-    // TODO: replace with direct call to OS
-    struct mem_provider {
-
-        void       *data     = nullptr;
-        std::size_t offset   = 0;
-        std::size_t capacity = 0;
-
-        mem_provider() = default;
-
-        ~mem_provider() {
-            if (data == nullptr)
-                return;
-            ::free(data);
-        }
-
-        void clean() {
-            offset   = 0;
-            capacity = 0;
-            if (data == nullptr)
-                return;
-            ::free(data);
-        }
-
-        long size() const {
-            return offset;
-        }
-
-        void *data_ptr() const {
-            return data;
-        }
-
-        void *request(const std::size_t size, std::size_t *size_allocated = nullptr, int64_t *addr_diff = nullptr) {
-            const std::size_t curr_offset = offset;
-            const std::size_t real_size   = capacity + size;
-
-            const void *old_data_ptr = data;
-            {
-                capacity += real_size;
-                offset   += real_size;
-                if (data == nullptr) data = ::malloc(capacity);
-                else                 data = ::realloc(data, capacity);
-            }
-            const void *new_data_ptr = data;
-
-            if (addr_diff != nullptr && old_data_ptr != nullptr) {
-                if (old_data_ptr == new_data_ptr)
-                    *addr_diff = 0;
-                else
-                    *addr_diff = reinterpret_cast<unsigned long int>(new_data_ptr) -
-                                 reinterpret_cast<unsigned long int>(old_data_ptr);
-            }
-
-            if (size_allocated != nullptr) {
-                *size_allocated = real_size;
-            }
-
-            return static_cast<unsigned char *>(data) + curr_offset;
-        }
-    };
-    // ---- DEFAULT FALLBACK (malloc/realloc)
 
     using watch_id_t = void *;
     using block_id_t = void *;
