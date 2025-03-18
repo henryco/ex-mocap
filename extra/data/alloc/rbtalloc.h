@@ -35,10 +35,11 @@ namespace ex::data::rbtalloc {
     using block_map_t  = rmq_map<block_addr_t, memory_block, block_free_t>;
     using watch_map_t  = array_map<watch_id_t, watch_fn_t>;
 
-    struct allocator {
+    // todo replace with dynamic
 #define STACK_BLOCK_SIZE (sizeof(block_map_t::rmq_node))
-        // todo replace with dynamic
-        static inline stackarena::static_allocator<STACK_BLOCK_SIZE, STACK_ARENA_SIZE> arena_{};
+    static inline stackarena::static_allocator<STACK_BLOCK_SIZE, STACK_ARENA_SIZE> arena_{};
+
+    struct allocator {
 
         static int32_t ptr_compare(const block_addr_t *a, const block_addr_t *b) {
             const u_int64_t aa = reinterpret_cast<u_int64_t>(*a);
