@@ -23,45 +23,13 @@ void verify_rb_tree_(rmq_map<int, int> &map);
 
 namespace allocator_rmq_ {
     static ex::data::stackarena::static_allocator<BLOCK_SIZE, POOL_SIZE> stack;
-
-    void *stack_malloc_(std::size_t, std::size_t) {
-        return stack.allocate();
-    }
-
-    void *stack_realloc_(void *, std::size_t) {
-        ::abort();
-    }
-
-    void stack_free_(void *ptr) {
-        stack.free(ptr);
-    }
-
-    void stack_nop_(void *, watch_fn_t) {
-    }
-
-    long stack_size_total_() {
-        return stack.data_s;
-    }
-
-    long stack_size_used_() {
-        return stack.offset;
-    }
+    static ex::data::allocator stack_rmq = stack.compat_allocator();
 }
-
-static ex::data::allocator stack_rmq = {
-    .malloc = &allocator_rmq_::stack_malloc_,
-    .realloc = &allocator_rmq_::stack_realloc_,
-    .free = &allocator_rmq_::stack_free_,
-    .add_watcher = &allocator_rmq_::stack_nop_,
-    .del_watcher = &allocator_rmq_::stack_nop_,
-    .size_total = &allocator_rmq_::stack_size_total_,
-    .size_used = &allocator_rmq_::stack_size_used_,
-};
 
 ex::data::allocator &stack_rmq_allocator() {
     std::cout << "allocator size: " << allocator_rmq_::stack.size_total() << "b (" << (allocator_rmq_::stack.size_total() / (1024 * 1024)) << "mb)" << std::endl;
     allocator_rmq_::stack.clean();
-    return stack_rmq;
+    return allocator_rmq_::stack_rmq;
 }
 
 // guaranteed worst case scenario for red black tree

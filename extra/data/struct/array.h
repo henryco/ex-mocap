@@ -28,8 +28,9 @@ namespace ex::data {
             add_watcher_(allocator_, this, &watch_allocator);
         }
 
-        array(const allocator &allocator_) : allocator_(allocator_) {
-            add_watcher_(allocator_, this, &watch_allocator);
+        array(const allocator &allocator_) {
+            this->allocator_ = allocator_;
+            add_watcher_(this->allocator_, this, &watch_allocator);
         }
 
         ~array() {
@@ -43,9 +44,10 @@ namespace ex::data {
             data = malloc_<val_t>(this, allocator_, capacity);
         }
 
-        array(const int &capacity, const allocator &allocator_) : allocator_(allocator_), capacity(capacity) {
-            add_watcher_(allocator_, this, &watch_allocator);
-            data = malloc_<val_t>(this, allocator_, capacity);
+        array(const int &capacity, const allocator &allocator_) : capacity(capacity) {
+            this->allocator_ = allocator_;
+            add_watcher_(this->allocator_, this, &watch_allocator);
+            data = malloc_<val_t>(this, this->allocator_, capacity);
         }
 
         val_t &operator[](const int &index) {
@@ -284,7 +286,7 @@ namespace ex::data {
             allocator_ = other.allocator_;
             add_watcher_(allocator_, this, &watch_allocator);
 
-            data = malloc_<val_t>(this, other.allocator_, other.capacity);
+            data = malloc_<val_t>(this, allocator_, other.capacity);
 
             if (other.size <= 0)
                 return;
@@ -354,28 +356,28 @@ namespace ex::data {
         }
 
         template <typename T>
-        T *malloc_(void *, const allocator &allocator, const std::size_t size_n) {
-            return static_cast<T *>(allocator.malloc(size_n * sizeof(T), alignof(T)));
+        T *malloc_(void *, allocator &allocator, const std::size_t size_n) {
+            return static_cast<T *>(allocator.malloc(&allocator, size_n * sizeof(T), alignof(T)));
         }
 
         template <typename T>
-        T *realloc_(void *, const allocator &allocator, T *const ptr, const std::size_t size_n) {
-            return static_cast<T *>(allocator.realloc(ptr, size_n * sizeof(T)));
+        T *realloc_(void *, allocator &allocator, T *const ptr, const std::size_t size_n) {
+            return static_cast<T *>(allocator.realloc(&allocator, ptr, size_n * sizeof(T)));
         }
 
-        static void free_(void *, const allocator &allocator, void *ptr) {
+        static void free_(void *, allocator &allocator, void *ptr) {
             if (allocator.free != nullptr && ptr != nullptr)
-                allocator.free(ptr);
+                allocator.free(&allocator, ptr);
         }
 
-        static void add_watcher_(const allocator &allocator, void *watcher, const watch_fn_t fn) {
+        static void add_watcher_(allocator &allocator, void *watcher, const watch_fn_t fn) {
             if (allocator.add_watcher != nullptr)
-                allocator.add_watcher(watcher, fn);
+                allocator.add_watcher(&allocator, watcher, fn);
         }
 
-        static void del_watcher_(const allocator &allocator, void *watcher, const watch_fn_t fn) {
+        static void del_watcher_(allocator &allocator, void *watcher, const watch_fn_t fn) {
             if (allocator.del_watcher != nullptr)
-                allocator.del_watcher(watcher, fn);
+                allocator.del_watcher(&allocator, watcher, fn);
         }
     };
 }

@@ -7,6 +7,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include "datalloc.h"
 
 namespace ex::data::stackarena {
 
@@ -68,6 +69,55 @@ namespace ex::data::stackarena {
         void clean() {
             offset = 0;
             free_n = 0;
+        }
+
+        // There is some compatibility layer type/mem-layout tricknology
+
+        struct tricklocator {
+            malloc_fn_t       malloc;
+            realloc_fn_t      realloc;
+            free_fn_t         free;
+            reg_fn_t          add_watcher;
+            reg_fn_t          del_watcher;
+            size_fn_t         size_total;
+            size_fn_t         size_used;
+            static_allocator *instance;
+        };
+
+        const ex::data::allocator tricklocator_ = { .malloc      = &static_allocator::malloc_,
+                                                    .realloc     = &static_allocator::realloc_,
+                                                    .free        = &static_allocator::free_,
+                                                    .add_watcher = &static_allocator::nop_,
+                                                    .del_watcher = &static_allocator::nop_,
+                                                    .size_total  = &static_allocator::size_total_,
+                                                    .size_used   = &static_allocator::size_used_,
+                                                    .instance    = this };
+
+        const ex::data::allocator &compat_allocator() const {
+            return tricklocator_;
+        }
+
+        static void *malloc_(void *this_, std::size_t, std::size_t) {
+            return static_cast<const tricklocator *>(this_)->instance->allocate();
+        }
+
+        static void *realloc_(void *, void *, const std::size_t) {
+            abort_("Realloc not supported");
+        }
+
+        static void free_(void *this_, void *ptr) {
+            static_cast<const tricklocator *>(this_)->instance->free(ptr);
+        }
+
+        static void nop_(void *, void *const, const ex::data::watch_fn_t) {
+        }
+
+        static long size_total_(void *this_) {
+            return static_cast<const tricklocator *>(this_)->instance->data_s;
+        }
+
+        static long size_used_(void *this_) {
+            return static_cast<const tricklocator *>(this_)->instance->offset;
         }
     };
 

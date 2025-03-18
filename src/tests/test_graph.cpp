@@ -110,7 +110,8 @@ void rec_build(limbo::graph::BaseNode *parent, const int width, const int max_de
 
 TEST_CASE("Graph node test") {
 
-    limbo::graph::memory::allocator = ex::data::mempool::pool;
+    ex::data::mempool::allocator pool_alloc;
+    limbo::graph::memory::allocator = pool_alloc.compat_allocator();
 
     ex::time::measure_avg time = 1;
     time.start();
@@ -139,16 +140,16 @@ TEST_CASE("Graph node test") {
     }
 
     int free_blocks = 0;
-    for (int i = 0; i < ex::data::mempool::default_::pool.blocks_.size; ++i) {
-        const auto block = ex::data::mempool::default_::pool.blocks_.val_entries_[i];
+    for (int i = 0; i < pool_alloc.blocks_.size; ++i) {
+        const auto block = pool_alloc.blocks_.val_entries_[i];
         if (block.is_free == true)
             free_blocks += 1;
     }
 
     std::cout << "avg: " << (avg / counter) << " ns\n";
-    std::cout << "memory total : " << limbo::graph::memory::allocator.size_total() << " b" << std::endl;
-    std::cout << "memory used  : " << limbo::graph::memory::allocator.size_used() << " b" << std::endl;
-    std::cout << "blocks total: " << ex::data::mempool::default_::pool.blocks_.size << std::endl;
+    std::cout << "memory total : " << limbo::graph::memory::allocator.size_total(&limbo::graph::memory::allocator) << " b" << std::endl;
+    std::cout << "memory used  : " << limbo::graph::memory::allocator.size_used(&limbo::graph::memory::allocator) << " b" << std::endl;
+    std::cout << "blocks total: " << pool_alloc.blocks_.size << std::endl;
     std::cout << "blocks free: " << free_blocks << std::endl;
     std::cout << "finished" << std::endl;
 

@@ -61,23 +61,27 @@ namespace ex::data {
         }
 
         rb_map(const allocator &allocator_):
-            allocator_(allocator_), comp_(&rb_map::default_comparator), size_(0), root_(nullptr) {
-            add_watcher_(allocator_, this, &watch_allocator);
+            comp_(&rb_map::default_comparator), size_(0), root_(nullptr) {
+            this->allocator_ = allocator_;
+            add_watcher_(this->allocator_, this, &watch_allocator);
         }
 
         rb_map(const allocator &allocator_, const comparator_fn compare):
-            allocator_(allocator_), comp_(compare), size_(0), root_(nullptr) {
-            add_watcher_(allocator_, this, &watch_allocator);
+            comp_(compare), size_(0), root_(nullptr) {
+            this->allocator_ = allocator_;
+            add_watcher_(this->allocator_, this, &watch_allocator);
         }
 
         rb_map(const rb_map &other):
-            allocator_(other.allocator_), comp_(other.comp_), size_(other.size_) {
-            root_ = other.iterative_copy_(other.root_);
+            comp_(other.comp_), size_(other.size_) {
+            root_      = other.iterative_copy_(other.root_);
+            allocator_ = other.allocator_;
             add_watcher_(allocator_, this, &watch_allocator);
         }
 
         rb_map(rb_map &&other) noexcept:
-            allocator_(other.allocator_), comp_(other.comp_), size_(other.size_), root_(other.root_) {
+            comp_(other.comp_), size_(other.size_), root_(other.root_) {
+            allocator_ = other.allocator_;
             other.root_ = nullptr;
             other.size_ = 0;
             del_watcher_(other.allocator_, this, &watch_allocator);
@@ -87,8 +91,8 @@ namespace ex::data {
         rb_map &operator = (const rb_map &other) {
             if (this == &other)
                 return *this;
-            clean();
             del_watcher_(allocator_, this, &watch_allocator);
+            clean();
             root_      = other.iterative_copy_(other.root_);
             allocator_ = other.allocator_;
             comp_      = other.comp_;
@@ -100,9 +104,9 @@ namespace ex::data {
         rb_map &operator = (rb_map &&other) noexcept {
             if (this == &other)
                 return *this;
-            clean();
             del_watcher_(other.allocator_, this, &watch_allocator);
             del_watcher_(allocator_, this, &watch_allocator);
+            clean();
             allocator_ = other.allocator_;
             comp_      = other.comp_;
             size_      = other.size_;
@@ -941,23 +945,23 @@ namespace ex::data {
         }
 
         template <typename T>
-        T *malloc_(void *, const allocator &allocator, const std::size_t size_n) {
-            return static_cast<T *>(allocator.malloc(size_n * sizeof(T), alignof(T)));
+        T *malloc_(void *, allocator &allocator, const std::size_t size_n) {
+            return static_cast<T *>(allocator.malloc(&allocator, size_n * sizeof(T), alignof(T)));
         }
 
-        static void free_(void *, const allocator &allocator, void *ptr) {
+        static void free_(void *, allocator &allocator, void *ptr) {
             if (allocator.free != nullptr && ptr != nullptr)
-                allocator.free(ptr);
+                allocator.free(&allocator, ptr);
         }
 
-        static void add_watcher_(const allocator &allocator, void *watcher, const watch_fn_t fn) {
+        static void add_watcher_(allocator &allocator, void *watcher, const watch_fn_t fn) {
             if (allocator.add_watcher != nullptr)
-                allocator.add_watcher(watcher, fn);
+                allocator.add_watcher(&allocator, watcher, fn);
         }
 
-        static void del_watcher_(const allocator &allocator, void *watcher, const watch_fn_t fn) {
+        static void del_watcher_(allocator &allocator, void *watcher, const watch_fn_t fn) {
             if (allocator.del_watcher != nullptr)
-                allocator.del_watcher(watcher, fn);
+                allocator.del_watcher(&allocator, watcher, fn);
         }
     };
 

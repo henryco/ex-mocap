@@ -465,48 +465,61 @@ namespace ex::data::mempool {
             block_id_t rhs = right;
             block_resize(&lhs, &rhs, 0);
         }
-    };
 
-    namespace default_ {
-        static ex::data::mempool::allocator pool;
+        // There is some compatibility layer type/mem-layout tricknology
 
-        inline void *pool_malloc_(const std::size_t size_new_b, const std::size_t alignment_b) {
-            return pool.allocate(size_new_b, alignment_b);
+        struct tricklocator {
+            malloc_fn_t  malloc      ;
+            realloc_fn_t realloc     ;
+            free_fn_t    free        ;
+            reg_fn_t     add_watcher ;
+            reg_fn_t     del_watcher ;
+            size_fn_t    size_total  ;
+            size_fn_t    size_used   ;
+            allocator   *instance    ;
+        };
+
+        const ex::data::allocator tricklocator_ = { .malloc      = &allocator::pool_malloc_,
+                                                    .realloc     = &allocator::pool_realloc_,
+                                                    .free        = &allocator::pool_free_,
+                                                    .add_watcher = &allocator::pool_watch_add_,
+                                                    .del_watcher = &allocator::pool_watch_del_,
+                                                    .size_total  = &allocator::pool_size_total_,
+                                                    .size_used   = &allocator::pool_size_used_,
+                                                    .instance    = this };
+
+        const ex::data::allocator &compat_allocator() const {
+            return tricklocator_;
         }
 
-        inline void *pool_realloc_(void *ptr, const std::size_t size_new_b) {
-            return pool.reallocate(ptr, size_new_b);
+        static void *pool_malloc_(void *this_, const std::size_t size_new_b, const std::size_t alignment_b) {
+            return static_cast<const tricklocator *>(this_)->instance->allocate(size_new_b, alignment_b);
         }
 
-        inline void pool_free_(void *ptr) {
-            pool.free(ptr);
+        static void *pool_realloc_(void *this_, void *ptr, const std::size_t size_new_b) {
+            return static_cast<const tricklocator *>(this_)->instance->reallocate(ptr, size_new_b);
         }
 
-        inline void pool_watch_add_(void *const ptr, const ex::data::watch_fn_t fn) {
-            pool.add_watcher(ptr, fn);
+        static void pool_free_(void *this_, void *ptr) {
+            static_cast<const tricklocator *>(this_)->instance->free(ptr);
         }
 
-        inline void pool_watch_del_(void *const ptr, const ex::data::watch_fn_t fn) {
-            pool.del_watcher(ptr, fn);
+        static void pool_watch_add_(void *this_, void *const ptr, const ex::data::watch_fn_t fn) {
+            static_cast<const tricklocator *>(this_)->instance->add_watcher(ptr, fn);
         }
 
-        inline long pool_size_total_() {
-            return pool.memory_total_b();
+        static void pool_watch_del_(void *this_, void *const ptr, const ex::data::watch_fn_t fn) {
+            static_cast<const tricklocator *>(this_)->instance->del_watcher(ptr, fn);
         }
 
-        inline long pool_size_used_() {
-            return pool.memory_used_b();
+        static long pool_size_total_(void *this_) {
+            return static_cast<const tricklocator *>(this_)->instance->memory_total_b();
         }
-    }
 
-    inline static ex::data::allocator pool = {
-        .malloc = &default_::pool_malloc_,
-        .realloc = &default_::pool_realloc_,
-        .free = &default_::pool_free_,
-        .add_watcher = &default_::pool_watch_add_,
-        .del_watcher = &default_::pool_watch_del_,
-        .size_total = &default_::pool_size_total_,
-        .size_used = &default_::pool_size_used_,
+        static long pool_size_used_(void *this_) {
+            return static_cast<const tricklocator *>(this_)->instance->memory_used_b();
+        }
+
     };
 
 }
