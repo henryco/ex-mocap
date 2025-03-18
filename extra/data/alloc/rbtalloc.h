@@ -14,7 +14,7 @@
 namespace ex::data::rbtalloc {
 
 // -----------------------------
-#define ALLOCATOR_SIZE_B (1 MB)
+#define ALLOC_DEF_SIZE_B (1  MB)
 #define STACK_ARENA_SIZE (10 MB)
 // -----------------------------
 
@@ -53,12 +53,12 @@ namespace ex::data::rbtalloc {
 
         std::size_t used_mem_ = 0;
 
-        allocator(const std::size_t pre_allocated = ALLOCATOR_SIZE_B) {
+        allocator(const std::size_t pre_allocated = ALLOC_DEF_SIZE_B) {
             if (pre_allocated <= 0)
                 abort_("Allocation size must be greater than 0");
 
-            std::size_t allocated_size = 0;
-            void *const allocated_ptr  = memory_.request(pre_allocated, &allocated_size);
+            std::size_t  allocated_size = 0;
+            block_addr_t allocated_ptr  = memory_.request(pre_allocated, &allocated_size);
 
             const auto size_b = static_cast<block_free_t>(allocated_size);
             blocks_.put(allocated_ptr, { size_b, 1, true }, size_b);
@@ -78,13 +78,15 @@ namespace ex::data::rbtalloc {
             watche_.remove(id);
         }
 
-        void *allocate(const std::size_t size_b, const std::size_t alignment_b) {
-            if (size_b <= 0) abort_("Empty memory block allocation");
-            // TODO
+        block_addr_t allocate(const std::size_t size_b, const std::size_t alignment_b) {
+            if (size_b <= 0)
+                abort_("Empty memory block allocation");
+
+
             abort_("Out of free space");
         }
 
-        void *reallocate(void *ptr, const std::size_t size_new_b) {
+        block_addr_t reallocate(void *ptr, const std::size_t size_new_b) {
             if (size_new_b <= 0 || ptr == nullptr) {
                 free(ptr);
                 return nullptr;
@@ -93,7 +95,7 @@ namespace ex::data::rbtalloc {
             abort_("Out of free space");
         }
 
-        void free(void *ptr) {
+        void free(const block_addr_t ptr) {
             if (ptr == nullptr)
                 return;
             const memory_block block = blocks_.at(ptr);
@@ -103,7 +105,7 @@ namespace ex::data::rbtalloc {
             used_mem_ -= block.size_b;
 
             memory_block free_block = { block.size_b, 1, 1 };
-            void        *free_ptr   = ptr;
+            block_addr_t free_ptr   = ptr;
 
             const block_map_t::rmq_node *next = blocks_.next(ptr);
             const block_map_t::rmq_node *prev = blocks_.prev(ptr);
