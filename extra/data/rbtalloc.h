@@ -173,7 +173,7 @@ namespace ex::data::rbtalloc {
         }
 
 #define STACK_BLOCK_SIZE (sizeof(block_map_t::rmq_node))
-        static inline ex::data::stackarena::allocator<STACK_BLOCK_SIZE, STACK_ARENA_SIZE> arena_;
+        static inline ex::data::stackarena::static_allocator<STACK_BLOCK_SIZE, STACK_ARENA_SIZE> arena_;
 
         ex::data::allocator static_arena_ = {
             .malloc      = &arena_malloc_,

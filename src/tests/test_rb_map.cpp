@@ -21,7 +21,7 @@ void verify_rb_tree_(rb_map<int, int> &map);
 #define POOL_SIZE  (100 MB)
 
 namespace allocator_rb_ {
-    static ex::data::stackarena::allocator<BLOCK_SIZE, POOL_SIZE> stack;
+    static ex::data::stackarena::static_allocator<BLOCK_SIZE, POOL_SIZE> stack;
 
     void *stack_malloc_(std::size_t, std::size_t) {
         return stack.allocate();

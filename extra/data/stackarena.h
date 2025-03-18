@@ -17,7 +17,7 @@ namespace ex::data::stackarena {
 #endif
 
     template <std::size_t block_s, std::size_t arena_s, std::size_t stack_s = arena_s / block_s * sizeof(void *)>
-    struct allocator {
+    struct static_allocator {
 
         static constexpr std::size_t data_s = arena_s / block_s * block_s;
         static constexpr std::size_t free_s = stack_s / sizeof(void *);
@@ -70,6 +70,8 @@ namespace ex::data::stackarena {
             free_n = 0;
         }
     };
+
+    // TODO: add dynamic allocation
 
 }
 
