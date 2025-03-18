@@ -96,6 +96,8 @@ namespace ex::data::rbtalloc {
     }
 
     struct allocator {
+#define STACK_BLOCK_SIZE (sizeof(block_map_t::rmq_node))
+        static inline stackarena::static_allocator<STACK_BLOCK_SIZE, STACK_ARENA_SIZE> arena_{}; // replace with dynamic
 
         static int32_t ptr_compare(const block_addr_t *a, const block_addr_t *b) {
             const u_int64_t aa = reinterpret_cast<u_int64_t>(*a);
@@ -103,7 +105,7 @@ namespace ex::data::rbtalloc {
             return (aa > bb) - (aa < bb);
         }
 
-        block_map_t              blocks_ = { static_arena_, &ptr_compare };
+        block_map_t              blocks_ = { arena_.compat_allocator(), &ptr_compare };
         watch_map_t              watche_;
         providers_::mem_provider memory_;
 
@@ -170,42 +172,6 @@ namespace ex::data::rbtalloc {
 
         long memory_total_b() const {
             return memory_.size() + arena_.size_total();
-        }
-
-#define STACK_BLOCK_SIZE (sizeof(block_map_t::rmq_node))
-        static inline ex::data::stackarena::static_allocator<STACK_BLOCK_SIZE, STACK_ARENA_SIZE> arena_;
-
-        ex::data::allocator static_arena_ = {
-            .malloc      = &arena_malloc_,
-            .realloc     = &arena_realloc_,
-            .free        = &arena_free_,
-            .add_watcher = &arena_nop_,
-            .del_watcher = &arena_nop_,
-            .size_total  = &arena_size_total_,
-            .size_used   = &arena_size_used_,
-        };
-
-        static void *arena_malloc_(std::size_t, std::size_t) {
-            return arena_.allocate();
-        }
-
-        static void *arena_realloc_(void *, std::size_t) {
-            ::abort();
-        }
-
-        static void arena_free_(void *ptr) {
-            arena_.free(ptr);
-        }
-
-        static void arena_nop_(void *, watch_fn_t) {
-        }
-
-        static long arena_size_total_() {
-            return arena_.size_total();
-        }
-
-        static long arena_size_used_() {
-            return arena_.size_used();
         }
     };
 
