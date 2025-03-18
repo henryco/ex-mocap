@@ -30,8 +30,8 @@ namespace ex::data::rbtalloc {
     };
 
     using block_addr_t = void *;
-    using block_size_t = u_int32_t;
-    using block_map_t  = rmq_map<block_addr_t, memory_block, block_size_t>;
+    using block_free_t = u_int32_t;
+    using block_map_t  = rmq_map<block_addr_t, memory_block, block_free_t>;
     using watch_map_t  = array_map<watch_id_t, watch_fn_t>;
 
     namespace providers_ {
@@ -97,7 +97,8 @@ namespace ex::data::rbtalloc {
 
     struct allocator {
 #define STACK_BLOCK_SIZE (sizeof(block_map_t::rmq_node))
-        static inline stackarena::static_allocator<STACK_BLOCK_SIZE, STACK_ARENA_SIZE> arena_{}; // replace with dynamic
+        // todo replace with dynamic
+        static inline stackarena::static_allocator<STACK_BLOCK_SIZE, STACK_ARENA_SIZE> arena_{};
 
         static int32_t ptr_compare(const block_addr_t *a, const block_addr_t *b) {
             const u_int64_t aa = reinterpret_cast<u_int64_t>(*a);
@@ -118,7 +119,7 @@ namespace ex::data::rbtalloc {
             std::size_t allocated_size = 0;
             void *const allocated_ptr  = memory_.request(pre_allocated, &allocated_size);
 
-            const auto size_b = static_cast<block_size_t>(allocated_size);
+            const auto size_b = static_cast<block_free_t>(allocated_size);
             blocks_.put(allocated_ptr, { size_b, 1, true }, size_b);
         }
 
@@ -160,10 +161,27 @@ namespace ex::data::rbtalloc {
 
             used_mem_ -= block.size_b;
 
-            block_map_t::rmq_node *prev = blocks_.prev(ptr);
-            block_map_t::rmq_node *next = blocks_.next(ptr);
+            memory_block free_block = { block.size_b, 1, 1 };
+            void        *free_ptr   = ptr;
 
-            // TODO
+            const block_map_t::rmq_node *next = blocks_.next(ptr);
+            const block_map_t::rmq_node *prev = blocks_.prev(ptr);
+
+            if (next != nullptr && next->val.is_free == true) {
+                // merging next block
+                free_block.size_b += next->val.size_b;
+                blocks_.remove(next->key);
+            }
+
+            if (prev != nullptr && prev->val.is_free == true) {
+                // merging prev block
+                free_block.size_b += prev->val.size_b;
+                free_ptr = prev->key;
+                blocks_.remove(free_ptr);
+            }
+
+            blocks_.remove(ptr);
+            blocks_.put(free_ptr, free_block, free_block.size_b);
         }
 
         long memory_used_b() const {
