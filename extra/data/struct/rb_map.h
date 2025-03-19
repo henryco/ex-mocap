@@ -313,15 +313,14 @@ namespace ex::data {
             ++size_;
 
             rb_node *node = instance_node_();
+            if (node == root_)
+                ::abort();
             node->par     = base;
             node->lns     = nullptr;
             node->rns     = nullptr;
             node->val     = val;
             node->key     = key;
             node->col     = RED_;
-
-            if (node == root_)
-                ::abort();
 
             if (direction >= 0) base->rns = node;
             else                base->lns = node;

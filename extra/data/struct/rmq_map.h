@@ -346,6 +346,8 @@ namespace ex::data {
             ++size_;
 
             rmq_node *node = instance_node_();
+            if (node == root_)
+                ::abort();
             node->par      = base;
             node->lns      = nullptr;
             node->rns      = nullptr;
@@ -355,9 +357,6 @@ namespace ex::data {
             node->min      = range;
             node->max      = range;
             node->col      = RED_;
-
-            if (node == root_)
-                ::abort();
 
             if (direction >= 0) base->rns = node;
             else                base->lns = node;

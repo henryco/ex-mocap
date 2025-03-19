@@ -206,7 +206,7 @@ TEST_SUITE("RBTAlloc tests") {
         alloc.allocate(256, 8);
         CHECK(alloc.memory_used_b() >= 256);
 
-        alloc.cleanup();
+        alloc.clean();
         CHECK(alloc.memory_used_b() == 0);
         CHECK(alloc.memory_total_b() == 0);
     }

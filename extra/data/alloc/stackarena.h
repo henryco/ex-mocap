@@ -23,7 +23,6 @@ namespace ex::data::stackarena {
 
         // ReSharper disable once CppPossiblyUninitializedMember
         static_allocator() : offset(0), free_n(0) { // NOLINT(*-pro-type-member-init)
-            std::cout << "static_allocator" << std::endl; // TODO REMOVE
         }
 
         static_allocator(const static_allocator &other) = delete;
@@ -36,7 +35,6 @@ namespace ex::data::stackarena {
          * allocates only one block at a time
          */
         void *allocate() {
-            std::cout << "STACKALLOC: " << this << ", " << offset << std::endl; // TODO REMOVE
 
             if (free_n > 0)
                 return stack_[--free_n];
@@ -107,11 +105,11 @@ namespace ex::data::stackarena {
         }
 
         static long size_total_(void *this_) {
-            return static_cast<static_allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->data_s;
+            return static_cast<static_allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->size_total();
         }
 
         static long size_used_(void *this_) {
-            return static_cast<static_allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->offset;
+            return static_cast<static_allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->size_used();
         }
     };
 

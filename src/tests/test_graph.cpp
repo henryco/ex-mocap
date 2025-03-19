@@ -109,12 +109,12 @@ void rec_build(limbo::graph::BaseNode *parent, const int width, const int max_de
     }
 }
 
-inline static ex::data::rbtalloc::allocator alloc;
+inline static ex::data::rbtalloc::allocator alloc_2;
 
 TEST_CASE("Graph node test") {
-    ex::data::rbtalloc::arena_.clean();
+    alloc_2.clean();
 //    ex::data::mempool::allocator alloc;
-    limbo::graph::memory::allocator = alloc.compat_allocator();
+    limbo::graph::memory::allocator = alloc_2.compat_allocator();
 
     ex::time::measure_avg time = 1;
     time.start();
