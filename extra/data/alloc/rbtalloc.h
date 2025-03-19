@@ -212,6 +212,8 @@ namespace ex::data::rbtalloc {
             blocks_.put(l_ptr, l_block, 0);
             blocks_.put(r_ptr, r_block, size_rs);
 
+            used_mem_ += size_ls;
+
             return l_ptr;
         }
 
