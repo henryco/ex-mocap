@@ -106,25 +106,30 @@ namespace ex::data::rbtalloc {
                 return nullptr;
             }
 
+//            std::cout << "\nreallocate:  " << ptr << " " << size_new_b << std::endl;
+
             const auto start_before = memory_.data_ptr();
             const auto start_ptr    = reinterpret_cast<u_int64_t>(start_before);
             const auto data_ptr     = reinterpret_cast<u_int64_t>(ptr);
             const auto offset       = data_ptr - start_ptr;
 
             const memory_block block = blocks_.at(ptr);
-            block_free_(ptr, block);
+            block_free_(ptr, block); // TODO FIXME
 
             const block_addr_t allocated = allocate(size_new_b, block.alignment_b);
             if (allocated != ptr) {
                 const void *old_src_ptr = static_cast<unsigned char *>(memory_.data_ptr()) + offset;
                 ::memmove(allocated, old_src_ptr, size_new_b < block.size_b ? size_new_b : block.size_b);
             }
+
+//            std::cout << "reallocated: " << allocated << " " << size_new_b << '\n' << std::endl;
             return allocated;
         }
 
         void free(const block_addr_t ptr) {
             if (ptr == nullptr)
                 return;
+//            std::cout << "free: " << ptr << std::endl;
             const memory_block block = blocks_.at(ptr);
             block_free_(ptr, block);
         }
@@ -243,6 +248,7 @@ namespace ex::data::rbtalloc {
 
             used_mem_ += size_ls;
 
+//            std::cout << "allocated:   " << l_ptr << " " << size_ls << std::endl;
             return l_ptr;
         }
 
@@ -265,6 +271,7 @@ namespace ex::data::rbtalloc {
                 // merging next block
                 free_block.size_b += next->val.size_b;
                 next_key = next->key;
+//                std::cout << "next" << std::endl;
             }
 
             if (prev != nullptr && prev->val.is_free == true) {
@@ -272,14 +279,20 @@ namespace ex::data::rbtalloc {
                 free_block.size_b += prev->val.size_b;
                 prev_key = prev->key;
                 free_ptr = prev->key;
+//                std::cout << "prev" << std::endl;
             }
 
-            if (next_key != nullptr)
+            if (next_key != nullptr) {
+//                std::cout << "remove n:    " << next_key << std::endl;
                 blocks_.remove(next_key);
+            }
 
-            if (prev_key != nullptr)
+            if (prev_key != nullptr) {
+//                std::cout << "remove p:    " << prev_key << std::endl;
                 blocks_.remove(prev_key);
+            }
 
+//            std::cout << "remove m:    " << ptr << std::endl;
             blocks_.remove(ptr);
             blocks_.put(free_ptr, free_block, free_block.size_b);
         }
