@@ -61,6 +61,12 @@ namespace ex::data::rbtalloc {
             blocks_.put(allocated_ptr, { size_b, 1, true }, size_b);
         }
 
+        ~allocator() {
+            watche_.clean();
+            blocks_.clean();
+            memory_.clean();
+        }
+
         void cleanup() {
             watche_.clean();
             blocks_.clean();
