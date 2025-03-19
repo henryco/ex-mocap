@@ -133,9 +133,12 @@ namespace ex::data::rbtalloc {
          * Allocate at least additional <b>min_size_b</b> bytes of memory
          */
         void block_request_(const std::size_t min_size_b) {
+            if (min_size_b > BLOCK_MAX_SIZE_B)
+                abort_("Requested allocation size overflow");
+
             block_map_t::rmq_node *last = blocks_.last();
             if (last == nullptr)
-                abort_("");
+                abort_("Allocator not initialized");
 
             const block_addr_t last_ptr   = last->key;
             const memory_block last_block = last->val;
@@ -191,6 +194,9 @@ namespace ex::data::rbtalloc {
         }
 
         block_addr_t block_acquire_(const std::size_t size_b, const std::size_t alignment_b) {
+            if ((size_b + alignment_b) > BLOCK_MAX_SIZE_B)
+                abort_("Requested allocation size overflow");
+
             const u_int64_t data_start = reinterpret_cast<u_int64_t>(memory_.data_ptr());
             test_this       test_that  = { size_b, alignment_b, data_start };
 
