@@ -6,6 +6,7 @@
 #include <doctest/doctest.h>
 #include "../../extra/graph/graph.h"
 #include "../../extra/data/alloc/mempool.h"
+#include "../../extra/data/alloc/rbtalloc.h"
 #include "../../src/headers/utils/time_utils.h"
 
 struct node_test_one final : limbo::graph::BaseNode,
@@ -108,10 +109,13 @@ void rec_build(limbo::graph::BaseNode *parent, const int width, const int max_de
     }
 }
 
+//inline static ex::data::rbtalloc::allocator alloc;
+
 TEST_CASE("Graph node test") {
 
-    ex::data::mempool::allocator pool_alloc;
-    limbo::graph::memory::allocator = pool_alloc.compat_allocator();
+    ex::data::mempool::allocator alloc;
+    limbo::graph::memory::allocator = alloc.compat_allocator();
+//    limbo::graph::memory::allocator = alloc.compat_allocator();
 
     ex::time::measure_avg time = 1;
     time.start();
@@ -140,8 +144,8 @@ TEST_CASE("Graph node test") {
     }
 
     int free_blocks = 0;
-    for (int i = 0; i < pool_alloc.blocks_.size; ++i) {
-        const auto block = pool_alloc.blocks_.val_entries_[i];
+    for (int i = 0; i < alloc.blocks_.size; ++i) {
+        const auto block = alloc.blocks_.val_entries_[i];
         if (block.is_free == true)
             free_blocks += 1;
     }
@@ -149,7 +153,7 @@ TEST_CASE("Graph node test") {
     std::cout << "avg: " << (avg / counter) << " ns\n";
     std::cout << "memory total : " << limbo::graph::memory::allocator.size_total(&limbo::graph::memory::allocator) << " b" << std::endl;
     std::cout << "memory used  : " << limbo::graph::memory::allocator.size_used(&limbo::graph::memory::allocator) << " b" << std::endl;
-    std::cout << "blocks total: " << pool_alloc.blocks_.size << std::endl;
+    std::cout << "blocks total: " << alloc.blocks_.size << std::endl;
     std::cout << "blocks free: " << free_blocks << std::endl;
     std::cout << "finished" << std::endl;
 

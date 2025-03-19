@@ -5,17 +5,9 @@
 #ifndef EX_LIMBO_DATA_STACK_ARENA_H
 #define EX_LIMBO_DATA_STACK_ARENA_H
 
-#include <cstdlib>
-#include <iostream>
 #include "datalloc.h"
 
 namespace ex::data::stackarena {
-
-#ifndef UNIT_TEST
-    #define abort_(msg) do { std::cerr << msg << std::endl; ::abort(); } while(false)
-#else
-    #define abort_(msg) throw std::runtime_error("Generic abort exception")
-#endif
 
     template <std::size_t block_s, std::size_t arena_s, std::size_t stack_s = arena_s / block_s * sizeof(void *)>
     struct static_allocator {

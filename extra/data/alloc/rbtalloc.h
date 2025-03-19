@@ -8,6 +8,7 @@
 #include "datalloc.h"
 #include "provider.h"
 #include "stackarena.h"
+
 #include "../struct/array_map.h"
 #include "../struct/rmq_map.h"
 
@@ -17,12 +18,6 @@ namespace ex::data::rbtalloc {
 #define ALLOC_DEF_SIZE_B (1  MB)
 #define STACK_ARENA_SIZE (10 MB)
 // -----------------------------
-
-#ifndef UNIT_TEST
-    #define abort_(msg) do { std::cerr << msg << std::endl; ::abort(); } while(false)
-#else
-    #define abort_(msg) throw std::runtime_error("Generic allocator abort exception")
-#endif
 
     struct memory_block {
         u_int32_t size_b;

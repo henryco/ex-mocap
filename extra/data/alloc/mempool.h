@@ -14,12 +14,6 @@
 
 namespace ex::data::mempool {
 
-    #ifndef UNIT_TEST
-    #define abort_(msg) do { std::cerr << msg << std::endl; ::abort(); } while(false)
-    #else
-    #define abort_(msg) throw std::runtime_error(msg)
-    #endif
-
     using watch_id_t = void *;
     using block_id_t = void *;
 

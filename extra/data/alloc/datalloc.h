@@ -5,6 +5,7 @@
 #ifndef EX_DATALLOC_H
 #define EX_DATALLOC_H
 
+#include <iostream>
 #include <cstdlib>
 
 namespace ex::data {
@@ -60,6 +61,12 @@ namespace ex::data {
         size_fn_t    size_used   = &default_size_;
         instance_t   instance    = nullptr;
     };
+
+#ifndef UNIT_TEST
+    #define abort_(msg) do { std::cerr << msg << std::endl; ::abort(); } while(false)
+#else
+    #define abort_(msg) throw std::runtime_error("Generic abort exception")
+#endif
 
 }
 

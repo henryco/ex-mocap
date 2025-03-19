@@ -59,7 +59,7 @@ namespace ex::main {
         return logic;
     }
 
-    void abort_(const char *msg) {
+    void abort__(const char *msg) {
         log->error(msg);
         std::cerr << msg << std::endl;
         ::abort();
@@ -126,7 +126,7 @@ namespace ex::main {
         static State &state = ex::logic::globals::state();
 
         if (state.logic.work_tree == nullptr)
-            abort_("Logic::run: work tree is null");
+            abort__("Logic::run: work tree is null");
 
         if (state.project.brand_new) {
             state.project.brand_new = false;
