@@ -71,6 +71,7 @@ namespace ex::data::rbtalloc {
             watche_.clean();
             blocks_.clean();
             memory_.clean();
+            used_mem_ = 0;
         }
 
         void add_watcher(const watch_id_t id, const watch_fn_t fn) {
