@@ -119,7 +119,7 @@ namespace ex::data::rbtalloc {
             return memory_.size() + arena_.size_total();
         }
 
-        // ======================== INTERNAL UTILS =============================
+        // =========================================== INTERNAL UTILS ==================================================
 
         /**
          * Allocate at least additional <b>min_size_b</b> bytes of memory
@@ -235,6 +235,50 @@ namespace ex::data::rbtalloc {
 
             blocks_.remove(ptr);
             blocks_.put(free_ptr, free_block, free_block.size_b);
+        }
+
+
+        // There is some compatibility layer type/mem-layout tricknology ===============================================
+
+        const ex::data::allocator tricklocator_ = { .malloc      = &allocator::malloc_,
+                                                    .realloc     = &allocator::realloc_,
+                                                    .free        = &allocator::free_,
+                                                    .add_watcher = &allocator::watch_add_,
+                                                    .del_watcher = &allocator::watch_del_,
+                                                    .size_total  = &allocator::size_total_,
+                                                    .size_used   = &allocator::size_used_,
+                                                    .instance    = this };
+
+        const ex::data::allocator &compat_allocator() const {
+            return tricklocator_;
+        }
+
+        static void *malloc_(void *this_, const std::size_t size_new_b, const std::size_t alignment_b) {
+            return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->allocate(size_new_b, alignment_b);
+        }
+
+        static void *realloc_(void *this_, void *ptr, const std::size_t size_new_b) {
+            return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->reallocate(ptr, size_new_b);
+        }
+
+        static void free_(void *this_, void *ptr) {
+            static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->free(ptr);
+        }
+
+        static void watch_add_(void *this_, void *const ptr, const ex::data::watch_fn_t fn) {
+            static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->add_watcher(ptr, fn);
+        }
+
+        static void watch_del_(void *this_, void *const ptr, const ex::data::watch_fn_t fn) {
+            static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->del_watcher(ptr, fn);
+        }
+
+        static long size_total_(void *this_) {
+            return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->memory_total_b();
+        }
+
+        static long size_used_(void *this_) {
+            return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->memory_used_b();
         }
     };
 
