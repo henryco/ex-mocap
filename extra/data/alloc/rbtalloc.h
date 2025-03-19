@@ -54,8 +54,8 @@ namespace ex::data::rbtalloc {
             if (pre_allocated <= 0)
                 abort_("Allocation size must be greater than 0");
 
-            std::size_t  allocated_size = 0;
-            block_addr_t allocated_ptr  = memory_.request(pre_allocated, &allocated_size);
+            std::size_t        allocated_size = 0;
+            const block_addr_t allocated_ptr  = memory_.request(pre_allocated, &allocated_size);
 
             const auto size_b = static_cast<block_free_t>(allocated_size);
             blocks_.put(allocated_ptr, { size_b, 1, true }, size_b);
@@ -102,7 +102,7 @@ namespace ex::data::rbtalloc {
             const memory_block block = blocks_.at(ptr);
             block_free_(ptr, block);
 
-            block_addr_t allocated = allocate(size_new_b, block.alignment_b);
+            const block_addr_t allocated = allocate(size_new_b, block.alignment_b);
             if (allocated != ptr)
                 ::memmove(allocated, ptr, size_new_b < block.size_b ? size_new_b : block.size_b);
             return allocated;
@@ -198,8 +198,8 @@ namespace ex::data::rbtalloc {
             if (fit == nullptr)
                 return nullptr;
 
-            const u_int32_t padding   = block_padding_(data_start, fit->key, alignment_b);
-            memory_block    fit_block = fit->val;
+            const u_int32_t    padding   = block_padding_(data_start, fit->key, alignment_b);
+            const memory_block fit_block = fit->val;
 
             const u_int32_t size_ls = static_cast<u_int32_t>(padding + size_b);
             const u_int32_t size_rs = fit_block.size_b - size_ls;
@@ -207,8 +207,8 @@ namespace ex::data::rbtalloc {
             const memory_block l_block = { size_ls, static_cast<u_int16_t>(alignment_b), false };
             const memory_block r_block = { size_rs, 1, true };
 
-            block_addr_t l_ptr = fit->key;
-            block_addr_t r_ptr = static_cast<unsigned char *>(l_ptr) + size_ls;
+            const block_addr_t l_ptr = fit->key;
+            const block_addr_t r_ptr = static_cast<unsigned char *>(l_ptr) + size_ls;
 
             blocks_.put(l_ptr, l_block, 0);
             blocks_.put(r_ptr, r_block, size_rs);
