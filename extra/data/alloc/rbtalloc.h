@@ -115,11 +115,11 @@ namespace ex::data::rbtalloc {
         }
 
         long memory_used_b() const {
-            return used_mem_ + arena_.size_used();
+            return used_mem_;
         }
 
         long memory_total_b() const {
-            return memory_.size() + arena_.size_total();
+            return memory_.size();
         }
 
         // =========================================== INTERNAL UTILS ==================================================
