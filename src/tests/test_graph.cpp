@@ -113,7 +113,7 @@ inline static ex::data::rbtalloc::allocator alloc;
 
 TEST_CASE("Graph node test") {
     ex::data::rbtalloc::arena_.clean();
-    ex::data::mempool::allocator alloc;
+//    ex::data::mempool::allocator alloc;
     limbo::graph::memory::allocator = alloc.compat_allocator();
 
     ex::time::measure_avg time = 1;
