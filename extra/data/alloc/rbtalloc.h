@@ -75,14 +75,17 @@ namespace ex::data::rbtalloc {
         }
 
         void add_watcher(const watch_id_t id, const watch_fn_t fn) {
+            std::cout << "add_watcher: " << id << ", " << fn << std::endl; // TODO REMOVE
             watche_.put(id, fn);
         }
 
         void del_watcher(const watch_id_t id, watch_fn_t) {
+            std::cout << "add_watcher: " << id << ", " << std::endl; // TODO REMOVE
             watche_.remove(id);
         }
 
         block_addr_t allocate(const std::size_t size_b, const std::size_t alignment_b) {
+            std::cout << "allocate: " << size_b << ", " << alignment_b << std::endl; // TODO REMOVE
             if (size_b == 0)
                 abort_("Empty memory block allocation");
             if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
@@ -94,6 +97,7 @@ namespace ex::data::rbtalloc {
         }
 
         block_addr_t reallocate(void *ptr, const std::size_t size_new_b) {
+            std::cout << "reallocate: " << ptr << ", " << size_new_b << std::endl; // TODO REMOVE
             if (size_new_b == 0 || ptr == nullptr) {
                 free(ptr);
                 return nullptr;
@@ -116,6 +120,7 @@ namespace ex::data::rbtalloc {
         }
 
         void free(const block_addr_t ptr) {
+            std::cout << "free: " << ptr << std::endl; // TODO REMOVE
             if (ptr == nullptr)
                 return;
             const memory_block block = blocks_.at(ptr);
@@ -140,6 +145,8 @@ namespace ex::data::rbtalloc {
          * Allocate at least additional <b>min_size_b</b> bytes of memory
          */
         void block_request_(const std::size_t min_size_b) {
+            std::cout << "block_request: " << min_size_b << std::endl; // TODO REMOVE
+
             if (min_size_b > BLOCK_MAX_SIZE_B)
                 abort_("Requested allocation size overflow");
 
@@ -190,17 +197,21 @@ namespace ex::data::rbtalloc {
         };
 
         static bool test_padding_(const block_map_t::rmq_node *node, void *this_) {
+            std::cout << "test_padding_: " << node << ", " << this_ << std::endl; // TODO REMOVE
             const test_this *that_   = static_cast<test_this *>(this_);
             const u_int64_t  padding = block_padding_(that_->data_offset, node->key, that_->alignment_b);
             return node->val.size_b >= (that_->size_needed + padding);
         }
 
         static u_int32_t block_padding_(const u_int64_t data, const void *ptr, const u_int64_t alignment_b) {
+            std::cout << "block_padding_: " << data << ", " << ptr << ", " << alignment_b << std::endl; // TODO REMOVE
             const u_int64_t  offset  = reinterpret_cast<u_int64_t>(ptr) - data;
             return (offset % alignment_b != 0) ? alignment_b - (offset % alignment_b) : 0;
         }
 
         block_addr_t block_acquire_(const std::size_t size_b, const std::size_t alignment_b) {
+            std::cout << "block_acquire_: " << size_b << ", " << alignment_b << std::endl; // TODO REMOVE
+
             if ((size_b + alignment_b) > BLOCK_MAX_SIZE_B)
                 abort_("Requested allocation size overflow");
 
@@ -235,6 +246,8 @@ namespace ex::data::rbtalloc {
         }
 
         void block_free_(const block_addr_t ptr, const memory_block &block) {
+            std::cout << "block_free_: " << ptr << ", " << block.size_b << ", " << block.alignment_b << ", " << block.is_free << std::endl; // TODO REMOVE
+
             if (block.is_free == true)
                 abort_("Memory block double free");
 
@@ -289,30 +302,37 @@ namespace ex::data::rbtalloc {
         }
 
         static void *malloc_(void *this_, const std::size_t size_new_b, const std::size_t alignment_b) {
+            std::cout << "malloc_" << this_ << ", " << size_new_b << ", " << alignment_b << std::endl; // TODO REMOVE
             return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->allocate(size_new_b, alignment_b);
         }
 
         static void *realloc_(void *this_, void *ptr, const std::size_t size_new_b) {
+            std::cout << "realloc_" << this_ << ", " << size_new_b << ", " << std::endl; // TODO REMOVE
             return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->reallocate(ptr, size_new_b);
         }
 
         static void free_(void *this_, void *ptr) {
+            std::cout << "free_" << this_ << ", " << ptr << std::endl; // TODO REMOVE
             static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->free(ptr);
         }
 
         static void watch_add_(void *this_, void *const ptr, const ex::data::watch_fn_t fn) {
+            std::cout << "watch_add_" << this_ << ", " << ptr << ", " << fn << std::endl; // TODO REMOVE
             static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->add_watcher(ptr, fn);
         }
 
         static void watch_del_(void *this_, void *const ptr, const ex::data::watch_fn_t fn) {
+            std::cout << "watch_del_" << this_ << ", " << ptr << ", " << fn << std::endl; // TODO REMOVE
             static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->del_watcher(ptr, fn);
         }
 
         static long size_total_(void *this_) {
+            std::cout << "size_total_" << this_ << std::endl; // TODO REMOVE
             return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->memory_total_b();
         }
 
         static long size_used_(void *this_) {
+            std::cout << "size_used_" << this_ << std::endl; // TODO REMOVE
             return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->memory_used_b();
         }
     };
