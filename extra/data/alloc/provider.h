@@ -29,6 +29,7 @@ namespace ex::data {
             if (data == nullptr)
                 return;
             ::free(data);
+            data = nullptr;
         }
 
         long size() const {

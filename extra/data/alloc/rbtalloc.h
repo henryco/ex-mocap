@@ -122,6 +122,10 @@ namespace ex::data::rbtalloc {
             return memory_.size();
         }
 
+        void *memory_start() const {
+            return memory_.data_ptr();
+        }
+
         // =========================================== INTERNAL UTILS ==================================================
 
         /**

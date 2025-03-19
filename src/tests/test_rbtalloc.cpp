@@ -9,26 +9,28 @@
 
 using namespace ex::data::rbtalloc;
 
-TEST_CASE("Allocator: Initialization") {
+TEST_CASE("RBTAlloc: Initialization") {
     ex::data::rbtalloc::arena_.clean();
     allocator alloc(ALLOC_DEF_SIZE_B);
     CHECK(alloc.memory_used_b() == 0);
     CHECK(alloc.memory_total_b() >= ALLOC_DEF_SIZE_B);
 }
 
-TEST_CASE("Allocator: Basic Allocation") {
+TEST_CASE("RBTAlloc: Basic Allocation") {
     ex::data::rbtalloc::arena_.clean();
     allocator alloc;
+
+    const auto start = reinterpret_cast<uintptr_t>(alloc.memory_start());
     void* ptr1 = alloc.allocate(128, 8);
     void* ptr2 = alloc.allocate(256, 16);
 
     REQUIRE(ptr1 != nullptr);
     REQUIRE(ptr2 != nullptr);
-    CHECK(reinterpret_cast<uintptr_t>(ptr1) % 8 == 0);
-    CHECK(reinterpret_cast<uintptr_t>(ptr2) % 16 == 0);
+    CHECK((reinterpret_cast<uintptr_t>(ptr1) - start) % 8  == 0);
+    CHECK((reinterpret_cast<uintptr_t>(ptr2) - start) % 16 == 0);
 }
 
-TEST_CASE("Allocator: Freeing Memory") {
+TEST_CASE("RBTAlloc: Freeing Memory") {
     ex::data::rbtalloc::arena_.clean();
     allocator alloc;
     void* ptr = alloc.allocate(512, 16);
@@ -41,7 +43,7 @@ TEST_CASE("Allocator: Freeing Memory") {
     CHECK(after_free < before_free);
 }
 
-TEST_CASE("Allocator: Reallocation") {
+TEST_CASE("RBTAlloc: Reallocation") {
     ex::data::rbtalloc::arena_.clean();
     allocator alloc;
     void* ptr = alloc.allocate(128, 8);
@@ -52,7 +54,7 @@ TEST_CASE("Allocator: Reallocation") {
     CHECK(reinterpret_cast<uintptr_t>(new_ptr) % 8 == 0);
 }
 
-TEST_CASE("Allocator: Edge Cases") {
+TEST_CASE("RBTAlloc: Edge Cases") {
     ex::data::rbtalloc::arena_.clean();
     allocator alloc;
 
@@ -79,7 +81,7 @@ TEST_CASE("Allocator: Edge Cases") {
     }
 }
 
-TEST_CASE("Allocator: Memory Tracking") {
+TEST_CASE("RBTAlloc: Memory Tracking") {
     ex::data::rbtalloc::arena_.clean();
     allocator alloc;
     void* ptr = alloc.allocate(512, 16);
