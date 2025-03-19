@@ -230,18 +230,27 @@ namespace ex::data::rbtalloc {
             const block_map_t::rmq_node *next = blocks_.next(ptr);
             const block_map_t::rmq_node *prev = blocks_.prev(ptr);
 
+            block_addr_t prev_key = nullptr;
+            block_addr_t next_key = nullptr;
+
             if (next != nullptr && next->val.is_free == true) {
                 // merging next block
                 free_block.size_b += next->val.size_b;
-                blocks_.remove(next->key);
+                next_key = next->key;
             }
 
             if (prev != nullptr && prev->val.is_free == true) {
                 // merging prev block
                 free_block.size_b += prev->val.size_b;
+                prev_key = prev->key;
                 free_ptr = prev->key;
-                blocks_.remove(free_ptr);
             }
+
+            if (next_key != nullptr)
+                blocks_.remove(next_key);
+
+            if (prev_key != nullptr)
+                blocks_.remove(prev_key);
 
             blocks_.remove(ptr);
             blocks_.put(free_ptr, free_block, free_block.size_b);
