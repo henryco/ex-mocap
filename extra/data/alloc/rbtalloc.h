@@ -30,8 +30,10 @@ namespace ex::data::rbtalloc {
     using block_map_t  = rmq_map<block_addr_t, memory_block, block_free_t>;
     using watch_map_t  = array_map<watch_id_t, watch_fn_t>;
 
-    // todo replace with dynamic
+#define BLOCK_MAX_SIZE_B (4294967295U)
 #define STACK_BLOCK_SIZE (sizeof(block_map_t::rmq_node))
+
+    // todo replace with dynamic
     static inline stackarena::static_allocator<STACK_BLOCK_SIZE, STACK_ARENA_SIZE> arena_{};
 
     struct allocator {
@@ -181,7 +183,7 @@ namespace ex::data::rbtalloc {
             const u_int64_t data_start = reinterpret_cast<u_int64_t>(memory_.data_ptr());
             test_this       test_that  = { size_b, alignment_b, data_start };
 
-            const block_map_t::rmq_node *fit = blocks_.range_fit(size_b, &test_padding_, &test_that);
+            const block_map_t::rmq_node *fit = blocks_.range_fit(size_b, BLOCK_MAX_SIZE_B, &test_padding_, &test_that);
             if (fit == nullptr)
                 return nullptr;
 
