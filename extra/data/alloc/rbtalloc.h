@@ -83,7 +83,7 @@ namespace ex::data::rbtalloc {
         }
 
         block_addr_t allocate(const std::size_t size_b, const std::size_t alignment_b) {
-            if (size_b <= 0)
+            if (size_b == 0)
                 abort_("Empty memory block allocation");
             if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
                 return allocated;
@@ -94,17 +94,24 @@ namespace ex::data::rbtalloc {
         }
 
         block_addr_t reallocate(void *ptr, const std::size_t size_new_b) {
-            if (size_new_b <= 0 || ptr == nullptr) {
+            if (size_new_b == 0 || ptr == nullptr) {
                 free(ptr);
                 return nullptr;
             }
+
+            const auto start_before = memory_.data_ptr();
+            const auto start_ptr    = reinterpret_cast<u_int64_t>(start_before);
+            const auto data_ptr     = reinterpret_cast<u_int64_t>(ptr);
+            const auto offset       = data_ptr - start_ptr;
 
             const memory_block block = blocks_.at(ptr);
             block_free_(ptr, block);
 
             const block_addr_t allocated = allocate(size_new_b, block.alignment_b);
-            if (allocated != ptr)
-                ::memmove(allocated, ptr, size_new_b < block.size_b ? size_new_b : block.size_b);
+            if (allocated != ptr) {
+                const void *old_src_ptr = static_cast<unsigned char *>(memory_.data_ptr()) + offset;
+                ::memmove(allocated, old_src_ptr, size_new_b < block.size_b ? size_new_b : block.size_b);
+            }
             return allocated;
         }
 
@@ -196,6 +203,9 @@ namespace ex::data::rbtalloc {
         block_addr_t block_acquire_(const std::size_t size_b, const std::size_t alignment_b) {
             if ((size_b + alignment_b) > BLOCK_MAX_SIZE_B)
                 abort_("Requested allocation size overflow");
+
+            if (alignment_b == 0 || (alignment_b & (alignment_b - 1)) != 0)
+                abort_("Alignment must be non-zero and a power of two");
 
             const u_int64_t data_start = reinterpret_cast<u_int64_t>(memory_.data_ptr());
             test_this       test_that  = { size_b, alignment_b, data_start };
