@@ -221,6 +221,11 @@ namespace ex::data::rbtalloc {
             const u_int64_t data_start = reinterpret_cast<u_int64_t>(memory_.data_ptr());
             test_this       test_that  = { size_b, alignment_b, data_start };
 
+            // TODO FIXME
+            // TODO FIXME
+            // TODO FIXME
+            // TODO FIXME
+            // TODO FIXME
             const block_map_t::rmq_node *fit = blocks_.range_fit(size_b, BLOCK_MAX_SIZE_B, &test_padding_, &test_that);
             if (fit == nullptr)
                 return nullptr;

@@ -18,13 +18,26 @@ namespace ex::data::stackarena {
         unsigned char arena_[data_s];
         void         *stack_[free_s];
 
-        std::size_t offset = 0;
-        std::size_t free_n = 0;
+        std::size_t offset;
+        std::size_t free_n;
+
+        // ReSharper disable once CppPossiblyUninitializedMember
+        static_allocator() : offset(0), free_n(0) { // NOLINT(*-pro-type-member-init)
+            std::cout << "static_allocator" << std::endl; // TODO REMOVE
+        }
+
+        static_allocator(const static_allocator &other) = delete;
+        static_allocator(static_allocator &&other)      = delete;
+
+        static_allocator &operator = (const static_allocator &other) = delete;
+        static_allocator &operator = (static_allocator &&other)      = delete;
 
         /**
          * allocates only one block at a time
          */
         void *allocate() {
+            std::cout << "STACKALLOC: " << this << ", " << offset << std::endl; // TODO REMOVE
+
             if (free_n > 0)
                 return stack_[--free_n];
             if (offset >= data_s)

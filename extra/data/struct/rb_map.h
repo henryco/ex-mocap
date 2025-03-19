@@ -320,6 +320,9 @@ namespace ex::data {
             node->key     = key;
             node->col     = RED_;
 
+            if (node == root_)
+                ::abort();
+
             if (direction >= 0) base->rns = node;
             else                base->lns = node;
 

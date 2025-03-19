@@ -356,6 +356,9 @@ namespace ex::data {
             node->max      = range;
             node->col      = RED_;
 
+            if (node == root_)
+                ::abort();
+
             if (direction >= 0) base->rns = node;
             else                base->lns = node;
 
