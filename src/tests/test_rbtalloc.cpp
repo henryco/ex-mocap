@@ -80,17 +80,28 @@ TEST_CASE("RBTAlloc: Edge Cases") {
         REQUIRE(ptr != nullptr);
 
         std::size_t before = alloc.memory_used_b();
+        CHECK(before == 256);
+
         void *new_ptr = alloc.reallocate(ptr, 0);
         CHECK(new_ptr == nullptr);
-        CHECK(alloc.memory_used_b() < before);
+
+        std::size_t after = alloc.memory_used_b();
+        CHECK(after == 0);
     }
 
     SUBCASE("Double free should abort") {
         void *ptr = alloc.allocate(128, 8);
         REQUIRE(ptr != nullptr);
 
+        std::size_t before = alloc.memory_used_b();
+        CHECK(before == 128);
+
         alloc.free(ptr);
-        CHECK_THROWS(alloc.free(ptr));  // Double free should trigger error
+
+        std::size_t after = alloc.memory_used_b();
+        CHECK(after == 0);
+
+        CHECK_THROWS(alloc.free(ptr));
     }
 }
 
