@@ -46,12 +46,25 @@ TEST_CASE("RBTAlloc: Freeing Memory") {
 TEST_CASE("RBTAlloc: Reallocation") {
     ex::data::rbtalloc::arena_.clean();
     allocator alloc;
+
+    const auto start = reinterpret_cast<uintptr_t>(alloc.memory_start());
+
+    std::size_t before_alloc = alloc.memory_used_b();
+    CHECK(before_alloc == 0);
+
     void *ptr = alloc.allocate(128, 8);
     REQUIRE(ptr != nullptr);
 
+    std::size_t after_alloc = alloc.memory_used_b();
+    CHECK(after_alloc == 128);
+
     void *new_ptr = alloc.reallocate(ptr, 256);
     REQUIRE(new_ptr != nullptr);
-    CHECK(reinterpret_cast<uintptr_t>(new_ptr) % 8 == 0);
+
+    std::size_t after_realloc = alloc.memory_used_b();
+    CHECK(after_realloc == 256);
+
+    CHECK((reinterpret_cast<uintptr_t>(new_ptr) - start) % 8  == 0);
 }
 
 TEST_CASE("RBTAlloc: Edge Cases") {
