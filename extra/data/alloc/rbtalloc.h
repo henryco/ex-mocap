@@ -78,10 +78,53 @@ namespace ex::data::rbtalloc {
             watche_.remove(id);
         }
 
+        block_addr_t allocate(const std::size_t size_b, const std::size_t alignment_b) {
+            if (size_b <= 0)
+                abort_("Empty memory block allocation");
+            if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
+                return allocated;
+            block_request_(size_b + alignment_b);
+            if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
+                return allocated;
+            abort_("Out of free space");
+        }
+
+        block_addr_t reallocate(void *ptr, const std::size_t size_new_b) {
+            if (size_new_b <= 0 || ptr == nullptr) {
+                free(ptr);
+                return nullptr;
+            }
+
+            const memory_block block = blocks_.at(ptr);
+            block_free_(ptr, block);
+
+            block_addr_t allocated = allocate(size_new_b, block.alignment_b);
+            if (allocated != ptr)
+                ::memmove(allocated, ptr, size_new_b < block.size_b ? size_new_b : block.size_b);
+            return allocated;
+        }
+
+        void free(const block_addr_t ptr) {
+            if (ptr == nullptr)
+                return;
+            const memory_block block = blocks_.at(ptr);
+            block_free_(ptr, block);
+        }
+
+        long memory_used_b() const {
+            return used_mem_ + arena_.size_used();
+        }
+
+        long memory_total_b() const {
+            return memory_.size() + arena_.size_total();
+        }
+
+        // ======================== INTERNAL UTILS =============================
+
         /**
          * Allocate at least additional <b>min_size_b</b> bytes of memory
          */
-        void block_request(const std::size_t min_size_b) {
+        void block_request_(const std::size_t min_size_b) {
             block_map_t::rmq_node *last = blocks_.last();
             if (last == nullptr)
                 abort_("");
@@ -128,54 +171,45 @@ namespace ex::data::rbtalloc {
             u_int64_t data_offset;
         };
 
-        static bool test_padding(const block_map_t::rmq_node *node, void *this_) {
+        static bool test_padding_(const block_map_t::rmq_node *node, void *this_) {
             const test_this *that_   = static_cast<test_this *>(this_);
-            const u_int64_t  offset  = reinterpret_cast<u_int64_t>(node->key) -
-                                       reinterpret_cast<u_int64_t>(that_->data_offset);
-            const u_int64_t padding  = (offset % that_->alignment_b != 0)
-                ? that_->alignment_b - (offset % that_->alignment_b)
-                : 0;
+            const u_int64_t  padding = block_padding_(that_->data_offset, node->key, that_->alignment_b);
             return node->val.size_b >= (that_->size_needed + padding);
         }
 
-        block_addr_t block_acquire(const std::size_t size_b, const std::size_t alignment_b) {
+        static u_int32_t block_padding_(const u_int64_t data, const void *ptr, const u_int64_t alignment_b) {
+            const u_int64_t  offset  = reinterpret_cast<u_int64_t>(ptr) - data;
+            return (offset % alignment_b != 0) ? alignment_b - (offset % alignment_b) : 0;
+        }
+
+        block_addr_t block_acquire_(const std::size_t size_b, const std::size_t alignment_b) {
             const u_int64_t data_start = reinterpret_cast<u_int64_t>(memory_.data_ptr());
             test_this       test_that  = { size_b, alignment_b, data_start };
 
-            const block_map_t::rmq_node *fit = blocks_.range_fit(size_b, &test_padding, &test_that);
+            const block_map_t::rmq_node *fit = blocks_.range_fit(size_b, &test_padding_, &test_that);
             if (fit == nullptr)
                 return nullptr;
 
-            // TODO
+            const u_int32_t padding   = block_padding_(data_start, fit->key, alignment_b);
+            memory_block    fit_block = fit->val;
 
-            return nullptr;
+            const u_int32_t size_ls = static_cast<u_int32_t>(padding + size_b);
+            const u_int32_t size_rs = fit_block.size_b - size_ls;
+
+            const memory_block l_block = { size_ls, static_cast<u_int16_t>(alignment_b), false };
+            const memory_block r_block = { size_rs, 1, true };
+
+            block_addr_t l_ptr = fit->key;
+            block_addr_t r_ptr = static_cast<unsigned char *>(l_ptr) + size_ls;
+
+            blocks_.put(l_ptr, l_block, 0);
+            blocks_.put(r_ptr, r_block, size_rs);
+
+            return l_ptr;
         }
 
-        block_addr_t allocate(const std::size_t size_b, const std::size_t alignment_b) {
-            if (size_b <= 0)
-                abort_("Empty memory block allocation");
-            if (const block_addr_t allocated = block_acquire(size_b, alignment_b))
-                return allocated;
-            block_request(size_b + alignment_b);
-            if (const block_addr_t allocated = block_acquire(size_b, alignment_b))
-                return allocated;
-            abort_("Out of free space");
-        }
-
-        block_addr_t reallocate(void *ptr, const std::size_t size_new_b) {
-            if (size_new_b <= 0 || ptr == nullptr) {
-                free(ptr);
-                return nullptr;
-            }
-            // TODO
-            abort_("Out of free space");
-        }
-
-        void free(const block_addr_t ptr) {
-            if (ptr == nullptr)
-                return;
-            const memory_block block = blocks_.at(ptr);
-            if (block.is_free)
+        void block_free_(const block_addr_t ptr, const memory_block &block) {
+            if (block.is_free == true)
                 abort_("Memory block double free");
 
             used_mem_ -= block.size_b;
@@ -201,14 +235,6 @@ namespace ex::data::rbtalloc {
 
             blocks_.remove(ptr);
             blocks_.put(free_ptr, free_block, free_block.size_b);
-        }
-
-        long memory_used_b() const {
-            return used_mem_ + arena_.size_used();
-        }
-
-        long memory_total_b() const {
-            return memory_.size() + arena_.size_total();
         }
     };
 
