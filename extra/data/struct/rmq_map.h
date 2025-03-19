@@ -51,6 +51,11 @@ namespace ex::data {
         inline static metrics_t metrics_n_ = 0;
 #endif
 
+        using range_test_fn = bool (*) (const rmq_node *node, void *this_);
+        bool default_test_fn (const rmq_node *, void *) {
+            return true;
+        }
+
         using comparator_fn = int32_t (*)(const key_t *a, const key_t *b);
         using min_max_eq_fn = int16_t (*)(const rmq_t *a, const rmq_t *b);
 
@@ -400,11 +405,11 @@ namespace ex::data {
             return overlap_(root_, min, max);
         }
 
-        rmq_node *range_fit(const rmq_t &val) const {
-            return range_fit(val, val);
+        rmq_node *range_fit(const rmq_t &val, const range_test_fn test = nullptr, void *test_this = nullptr) const {
+            return range_fit(val, val, test, test_this);
         }
 
-        rmq_node *range_fit(const rmq_t &min, const rmq_t &max) const {
+        rmq_node *range_fit(const rmq_t &min, const rmq_t &max, const range_test_fn test = nullptr, void *test_this = nullptr) const {
             if (!overlap_(root_, min, max))
                 return nullptr;
 
@@ -415,7 +420,8 @@ namespace ex::data {
 
             for (rmq_node *head = root_; head != nullptr;) {
                 if (mmeq_(&min, &(head->rmq)) <= 0 &&
-                    mmeq_(&max, &(head->rmq)) >= 0)
+                    mmeq_(&max, &(head->rmq)) >= 0 &&
+                    (test == nullptr || test(head, test_this)))
                     return head;
 
                 const bool overlap_l = overlap_(head->lns, min, max);

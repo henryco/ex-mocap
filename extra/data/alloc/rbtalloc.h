@@ -122,21 +122,43 @@ namespace ex::data::rbtalloc {
             blocks_.put(allocated_ptr, { size_b, 1, true }, size_b);
         }
 
-        block_addr_t block_acquire() {
+        struct test_this {
+            u_int64_t size_needed;
+            u_int64_t alignment_b;
+            u_int64_t data_offset;
+        };
+
+        static bool test_padding(const block_map_t::rmq_node *node, void *this_) {
+            const test_this *that_   = static_cast<test_this *>(this_);
+            const u_int64_t  offset  = reinterpret_cast<u_int64_t>(node->key) -
+                                       reinterpret_cast<u_int64_t>(that_->data_offset);
+            const u_int64_t padding  = (offset % that_->alignment_b != 0)
+                ? that_->alignment_b - (offset % that_->alignment_b)
+                : 0;
+            return node->val.size_b >= (that_->size_needed + padding);
+        }
+
+        block_addr_t block_acquire(const std::size_t size_b, const std::size_t alignment_b) {
+            const u_int64_t data_start = reinterpret_cast<u_int64_t>(memory_.data_ptr());
+            test_this       test_that  = { size_b, alignment_b, data_start };
+
+            const block_map_t::rmq_node *fit = blocks_.range_fit(size_b, &test_padding, &test_that);
+            if (fit == nullptr)
+                return nullptr;
+
             // TODO
+
             return nullptr;
         }
 
         block_addr_t allocate(const std::size_t size_b, const std::size_t alignment_b) {
             if (size_b <= 0)
                 abort_("Empty memory block allocation");
-
-            // TODO
-
+            if (const block_addr_t allocated = block_acquire(size_b, alignment_b))
+                return allocated;
             block_request(size_b + alignment_b);
-
-            // TODO
-
+            if (const block_addr_t allocated = block_acquire(size_b, alignment_b))
+                return allocated;
             abort_("Out of free space");
         }
 

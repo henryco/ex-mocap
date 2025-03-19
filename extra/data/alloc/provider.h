@@ -44,20 +44,18 @@ namespace ex::data {
             const std::size_t real_size   = capacity + size;
 
             const void *old_data_ptr = data;
+            const auto  old_offset   = reinterpret_cast<unsigned long int>(data);
             {
                 capacity += real_size;
                 offset   += real_size;
                 if (data == nullptr) data = ::malloc(capacity);
                 else                 data = ::realloc(data, capacity);
             }
-            const void *new_data_ptr = data;
+            const auto  new_offset   = reinterpret_cast<unsigned long int>(data);
 
             if (addr_diff != nullptr && old_data_ptr != nullptr) {
-                if (old_data_ptr == new_data_ptr)
-                    *addr_diff = 0;
-                else
-                    *addr_diff = reinterpret_cast<unsigned long int>(new_data_ptr) -
-                                 reinterpret_cast<unsigned long int>(old_data_ptr);
+                if (old_offset == new_offset) *addr_diff = 0;
+                else                          *addr_diff = new_offset - old_offset;
             }
 
             if (size_allocated != nullptr) {
