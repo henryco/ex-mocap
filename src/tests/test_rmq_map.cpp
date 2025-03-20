@@ -23,7 +23,7 @@ void verify_rb_tree_(rmq_map<int, int> &map, bool rmq_is_key);
 
 namespace allocator_rmq_ {
     static ex::data::stackarena::static_allocator<BLOCK_SIZE, POOL_SIZE> stack;
-    static ex::data::allocator stack_rmq = stack.compat_allocator();
+    static ex::data::allocator stack_rmq = ex::data::alloc_compat<ex::data::stackarena::static_allocator<BLOCK_SIZE, POOL_SIZE>>::allocator(stack);;
 }
 
 ex::data::allocator &stack_rmq_allocator() {

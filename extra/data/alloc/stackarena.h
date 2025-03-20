@@ -34,8 +34,7 @@ namespace ex::data::stackarena {
         /**
          * allocates only one block at a time
          */
-        void *allocate() {
-
+        void *malloc(std::size_t, std::size_t) {
             if (free_n > 0)
                 return stack_[--free_n];
             if (offset >= data_s)
@@ -43,6 +42,10 @@ namespace ex::data::stackarena {
             void *ptr = static_cast<void *>(arena_ + offset);
             offset += block_s;
             return ptr;
+        }
+
+        void *realloc(void *, const std::size_t) {
+            abort_("Realloc not supported");
         }
 
         /**
@@ -72,39 +75,6 @@ namespace ex::data::stackarena {
         void clean() {
             offset = 0;
             free_n = 0;
-        }
-
-        // There is some compatibility layer type/mem-layout tricknology
-
-        const ex::data::allocator tricklocator_ = { .malloc      = &static_allocator::malloc_,
-                                                    .realloc     = &static_allocator::realloc_,
-                                                    .free        = &static_allocator::free_,
-                                                    .size_total  = &static_allocator::size_total_,
-                                                    .size_used   = &static_allocator::size_used_,
-                                                    .instance    = this };
-
-        const ex::data::allocator &compat_allocator() const {
-            return tricklocator_;
-        }
-
-        static void *malloc_(void *this_, std::size_t, std::size_t) {
-            return static_cast<static_allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->allocate();
-        }
-
-        static void *realloc_(void *, void *, const std::size_t) {
-            abort_("Realloc not supported");
-        }
-
-        static void free_(void *this_, void *ptr) {
-            static_cast<static_allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->free(ptr);
-        }
-
-        static long size_total_(void *this_) {
-            return static_cast<static_allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->size_total();
-        }
-
-        static long size_used_(void *this_) {
-            return static_cast<static_allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->size_used();
         }
     };
 
