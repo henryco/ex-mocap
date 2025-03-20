@@ -133,11 +133,11 @@ namespace ex::data {
             rb_node *node = descend_(root_, key, &direction);
 #endif
             if (node == nullptr || direction != 0 || comp_(&key, &(node->key)) != 0)
-                ::abort();
+                abort_("");
             if (node->rns != nullptr) {
                 if (rb_node *min_ = minimum_(node->rns))
                     return min_;
-                ::abort();
+                abort_("");
             }
             for (rb_node *head = node;;) {
                 rb_node *parent = head->par;
@@ -157,11 +157,11 @@ namespace ex::data {
             rb_node *node = descend_(root_, key, &direction);
 #endif
             if (node == nullptr || direction != 0 || comp_(&key, &(node->key)) != 0)
-                ::abort();
+                abort_("");
             if (node->lns != nullptr) {
                 if (rb_node *max_ = maximum_(node->lns))
                     return max_;
-                ::abort();
+                abort_("");
             }
             for (rb_node *head = node;;) {
                 rb_node *parent = head->par;
@@ -211,12 +211,12 @@ namespace ex::data {
 #endif
 
             if (node == nullptr)
-                ::abort(); // all or nothing, avoid exceptions
+                abort_(""); // all or nothing, avoid exceptions
 
             if (direction == 0 && comp_(&key, &(node->key)) == 0)
                 return node->val;
 
-            ::abort(); // all or nothing, avoid exceptions
+            abort_(""); // all or nothing, avoid exceptions
         }
 
         val_t &operator [] (const key_t &key) {
@@ -302,7 +302,7 @@ namespace ex::data {
 
             rb_node *node = instance_node_();
             if (node == root_)
-                ::abort();
+                abort_("");
             node->par     = base;
             node->lns     = nullptr;
             node->rns     = nullptr;
@@ -414,7 +414,7 @@ namespace ex::data {
                 return;
             }
 
-            ::abort();
+            abort_("");
         }
 
         void fix_delete_if_needed_(rb_node *node, rb_node *child, rb_node *sibling) {
@@ -549,7 +549,7 @@ namespace ex::data {
 
             if (parent == nullptr) {
                 if (node != root_)
-                    ::abort();
+                    abort_("");
 
                 // just in case, root is always black
                 node->col = BLACK_;
@@ -827,7 +827,7 @@ namespace ex::data {
 
         static rb_node *get_sibling_(const rb_node *node) {
             if (node == nullptr)
-                ::abort();
+                abort_("");
 
             const rb_node *parent = node->par;
             if (parent == nullptr)
@@ -878,7 +878,7 @@ namespace ex::data {
 
             rb_node &operator * () {
                 if (prev_ == nullptr)
-                    ::abort();
+                    abort_("");
                 return *prev_;
             }
 
