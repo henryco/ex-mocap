@@ -159,8 +159,7 @@ namespace ex::data::mempool {
         u_int64_t block_padding(const block_id_t block_id, const u_int64_t alignment_b) const {
             if (alignment_b <= 1)
                 return 0;
-            const u_int64_t offset = reinterpret_cast<u_int64_t>(block_id) -
-                                     reinterpret_cast<u_int64_t>(memory_.data_ptr());
+            const u_int64_t offset = reinterpret_cast<u_int64_t>(block_id);
             if (offset % alignment_b != 0)
                 return alignment_b - (offset % alignment_b);
             return 0;

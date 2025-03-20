@@ -99,8 +99,7 @@ namespace ex::data::rbtalloc {
 
             const block_addr_t allocated = malloc(size_new_b, block.alignment_b);
             if (allocated != ptr) {
-                const void *old_src_ptr = static_cast<unsigned char *>(memory_.data_ptr());
-                ::memmove(allocated, old_src_ptr, size_new_b < block.size_b ? size_new_b : block.size_b);
+                ::memmove(allocated, ptr, size_new_b < block.size_b ? size_new_b : block.size_b);
                 block_free_(ptr, block);
 
 //                verify_rb_tree_(blocks_);
@@ -126,10 +125,6 @@ namespace ex::data::rbtalloc {
 
         long size_total() const {
             return memory_.size();
-        }
-
-        void *memory_start() const {
-            return memory_.data_ptr();
         }
 
         // =========================================== INTERNAL UTILS ==================================================

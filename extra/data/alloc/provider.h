@@ -11,59 +11,73 @@ namespace ex::data {
 
     // TODO REPLACE WITH SYS-CALLS
     struct mem_provider {
-        void       *data     = nullptr;
-        std::size_t offset   = 0;
-        std::size_t capacity = 0;
+
+        struct mem_node {
+            mem_node *prev;
+            void     *data;
+            long      size;
+        };
+
+        mem_node *node = nullptr;
 
         mem_provider() = default;
 
         ~mem_provider() {
-            if (data == nullptr)
+            if (node == nullptr)
                 return;
-            ::free(data);
+            mem_node *head = node;
+            while (head != nullptr) {
+                mem_node *prev = head->prev;
+                ::free(head->data);
+                ::free(head);
+                head = prev;
+            }
+            node = nullptr;
         }
 
         void clean() {
-            offset   = 0;
-            capacity = 0;
-            if (data == nullptr)
+            if (node == nullptr)
                 return;
-            ::free(data);
-            data = nullptr;
+            mem_node *head = node;
+            while (head != nullptr) {
+                mem_node *prev = head->prev;
+                ::free(head->data);
+                ::free(head);
+                head = prev;
+            }
+            node = nullptr;
         }
 
         long size() const {
-            return offset;
-        }
-
-        void *data_ptr() const {
-            return data;
+            long            s    = 0;
+            const mem_node *head = node;
+            while (head != nullptr) {
+                s += head->size;
+                head = head->prev;
+            }
+            return s;
         }
 
         void *request(const std::size_t size, std::size_t *size_allocated = nullptr) {
-            const std::size_t curr_offset = offset;
-            const std::size_t real_size   = capacity + size;
+            const std::size_t real_size = (this->size() * 2) + size;
 
-            const bool is_nullptr = data == nullptr;
+            void *mem = ::malloc(real_size);
 
-            const auto  old_offset   = reinterpret_cast<unsigned long int>(data);
-            {
-                capacity += real_size;
-                offset   += real_size;
-                if (data == nullptr) data = ::malloc(capacity);
-                else                 data = ::realloc(data, capacity);
-            }
-            const auto  new_offset   = reinterpret_cast<unsigned long int>(data);
-
-            if (!is_nullptr && old_offset != new_offset) {
-                abort_("discontinuity (TODO)");
-            }
-
-            if (size_allocated != nullptr) {
-                *size_allocated = real_size;
+            if (node == nullptr) {
+                node = static_cast<mem_node *>(::malloc(sizeof(mem_node)));
+                node->prev = nullptr;
+                node->data = mem;
+                node->size = real_size;
+            } else {
+                mem_node *new_node = static_cast<mem_node *>(::malloc(sizeof(mem_node)));
+                new_node->prev     = node;
+                new_node->data     = mem;
+                new_node->size     = real_size;
+                node               = new_node;
             }
 
-            return static_cast<unsigned char *>(data) + curr_offset;
+            *size_allocated = real_size;
+            return mem;
         }
     };
 }

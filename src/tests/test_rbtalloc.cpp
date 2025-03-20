@@ -22,14 +22,13 @@ TEST_SUITE("RBTAlloc tests") {
     TEST_CASE("Basic Allocation") {
         allocator alloc;
 
-        const auto start = reinterpret_cast<uintptr_t>(alloc.memory_start());
         void *ptr1 = alloc.malloc(128, 8);
         void *ptr2 = alloc.malloc(256, 16);
 
         REQUIRE(ptr1 != nullptr);
         REQUIRE(ptr2 != nullptr);
-        CHECK((reinterpret_cast<uintptr_t>(ptr1) - start) % 8  == 0);
-        CHECK((reinterpret_cast<uintptr_t>(ptr2) - start) % 16 == 0);
+        CHECK((reinterpret_cast<uintptr_t>(ptr1)) % 8  == 0);
+        CHECK((reinterpret_cast<uintptr_t>(ptr2)) % 16 == 0);
     }
 
     TEST_CASE("Freeing Memory") {
@@ -47,8 +46,6 @@ TEST_SUITE("RBTAlloc tests") {
     TEST_CASE("Reallocation") {
         allocator alloc;
 
-        const auto start = reinterpret_cast<uintptr_t>(alloc.memory_start());
-
         std::size_t before_alloc = alloc.size_used();
         CHECK(before_alloc == 0);
 
@@ -64,7 +61,7 @@ TEST_SUITE("RBTAlloc tests") {
         std::size_t after_realloc = alloc.size_used();
         CHECK(after_realloc == 256);
 
-        CHECK((reinterpret_cast<uintptr_t>(new_ptr) - start) % 8  == 0);
+        CHECK((reinterpret_cast<uintptr_t>(new_ptr)) % 8  == 0);
     }
 
     TEST_CASE("Reallocating to zero size should free memory") {

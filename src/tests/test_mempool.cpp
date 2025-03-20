@@ -172,25 +172,6 @@ TEST_CASE("Reallocation Tests") {
 
 TEST_CASE("Additional Allocator Functionality") {
 
-    SUBCASE("Block padding calculation") {
-        allocator alloc;
-        auto base_ptr = alloc.memory_.data_ptr();
-        SUBCASE("No padding for alignment 1") {
-            INFO("Expecting 0 padding for alignment 1");
-            CHECK(alloc.block_padding(base_ptr, 1) == 0);
-        }
-        SUBCASE("No padding when pointer is already aligned") {
-            INFO("Expecting 0 padding when already aligned to 8");
-            CHECK(alloc.block_padding(base_ptr, 8) == 0);
-        }
-        SUBCASE("Padding for misaligned pointer") {
-            INFO("Creating misaligned pointer by offsetting base_ptr by 3 bytes");
-            auto misaligned = static_cast<void*>(static_cast<unsigned char*>(base_ptr) + 3);
-            INFO("Expecting 5 bytes of padding for alignment 8");
-            CHECK(alloc.block_padding(misaligned, 8) == 5);
-        }
-    }
-
     SUBCASE("Adjacent free blocks merge into a single free block") {
         allocator alloc;
         void* ptr1 = alloc.malloc(256, 8);
@@ -258,9 +239,8 @@ TEST_CASE("Additional Allocator Functionality") {
         for (auto alignment : alignments) {
             INFO("Allocating block with alignment " << alignment);
             void* ptr = alloc.malloc(64, alignment);
-            u_int64_t base = reinterpret_cast<u_int64_t>(alloc.memory_.data_ptr());
             u_int64_t addr = reinterpret_cast<u_int64_t>(ptr);
-            u_int64_t offset = addr - base;
+            u_int64_t offset = addr;
             INFO("Pointer " << ptr << " should be aligned (offset: " << offset << ")");
             CHECK(offset % alignment == 0);
             alloc.free(ptr);
