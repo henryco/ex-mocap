@@ -722,6 +722,7 @@ namespace ex::data {
 
                 node->key = largest->key;
                 node->val = largest->val;
+                node->rmq = largest->rmq;
 
                 rmq_node *sibling = get_sibling_(largest);
                 replace_with_child_(largest, child);
