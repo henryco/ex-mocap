@@ -285,14 +285,14 @@ namespace ex::data::rbtalloc {
         }
 
         void safe_remove_(void *ptr) {
-//            block_map_t::rmq_node *replacement =
+            block_map_t::rmq_node *replacement =
                 blocks_.remove(ptr);
 //            verify_rb_tree_(blocks_);
-//            if (replacement != nullptr) {
-//                const memory_block block = replacement->val;
-//                replacement->rmq = block.is_free == true ? replacement->val.size_b : 0;
-//                blocks_.update_ranges_(replacement);
-//            }
+            if (replacement != nullptr) {
+                const memory_block block = replacement->val;
+                replacement->rmq = block.is_free == true ? replacement->val.size_b : 0;
+                blocks_.update_ranges_(replacement);
+            }
         }
 
 //        static void verify_rb_tree_(block_map_t &map) {
