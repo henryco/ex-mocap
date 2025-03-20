@@ -22,7 +22,7 @@ void verify_rb_tree_(rb_map<int, int> &map);
 
 namespace allocator_rb_ {
     static ex::data::stackarena::static_allocator<BLOCK_SIZE, POOL_SIZE> stack;
-    static ex::data::allocator stack_rb = ex::data::alloc_compat<ex::data::stackarena::static_allocator<BLOCK_SIZE, POOL_SIZE>>::allocator(stack);
+    static ex::data::allocator stack_rb = stack.compat();
 }
 
 ex::data::allocator &stack_rb_allocator() {

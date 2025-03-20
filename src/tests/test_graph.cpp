@@ -114,7 +114,7 @@ TEST_CASE("Graph node test") {
 //    limbo::graph::memory::allocator = ex::data::alloc_compat<ex::data::mempool::allocator>::allocator(alloc_2);
 
     ex::data::rbtalloc::allocator alloc_2;
-    limbo::graph::memory::allocator = ex::data::alloc_compat<ex::data::rbtalloc::allocator>::allocator(alloc_2);
+    limbo::graph::memory::allocator = alloc_2.compat();
 
     ex::time::measure_avg time = 1;
     time.start();

@@ -47,6 +47,10 @@ namespace ex::data::rbtalloc {
         std::size_t used_mem_ = 0;
         std::size_t def_size_ = 0;
 
+        ex::data::allocator compat() {
+            return alloc_compat<allocator>::allocator(this);
+        }
+
         allocator(const std::size_t pre_allocated = ALLOC_DEF_SIZE_B) {
             preallocate(pre_allocated);
         }

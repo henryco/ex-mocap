@@ -21,6 +21,10 @@ namespace ex::data::stackarena {
         std::size_t offset;
         std::size_t free_n;
 
+        ex::data::allocator compat() {
+            return alloc_compat<static_allocator>::allocator(this);
+        }
+
         // ReSharper disable once CppPossiblyUninitializedMember
         static_allocator() : offset(0), free_n(0) { // NOLINT(*-pro-type-member-init)
         }
