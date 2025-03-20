@@ -218,21 +218,6 @@ TEST_SUITE("RBTAlloc tests") {
         REQUIRE(alloc.size_used() == 0);
     }
 
-    TEST_CASE("Reallocation triggers allocation") {
-//        allocator alloc = 1 KB;
-//
-//        const size_t initial_total = alloc.size_total();
-//
-//        void *ptr = alloc.malloc(initial_total / 2, 8);
-//        REQUIRE(ptr != nullptr);
-//
-//        void *new_ptr = alloc.realloc(ptr, initial_total + 1); // Should trigger additional memory allocation
-//        REQUIRE(new_ptr != nullptr);
-//        REQUIRE(alloc.size_total() > initial_total);
-//
-//        alloc.free(new_ptr);
-    }
-
     TEST_CASE("Repeated Growing Reallocations") {
         allocator alloc;
 
@@ -334,7 +319,7 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Allocator correctly updates internal state after freeing") {
-        allocator alloc(1024 * 1024); // 1 MB preallocated
+        allocator alloc(1 MB); // 1 MB preallocated
 
         void *a = alloc.malloc(2560, 32);
         void *b = alloc.malloc(4096, 32);
@@ -415,6 +400,21 @@ TEST_SUITE("RBTAlloc tests") {
             INFO("Iteration: " << i);
             REQUIRE(reinterpret_cast<u_int64_t>(ptr) <= reinterpret_cast<u_int64_t>(large_blocks[large_blocks.size() - 1]));
         }
+    }
+
+    TEST_CASE("Reallocation triggers allocation") { // TODO FIXME
+        allocator alloc = 1 KB;
+
+        const size_t initial_total = alloc.size_total();
+
+        void *ptr = alloc.malloc(initial_total / 2, 8);
+        REQUIRE(ptr != nullptr);
+
+        void *new_ptr = alloc.realloc(ptr, initial_total + 1); // Should trigger additional memory allocation
+        REQUIRE(new_ptr != nullptr);
+        REQUIRE(alloc.size_total() > initial_total);
+
+        alloc.free(new_ptr);
     }
 
     TEST_CASE("Allocator correctly merges complex freed block patterns") {
