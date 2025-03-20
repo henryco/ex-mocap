@@ -390,7 +390,7 @@ TEST_SUITE("RBTAlloc tests") {
             alloc.free(ptr);
     }
 
-    TEST_CASE("Allocator reuse freed blocks correctly") { // TODO FIXME
+    TEST_CASE("Allocator reuse freed blocks correctly") {
         allocator alloc(64 MB);
 
         std::vector<void *> large_blocks;
