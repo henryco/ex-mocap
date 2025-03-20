@@ -12,14 +12,12 @@ using namespace ex::data::rbtalloc;
 TEST_SUITE("RBTAlloc tests") {
 
     TEST_CASE("Initialization") {
-        ex::data::rbtalloc::arena_.clean();
         allocator alloc(ALLOC_DEF_SIZE_B);
         CHECK(alloc.size_used() == 0);
         CHECK(alloc.size_total() >= ALLOC_DEF_SIZE_B);
     }
 
     TEST_CASE("Basic Allocation") {
-        ex::data::rbtalloc::arena_.clean();
         allocator alloc;
 
         const auto start = reinterpret_cast<uintptr_t>(alloc.memory_start());
@@ -33,7 +31,6 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Freeing Memory") {
-        ex::data::rbtalloc::arena_.clean();
         allocator alloc;
         void *ptr = alloc.malloc(512, 16);
         REQUIRE(ptr != nullptr);
@@ -46,7 +43,6 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Reallocation") {
-        ex::data::rbtalloc::arena_.clean();
         allocator alloc;
 
         const auto start = reinterpret_cast<uintptr_t>(alloc.memory_start());
@@ -70,7 +66,6 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Edge Cases") {
-        ex::data::rbtalloc::arena_.clean();
         allocator alloc;
 
         SUBCASE("Zero-size allocation should abort") {
@@ -108,7 +103,6 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Memory Tracking") {
-        ex::data::rbtalloc::arena_.clean();
         allocator alloc;
         void *ptr = alloc.malloc(512, 16);
         REQUIRE(ptr != nullptr);
@@ -135,7 +129,6 @@ TEST_SUITE("RBTAlloc tests") {
 
 
     TEST_CASE("Allocator initialization and basic allocation") {
-        ex::data::rbtalloc::arena_.clean();
         allocator alloc(1024);
         CHECK(alloc.size_total() >= 1024);
         CHECK(alloc.size_used() == 0);
@@ -146,7 +139,6 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Allocator free and reuse") {
-        ex::data::rbtalloc::arena_.clean();
         allocator alloc(4096);
 
         void *ptr1 = alloc.malloc(512, 16);
@@ -159,7 +151,6 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Allocator reallocation - shrink") {
-        ex::data::rbtalloc::arena_.clean();
         allocator alloc(1024);
 
         void *ptr = alloc.malloc(512, 8);
@@ -172,7 +163,6 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Allocator reallocation - grow") {
-        ex::data::rbtalloc::arena_.clean();
         allocator alloc(2048);
 
         void *ptr = alloc.malloc(128, 8);
@@ -183,7 +173,6 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Multiple allocations and frees") {
-        ex::data::rbtalloc::arena_.clean();
         allocator alloc(8192);
 
         void *a = alloc.malloc(1024, 8);
@@ -200,7 +189,6 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Allocator cleanup") {
-        ex::data::rbtalloc::arena_.clean();
         allocator alloc(1024);
 
         alloc.malloc(256, 8);
@@ -212,7 +200,6 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Reallocation with Data Integrity") {
-        ex::data::rbtalloc::arena_.clean();
         allocator alloc;
 
         char *ptr = static_cast<char*>(alloc.malloc(16, 8));
@@ -233,7 +220,6 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Multiple Allocations and Frees") {
-        ex::data::rbtalloc::arena_.clean();
         allocator alloc;
 
         void *a = alloc.malloc(128, 8);
@@ -252,7 +238,6 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Reallocation triggers allocation") {
-        ex::data::rbtalloc::arena_.clean();
         allocator alloc = 1024;
 
         const size_t initial_total = alloc.size_total();
@@ -268,7 +253,6 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Repeated Growing Reallocations") {
-        ex::data::rbtalloc::arena_.clean();
         allocator alloc;
 
         char *ptr = static_cast<char *>(alloc.malloc(32, 8));
@@ -285,7 +269,6 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Repeated Shrinking Reallocations") {
-        ex::data::rbtalloc::arena_.clean();
         allocator alloc;
 
         char *ptr = static_cast<char *>(alloc.malloc(1024, 8));
@@ -302,7 +285,6 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Fragmentation and Reallocation") {
-        ex::data::rbtalloc::arena_.clean();
         allocator alloc;
 
         void *a = alloc.malloc(256, 8);

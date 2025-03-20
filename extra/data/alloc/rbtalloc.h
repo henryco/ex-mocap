@@ -7,7 +7,6 @@
 
 #include "datalloc.h"
 #include "provider.h"
-#include "stackarena.h"
 
 #include "../struct/array_map.h"
 #include "../struct/rmq_map.h"
@@ -33,9 +32,6 @@ namespace ex::data::rbtalloc {
 #define BLOCK_MAX_SIZE_B (4294967295U)
 #define STACK_BLOCK_SIZE (sizeof(block_map_t::rmq_node))
 
-    // todo replace with dynamic
-    static inline stackarena::static_allocator<STACK_BLOCK_SIZE, STACK_ARENA_SIZE> arena_{};
-
     struct allocator {
 
         static int32_t ptr_compare(const block_addr_t *a, const block_addr_t *b) {
@@ -44,7 +40,7 @@ namespace ex::data::rbtalloc {
             return (aa > bb) - (aa < bb);
         }
 
-        block_map_t  blocks_ = { arena_.compat_allocator(), &ptr_compare };
+        block_map_t  blocks_ = &ptr_compare;
         watch_map_t  watche_;
         mem_provider memory_;
 
