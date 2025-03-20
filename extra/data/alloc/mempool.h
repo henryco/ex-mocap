@@ -61,7 +61,7 @@ namespace ex::data::mempool {
             watche_.remove(id);
         }
 
-        void *allocate(const std::size_t size_b, const std::size_t alignment_b) {
+        void *malloc(const std::size_t size_b, const std::size_t alignment_b) {
             if (size_b <= 0) {
                 abort_("Empty memory block allocation");
             }
@@ -79,7 +79,7 @@ namespace ex::data::mempool {
             abort_("Out of free space");
         }
 
-        void *reallocate(void *ptr, const std::size_t size_new_b) {
+        void *realloc(void *ptr, const std::size_t size_new_b) {
             if (size_new_b <= 0 || ptr == nullptr) {
                 free(ptr);
                 return nullptr;
@@ -94,7 +94,7 @@ namespace ex::data::mempool {
 
             block_free(ptr);
 
-            void *allocated = allocate(size_new_b, block.alignment_b);
+            void *allocated = malloc(size_new_b, block.alignment_b);
             if (allocated != ptr) {
                 ::memmove(allocated, ptr, size_new_b < block.size_b ? size_new_b : block.size_b);
             }
@@ -113,7 +113,7 @@ namespace ex::data::mempool {
             block_free(ptr);
         }
 
-        long memory_used_b() const {
+        long size_used() const {
             long used_b = 0;
             for (int i = 0; i < blocks_.size; ++i) {
                 const memory_block mem = blocks_.at_index(i);
@@ -122,7 +122,7 @@ namespace ex::data::mempool {
             return used_b;
         }
 
-        long memory_total_b() const {
+        long size_total() const {
             return memory_.size();
         }
 
@@ -397,50 +397,6 @@ namespace ex::data::mempool {
             block_id_t lhs = left;
             block_id_t rhs = right;
             block_resize(&lhs, &rhs, 0);
-        }
-
-        // There is some compatibility layer type/mem-layout tricknology
-
-        const ex::data::allocator tricklocator_ = { .malloc      = &allocator::pool_malloc_,
-                                                    .realloc     = &allocator::pool_realloc_,
-                                                    .free        = &allocator::pool_free_,
-                                                    .add_watcher = &allocator::pool_watch_add_,
-                                                    .del_watcher = &allocator::pool_watch_del_,
-                                                    .size_total  = &allocator::pool_size_total_,
-                                                    .size_used   = &allocator::pool_size_used_,
-                                                    .instance    = this };
-
-        const ex::data::allocator &compat_allocator() const {
-            return tricklocator_;
-        }
-
-        static void *pool_malloc_(void *this_, const std::size_t size_new_b, const std::size_t alignment_b) {
-
-            return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->allocate(size_new_b, alignment_b);
-        }
-
-        static void *pool_realloc_(void *this_, void *ptr, const std::size_t size_new_b) {
-            return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->reallocate(ptr, size_new_b);
-        }
-
-        static void pool_free_(void *this_, void *ptr) {
-            static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->free(ptr);
-        }
-
-        static void pool_watch_add_(void *this_, void *const ptr, const ex::data::watch_fn_t fn) {
-            static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->add_watcher(ptr, fn);
-        }
-
-        static void pool_watch_del_(void *this_, void *const ptr, const ex::data::watch_fn_t fn) {
-            static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->del_watcher(ptr, fn);
-        }
-
-        static long pool_size_total_(void *this_) {
-            return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->memory_total_b();
-        }
-
-        static long pool_size_used_(void *this_) {
-            return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->memory_used_b();
         }
     };
 

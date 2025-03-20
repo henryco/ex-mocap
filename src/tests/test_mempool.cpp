@@ -20,9 +20,9 @@ TEST_CASE("Allocator Basic Functionality") {
     SUBCASE("Constructor initializes arena") {
         allocator alloc;
         INFO("Total memory should equal DEFAULT_ARENA_SIZE_B");
-        CHECK(alloc.memory_total_b() == DEFAULT_ARENA_SIZE_B);
+        CHECK(alloc.size_total() == DEFAULT_ARENA_SIZE_B);
         INFO("Initially, used memory should be 0");
-        CHECK(alloc.memory_used_b() == 0);
+        CHECK(alloc.size_used() == 0);
     }
 
     SUBCASE("Allocation and deallocation") {
@@ -31,36 +31,36 @@ TEST_CASE("Allocator Basic Functionality") {
         constexpr std::size_t size2     = 64;
         constexpr std::size_t alignment = 8;
 
-        void* ptr1 = alloc.allocate(size1, alignment);
+        void* ptr1 = alloc.malloc(size1, alignment);
         INFO("First allocation returns non-null pointer");
         CHECK(ptr1 != nullptr);
         INFO("Used memory equals size1 after first allocation");
-        CHECK(alloc.memory_used_b() == size1);
+        CHECK(alloc.size_used() == size1);
 
-        void* ptr2 = alloc.allocate(size2, alignment);
+        void* ptr2 = alloc.malloc(size2, alignment);
         INFO("Second allocation returns non-null pointer");
         CHECK(ptr2 != nullptr);
         INFO("Used memory equals size1 + size2 after second allocation");
-        CHECK(alloc.memory_used_b() == size1 + size2);
+        CHECK(alloc.size_used() == size1 + size2);
 
         INFO("Freeing first block reduces memory usage to size2");
         alloc.free(ptr1);
-        CHECK(alloc.memory_used_b() == size2);
+        CHECK(alloc.size_used() == size2);
 
         INFO("Freeing second block resets memory usage to 0");
         alloc.free(ptr2);
-        CHECK(alloc.memory_used_b() == 0);
+        CHECK(alloc.size_used() == 0);
     }
 
     SUBCASE("Allocation error conditions") {
         allocator alloc;
         SUBCASE("Allocating zero bytes aborts") {
             INFO("Expecting abort when allocating 0 bytes");
-            CHECK_THROWS_AS(alloc.allocate(0, 8), std::runtime_error);
+            CHECK_THROWS_AS(alloc.malloc(0, 8), std::runtime_error);
         }
         SUBCASE("Double free aborts") {
             INFO("Allocating and then freeing a block should abort on double free");
-            void* ptr = alloc.allocate(64, 8);
+            void* ptr = alloc.malloc(64, 8);
             alloc.free(ptr);
             CHECK_THROWS_AS(alloc.free(ptr), std::runtime_error);
         }
@@ -75,16 +75,16 @@ TEST_CASE("Reallocation Tests") {
     SUBCASE("Increasing block size preserves data") {
         allocator             alloc;
         constexpr std::size_t initial = 128;
-        void* ptr = alloc.allocate(initial, 8);
+        void* ptr = alloc.malloc(initial, 8);
         CHECK(ptr != nullptr);
         std::memset(ptr, 0xAA, initial);
 
         constexpr std::size_t new_size = 256;
-        void* new_ptr = alloc.reallocate(ptr, new_size);
+        void* new_ptr = alloc.realloc(ptr, new_size);
         INFO("Reallocation to a larger block should succeed");
         CHECK(new_ptr != nullptr);
         INFO("Used memory equals new_size after reallocation");
-        CHECK(alloc.memory_used_b() == new_size);
+        CHECK(alloc.size_used() == new_size);
 
         unsigned char* data = static_cast<unsigned char*>(new_ptr);
         for (std::size_t i = 0; i < initial; ++i) {
@@ -96,34 +96,34 @@ TEST_CASE("Reallocation Tests") {
     SUBCASE("Reallocation to zero size frees block") {
         allocator             alloc;
         constexpr std::size_t initial = 128;
-        void* ptr = alloc.allocate(initial, 8);
+        void* ptr = alloc.malloc(initial, 8);
         CHECK(ptr != nullptr);
-        void* new_ptr = alloc.reallocate(ptr, 0);
+        void* new_ptr = alloc.realloc(ptr, 0);
         INFO("Reallocation to 0 bytes should free the block");
         CHECK(new_ptr == nullptr);
-        CHECK(alloc.memory_used_b() == 0);
+        CHECK(alloc.size_used() == 0);
     }
 
     SUBCASE("Reallocation on a freed block aborts") {
         allocator alloc;
-        void* ptr = alloc.allocate(128, 8);
+        void* ptr = alloc.malloc(128, 8);
         alloc.free(ptr);
         INFO("Reallocating a freed block should throw an exception");
-        CHECK_THROWS_AS(alloc.reallocate(ptr, 256), std::runtime_error);
+        CHECK_THROWS_AS(alloc.realloc(ptr, 256), std::runtime_error);
     }
 
     SUBCASE("Shrinking block preserves data") {
         allocator             alloc;
         constexpr std::size_t initial = 128;
-        void* ptr = alloc.allocate(initial, 8);
+        void* ptr = alloc.malloc(initial, 8);
         CHECK(ptr != nullptr);
         std::memset(ptr, 0xBB, initial);
 
         constexpr std::size_t new_size = 64;
-        void* new_ptr = alloc.reallocate(ptr, new_size);
+        void* new_ptr = alloc.realloc(ptr, new_size);
         INFO("Reallocation to a smaller block should succeed");
         CHECK(new_ptr != nullptr);
-        CHECK(alloc.memory_used_b() == new_size);
+        CHECK(alloc.size_used() == new_size);
 
         unsigned char* data = static_cast<unsigned char*>(new_ptr);
         for (std::size_t i = 0; i < new_size; ++i) {
@@ -134,8 +134,8 @@ TEST_CASE("Reallocation Tests") {
 
     SUBCASE("Same-size reallocation returns same pointer") {
         allocator alloc;
-        void* ptr = alloc.allocate(128, 8);
-        void* new_ptr = alloc.reallocate(ptr, 128);
+        void* ptr = alloc.malloc(128, 8);
+        void* new_ptr = alloc.realloc(ptr, 128);
         INFO("Reallocation with same size should return the original pointer");
         CHECK(new_ptr == ptr);
     }
@@ -143,12 +143,12 @@ TEST_CASE("Reallocation Tests") {
     SUBCASE("Multiple reallocation cycles preserve data") {
         allocator             alloc;
         constexpr std::size_t initial_size = 64;
-        void* ptr = alloc.allocate(initial_size, 8);
+        void* ptr = alloc.malloc(initial_size, 8);
         CHECK(ptr != nullptr);
         std::memset(ptr, 0xCC, initial_size);
 
         constexpr std::size_t larger_size = 128;
-        void* ptr_larger = alloc.reallocate(ptr, larger_size);
+        void* ptr_larger = alloc.realloc(ptr, larger_size);
         CHECK(ptr_larger != nullptr);
         unsigned char* data = static_cast<unsigned char*>(ptr_larger);
         for (std::size_t i = 0; i < initial_size; ++i) {
@@ -160,7 +160,7 @@ TEST_CASE("Reallocation Tests") {
         std::memset(static_cast<unsigned char *>(ptr_larger) + initial_size, 0xDD, larger_size - initial_size);
 
         constexpr std::size_t smaller_size = 32;
-        void* ptr_smaller = alloc.reallocate(ptr_larger, smaller_size);
+        void* ptr_smaller = alloc.realloc(ptr_larger, smaller_size);
         CHECK(ptr_smaller != nullptr);
         data = static_cast<unsigned char*>(ptr_smaller);
         for (std::size_t i = 0; i < smaller_size; ++i) {
@@ -178,9 +178,9 @@ TEST_CASE("Additional Allocator Functionality") {
         alloc.add_watcher(watch_id, test_watcher);
 
         constexpr std::size_t half_arena = DEFAULT_ARENA_SIZE_B / 2;
-        alloc.allocate(half_arena, 8);
-        alloc.allocate(half_arena / 2, 8);
-        void* ptr3 = alloc.allocate(half_arena / 2, 8);
+        alloc.malloc(half_arena, 8);
+        alloc.malloc(half_arena / 2, 8);
+        void* ptr3 = alloc.malloc(half_arena / 2, 8);
         INFO("After allocation, watcher counter should be non-negative");
         CHECK(ptr3 != nullptr);
         CHECK(watcher_counter >= 0);
@@ -208,14 +208,14 @@ TEST_CASE("Additional Allocator Functionality") {
 
     SUBCASE("Adjacent free blocks merge into a single free block") {
         allocator alloc;
-        void* ptr1 = alloc.allocate(256, 8);
-        void* ptr2 = alloc.allocate(128, 8);
+        void* ptr1 = alloc.malloc(256, 8);
+        void* ptr2 = alloc.malloc(128, 8);
         INFO("Used memory equals 256 + 128 bytes after two allocations");
-        CHECK(alloc.memory_used_b() == 256 + 128);
+        CHECK(alloc.size_used() == 256 + 128);
         alloc.free(ptr1);
         alloc.free(ptr2);
         INFO("Used memory resets to 0 after freeing blocks");
-        CHECK(alloc.memory_used_b() == 0);
+        CHECK(alloc.size_used() == 0);
 
         bool found = false;
         for (int i = 0; i < alloc.blocks_.size; ++i) {
@@ -231,10 +231,10 @@ TEST_CASE("Additional Allocator Functionality") {
 
     SUBCASE("Block request adds a new free block if none available") {
         allocator alloc;
-        void* ptr1 = alloc.allocate(DEFAULT_ARENA_SIZE_B - 128, 8);
+        void* ptr1 = alloc.malloc(DEFAULT_ARENA_SIZE_B - 128, 8);
         INFO("Allocation nearly exhausting the arena must succeed");
         CHECK(ptr1 != nullptr);
-        void* ptr2 = alloc.allocate(256, 8);
+        void* ptr2 = alloc.malloc(256, 8);
         INFO("Allocation that forces a block request must succeed");
         CHECK(ptr2 != nullptr);
         INFO("Internal block map should have increased in size");
@@ -247,24 +247,24 @@ TEST_CASE("Additional Allocator Functionality") {
         std::vector<void *> ptrs;
         INFO("Allocating 100 blocks of 32 bytes each");
         for (int i = 0; i < iterations; ++i) {
-             void* ptr = alloc.allocate(32, 8);
+             void* ptr = alloc.malloc(32, 8);
              CHECK(ptr != nullptr);
              ptrs.push_back(ptr);
         }
         INFO("Total memory used equals 100 * 32 bytes");
-        CHECK(alloc.memory_used_b() == iterations * 32);
+        CHECK(alloc.size_used() == iterations * 32);
 
         INFO("Freeing every other block");
         for (int i = 0; i < iterations; i += 2) {
              alloc.free(ptrs[i]);
         }
-        CHECK(alloc.memory_used_b() == (iterations / 2) * 32);
+        CHECK(alloc.size_used() == (iterations / 2) * 32);
 
         INFO("Freeing the remaining blocks");
         for (int i = 1; i < iterations; i += 2) {
              alloc.free(ptrs[i]);
         }
-        CHECK(alloc.memory_used_b() == 0);
+        CHECK(alloc.size_used() == 0);
     }
 
     SUBCASE("Multiple allocations with different alignments yield correctly aligned addresses") {
@@ -272,7 +272,7 @@ TEST_CASE("Additional Allocator Functionality") {
         std::vector<std::size_t> alignments = {2, 4, 8, 16, 32};
         for (auto alignment : alignments) {
             INFO("Allocating block with alignment " << alignment);
-            void* ptr = alloc.allocate(64, alignment);
+            void* ptr = alloc.malloc(64, alignment);
             u_int64_t base = reinterpret_cast<u_int64_t>(alloc.memory_.data_ptr());
             u_int64_t addr = reinterpret_cast<u_int64_t>(ptr);
             u_int64_t offset = addr - base;

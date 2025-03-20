@@ -110,9 +110,10 @@ void rec_build(limbo::graph::BaseNode *parent, const int width, const int max_de
 }
 
 TEST_CASE("Graph node test") {
-//    ex::data::mempool::allocator alloc;
+//    ex::data::mempool::allocator alloc_2;
     ex::data::rbtalloc::allocator alloc_2;
 
+//    limbo::graph::memory::allocator = ex::data::alloc_compat<ex::data::mempool::allocator>::allocator(alloc_2);
     limbo::graph::memory::allocator = ex::data::alloc_compat<ex::data::rbtalloc::allocator>::allocator(alloc_2);
 
     ex::time::measure_avg time = 1;

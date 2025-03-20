@@ -217,9 +217,10 @@ namespace ex::data::rbtalloc {
         }
 
         block_addr_t block_acquire_(const std::size_t size_b, const std::size_t alignment_b) {
+            if (size_b == 0)
+                abort_("Requested blocks size must be non-zero");
             if ((size_b + alignment_b) > BLOCK_MAX_SIZE_B)
                 abort_("Requested allocation size overflow");
-
             if (alignment_b == 0 || (alignment_b & (alignment_b - 1)) != 0)
                 abort_("Alignment must be non-zero and a power of two");
 
@@ -230,20 +231,27 @@ namespace ex::data::rbtalloc {
             if (fit == nullptr)
                 return nullptr;
 
-            const u_int32_t    padding   = block_padding_(data_start, fit->key, alignment_b);
             const memory_block fit_block = fit->val;
+            void              *fit_key   = fit->key;
+            const u_int32_t    padding   = block_padding_(data_start, fit_key, alignment_b);
 
-            const u_int32_t size_ls = static_cast<u_int32_t>(padding + size_b);
-            const u_int32_t size_rs = fit_block.size_b - size_ls;
+            const u_int32_t size_ls = static_cast<u_int32_t>(size_b);
+            const u_int32_t size_rs = fit_block.size_b - size_ls - padding;
 
+            const block_addr_t l_ptr   = static_cast<unsigned char *>(fit_key) + padding;
             const memory_block l_block = { size_ls, static_cast<u_int16_t>(alignment_b), false };
-            const memory_block r_block = { size_rs, 1, true };
-
-            const block_addr_t l_ptr = fit->key;
-            const block_addr_t r_ptr = static_cast<unsigned char *>(l_ptr) + size_ls;
-
             blocks_.put(l_ptr, l_block, 0);
-            blocks_.put(r_ptr, r_block, size_rs);
+
+            if (padding > 0) {
+                const memory_block f_block = { padding, 1, true };
+                blocks_.put(fit_key, f_block, padding);
+            }
+
+            if (size_rs > 0) {
+                const block_addr_t r_ptr   = static_cast<unsigned char *>(l_ptr) + size_ls;
+                const memory_block r_block = { size_rs, 1, true };
+                blocks_.put(r_ptr, r_block, size_rs);
+            }
 
             used_mem_ += size_ls;
 
@@ -251,7 +259,6 @@ namespace ex::data::rbtalloc {
         }
 
         void block_free_(const block_addr_t ptr, const memory_block &block) {
-            std::cout << "free: " << ptr << ", " << block.size_b << ", " << block.alignment_b << ", " << (block.is_free == true) << std::endl;
             if (block.is_free == true)
                 abort_("Memory block double free");
 

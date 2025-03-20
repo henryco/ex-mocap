@@ -9,6 +9,11 @@
 #include <cstdlib>
 
 namespace ex::data {
+ #ifndef UNIT_TEST
+    #define abort_(msg) do { std::cerr << msg << std::endl; ::abort(); } while(false)
+ #else
+    #define abort_(msg) throw std::runtime_error("Generic abort exception")
+ #endif
 
 #define KB * 1024
 #define MB * 1024 KB
@@ -61,12 +66,6 @@ namespace ex::data {
         size_fn_t    size_used   = &default_size_;
         instance_t   instance    = nullptr;
     };
-
-//#ifndef UNIT_TEST
-    #define abort_(msg) do { std::cerr << msg << std::endl; ::abort(); } while(false)
-//#else
-//    #define abort_(msg) throw std::runtime_error("Generic abort exception")
-//#endif
 
     template <typename T>
     struct alloc_compat {
