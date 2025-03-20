@@ -40,6 +40,8 @@ namespace ex::data::rbtalloc {
             return (aa > bb) - (aa < bb);
         }
 
+        // TODO CUSTOM ALLOCATORS
+
         block_map_t  blocks_ = &ptr_compare;
         watch_map_t  watche_;
         mem_provider memory_;
