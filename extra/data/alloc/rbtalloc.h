@@ -114,7 +114,7 @@ namespace ex::data::rbtalloc {
             const auto offset       = data_ptr - start_ptr;
 
             const memory_block block = blocks_.at(ptr);
-            block_free_(ptr, block); // TODO FIXME
+            block_free_(ptr, block); // this marks block as free but preserves data
 
             const block_addr_t allocated = allocate(size_new_b, block.alignment_b);
             if (allocated != ptr) {
