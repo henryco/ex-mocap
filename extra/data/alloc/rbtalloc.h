@@ -139,7 +139,6 @@ namespace ex::data::rbtalloc {
          */
         void block_request_(const std::size_t min_size_b) {
             std::cout << "request block: " << min_size_b << std::endl;
-            abort_("TODO");
 
             if (min_size_b > BLOCK_MAX_SIZE_B)
                 abort_("Requested allocation size overflow");
@@ -155,43 +154,22 @@ namespace ex::data::rbtalloc {
             const block_addr_t last_ptr   = last->key;
             const memory_block last_block = last->val;
 
-            int64_t     address_shift  = 0;
             std::size_t allocated_size = 0;
+            void *allocated_ptr = memory_.request(min_size_b, &allocated_size);
 
-            void *allocated_ptr = memory_.request(min_size_b, &allocated_size, &address_shift);
-
-            // validate data continuity TODO
-            if ((static_cast<unsigned char *>(last_ptr) + address_shift + last_block.size_b) != allocated_ptr) {
-                abort_("Data fragmentation error: requested block alignment error");
-            }
-
-            // update pointers in case of data relocation
-            if (address_shift != 0) {
-                abort_("address shift");
-            }
-
-            // extend last free block
-            if (last_block.is_free == true) {
-                last->val.size_b += allocated_size;
-                last->rmq = last->val.size_b;
-                blocks_.update_ranges_(last);
-                return;
+            if (continuous_(last_ptr, allocated_ptr, last_block.size_b)) {
+                // extend last free block which belongs to the same memory region
+                if (last_block.is_free == true) {
+                    last->val.size_b += allocated_size;
+                    last->rmq = last->val.size_b;
+                    blocks_.update_ranges_(last);
+                    return;
+                }
             }
 
             // append new free block
             const auto size_b = static_cast<block_free_t>(allocated_size);
             blocks_.put(allocated_ptr, { size_b, 1, true }, size_b);
-        }
-
-        static bool test_padding_(const block_map_t::rmq_node *node, void *this_) {
-            const memory_block *that_   = static_cast<memory_block *>(this_);
-            const u_int64_t     padding = block_padding_(node->key, that_->alignment_b);
-            return node->val.size_b >= (that_->size_b + padding);
-        }
-
-        static u_int32_t block_padding_(const void *ptr, const u_int64_t alignment_b) {
-            const u_int64_t  address  = reinterpret_cast<u_int64_t>(ptr);
-            return (alignment_b - (address % alignment_b)) % alignment_b;
         }
 
         block_addr_t block_acquire_(const std::size_t size_b, const std::size_t alignment_b) {
@@ -233,7 +211,6 @@ namespace ex::data::rbtalloc {
             }
 
             used_mem_ += size_ls;
-
             return l_ptr;
         }
 
@@ -253,16 +230,20 @@ namespace ex::data::rbtalloc {
             block_addr_t next_key = nullptr;
 
             if (next != nullptr && next->val.is_free == true) {
-                // merging next block
-                free_block.size_b += next->val.size_b;
-                next_key = next->key;
+                if (continuous_(ptr, next->key, block.size_b)) {
+                    // merging next block which belongs to the same memory region
+                    free_block.size_b += next->val.size_b;
+                    next_key = next->key;
+                }
             }
 
             if (prev != nullptr && prev->val.is_free == true) {
-                // merging prev block
-                free_block.size_b += prev->val.size_b;
-                prev_key = prev->key;
-                free_ptr = prev->key;
+                if (continuous_(prev->key, ptr, prev->val.size_b)) {
+                    // merging prev block which belongs to the same memory region
+                    free_block.size_b += prev->val.size_b;
+                    prev_key = prev->key;
+                    free_ptr = prev->key;
+                }
             }
 
             if (next_key != nullptr) {
@@ -288,6 +269,21 @@ namespace ex::data::rbtalloc {
 //                replacement->rmq = block.is_free == true ? replacement->val.size_b : 0;
 //                blocks_.update_ranges_(replacement);
 //            }
+        }
+
+        static bool continuous_(void *prev, void *next, const u_int64_t prev_size) {
+            return (static_cast<unsigned char *>(prev) + prev_size) == next;
+        }
+
+        static bool test_padding_(const block_map_t::rmq_node *node, void *this_) {
+            const memory_block *that_   = static_cast<memory_block *>(this_);
+            const u_int64_t     padding = block_padding_(node->key, that_->alignment_b);
+            return node->val.size_b >= (that_->size_b + padding);
+        }
+
+        static u_int32_t block_padding_(const void *ptr, const u_int64_t alignment_b) {
+            const u_int64_t  address  = reinterpret_cast<u_int64_t>(ptr);
+            return (alignment_b - (address % alignment_b)) % alignment_b;
         }
 
 //        static void verify_rb_tree_(block_map_t &map) {

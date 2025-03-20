@@ -174,20 +174,10 @@ namespace ex::data::mempool {
             const block_id_t   last_ptr   = blocks_.key_at_index(last_idx);
             const memory_block last_block = blocks_.at_index(last_idx);
 
-            int64_t     addr_diff;
+            int64_t     addr_diff = 0;
             std::size_t real_size;
 
-            void *allocated_ptr = memory_.request(min_size_b, &real_size, &addr_diff);
-
-            // validate data continuity
-            if ((static_cast<unsigned char *>(last_ptr) + addr_diff + last_block.size_b) != allocated_ptr) {
-                abort_("Data fragmentation error: requested block alignment error");
-            }
-
-            // update pointers in case of data relocation
-            if (addr_diff != 0) {
-                abort_("data shift");
-            }
+            void *allocated_ptr = memory_.request(min_size_b, &real_size);
 
             // resize last free block
             if (last_block.is_free) {

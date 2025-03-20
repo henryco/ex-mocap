@@ -40,11 +40,12 @@ namespace ex::data {
             return data;
         }
 
-        void *request(const std::size_t size, std::size_t *size_allocated = nullptr, int64_t *addr_diff = nullptr) {
+        void *request(const std::size_t size, std::size_t *size_allocated = nullptr) {
             const std::size_t curr_offset = offset;
             const std::size_t real_size   = capacity + size;
 
-            const void *old_data_ptr = data;
+            const bool is_nullptr = data == nullptr;
+
             const auto  old_offset   = reinterpret_cast<unsigned long int>(data);
             {
                 capacity += real_size;
@@ -54,9 +55,8 @@ namespace ex::data {
             }
             const auto  new_offset   = reinterpret_cast<unsigned long int>(data);
 
-            if (addr_diff != nullptr && old_data_ptr != nullptr) {
-                if (old_offset == new_offset) *addr_diff = 0;
-                else                          *addr_diff = new_offset - old_offset;
+            if (!is_nullptr && old_offset != new_offset) {
+                abort_("discontinuity (TODO)");
             }
 
             if (size_allocated != nullptr) {
