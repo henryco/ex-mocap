@@ -352,7 +352,10 @@ namespace ex::data {
             root_->col = BLACK_; // just in case
         }
 
-        void remove(const key_t &key) {
+        /**
+         * Returns replacement node or nullptr
+         */
+        rmq_node *remove(const key_t &key) {
             int direction;
 #ifdef UNIT_TEST
             rmq_node *node = descend_(root_, key, &direction, &metrics_n_);
@@ -360,10 +363,10 @@ namespace ex::data {
             rmq_node *node = descend_(root_, key, &direction);
 #endif
             if (node == nullptr)
-                return;
+                return nullptr;
             if (direction != 0 || comp_(&key, &(node->key)) != 0)
-                return;
-            remove_node_(node);
+                return nullptr;
+            return remove_node_(node);
         }
 
         void range_set(const key_t &key, const rmq_t &range) {
@@ -688,17 +691,20 @@ namespace ex::data {
             }
         }
 
-        void remove_node_(rmq_node *node) {
+        /**
+         * returns replacement node (or nullptr)
+         */
+        rmq_node *remove_node_(rmq_node *node) {
             if (--size_ == 0) {
                 clean();
-                return;
+                return nullptr;
             }
 
             if (node->lns == nullptr && node->rns == nullptr) {
                 if (node == root_) {
                     // node is a root, and node has no any children
                     clean();
-                    return;
+                    return nullptr;
                 }
 
                 rmq_node *sibling = get_sibling_(node);
@@ -706,7 +712,7 @@ namespace ex::data {
                 fix_delete_if_needed_(node, nullptr, sibling);
                 free_node_(node);
 
-                return;
+                return nullptr;
             }
 
             if (node->lns != nullptr && node->rns != nullptr) {
@@ -722,7 +728,7 @@ namespace ex::data {
                 fix_delete_if_needed_(largest, child, sibling);
                 free_node_(largest);
 
-                return;
+                return node;
             }
 
             if (node->lns != nullptr && node->rns == nullptr) {
@@ -734,7 +740,7 @@ namespace ex::data {
                     root_->par = nullptr;
                     root_->col = BLACK_;
                     free_node_(node);
-                    return;
+                    return root_;
                 }
 
                 rmq_node *sibling = get_sibling_(node);
@@ -742,7 +748,7 @@ namespace ex::data {
                 fix_delete_if_needed_(node, child, sibling);
                 free_node_(node);
 
-                return;
+                return nullptr;
             }
 
             if (node->rns != nullptr && node->lns == nullptr) {
@@ -754,7 +760,7 @@ namespace ex::data {
                     root_->par = nullptr;
                     root_->col = BLACK_;
                     free_node_(node);
-                    return;
+                    return root_;
                 }
 
                 rmq_node *sibling = get_sibling_(node);
@@ -762,7 +768,7 @@ namespace ex::data {
                 fix_delete_if_needed_(node, child, sibling);
                 free_node_(node);
 
-                return;
+                return nullptr;
             }
 
             ::abort();

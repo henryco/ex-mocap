@@ -71,6 +71,7 @@ namespace ex::data::rbtalloc {
 
             const auto size_b = static_cast<block_free_t>(allocated_size);
             blocks_.put(allocated_ptr, { size_b, 1, true }, size_b);
+//            verify_rb_tree_(blocks_);
 
             def_size_ = pre_allocated;
         }
@@ -101,6 +102,8 @@ namespace ex::data::rbtalloc {
                 const void *old_src_ptr = static_cast<unsigned char *>(memory_.data_ptr());
                 ::memmove(allocated, old_src_ptr, size_new_b < block.size_b ? size_new_b : block.size_b);
                 block_free_(ptr, block);
+
+//                verify_rb_tree_(blocks_);
                 return allocated;
             }
 
@@ -171,12 +174,16 @@ namespace ex::data::rbtalloc {
                 last->val.size_b += allocated_size;
                 last->rmq = last->val.size_b;
                 blocks_.update_ranges_(last);
+
+//                verify_rb_tree_(blocks_);
                 return;
             }
 
             // append new free block
             const auto size_b = static_cast<block_free_t>(allocated_size);
             blocks_.put(allocated_ptr, { size_b, 1, true }, size_b);
+
+//            verify_rb_tree_(blocks_);
         }
 
         static bool test_padding_(const block_map_t::rmq_node *node, void *this_) {
@@ -207,12 +214,6 @@ namespace ex::data::rbtalloc {
             void              *fit_key   = fit->key;
             const u_int32_t    padding   = block_padding_(fit_key, alignment_b);
 
-            std::cout << "fit: " << fit_block.size_b << ", "
-            << fit_block.alignment_b << ", "
-            << (fit_block.is_free == true) << ", "
-            << fit->rmq
-            << std::endl;
-
             const u_int32_t size_ls = static_cast<u_int32_t>(size_b);
             const u_int32_t size_rs = fit_block.size_b - size_ls - padding;
 
@@ -230,6 +231,8 @@ namespace ex::data::rbtalloc {
                 const memory_block r_block = { size_rs, 1, 1 };
                 blocks_.put(r_ptr, r_block, size_rs);
             }
+
+//            verify_rb_tree_(blocks_);
 
             used_mem_ += size_ls;
 
@@ -265,16 +268,70 @@ namespace ex::data::rbtalloc {
             }
 
             if (next_key != nullptr) {
-                blocks_.remove(next_key);
+                safe_remove_(next_key);
+//                verify_rb_tree_(blocks_);
             }
 
             if (prev_key != nullptr) {
-                blocks_.remove(prev_key);
+                safe_remove_(prev_key);
+//                verify_rb_tree_(blocks_);
             }
 
-            blocks_.remove(ptr);
+            safe_remove_(ptr);
+//            verify_rb_tree_(blocks_);
+
             blocks_.put(free_ptr, free_block, free_block.size_b);
+//            verify_rb_tree_(blocks_);
         }
+
+        void safe_remove_(void *ptr) {
+            block_map_t::rmq_node *replacement = blocks_.remove(ptr);
+            if (replacement != nullptr) {
+                const memory_block block = replacement->val;
+                replacement->rmq = block.is_free == true ? replacement->val.size_b : 0;
+                blocks_.update_ranges_(replacement);
+            }
+        }
+
+//        static void verify_rb_tree_(block_map_t &map) {
+//            u_int32_t min = 0;
+//            u_int32_t max = 0;
+//            if (!verify_rmq_weights_(map.root_, min, max))
+//                abort_("tree structure invalid");
+//        }
+//
+//        static bool verify_rmq_weights_(block_map_t::rmq_node *node, u_int32_t &min, u_int32_t &max) {
+//            if (node == nullptr) return true;
+//
+//            u_int32_t min_l = node->rmq, max_l = node->rmq;
+//            u_int32_t min_r = node->rmq, max_r = node->rmq;
+//
+//            if (node->lns != nullptr && !verify_rmq_weights_(node->lns, min_l, max_l))
+//                return false;
+//
+//            if (node->rns != nullptr && !verify_rmq_weights_(node->rns, min_r, max_r))
+//                return false;
+//
+//            min = std::min(node->rmq, std::min(min_l, min_r));
+//            max = std::max(node->rmq, std::max(max_l, max_r));
+//
+//            if ((node->min) != min)
+//                abort_("(node->min) != min");
+//
+//            if ((node->max) != max)
+//                abort_("(node->max) != max");
+//
+//            if (node->val.is_free == false && node->rmq != 0)
+//                abort_("node->val.is_free == false && node->rmq != 0");
+//
+//            if (node->val.is_free == true && node->rmq == 0)
+//                abort_("node->val.is_free == true && node->rmq == 0");
+//
+//            if (node->val.is_free == true && node->val.size_b != node->rmq)
+//                abort_("node->val.is_free == true && node->val.size_b != node->rmq");
+//
+//            return node->min == min && node->max == max;
+//        }
     };
 
 }
