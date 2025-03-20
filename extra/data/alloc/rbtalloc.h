@@ -108,13 +108,18 @@ namespace ex::data::rbtalloc {
             const auto offset       = data_ptr - start_ptr;
 
             const memory_block block = blocks_.at(ptr);
-            block_free_(ptr, block); // this marks block as free but preserves data
+
+            // TODO FIXME
+//            block_free_(ptr, block); // this marks block as free but preserves data
+            // TODO FIXME
 
             const block_addr_t allocated = malloc(size_new_b, block.alignment_b);
             if (allocated != ptr) {
                 const void *old_src_ptr = static_cast<unsigned char *>(memory_.data_ptr()) + offset;
                 ::memmove(allocated, old_src_ptr, size_new_b < block.size_b ? size_new_b : block.size_b);
             }
+
+            block_free_(ptr, block); // this marks block as free but preserves data
 
             return allocated;
         }

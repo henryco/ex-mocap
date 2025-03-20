@@ -111,9 +111,9 @@ void rec_build(limbo::graph::BaseNode *parent, const int width, const int max_de
 
 TEST_CASE("Graph node test") {
 //    ex::data::mempool::allocator alloc_2;
-    ex::data::rbtalloc::allocator alloc_2;
-
 //    limbo::graph::memory::allocator = ex::data::alloc_compat<ex::data::mempool::allocator>::allocator(alloc_2);
+
+    ex::data::rbtalloc::allocator alloc_2;
     limbo::graph::memory::allocator = ex::data::alloc_compat<ex::data::rbtalloc::allocator>::allocator(alloc_2);
 
     ex::time::measure_avg time = 1;
@@ -124,7 +124,6 @@ TEST_CASE("Graph node test") {
 
     std::cout << "build: " << time.result() << " ns" << std::endl;
     std::cout << "total: " << counter_ << std::endl;
-    std::cout << "blocks total: " << alloc_2.blocks_.size() << std::endl;
 
     limbo::graph::Clock clock;
     clock.attach(root);
@@ -143,18 +142,27 @@ TEST_CASE("Graph node test") {
         }
     }
 
-//    int free_blocks = 0;
-//    for (int i = 0; i < alloc.blocks_.size; ++i) {
-//        const auto block = alloc.blocks_.val_entries_[i];
+//    int free_blocks  = 0;
+//    int total_blocks = 0;
+//    for (int i = 0; i < alloc_2.blocks_.size; ++i) {
+//        const auto block = alloc_2.blocks_.val_entries_[i];
 //        if (block.is_free == true)
 //            free_blocks += 1;
+//        total_blocks += 1;
 //    }
+
+    int free_blocks  = 0;
+    int total_blocks = 0;
+    for (const auto &block : alloc_2.blocks_) {
+        if (block.val.is_free == true)
+            free_blocks += 1;
+        total_blocks += 1;
+    }
 
     std::cout << "avg: " << (avg / counter) << " ns\n";
     std::cout << "memory total : " << limbo::graph::memory::allocator.size_total(&limbo::graph::memory::allocator) << " b" << std::endl;
     std::cout << "memory used  : " << limbo::graph::memory::allocator.size_used(&limbo::graph::memory::allocator) << " b" << std::endl;
-//    std::cout << "blocks total: " << alloc.blocks_.size() << std::endl;
-//    std::cout << "blocks free: " << free_blocks << std::endl;
+    std::cout << "blocks total: " << total_blocks << std::endl;
+    std::cout << "blocks free: " << free_blocks << std::endl;
     std::cout << "finished" << std::endl;
-
 }
