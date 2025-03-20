@@ -427,6 +427,7 @@ namespace limbo::graph {
         }
 
         void assign_(const int out_idx, const void *src_ptr, void *dst_ptr, const std::size_t size) const {
+            std::cout << "cache assign: " << out_idx << ", " << size << std::endl;
             if (assignment_fn_ != nullptr) {
                 assignment_fn_(out_idx, src_ptr, dst_ptr);
                 return;

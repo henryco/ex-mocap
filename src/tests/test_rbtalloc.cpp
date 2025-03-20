@@ -417,7 +417,7 @@ TEST_SUITE("RBTAlloc tests") {
         }
     }
 
-    TEST_CASE("Allocator correctly merges complex freed block patterns") {  // TODO FIXME
+    TEST_CASE("Allocator correctly merges complex freed block patterns") {
         allocator alloc(2 MB);
 
         // Allocate multiple blocks
@@ -436,7 +436,7 @@ TEST_SUITE("RBTAlloc tests") {
         REQUIRE((merged == blocks[1] || merged == blocks[3]));
 
         alloc.free(blocks[0]);
-        alloc.free(blocks[2]); // double-free test, should safely do nothing or handle gracefully
+        CHECK_THROWS(alloc.free(blocks[2]));  // double-free test, should safely do nothing or handle gracefully
         alloc.free(blocks[4]);
 
         alloc.free(merged);
