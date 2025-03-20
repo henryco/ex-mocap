@@ -89,7 +89,7 @@ namespace ex::data::rbtalloc {
             watche_.remove(id);
         }
 
-        block_addr_t allocate(const std::size_t size_b, const std::size_t alignment_b) {
+        block_addr_t malloc(const std::size_t size_b, const std::size_t alignment_b) {
             if (size_b == 0)
                 abort_("Empty memory block allocation");
             if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
@@ -100,13 +100,11 @@ namespace ex::data::rbtalloc {
             abort_("Out of free space");
         }
 
-        block_addr_t reallocate(void *ptr, const std::size_t size_new_b) {
+        block_addr_t realloc(void *ptr, const std::size_t size_new_b) {
             if (size_new_b == 0 || ptr == nullptr) {
                 free(ptr);
                 return nullptr;
             }
-
-//            std::cout << "\nreallocate:  " << ptr << " " << size_new_b << std::endl;
 
             const auto start_before = memory_.data_ptr();
             const auto start_ptr    = reinterpret_cast<u_int64_t>(start_before);
@@ -116,29 +114,27 @@ namespace ex::data::rbtalloc {
             const memory_block block = blocks_.at(ptr);
             block_free_(ptr, block); // this marks block as free but preserves data
 
-            const block_addr_t allocated = allocate(size_new_b, block.alignment_b);
+            const block_addr_t allocated = malloc(size_new_b, block.alignment_b);
             if (allocated != ptr) {
                 const void *old_src_ptr = static_cast<unsigned char *>(memory_.data_ptr()) + offset;
                 ::memmove(allocated, old_src_ptr, size_new_b < block.size_b ? size_new_b : block.size_b);
             }
 
-//            std::cout << "reallocated: " << allocated << " " << size_new_b << '\n' << std::endl;
             return allocated;
         }
 
         void free(const block_addr_t ptr) {
             if (ptr == nullptr)
                 return;
-//            std::cout << "free: " << ptr << std::endl;
             const memory_block block = blocks_.at(ptr);
             block_free_(ptr, block);
         }
 
-        long memory_used_b() const {
+        long size_used() const {
             return used_mem_;
         }
 
-        long memory_total_b() const {
+        long size_total() const {
             return memory_.size();
         }
 
@@ -251,11 +247,11 @@ namespace ex::data::rbtalloc {
 
             used_mem_ += size_ls;
 
-//            std::cout << "allocated:   " << l_ptr << " " << size_ls << std::endl;
             return l_ptr;
         }
 
         void block_free_(const block_addr_t ptr, const memory_block &block) {
+            std::cout << "free: " << ptr << ", " << block.size_b << ", " << block.alignment_b << ", " << (block.is_free == true) << std::endl;
             if (block.is_free == true)
                 abort_("Memory block double free");
 
@@ -274,7 +270,6 @@ namespace ex::data::rbtalloc {
                 // merging next block
                 free_block.size_b += next->val.size_b;
                 next_key = next->key;
-//                std::cout << "next" << std::endl;
             }
 
             if (prev != nullptr && prev->val.is_free == true) {
@@ -282,66 +277,18 @@ namespace ex::data::rbtalloc {
                 free_block.size_b += prev->val.size_b;
                 prev_key = prev->key;
                 free_ptr = prev->key;
-//                std::cout << "prev" << std::endl;
             }
 
             if (next_key != nullptr) {
-//                std::cout << "remove n:    " << next_key << std::endl;
                 blocks_.remove(next_key);
             }
 
             if (prev_key != nullptr) {
-//                std::cout << "remove p:    " << prev_key << std::endl;
                 blocks_.remove(prev_key);
             }
 
-//            std::cout << "remove m:    " << ptr << std::endl;
             blocks_.remove(ptr);
             blocks_.put(free_ptr, free_block, free_block.size_b);
-        }
-
-
-        // There is some compatibility layer type/mem-layout tricknology ===============================================
-
-        const ex::data::allocator tricklocator_ = { .malloc      = &allocator::malloc_,
-                                                    .realloc     = &allocator::realloc_,
-                                                    .free        = &allocator::free_,
-                                                    .add_watcher = &allocator::watch_add_,
-                                                    .del_watcher = &allocator::watch_del_,
-                                                    .size_total  = &allocator::size_total_,
-                                                    .size_used   = &allocator::size_used_,
-                                                    .instance    = this };
-
-        const ex::data::allocator &compat_allocator() const {
-            return tricklocator_;
-        }
-
-        static void *malloc_(void *this_, const std::size_t size_new_b, const std::size_t alignment_b) {
-            return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->allocate(size_new_b, alignment_b);
-        }
-
-        static void *realloc_(void *this_, void *ptr, const std::size_t size_new_b) {
-            return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->reallocate(ptr, size_new_b);
-        }
-
-        static void free_(void *this_, void *ptr) {
-            static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->free(ptr);
-        }
-
-        static void watch_add_(void *this_, void *const ptr, const ex::data::watch_fn_t fn) {
-            static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->add_watcher(ptr, fn);
-        }
-
-        static void watch_del_(void *this_, void *const ptr, const ex::data::watch_fn_t fn) {
-            static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->del_watcher(ptr, fn);
-        }
-
-        static long size_total_(void *this_) {
-            return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->memory_total_b();
-        }
-
-        static long size_used_(void *this_) {
-            return static_cast<allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->memory_used_b();
         }
     };
 

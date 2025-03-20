@@ -68,6 +68,53 @@ namespace ex::data {
 //    #define abort_(msg) throw std::runtime_error("Generic abort exception")
 //#endif
 
+    template <typename T>
+    struct alloc_compat {
+
+        static ex::data::allocator allocator(T &this_) {
+            return allocator(&this_);
+        }
+
+        static ex::data::allocator allocator(T *this_) {
+            return { .malloc      = &alloc_compat::malloc_,
+                     .realloc     = &alloc_compat::realloc_,
+                     .free        = &alloc_compat::free_,
+                     .add_watcher = &alloc_compat::watch_add_,
+                     .del_watcher = &alloc_compat::watch_del_,
+                     .size_total  = &alloc_compat::size_total_,
+                     .size_used   = &alloc_compat::size_used_,
+                     .instance    = this_ };
+        }
+
+        static void *malloc_(void *this_, const std::size_t size_new_b, const std::size_t alignment_b) {
+            return static_cast<T *>(static_cast<const ex::data::allocator *>(this_)->instance)->malloc(size_new_b, alignment_b);
+        }
+
+        static void *realloc_(void *this_, void *ptr, const std::size_t size_new_b) {
+            return static_cast<T *>(static_cast<const ex::data::allocator *>(this_)->instance)->realloc(ptr, size_new_b);
+        }
+
+        static void free_(void *this_, void *ptr) {
+            static_cast<T *>(static_cast<const ex::data::allocator *>(this_)->instance)->free(ptr);
+        }
+
+        static void watch_add_(void *this_, void *const ptr, const ex::data::watch_fn_t fn) {
+            static_cast<T *>(static_cast<const ex::data::allocator *>(this_)->instance)->add_watcher(ptr, fn);
+        }
+
+        static void watch_del_(void *this_, void *const ptr, const ex::data::watch_fn_t fn) {
+            static_cast<T *>(static_cast<const ex::data::allocator *>(this_)->instance)->del_watcher(ptr, fn);
+        }
+
+        static long size_total_(void *this_) {
+            return static_cast<T *>(static_cast<const ex::data::allocator *>(this_)->instance)->size_total();
+        }
+
+        static long size_used_(void *this_) {
+            return static_cast<T *>(static_cast<const ex::data::allocator *>(this_)->instance)->size_used();
+        }
+    };
+
 }
 
 #endif //EX_DATALLOC_H
