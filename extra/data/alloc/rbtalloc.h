@@ -220,19 +220,20 @@ namespace ex::data::rbtalloc {
             const block_addr_t l_ptr   = static_cast<unsigned char *>(fit_key) + padding;
             const memory_block l_block = { size_ls, static_cast<u_int16_t>(alignment_b), 0 };
             blocks_.put(l_ptr, l_block, 0);
+//            verify_rb_tree_(blocks_);
 
             if (padding > 0) {
                 const memory_block f_block = { padding, 1, 1 };
                 blocks_.put(fit_key, f_block, padding);
+//                verify_rb_tree_(blocks_);
             }
 
             if (size_rs > 0) {
                 const block_addr_t r_ptr   = static_cast<unsigned char *>(l_ptr) + size_ls;
                 const memory_block r_block = { size_rs, 1, 1 };
                 blocks_.put(r_ptr, r_block, size_rs);
+//                verify_rb_tree_(blocks_);
             }
-
-//            verify_rb_tree_(blocks_);
 
             used_mem_ += size_ls;
 
@@ -269,30 +270,27 @@ namespace ex::data::rbtalloc {
 
             if (next_key != nullptr) {
                 safe_remove_(next_key);
-//                verify_rb_tree_(blocks_);
             }
 
             if (prev_key != nullptr) {
                 safe_remove_(prev_key);
-//                verify_rb_tree_(blocks_);
             }
 
             safe_remove_(ptr);
-//            verify_rb_tree_(blocks_);
 
             blocks_.put(free_ptr, free_block, free_block.size_b);
 //            verify_rb_tree_(blocks_);
         }
 
         void safe_remove_(void *ptr) {
-            block_map_t::rmq_node *replacement =
+//            block_map_t::rmq_node *replacement =
                 blocks_.remove(ptr);
 //            verify_rb_tree_(blocks_);
-            if (replacement != nullptr) {
-                const memory_block block = replacement->val;
-                replacement->rmq = block.is_free == true ? replacement->val.size_b : 0;
-                blocks_.update_ranges_(replacement);
-            }
+//            if (replacement != nullptr) {
+//                const memory_block block = replacement->val;
+//                replacement->rmq = block.is_free == true ? replacement->val.size_b : 0;
+//                blocks_.update_ranges_(replacement);
+//            }
         }
 
 //        static void verify_rb_tree_(block_map_t &map) {
