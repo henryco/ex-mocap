@@ -139,6 +139,7 @@ namespace ex::data::rbtalloc {
          */
         void block_request_(const std::size_t min_size_b) {
             std::cout << "request block: " << min_size_b << std::endl;
+            abort_("TODO");
 
             if (min_size_b > BLOCK_MAX_SIZE_B)
                 abort_("Requested allocation size overflow");
@@ -156,8 +157,6 @@ namespace ex::data::rbtalloc {
 
             int64_t     address_shift  = 0;
             std::size_t allocated_size = 0;
-
-            abort_("TODO");
 
             void *allocated_ptr = memory_.request(min_size_b, &allocated_size, &address_shift);
 
