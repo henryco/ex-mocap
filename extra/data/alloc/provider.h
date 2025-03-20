@@ -62,14 +62,20 @@ namespace ex::data {
             const std::size_t real_size = (this->size() * 2) + size;
 
             void *mem = ::malloc(real_size);
+            if (mem == nullptr)
+                abort_("Memory allocation error");
 
             if (node == nullptr) {
                 node = static_cast<mem_node *>(::malloc(sizeof(mem_node)));
+                if (node == nullptr)
+                    abort_("Memory allocation error");
                 node->prev = nullptr;
                 node->data = mem;
                 node->size = real_size;
             } else {
                 mem_node *new_node = static_cast<mem_node *>(::malloc(sizeof(mem_node)));
+                if (new_node == nullptr)
+                    abort_("Memory allocation error");
                 new_node->prev     = node;
                 new_node->data     = mem;
                 new_node->size     = real_size;

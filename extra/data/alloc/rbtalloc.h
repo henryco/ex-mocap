@@ -75,9 +75,9 @@ namespace ex::data::rbtalloc {
 
             const auto size_b = static_cast<block_free_t>(allocated_size);
             blocks_.put(allocated_ptr, { size_b, 1, true }, size_b);
-//            verify_rb_tree_(blocks_);
-
             def_size_ = pre_allocated;
+
+//            verify_rb_tree_(blocks_);
         }
 
         block_addr_t malloc(const std::size_t size_b, const std::size_t alignment_b) {
@@ -101,6 +101,39 @@ namespace ex::data::rbtalloc {
             if (block.is_free == true)
                 abort_("Reallocation of free block");
 
+            if (size_new_b == block.size_b)
+                return ptr;
+
+            if (size_new_b < block.size_b) {
+                const std::size_t  size_d  = block.size_b - size_new_b;
+                const memory_block block_l = { static_cast<u_int32_t>(size_new_b), block.alignment_b, 0 };
+                const memory_block block_r = { static_cast<u_int32_t>(size_d), 1, 0 };
+                const block_addr_t ptr_r   = static_cast<unsigned char *>(ptr) + size_new_b;
+                blocks_.put(ptr, block_l, 0);
+                blocks_.put(ptr_r, block_r, 0);
+                block_free_(ptr_r, block_r);
+
+//                verify_rb_tree_(blocks_);
+                return ptr;
+            }
+
+            if (block_map_t::rmq_node *next = blocks_.next(ptr);
+                continuous_(ptr, next, block.size_b)) {
+                const std::size_t  size_d  = size_new_b - block.size_b;
+                const memory_block block_n = next->val;
+                const memory_block block_l = { static_cast<u_int32_t>(size_new_b), block.alignment_b, 0 };
+                const memory_block block_r = { static_cast<u_int32_t>(block_n.size_b - size_d), 1, 1 };
+                const block_addr_t ptr_r   = static_cast<unsigned char *>(ptr) + size_new_b;
+                const block_addr_t ptr_n   = next->key;
+                blocks_.remove(ptr_n);
+                blocks_.put(ptr, block_l, 0);
+                blocks_.put(ptr_r, block_r, block_r.size_b);
+                used_mem_ -= size_d;
+
+//                verify_rb_tree_(blocks_);
+                return ptr;
+            }
+
             const block_addr_t allocated = malloc(size_new_b, block.alignment_b);
             if (allocated != ptr) {
                 ::memmove(allocated, ptr, size_new_b < block.size_b ? size_new_b : block.size_b);
@@ -112,8 +145,7 @@ namespace ex::data::rbtalloc {
 
             if (allocated == nullptr)
                 abort_("Reallocation address nullptr");
-
-            abort_("WTF");
+            abort_("Reallocation address invalid");
         }
 
         void free(const block_addr_t ptr) {
@@ -194,11 +226,13 @@ namespace ex::data::rbtalloc {
             const block_addr_t l_ptr   = static_cast<unsigned char *>(fit_key) + padding;
             const memory_block l_block = { size_ls, static_cast<u_int16_t>(alignment_b), 0 };
             blocks_.put(l_ptr, l_block, 0);
+
 //            verify_rb_tree_(blocks_);
 
             if (padding > 0) {
                 const memory_block f_block = { padding, 1, 1 };
                 blocks_.put(fit_key, f_block, padding);
+
 //                verify_rb_tree_(blocks_);
             }
 
@@ -206,6 +240,7 @@ namespace ex::data::rbtalloc {
                 const block_addr_t r_ptr   = static_cast<unsigned char *>(l_ptr) + size_ls;
                 const memory_block r_block = { size_rs, 1, 1 };
                 blocks_.put(r_ptr, r_block, size_rs);
+
 //                verify_rb_tree_(blocks_);
             }
 
@@ -271,6 +306,8 @@ namespace ex::data::rbtalloc {
         }
 
         static bool continuous_(void *prev, void *next, const u_int64_t prev_size) {
+            if (next == nullptr || prev == nullptr)
+                return false;
             return (static_cast<unsigned char *>(prev) + prev_size) == next;
         }
 
