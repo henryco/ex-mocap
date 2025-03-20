@@ -286,7 +286,7 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("High-frequency allocation-deallocation stability") {
-        ex::data::rbtalloc::allocator alloc(1 << 24); // 16 MB preallocated
+        ex::data::rbtalloc::allocator alloc(16 MB);
         constexpr size_t cycles = 1e5;
 
         for (size_t i = 0; i < cycles; ++i) {
@@ -296,11 +296,11 @@ TEST_SUITE("RBTAlloc tests") {
             alloc.free(ptr);
         }
 
-        REQUIRE(alloc.size_total() == (1 << 24)); // still exactly 16MB, no leaks or growth
+        REQUIRE(alloc.size_total() == (16 MB)); // still exactly 16MB, no leaks or growth
     }
 
     TEST_CASE("Allocator properly frees and merges adjacent blocks") {
-        ex::data::rbtalloc::allocator alloc(1024 * 1024); // 1 MB preallocated
+        allocator alloc(1 MB);
 
         void* a = alloc.malloc(256, 16);
         void* b = alloc.malloc(256, 16);
@@ -321,12 +321,12 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Allocator immediately reuses freed block") {
-        ex::data::rbtalloc::allocator alloc(1 << 20); // 1 MB preallocated
+        allocator alloc(1 MB);
 
-        void* p1 = alloc.malloc(1024, 16);
+        void* p1 = alloc.malloc(1 KB, 16);
         alloc.free(p1);
 
-        void* p2 = alloc.malloc(1024, 16);
+        void* p2 = alloc.malloc(1 KB, 16);
         REQUIRE(p1 == p2); // allocator should reuse exactly the same block
 
         alloc.free(p1);
@@ -334,7 +334,7 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Allocator correctly updates internal state after freeing") {
-        ex::data::rbtalloc::allocator alloc(1024 * 1024); // 1 MB preallocated
+        allocator alloc(1024 * 1024); // 1 MB preallocated
 
         void *a = alloc.malloc(2560, 32);
         void *b = alloc.malloc(4096, 32);
@@ -391,35 +391,37 @@ TEST_SUITE("RBTAlloc tests") {
     }
 
     TEST_CASE("Allocator reuse freed blocks correctly") { // TODO FIXME
-        ex::data::rbtalloc::allocator alloc(64 MB);
+        allocator alloc(64 MB);
 
         std::vector<void *> large_blocks;
 
         // Allocate large blocks
         for (int i = 0; i < 20; ++i) {
-            void* ptr = alloc.malloc(1 MB, 16);
+            void *ptr = alloc.malloc(1 MB, 16);
             REQUIRE(ptr != nullptr);
             large_blocks.push_back(ptr);
         }
 
         // Free every other block
-        for (size_t i = 0; i < large_blocks.size(); i += 2)
+        for (size_t i = 0; i < large_blocks.size() - 2; i += 2)
             alloc.free(large_blocks[i]);
 
         // Now allocate small blocks that must fit into freed large blocks
         for (int i = 0; i < 5000; ++i) {
-            void* ptr = alloc.malloc(8 KB, 16);
+            void* ptr = alloc.malloc(1 KB, 16);
             REQUIRE(ptr != nullptr);
-            memset(ptr, 0xAA, 8 KB);
-            alloc.free(ptr);
+            memset(ptr, 0xAA, 1 KB);
+
+            INFO("Iteration: " << i);
+            REQUIRE(reinterpret_cast<u_int64_t>(ptr) <= reinterpret_cast<u_int64_t>(large_blocks[large_blocks.size() - 1]));
         }
     }
 
     TEST_CASE("Allocator correctly merges complex freed block patterns") {  // TODO FIXME
-        ex::data::rbtalloc::allocator alloc(2 MB);
+        allocator alloc(2 MB);
 
         // Allocate multiple blocks
-        void* blocks[5];
+        void *blocks[5];
         for (int i = 0; i < 5; ++i)
             blocks[i] = alloc.malloc(4 KB, 16);
 
