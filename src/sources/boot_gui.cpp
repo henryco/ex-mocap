@@ -3,7 +3,6 @@
 //
 
 #include "../headers/boot.h"
-#include "../../extra/data/alloc/mempool.h"
 #include "../headers/imgui/gui.h"
 #include "../headers/logic/logic.h"
 #include "../headers/logic/logic_globals.h"
@@ -98,7 +97,7 @@ namespace ex::boot {
     }
 
     void init_gui_display() {
-        ex::display::io.add_output = ex::display::imp::imgui::add_output;
+        ex::display::io.add_output    = ex::display::imp::imgui::add_output;
         ex::display::io.remove_output = ex::display::imp::imgui::remove_output;
         // TODO
     }

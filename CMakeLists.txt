@@ -94,7 +94,6 @@ set(EXTRA_FILES
         extra/data/struct/array.h
 
         # mem allocators
-        extra/data/alloc/mempool.h # this MFer goes out
         extra/data/alloc/datalloc.h
         extra/data/alloc/stackarena.h
         extra/data/alloc/rbtalloc.h
@@ -316,7 +315,6 @@ if (ENABLE_TESTS)
     set(TEST_SOURCES
             src/tests/test_io.cpp
             src/tests/test_graph.cpp
-            src/tests/test_mempool.cpp
             src/tests/test_data.cpp
             src/tests/test_rb_map.cpp
             src/tests/test_rmq_map.cpp

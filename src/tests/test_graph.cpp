@@ -5,7 +5,6 @@
 #include <iostream>
 #include <doctest/doctest.h>
 #include "../../extra/graph/graph.h"
-#include "../../extra/data/alloc/mempool.h"
 #include "../../extra/data/alloc/rbtalloc.h"
 #include "../../src/headers/utils/time_utils.h"
 
@@ -110,9 +109,6 @@ void rec_build(limbo::graph::BaseNode *parent, const int width, const int max_de
 }
 
 TEST_CASE("Graph node test") {
-//    ex::data::mempool::allocator alloc_2;
-//    limbo::graph::memory::allocator = ex::data::alloc_compat<ex::data::mempool::allocator>::allocator(alloc_2);
-
     ex::data::rbtalloc::allocator alloc_2;
     limbo::graph::memory::allocator = alloc_2.compat();
 
@@ -141,15 +137,6 @@ TEST_CASE("Graph node test") {
             counter++;
         }
     }
-
-//    int free_blocks  = 0;
-//    int total_blocks = 0;
-//    for (int i = 0; i < alloc_2.blocks_.size; ++i) {
-//        const auto block = alloc_2.blocks_.val_entries_[i];
-//        if (block.is_free == true)
-//            free_blocks += 1;
-//        total_blocks += 1;
-//    }
 
     int free_blocks  = 0;
     int total_blocks = 0;
