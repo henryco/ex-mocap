@@ -144,6 +144,7 @@ namespace ex::data::rbtalloc {
          * Allocate at least additional <b>min_size_b</b> bytes of memory
          */
         void block_request_(const std::size_t min_size_b) {
+            std::cout << "request block: " << min_size_b << std::endl;
 
             if (min_size_b > BLOCK_MAX_SIZE_B)
                 abort_("Requested allocation size overflow");

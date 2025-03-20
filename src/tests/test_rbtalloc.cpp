@@ -355,14 +355,17 @@ TEST_SUITE("RBTAlloc tests") {
         REQUIRE(alloc.size_used() == 0);
     }
 
-    TEST_CASE("Fragmentation and compaction") { // TODO FIXME
-        allocator alloc(1 << 25); // 32 MB preallocation
+    TEST_CASE("Fragmentation and compaction") {
+        allocator alloc(32 MB);
 
         std::vector<void *> pointers;
 
         // Allocate many small blocks
-        for (size_t i = 0; i < 10000; ++i)
-            pointers.push_back(alloc.malloc(256, 8));
+        for (size_t i = 0; i < 10000; ++i) {
+            void *ptr = alloc.malloc(256, 8);
+            REQUIRE(ptr != nullptr);
+            pointers.push_back(ptr);
+        }
 
         // Free every second block to fragment memory
         for (size_t i = 0; i < pointers.size(); i += 2)
@@ -377,27 +380,24 @@ TEST_SUITE("RBTAlloc tests") {
         }
 
         // Free random pointers to simulate real-world fragmentation
-        for (size_t i = 0; i < pointers.size(); i += 3)
+        for (size_t i = 1; i < pointers.size(); i += 2)
             alloc.free(pointers[i]);
 
         // Check allocator internal state after complex allocation pattern
         REQUIRE(alloc.size_used() <= alloc.size_total());
 
-        // Cleanup
-        for (auto ptr : pointers)
-            alloc.free(ptr);
         for (auto ptr : mid_blocks)
             alloc.free(ptr);
     }
 
     TEST_CASE("Allocator reuse freed blocks correctly") { // TODO FIXME
-        ex::data::rbtalloc::allocator alloc(1 << 26); // 64 MB
+        ex::data::rbtalloc::allocator alloc(64 MB);
 
-        std::vector<void*> large_blocks;
+        std::vector<void *> large_blocks;
 
         // Allocate large blocks
         for (int i = 0; i < 20; ++i) {
-            void* ptr = alloc.malloc(1 << 20, 16); // 1MB blocks
+            void* ptr = alloc.malloc(1 MB, 16);
             REQUIRE(ptr != nullptr);
             large_blocks.push_back(ptr);
         }
@@ -408,27 +408,20 @@ TEST_SUITE("RBTAlloc tests") {
 
         // Now allocate small blocks that must fit into freed large blocks
         for (int i = 0; i < 5000; ++i) {
-            void* ptr = alloc.malloc(8192, 16); // 8KB
+            void* ptr = alloc.malloc(8 KB, 16);
             REQUIRE(ptr != nullptr);
-            memset(ptr, 0xAA, 8192);
+            memset(ptr, 0xAA, 8 KB);
             alloc.free(ptr);
         }
-
-        // Final integrity check
-        REQUIRE(alloc.size_total() >= alloc.size_total());
-
-        // Cleanup remaining large blocks
-        for (auto ptr : large_blocks)
-            alloc.free(ptr);
     }
 
     TEST_CASE("Allocator correctly merges complex freed block patterns") {  // TODO FIXME
-        ex::data::rbtalloc::allocator alloc(1 << 21); // 2 MB preallocated
+        ex::data::rbtalloc::allocator alloc(2 MB);
 
         // Allocate multiple blocks
         void* blocks[5];
         for (int i = 0; i < 5; ++i)
-            blocks[i] = alloc.malloc(4096, 16);
+            blocks[i] = alloc.malloc(4 KB, 16);
 
         // Free blocks non-adjacently
         alloc.free(blocks[1]);
@@ -436,7 +429,7 @@ TEST_SUITE("RBTAlloc tests") {
         alloc.free(blocks[2]);
 
         // Now, large allocation should reuse merged free blocks 1 and 3 (and 2 if merged)
-        void* merged = alloc.malloc(8192, 16);
+        void *merged = alloc.malloc(8 KB, 16);
         REQUIRE(merged != nullptr);
         REQUIRE((merged == blocks[1] || merged == blocks[3]));
 
