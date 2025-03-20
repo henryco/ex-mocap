@@ -157,6 +157,8 @@ namespace ex::data::rbtalloc {
             int64_t     address_shift  = 0;
             std::size_t allocated_size = 0;
 
+            abort_("TODO");
+
             void *allocated_ptr = memory_.request(min_size_b, &allocated_size, &address_shift);
 
             // validate data continuity TODO
@@ -174,16 +176,12 @@ namespace ex::data::rbtalloc {
                 last->val.size_b += allocated_size;
                 last->rmq = last->val.size_b;
                 blocks_.update_ranges_(last);
-
-//                verify_rb_tree_(blocks_);
                 return;
             }
 
             // append new free block
             const auto size_b = static_cast<block_free_t>(allocated_size);
             blocks_.put(allocated_ptr, { size_b, 1, true }, size_b);
-
-//            verify_rb_tree_(blocks_);
         }
 
         static bool test_padding_(const block_map_t::rmq_node *node, void *this_) {
