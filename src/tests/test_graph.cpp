@@ -124,6 +124,7 @@ TEST_CASE("Graph node test") {
 
     std::cout << "build: " << time.result() << " ns" << std::endl;
     std::cout << "total: " << counter_ << std::endl;
+    std::cout << "blocks total: " << alloc_2.blocks_.size() << std::endl;
 
     limbo::graph::Clock clock;
     clock.attach(root);
