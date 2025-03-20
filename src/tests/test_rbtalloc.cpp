@@ -67,41 +67,20 @@ TEST_SUITE("RBTAlloc tests") {
         CHECK((reinterpret_cast<uintptr_t>(new_ptr) - start) % 8  == 0);
     }
 
-    TEST_CASE("Edge Cases") {
+    TEST_CASE("Reallocating to zero size should free memory") {
         allocator alloc;
 
-        SUBCASE("Zero-size allocation should abort") {
-            CHECK_THROWS(alloc.malloc(0, 8));
-        }
+        void *ptr = alloc.malloc(256, 8);
+        REQUIRE(ptr != nullptr);
 
-        SUBCASE("Reallocating to zero size should free memory") {
-            void *ptr = alloc.malloc(256, 8);
-            REQUIRE(ptr != nullptr);
+        std::size_t before = alloc.size_used();
+        CHECK(before == 256);
 
-            std::size_t before = alloc.size_used();
-            CHECK(before == 256);
+        void *new_ptr = alloc.realloc(ptr, 0);
+        CHECK(new_ptr == nullptr);
 
-            void *new_ptr = alloc.realloc(ptr, 0);
-            CHECK(new_ptr == nullptr);
-
-            std::size_t after = alloc.size_used();
-            CHECK(after == 0);
-        }
-
-        SUBCASE("Double free should abort") {
-            void *ptr = alloc.malloc(128, 8);
-            REQUIRE(ptr != nullptr);
-
-            std::size_t before = alloc.size_used();
-            CHECK(before == 128);
-
-            alloc.free(ptr);
-
-            std::size_t after = alloc.size_used();
-            CHECK(after == 0);
-
-            CHECK_THROWS(alloc.free(ptr));
-        }
+        std::size_t after = alloc.size_used();
+        CHECK(after == 0);
     }
 
     TEST_CASE("Memory Tracking") {
@@ -306,6 +285,76 @@ TEST_SUITE("RBTAlloc tests") {
         REQUIRE(alloc.size_used() == 0);
     }
 
+    TEST_CASE("High-frequency allocation-deallocation stability") {
+        ex::data::rbtalloc::allocator alloc(1 << 24); // 16 MB preallocated
+        constexpr size_t cycles = 1e5;
+
+        for (size_t i = 0; i < cycles; ++i) {
+            void* ptr = alloc.malloc(256, 8);
+            REQUIRE(ptr != nullptr);
+            memset(ptr, 0xFF, 256);
+            alloc.free(ptr);
+        }
+
+        REQUIRE(alloc.size_total() == (1 << 24)); // still exactly 16MB, no leaks or growth
+    }
+
+    TEST_CASE("Allocator properly frees and merges adjacent blocks") {
+        ex::data::rbtalloc::allocator alloc(1024 * 1024); // 1 MB preallocated
+
+        void* a = alloc.malloc(256, 16);
+        void* b = alloc.malloc(256, 16);
+        void* c = alloc.malloc(256, 16);
+
+        REQUIRE(alloc.size_used() == 768);
+
+        alloc.free(b);
+        alloc.free(a);
+
+        // After freeing adjacent blocks (a,b), allocator should merge these blocks internally.
+        void* merged = alloc.malloc(512, 16);
+        REQUIRE(merged == a); // Should reuse the merged block starting from 'a'
+
+        alloc.free(merged);
+        alloc.free(c);
+        REQUIRE(alloc.size_used() == 0);
+    }
+
+    TEST_CASE("Allocator immediately reuses freed block") {
+        ex::data::rbtalloc::allocator alloc(1 << 20); // 1 MB preallocated
+
+        void* p1 = alloc.malloc(1024, 16);
+        alloc.free(p1);
+
+        void* p2 = alloc.malloc(1024, 16);
+        REQUIRE(p1 == p2); // allocator should reuse exactly the same block
+
+        alloc.free(p1);
+        REQUIRE(alloc.size_used() == 0);
+    }
+
+    TEST_CASE("Allocator correctly updates internal state after freeing") {
+        ex::data::rbtalloc::allocator alloc(1024 * 1024); // 1 MB preallocated
+
+        void *a = alloc.malloc(2560, 32);
+        void *b = alloc.malloc(4096, 32);
+        void *c = alloc.malloc(2048, 16);
+
+        REQUIRE(alloc.size_used() == (2560 + 4096 + 2048));
+
+        alloc.free(b);
+
+        // Allocate a smaller block to verify reuse of freed memory
+        void* small = alloc.malloc(2048, 32);
+        REQUIRE(small == b);
+
+        alloc.free(a);
+        alloc.free(c);
+        alloc.free(small);
+
+        REQUIRE(alloc.size_used() == 0);
+    }
+
     TEST_CASE("Fragmentation and compaction") { // TODO FIXME
         allocator alloc(1 << 25); // 32 MB preallocation
 
@@ -341,20 +390,6 @@ TEST_SUITE("RBTAlloc tests") {
             alloc.free(ptr);
     }
 
-    TEST_CASE("High-frequency allocation-deallocation stability") {
-        ex::data::rbtalloc::allocator alloc(1 << 24); // 16 MB preallocated
-        constexpr size_t cycles = 1e5;
-
-        for (size_t i = 0; i < cycles; ++i) {
-            void* ptr = alloc.malloc(256, 8);
-            REQUIRE(ptr != nullptr);
-            memset(ptr, 0xFF, 256);
-            alloc.free(ptr);
-        }
-
-        REQUIRE(alloc.size_total() == (1 << 24)); // still exactly 16MB, no leaks or growth
-    }
-
     TEST_CASE("Allocator reuse freed blocks correctly") { // TODO FIXME
         ex::data::rbtalloc::allocator alloc(1 << 26); // 64 MB
 
@@ -386,4 +421,55 @@ TEST_SUITE("RBTAlloc tests") {
         for (auto ptr : large_blocks)
             alloc.free(ptr);
     }
+
+    TEST_CASE("Allocator correctly merges complex freed block patterns") {  // TODO FIXME
+        ex::data::rbtalloc::allocator alloc(1 << 21); // 2 MB preallocated
+
+        // Allocate multiple blocks
+        void* blocks[5];
+        for (int i = 0; i < 5; ++i)
+            blocks[i] = alloc.malloc(4096, 16);
+
+        // Free blocks non-adjacently
+        alloc.free(blocks[1]);
+        alloc.free(blocks[3]);
+        alloc.free(blocks[2]);
+
+        // Now, large allocation should reuse merged free blocks 1 and 3 (and 2 if merged)
+        void* merged = alloc.malloc(8192, 16);
+        REQUIRE(merged != nullptr);
+        REQUIRE((merged == blocks[1] || merged == blocks[3]));
+
+        alloc.free(blocks[0]);
+        alloc.free(blocks[2]); // double-free test, should safely do nothing or handle gracefully
+        alloc.free(blocks[4]);
+
+        alloc.free(merged);
+
+        REQUIRE(alloc.size_used() == 0);
+    }
+
+    TEST_CASE("Throw Cases") {
+        allocator alloc;
+
+        SUBCASE("Zero-size allocation should abort") {
+            CHECK_THROWS(alloc.malloc(0, 8));
+        }
+
+        SUBCASE("Double free should abort") {
+            void *ptr = alloc.malloc(128, 8);
+            REQUIRE(ptr != nullptr);
+
+            std::size_t before = alloc.size_used();
+            CHECK(before == 128);
+
+            alloc.free(ptr);
+
+            std::size_t after = alloc.size_used();
+            CHECK(after == 0);
+
+            CHECK_THROWS(alloc.free(ptr));
+        }
+    }
+
 }
