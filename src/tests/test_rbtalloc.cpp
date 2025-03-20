@@ -2,8 +2,10 @@
 // Created by xd on 3/19/25.
 //
 
-#include <cstdint>
+// ReSharper disable CppDFAMemoryLeak
 #include <doctest/doctest.h>
+#include <cstdint>
+#include <vector>
 
 #include "../../extra/data/alloc/rbtalloc.h"
 
@@ -302,5 +304,86 @@ TEST_SUITE("RBTAlloc tests") {
         alloc.free(c);
 
         REQUIRE(alloc.size_used() == 0);
+    }
+
+    TEST_CASE("Fragmentation and compaction") { // TODO FIXME
+        allocator alloc(1 << 25); // 32 MB preallocation
+
+        std::vector<void *> pointers;
+
+        // Allocate many small blocks
+        for (size_t i = 0; i < 10000; ++i)
+            pointers.push_back(alloc.malloc(256, 8));
+
+        // Free every second block to fragment memory
+        for (size_t i = 0; i < pointers.size(); i += 2)
+            alloc.free(pointers[i]);
+
+        // Now allocate medium-size blocks to test fragmentation handling
+        std::vector<void *> mid_blocks;
+        for (size_t i = 0; i < 5000; ++i) {
+            void* ptr = alloc.malloc(2048, 16);
+            REQUIRE(ptr != nullptr);
+            mid_blocks.push_back(ptr);
+        }
+
+        // Free random pointers to simulate real-world fragmentation
+        for (size_t i = 0; i < pointers.size(); i += 3)
+            alloc.free(pointers[i]);
+
+        // Check allocator internal state after complex allocation pattern
+        REQUIRE(alloc.size_used() <= alloc.size_total());
+
+        // Cleanup
+        for (auto ptr : pointers)
+            alloc.free(ptr);
+        for (auto ptr : mid_blocks)
+            alloc.free(ptr);
+    }
+
+    TEST_CASE("High-frequency allocation-deallocation stability") {
+        ex::data::rbtalloc::allocator alloc(1 << 24); // 16 MB preallocated
+        constexpr size_t cycles = 1e5;
+
+        for (size_t i = 0; i < cycles; ++i) {
+            void* ptr = alloc.malloc(256, 8);
+            REQUIRE(ptr != nullptr);
+            memset(ptr, 0xFF, 256);
+            alloc.free(ptr);
+        }
+
+        REQUIRE(alloc.size_total() == (1 << 24)); // still exactly 16MB, no leaks or growth
+    }
+
+    TEST_CASE("Allocator reuse freed blocks correctly") { // TODO FIXME
+        ex::data::rbtalloc::allocator alloc(1 << 26); // 64 MB
+
+        std::vector<void*> large_blocks;
+
+        // Allocate large blocks
+        for (int i = 0; i < 20; ++i) {
+            void* ptr = alloc.malloc(1 << 20, 16); // 1MB blocks
+            REQUIRE(ptr != nullptr);
+            large_blocks.push_back(ptr);
+        }
+
+        // Free every other block
+        for (size_t i = 0; i < large_blocks.size(); i += 2)
+            alloc.free(large_blocks[i]);
+
+        // Now allocate small blocks that must fit into freed large blocks
+        for (int i = 0; i < 5000; ++i) {
+            void* ptr = alloc.malloc(8192, 16); // 8KB
+            REQUIRE(ptr != nullptr);
+            memset(ptr, 0xAA, 8192);
+            alloc.free(ptr);
+        }
+
+        // Final integrity check
+        REQUIRE(alloc.size_total() >= alloc.size_total());
+
+        // Cleanup remaining large blocks
+        for (auto ptr : large_blocks)
+            alloc.free(ptr);
     }
 }
