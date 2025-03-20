@@ -179,6 +179,7 @@ namespace ex::data::rbtalloc {
 
             // update pointers in case of data relocation
             if (address_shift != 0) {
+                std::cout << "shift: " << address_shift << std::endl;
                 for (auto &node : blocks_) { // not very safe btw
                     node.key = static_cast<unsigned char *>(node.key) + address_shift;
                 }
@@ -192,6 +193,8 @@ namespace ex::data::rbtalloc {
             // extend last free block
             if (last_block.is_free == true) {
                 last->val.size_b += allocated_size;
+                last->rmq = last->val.size_b;
+                blocks_.update_ranges_(last);
                 return;
             }
 
