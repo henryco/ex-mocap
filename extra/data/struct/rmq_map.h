@@ -84,21 +84,18 @@ namespace ex::data {
             comp_(compare_key),
             mmeq_(&rmq_map::default_min_max_eq),
             size_(0), root_(nullptr) {
-            add_watcher_(allocator_, this, &watch_allocator);
         }
 
         rmq_map(const min_max_eq_fn compare_range):
             comp_(&rmq_map::default_min_max_eq),
             mmeq_(compare_range),
             size_(0), root_(nullptr) {
-            add_watcher_(allocator_, this, &watch_allocator);
         }
 
         rmq_map(const comparator_fn compare_key, const min_max_eq_fn compare_range):
             comp_(compare_key),
             mmeq_(compare_range),
             size_(0), root_(nullptr) {
-            add_watcher_(allocator_, this, &watch_allocator);
         }
 
         rmq_map(const allocator &allocator_):
@@ -106,7 +103,6 @@ namespace ex::data {
             mmeq_(&rmq_map::default_min_max_eq),
             size_(0), root_(nullptr) {
             this->allocator_ = allocator_;
-            add_watcher_(this->allocator_, this, &watch_allocator);
         }
 
         rmq_map(const allocator &allocator_, const comparator_fn compare_key):
@@ -114,7 +110,6 @@ namespace ex::data {
             mmeq_(&rmq_map::default_min_max_eq),
             size_(0), root_(nullptr) {
             this->allocator_ = allocator_;
-            add_watcher_(this->allocator_, this, &watch_allocator);
         }
 
         rmq_map(const allocator &allocator_, const min_max_eq_fn compare_range):
@@ -122,7 +117,6 @@ namespace ex::data {
             mmeq_(compare_range),
             size_(0), root_(nullptr) {
             this->allocator_ = allocator_;
-            add_watcher_(this->allocator_, this, &watch_allocator);
         }
 
         rmq_map(const allocator &allocator_, const comparator_fn compare_key, const min_max_eq_fn compare_range):
@@ -130,7 +124,6 @@ namespace ex::data {
             mmeq_(compare_range),
             size_(0), root_(nullptr) {
             this->allocator_ = allocator_;
-            add_watcher_(this->allocator_, this, &watch_allocator);
         }
 
         rmq_map(const rmq_map &other):
@@ -139,7 +132,6 @@ namespace ex::data {
             size_(other.size_) {
             allocator_ = other.allocator_;
             root_      = other.iterative_copy_(other.root_);
-            add_watcher_(allocator_, this, &watch_allocator);
         }
 
         rmq_map(rmq_map &&other) noexcept:
@@ -150,43 +142,35 @@ namespace ex::data {
             allocator_  = other.allocator_;
             other.root_ = nullptr;
             other.size_ = 0;
-            del_watcher_(other.allocator_, this, &watch_allocator);
-            add_watcher_(allocator_, this, &watch_allocator);
         }
 
         rmq_map &operator = (const rmq_map &other) {
             if (this == &other)
                 return *this;
-            del_watcher_(allocator_, this, &watch_allocator);
             clean();
             root_      = other.iterative_copy_(other.root_);
             allocator_ = other.allocator_;
             comp_      = other.comp_;
             mmeq_      = other.mmeq_;
             size_      = other.size_;
-            add_watcher_(allocator_, this, &watch_allocator);
             return *this;
         }
 
         rmq_map &operator = (rmq_map &&other) noexcept {
             if (this == &other)
                 return *this;
-            del_watcher_(other.allocator_, this, &watch_allocator);
-            del_watcher_(allocator_, this, &watch_allocator);
             clean();
             allocator_ = other.allocator_;
             comp_      = other.comp_;
             mmeq_      = other.mmeq_;
             size_      = other.size_;
             root_      = other.root_;
-            add_watcher_(allocator_, this, &watch_allocator);
             other.root_ = nullptr;
             other.size_ = 0;
             return *this;
         }
 
         ~rmq_map() {
-            del_watcher_(allocator_, this, &watch_allocator);
             iterative_free_(root_);
             root_ = nullptr;
         }
@@ -1325,11 +1309,6 @@ namespace ex::data {
             return iterator(nullptr);
         }
 
-        static void watch_allocator(void *instance, const long int) {
-            auto that_ = static_cast<rmq_map *>(instance);
-            ::abort(); // reallocation prohibited
-        }
-
         template <typename T>
         T *malloc_(void *, allocator &allocator, const std::size_t size_n) {
             return static_cast<T *>(allocator.malloc(&allocator, size_n * sizeof(T), alignof(T)));
@@ -1343,16 +1322,6 @@ namespace ex::data {
         static void free_(void *, allocator &allocator, void *ptr) {
             if (allocator.free != nullptr && ptr != nullptr)
                 allocator.free(&allocator, ptr);
-        }
-
-        static void add_watcher_(allocator &allocator, void *watcher, const watch_fn_t fn) {
-            if (allocator.add_watcher != nullptr)
-                allocator.add_watcher(&allocator, watcher, fn);
-        }
-
-        static void del_watcher_(allocator &allocator, void *watcher, const watch_fn_t fn) {
-            if (allocator.del_watcher != nullptr)
-                allocator.del_watcher(&allocator, watcher, fn);
         }
     };
 

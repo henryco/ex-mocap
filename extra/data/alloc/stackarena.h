@@ -79,8 +79,6 @@ namespace ex::data::stackarena {
         const ex::data::allocator tricklocator_ = { .malloc      = &static_allocator::malloc_,
                                                     .realloc     = &static_allocator::realloc_,
                                                     .free        = &static_allocator::free_,
-                                                    .add_watcher = &static_allocator::nop_,
-                                                    .del_watcher = &static_allocator::nop_,
                                                     .size_total  = &static_allocator::size_total_,
                                                     .size_used   = &static_allocator::size_used_,
                                                     .instance    = this };
@@ -99,9 +97,6 @@ namespace ex::data::stackarena {
 
         static void free_(void *this_, void *ptr) {
             static_cast<static_allocator *>(static_cast<const ex::data::allocator *>(this_)->instance)->free(ptr);
-        }
-
-        static void nop_(void *, void *const, const ex::data::watch_fn_t) {
         }
 
         static long size_total_(void *this_) {

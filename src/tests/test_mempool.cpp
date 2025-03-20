@@ -171,21 +171,6 @@ TEST_CASE("Reallocation Tests") {
 }
 
 TEST_CASE("Additional Allocator Functionality") {
-    SUBCASE("Watcher notification on relocation") {
-        allocator alloc;
-        watcher_counter = 0;
-        void* watch_id = reinterpret_cast<void*>(0x1);
-        alloc.add_watcher(watch_id, test_watcher);
-
-        constexpr std::size_t half_arena = DEFAULT_ARENA_SIZE_B / 2;
-        alloc.malloc(half_arena, 8);
-        alloc.malloc(half_arena / 2, 8);
-        void* ptr3 = alloc.malloc(half_arena / 2, 8);
-        INFO("After allocation, watcher counter should be non-negative");
-        CHECK(ptr3 != nullptr);
-        CHECK(watcher_counter >= 0);
-        alloc.del_watcher(watch_id, test_watcher);
-    }
 
     SUBCASE("Block padding calculation") {
         allocator alloc;
@@ -287,11 +272,5 @@ TEST_CASE("Allocator Construction Edge Cases") {
     SUBCASE("Constructor with zero pre_allocated size aborts") {
         INFO("Allocator constructed with zero pre_allocated size should abort");
         CHECK_THROWS_AS(allocator(0), std::runtime_error);
-    }
-
-    SUBCASE("Deleting non-existent watcher does nothing") {
-        allocator alloc;
-        INFO("Deleting a non-existent watcher should not throw an exception");
-        CHECK_NOTHROW(alloc.del_watcher(reinterpret_cast<void*>(0xDEADBEEF), test_watcher));
     }
 }

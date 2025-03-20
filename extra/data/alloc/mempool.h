@@ -6,7 +6,6 @@
 #define EX_DATA_MEMPOOL_H
 
 #include "../struct/sorted_map.h"
-#include "../struct/array_map.h"
 #include "provider.h"
 
 #include <cstring>
@@ -32,7 +31,6 @@ namespace ex::data::mempool {
         }
 
         ex::data::sorted_map<block_id_t, memory_block> blocks_ = &ptr_compare;
-        ex::data::array_map<watch_id_t, watch_fn_t>    watche_;
         mem_provider                                   memory_;
 
         #define DEFAULT_ARENA_SIZE_B 1048576
@@ -48,17 +46,8 @@ namespace ex::data::mempool {
         }
 
         void cleanup() {
-            watche_.clean();
             blocks_.clean();
             memory_.clean();
-        }
-
-        void add_watcher(const watch_id_t id, const watch_fn_t fn) {
-            watche_.put(id, fn);
-        }
-
-        void del_watcher(const watch_id_t id, watch_fn_t) {
-            watche_.remove(id);
         }
 
         void *malloc(const std::size_t size_b, const std::size_t alignment_b) {
@@ -197,14 +186,7 @@ namespace ex::data::mempool {
 
             // update pointers in case of data relocation
             if (addr_diff != 0) {
-                for (int i = 0; i < blocks_.size; ++i) {
-                    blocks_.key_at_index(i) = static_cast<unsigned char *>(blocks_.key_at_index(i)) + addr_diff;
-                }
-
-                for (int i = 0; i < watche_.size; ++i) {
-                    if (const auto fn = watche_.val_entries[i])
-                        fn(watche_.key_entries[i], addr_diff);
-                }
+                abort_("data shift");
             }
 
             // resize last free block

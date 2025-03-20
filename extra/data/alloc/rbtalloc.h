@@ -5,11 +5,11 @@
 #ifndef EX_LIMBO_DATA_RBTALLOC_H
 #define EX_LIMBO_DATA_RBTALLOC_H
 
+#include <cstring>
+
+#include "../struct/rmq_map.h"
 #include "datalloc.h"
 #include "provider.h"
-
-#include "../struct/array_map.h"
-#include "../struct/rmq_map.h"
 
 namespace ex::data::rbtalloc {
 
@@ -27,7 +27,6 @@ namespace ex::data::rbtalloc {
     using block_addr_t = void *;
     using block_free_t = u_int32_t;
     using block_map_t  = rmq_map<block_addr_t, memory_block, block_free_t>;
-    using watch_map_t  = array_map<watch_id_t, watch_fn_t>;
 
 #define BLOCK_MAX_SIZE_B (4294967295U)
 #define STACK_BLOCK_SIZE (sizeof(block_map_t::rmq_node))
@@ -43,7 +42,6 @@ namespace ex::data::rbtalloc {
         // TODO CUSTOM ALLOCATORS
 
         block_map_t  blocks_ = &ptr_compare;
-        watch_map_t  watche_;
         mem_provider memory_;
 
         std::size_t used_mem_ = 0;
@@ -54,13 +52,11 @@ namespace ex::data::rbtalloc {
         }
 
         ~allocator() {
-            watche_.clean();
             blocks_.clean();
             memory_.clean();
         }
 
         void clean() {
-            watche_.clean();
             blocks_.clean();
             memory_.clean();
             used_mem_ = 0;
@@ -77,14 +73,6 @@ namespace ex::data::rbtalloc {
             blocks_.put(allocated_ptr, { size_b, 1, true }, size_b);
 
             def_size_ = pre_allocated;
-        }
-
-        void add_watcher(const watch_id_t id, const watch_fn_t fn) {
-            watche_.put(id, fn);
-        }
-
-        void del_watcher(const watch_id_t id, watch_fn_t) {
-            watche_.remove(id);
         }
 
         block_addr_t malloc(const std::size_t size_b, const std::size_t alignment_b) {
@@ -104,26 +92,22 @@ namespace ex::data::rbtalloc {
                 return nullptr;
             }
 
-            const auto start_before = memory_.data_ptr();
-            const auto start_ptr    = reinterpret_cast<u_int64_t>(start_before);
-            const auto data_ptr     = reinterpret_cast<u_int64_t>(ptr);
-            const auto offset       = data_ptr - start_ptr;
-
             const memory_block block = blocks_.at(ptr);
-
-            // TODO FIXME
-//            block_free_(ptr, block); // this marks block as free but preserves data
-            // TODO FIXME
+            if (block.is_free == true)
+                abort_("Reallocation of free block");
 
             const block_addr_t allocated = malloc(size_new_b, block.alignment_b);
             if (allocated != ptr) {
-                const void *old_src_ptr = static_cast<unsigned char *>(memory_.data_ptr()) + offset;
+                const void *old_src_ptr = static_cast<unsigned char *>(memory_.data_ptr());
                 ::memmove(allocated, old_src_ptr, size_new_b < block.size_b ? size_new_b : block.size_b);
+                block_free_(ptr, block);
+                return allocated;
             }
 
-            block_free_(ptr, block); // this marks block as free but preserves data
+            if (allocated == nullptr)
+                abort_("Reallocation address nullptr");
 
-            return allocated;
+            abort_("WTF");
         }
 
         void free(const block_addr_t ptr) {
@@ -172,22 +156,14 @@ namespace ex::data::rbtalloc {
 
             void *allocated_ptr = memory_.request(min_size_b, &allocated_size, &address_shift);
 
-            // validate data continuity
+            // validate data continuity TODO
             if ((static_cast<unsigned char *>(last_ptr) + address_shift + last_block.size_b) != allocated_ptr) {
                 abort_("Data fragmentation error: requested block alignment error");
             }
 
             // update pointers in case of data relocation
             if (address_shift != 0) {
-                std::cout << "shift: " << address_shift << std::endl;
-                for (auto &node : blocks_) { // not very safe btw
-                    node.key = static_cast<unsigned char *>(node.key) + address_shift;
-                }
-
-                for (int i = 0; i < watche_.size; ++i) {
-                    if (const auto fn = watche_.val_entries[i])
-                        fn(watche_.key_entries[i], address_shift);
-                }
+                abort_("address shift");
             }
 
             // extend last free block
@@ -203,21 +179,15 @@ namespace ex::data::rbtalloc {
             blocks_.put(allocated_ptr, { size_b, 1, true }, size_b);
         }
 
-        struct test_this {
-            u_int64_t size_needed;
-            u_int64_t alignment_b;
-            u_int64_t data_offset;
-        };
-
         static bool test_padding_(const block_map_t::rmq_node *node, void *this_) {
-            const test_this *that_   = static_cast<test_this *>(this_);
-            const u_int64_t  padding = block_padding_(that_->data_offset, node->key, that_->alignment_b);
-            return node->val.size_b >= (that_->size_needed + padding);
+            const memory_block *that_   = static_cast<memory_block *>(this_);
+            const u_int64_t     padding = block_padding_(node->key, that_->alignment_b);
+            return node->val.size_b >= (that_->size_b + padding);
         }
 
-        static u_int32_t block_padding_(const u_int64_t data, const void *ptr, const u_int64_t alignment_b) {
-            const u_int64_t  offset  = reinterpret_cast<u_int64_t>(ptr) - data;
-            return (offset % alignment_b != 0) ? alignment_b - (offset % alignment_b) : 0;
+        static u_int32_t block_padding_(const void *ptr, const u_int64_t alignment_b) {
+            const u_int64_t  address  = reinterpret_cast<u_int64_t>(ptr);
+            return (alignment_b - (address % alignment_b)) % alignment_b;
         }
 
         block_addr_t block_acquire_(const std::size_t size_b, const std::size_t alignment_b) {
@@ -228,32 +198,36 @@ namespace ex::data::rbtalloc {
             if (alignment_b == 0 || (alignment_b & (alignment_b - 1)) != 0)
                 abort_("Alignment must be non-zero and a power of two");
 
-            const u_int64_t data_start = reinterpret_cast<u_int64_t>(memory_.data_ptr());
-            test_this       test_that  = { size_b, alignment_b, data_start };
-
+            memory_block test_that           = { static_cast<u_int32_t>(size_b), static_cast<u_int16_t>(alignment_b) };
             const block_map_t::rmq_node *fit = blocks_.range_fit(size_b, BLOCK_MAX_SIZE_B, &test_padding_, &test_that);
             if (fit == nullptr)
                 return nullptr;
 
             const memory_block fit_block = fit->val;
             void              *fit_key   = fit->key;
-            const u_int32_t    padding   = block_padding_(data_start, fit_key, alignment_b);
+            const u_int32_t    padding   = block_padding_(fit_key, alignment_b);
+
+            std::cout << "fit: " << fit_block.size_b << ", "
+            << fit_block.alignment_b << ", "
+            << (fit_block.is_free == true) << ", "
+            << fit->rmq
+            << std::endl;
 
             const u_int32_t size_ls = static_cast<u_int32_t>(size_b);
             const u_int32_t size_rs = fit_block.size_b - size_ls - padding;
 
             const block_addr_t l_ptr   = static_cast<unsigned char *>(fit_key) + padding;
-            const memory_block l_block = { size_ls, static_cast<u_int16_t>(alignment_b), false };
+            const memory_block l_block = { size_ls, static_cast<u_int16_t>(alignment_b), 0 };
             blocks_.put(l_ptr, l_block, 0);
 
             if (padding > 0) {
-                const memory_block f_block = { padding, 1, true };
+                const memory_block f_block = { padding, 1, 1 };
                 blocks_.put(fit_key, f_block, padding);
             }
 
             if (size_rs > 0) {
                 const block_addr_t r_ptr   = static_cast<unsigned char *>(l_ptr) + size_ls;
-                const memory_block r_block = { size_rs, 1, true };
+                const memory_block r_block = { size_rs, 1, 1 };
                 blocks_.put(r_ptr, r_block, size_rs);
             }
 

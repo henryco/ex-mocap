@@ -20,14 +20,10 @@ namespace ex::data {
 #define GB * 1024 MB
 #define TB * 1024 GB
 
-    using watch_id_t   = void *;
     using instance_t   = void *;
-
     using malloc_fn_t  = void *(*) (instance_t this_, std::size_t size_new_b, std::size_t alignment_b);
     using realloc_fn_t = void *(*) (instance_t this_, void *ptr, std::size_t size_new_b);
     using free_fn_t    = void  (*) (instance_t this_, void *ptr);
-    using watch_fn_t   = void  (*) (watch_id_t watch, long int ptr_offset);
-    using reg_fn_t     = void  (*) (instance_t this_, watch_id_t watcher, watch_fn_t watch_fn);
     using size_fn_t    = long  (*) (instance_t this_);
 
     inline void *default_malloc_(instance_t, const std::size_t size_new_b, std::size_t) {
@@ -48,10 +44,6 @@ namespace ex::data {
         ::free(ptr);
     }
 
-    inline void default_reg_(instance_t, watch_id_t, watch_fn_t) {
-        /*NOP*/
-    }
-
     inline long default_size_(instance_t) {
         return 0;
     }
@@ -60,8 +52,6 @@ namespace ex::data {
         malloc_fn_t  malloc      = &default_malloc_;
         realloc_fn_t realloc     = &default_realloc_;
         free_fn_t    free        = &default_free_;
-        reg_fn_t     add_watcher = &default_reg_;
-        reg_fn_t     del_watcher = &default_reg_;
         size_fn_t    size_total  = &default_size_;
         size_fn_t    size_used   = &default_size_;
         instance_t   instance    = nullptr;
@@ -78,8 +68,6 @@ namespace ex::data {
             return { .malloc      = &alloc_compat::malloc_,
                      .realloc     = &alloc_compat::realloc_,
                      .free        = &alloc_compat::free_,
-                     .add_watcher = &alloc_compat::watch_add_,
-                     .del_watcher = &alloc_compat::watch_del_,
                      .size_total  = &alloc_compat::size_total_,
                      .size_used   = &alloc_compat::size_used_,
                      .instance    = this_ };
@@ -95,14 +83,6 @@ namespace ex::data {
 
         static void free_(void *this_, void *ptr) {
             static_cast<T *>(static_cast<const ex::data::allocator *>(this_)->instance)->free(ptr);
-        }
-
-        static void watch_add_(void *this_, void *const ptr, const ex::data::watch_fn_t fn) {
-            static_cast<T *>(static_cast<const ex::data::allocator *>(this_)->instance)->add_watcher(ptr, fn);
-        }
-
-        static void watch_del_(void *this_, void *const ptr, const ex::data::watch_fn_t fn) {
-            static_cast<T *>(static_cast<const ex::data::allocator *>(this_)->instance)->del_watcher(ptr, fn);
         }
 
         static long size_total_(void *this_) {

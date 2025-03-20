@@ -25,28 +25,23 @@ namespace ex::data {
         int    capacity = 0;
 
         array() {
-            add_watcher_(allocator_, this, &watch_allocator);
         }
 
         array(const allocator &allocator_) {
             this->allocator_ = allocator_;
-            add_watcher_(this->allocator_, this, &watch_allocator);
         }
 
         ~array() {
-            del_watcher_(allocator_, this, &watch_allocator);
             free_(this, allocator_, data);
             data = nullptr;
         }
 
         array(const int &capacity) : capacity(capacity) {
-            add_watcher_(allocator_, this, &watch_allocator);
             data = malloc_<val_t>(this, allocator_, capacity);
         }
 
         array(const int &capacity, const allocator &allocator_) : capacity(capacity) {
             this->allocator_ = allocator_;
-            add_watcher_(this->allocator_, this, &watch_allocator);
             data = malloc_<val_t>(this, this->allocator_, capacity);
         }
 
@@ -277,14 +272,12 @@ namespace ex::data {
         }
 
         array(const array &other) : size(other.size), capacity(other.capacity) {
-            del_watcher_(allocator_, this, &watch_allocator);
             if (other.capacity <= 0) {
                 data = nullptr;
                 return;
             }
 
             allocator_ = other.allocator_;
-            add_watcher_(allocator_, this, &watch_allocator);
 
             data = malloc_<val_t>(this, allocator_, other.capacity);
 
@@ -295,20 +288,14 @@ namespace ex::data {
         }
 
         array(array &&other) noexcept : size(other.size), capacity(other.capacity) {
-            del_watcher_(other.allocator_, &other, &watch_allocator);
-            del_watcher_(allocator_, this, &watch_allocator);
-
             this->data = other.data;
             other.data = nullptr;
-
-            add_watcher_(allocator_, this, &watch_allocator);
         }
 
         array &operator = (const array &other) {
             if (this == &other)
                 return *this;
 
-            del_watcher_(allocator_, this, &watch_allocator);
             free_(this, allocator_, data);
             data = nullptr;
 
@@ -321,7 +308,6 @@ namespace ex::data {
                 return *this;
             }
 
-            add_watcher_(allocator_, this, &watch_allocator);
             data = malloc_<val_t>(this, other.allocator_, other.capacity);
 
             if (other.size <= 0)
@@ -335,8 +321,6 @@ namespace ex::data {
             if (this == &other)
                 return *this;
 
-            del_watcher_(other.allocator_, &other, &watch_allocator);
-            del_watcher_(allocator_, this, &watch_allocator);
             free_(this, allocator_, data);
             data = nullptr;
 
@@ -346,13 +330,7 @@ namespace ex::data {
             this->allocator_ = other.allocator_;
             other.data       = nullptr;
 
-            add_watcher_(allocator_, this, &watch_allocator);
             return *this;
-        }
-
-        static void watch_allocator(void *instance, const long int offset) {
-            auto this_ = static_cast<array *>(instance);
-            this_->data = reinterpret_cast<val_t *>(reinterpret_cast<unsigned char *>(this_->data) + offset);
         }
 
         template <typename T>
@@ -368,16 +346,6 @@ namespace ex::data {
         static void free_(void *, allocator &allocator, void *ptr) {
             if (allocator.free != nullptr && ptr != nullptr)
                 allocator.free(&allocator, ptr);
-        }
-
-        static void add_watcher_(allocator &allocator, void *watcher, const watch_fn_t fn) {
-            if (allocator.add_watcher != nullptr)
-                allocator.add_watcher(&allocator, watcher, fn);
-        }
-
-        static void del_watcher_(allocator &allocator, void *watcher, const watch_fn_t fn) {
-            if (allocator.del_watcher != nullptr)
-                allocator.del_watcher(&allocator, watcher, fn);
         }
     };
 }
