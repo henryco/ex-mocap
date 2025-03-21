@@ -179,7 +179,7 @@ namespace ex::data::stackarena {
                 const unsigned char *raw_ptr = stack_->data + free_n - sizeof(void *);
                 uintptr_t ptr_val = 0;
                 for (int i = 0; i < sizeof(void *); ++i) {
-                    ptr_val |= static_cast<uintptr_t>(raw_ptr[i]) << (i * sizeof(void *));
+                    ptr_val |= static_cast<uintptr_t>(raw_ptr[i]) << (i * 8);
                 }
                 void *out_ptr = reinterpret_cast<void *>(ptr_val);
 
@@ -233,7 +233,7 @@ namespace ex::data::stackarena {
             const uintptr_t raw_ptr_val = reinterpret_cast<uintptr_t>(ptr);
             unsigned char  *stack_ptr   = stack_->data + free_n;
             for (int i = 0; i < sizeof(void *); ++i) {
-                stack_ptr[i] = (raw_ptr_val >> (i * sizeof(void *))) & 0xFF;
+                stack_ptr[i] = (raw_ptr_val >> (i * 8)) & 0xFF;
             }
 
             free_n += sizeof(void *);
