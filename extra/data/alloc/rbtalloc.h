@@ -46,6 +46,7 @@ namespace ex::data::rbtalloc {
 
         std::size_t used_mem_ = 0;
         std::size_t def_size_ = 0;
+        std::size_t grow_mem_ = 0;
 
         ex::data::allocator compat() {
             return alloc_compat<allocator>::allocator(this);
@@ -82,6 +83,7 @@ namespace ex::data::rbtalloc {
             const auto size_b = static_cast<block_free_t>(allocated_size);
             blocks_.put(allocated_ptr, { size_b, 1, true }, size_b);
             def_size_ = pre_allocated;
+            grow_mem_ = pre_allocated;
 
 //            verify_rb_tree_(blocks_);
         }
@@ -191,8 +193,10 @@ namespace ex::data::rbtalloc {
             const block_addr_t last_ptr   = last->key;
             const memory_block last_block = last->val;
 
+            grow_mem_ = grow_mem_ + grow_mem_ + min_size_b;
+
             std::size_t allocated_size = 0;
-            void *allocated_ptr = memory_.request(min_size_b, &allocated_size);
+            void *allocated_ptr = memory_.request(grow_mem_, &allocated_size);
 
             if (continuous_(last_ptr, allocated_ptr, last_block.size_b)) {
                 // extend last free block which belongs to the same memory region
