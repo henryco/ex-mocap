@@ -86,6 +86,10 @@ namespace ex::data {
             *size_allocated = real_size;
             return mem;
         }
+
+        void release(void *ptr) {
+            // mem release not supported
+        }
     };
 }
 

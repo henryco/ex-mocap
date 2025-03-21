@@ -86,52 +86,53 @@ namespace ex::data::stackarena {
 
     struct allocator {
 
-        static constexpr int chunk_size = 64;
+        struct mem_region {
+            mem_region    *prev;
+            mem_region    *next;
+            unsigned long  size;
+            unsigned char *data;
+        };
 
         const std::size_t block_s;
+        mem_provider      memory_;
 
-        unsigned char * *arena_;
-        void         ** *stack_;
+        mem_region *arena_;
+        mem_region *stack_;
 
-        std::size_t data_s = 0;
-        std::size_t free_s = 0;
+        std::size_t data_s;
+        std::size_t free_s;
 
-        std::size_t offset = 0;
-        std::size_t free_n = 0;
-
-        mem_provider memory_;
+        int64_t offset;
+        int64_t free_n;
 
         ex::data::allocator compat() {
             return alloc_compat<allocator>::allocator(this);
         }
 
-        allocator(const std::size_t block_s) :
-            block_s(block_s),
+        allocator() = delete;
+
+        allocator(const std::size_t block_size_b,
+                  const std::size_t arena_size_b) :
+            block_s(block_size_b),
             arena_(nullptr),
             stack_(nullptr),
-            data_s(block_s),
-            free_s(1) {
+            offset(0),
+            free_n(0) {
+            data_s = arena_size_b / block_s * block_s;
+            free_s = arena_size_b / block_s;
             mem_request_();
         }
 
-        allocator(const std::size_t block_s,
-                  const std::size_t arena_s) :
-            block_s(block_s),
+        allocator(const std::size_t block_size_b,
+                  const std::size_t arena_size_b,
+                  const std::size_t stack_size_b) :
+            block_s(block_size_b),
             arena_(nullptr),
-            stack_(nullptr) {
-            data_s = arena_s / block_s * block_s;
-            free_s = arena_s / block_s;
-            mem_request_();
-        }
-
-        allocator(const std::size_t block_s,
-                  const std::size_t arena_s,
-                  const std::size_t stack_s) :
-            block_s(block_s),
-            arena_(nullptr),
-            stack_(nullptr) {
-            data_s = arena_s / block_s * block_s;
-            free_s = stack_s / sizeof(void *);
+            stack_(nullptr),
+            offset(0),
+            free_n(0) {
+            data_s = arena_size_b / block_s * block_s;
+            free_s = stack_size_b / sizeof(void *);
             mem_request_();
         }
 
@@ -142,15 +143,71 @@ namespace ex::data::stackarena {
         allocator &operator = (allocator &&other)      = delete;
 
         ~allocator() {
+            clean();
+            for (mem_region *head = arena_; head != nullptr;) {
+                mem_region *next = head->next;
+                memory_.release(head);
+                head = next;
+            }
+            for (mem_region *head = stack_; head != nullptr;) {
+                mem_region *next = head->next;
+                memory_.release(head);
+                head = next;
+            }
+        }
 
+        void clean() {
+            for (mem_region *head = arena_; head != nullptr;) {
+                mem_region *prev = head->prev;
+                if (prev == nullptr)
+                    arena_ = head;
+                head = prev;
+            }
+            for (mem_region *head = stack_; head != nullptr;) {
+                mem_region *prev = head->prev;
+                if (prev == nullptr)
+                    stack_ = head;
+                head = prev;
+            }
+            offset = 0;
+            free_n = 0;
         }
 
         /**
          * allocates only one block at a time
          */
         void *malloc(std::size_t, std::size_t) {
+            if (free_n > 0) {
+                unsigned char  *raw_ptr = stack_->data + free_n - sizeof(void *);
+                const uintptr_t ptr_val = reinterpret_cast<uintptr_t>(raw_ptr);
+                void *const     out_ptr = reinterpret_cast<void *>(ptr_val);
 
-            return nullptr;
+                // TODO FIXME
+
+                free_n -= sizeof(void *);
+                if (stack_->prev != nullptr) {
+                    stack_ = stack_->prev;
+                    free_n = stack_->size;
+                }
+
+                return out_ptr;
+            }
+
+        try_again:
+            if (offset >= arena_->size) {
+                if (offset == 0)
+                    abort_("offset == 0 yet no space");
+                offset = 0;
+                if (arena_->next != nullptr) {
+                    arena_ = arena_->next;
+                    goto try_again;
+                }
+                mem_request_();
+            }
+
+            void *ptr = arena_->data + offset;
+            offset += block_s;
+            return ptr;
         }
 
         void *realloc(void *, const std::size_t) {
@@ -161,12 +218,36 @@ namespace ex::data::stackarena {
          * releases block
          */
         void free(void *ptr) {
-            if (free_n >= free_s)
+            const unsigned char *have = static_cast<unsigned char *>(ptr) + block_s;
+            const unsigned char *last = arena_->data + offset;
+
+            if (have == last) {
+                offset -= block_s;
+                return;
+            }
+
+        try_again:
+            if (free_n >= stack_->size) {
+                if (free_n == 0)
+                    abort_("free_n == 0 yet no space");
+                free_n = 0;
+                if (stack_->next != nullptr) {
+                    stack_ = stack_->next;
+                    goto try_again;
+                }
                 stack_request_();
-            const int idx  = to_idx_(free_n);
-            const int n    = to_n_(free_n);
-            stack_[idx][n] = ptr;
-            free_n++;
+            }
+
+            unsigned char        *stack_ptr   = stack_->data + free_n;
+            uintptr_t             raw_ptr_val = reinterpret_cast<uintptr_t>(ptr);
+            const unsigned char  *ptr_u_val   = reinterpret_cast<unsigned char *>(raw_ptr_val);
+            for (int i = 0; i < sizeof(void *); ++i) {
+                stack_ptr[i] = ptr_u_val[i];
+            }
+
+            // TODO FIXME
+
+            free_n += sizeof(void *);
         }
 
         constexpr long size_total() const {
@@ -178,25 +259,50 @@ namespace ex::data::stackarena {
         }
 
         void mem_request_() {
+            const std::size_t old_size = data_s;
             std::size_t allocated_size = 0;
-            void       *allocated_ptr  = memory_.request(block_s * chunk_size, &allocated_size);
-            ::memset(allocated_ptr, 0, allocated_size);
+            void       *allocated_ptr  = memory_.request(sizeof(mem_region) + (block_s * (old_size + 1) * 2), &allocated_size);
 
+            mem_region *const region = reinterpret_cast<mem_region *>(allocated_ptr);
+            region->prev = arena_;
+            region->next = nullptr;
+
+            unsigned char  *raw_data_ptr = static_cast<unsigned char *>(allocated_ptr) + sizeof(mem_region);
+            const u_int32_t padding      = padding_(raw_data_ptr, block_s);
+            unsigned char  *data_ptr     = raw_data_ptr + padding;
+
+            region->size = allocated_size - padding - sizeof(mem_region);
+            region->data = data_ptr;
+
+            if (arena_ != nullptr)
+                arena_->next = region;
+            arena_ = region;
         }
 
         void stack_request_() {
+            const std::size_t old_size = free_s;
             std::size_t allocated_size = 0;
-            void       *allocated_ptr  = memory_.request(sizeof(void *) * chunk_size, &allocated_size);
-            ::memset(allocated_ptr, 0, allocated_size);
+            void       *allocated_ptr  = memory_.request(sizeof(mem_region) + (sizeof(void *) * (old_size + 1) * 2), &allocated_size);
 
+            mem_region *const region = reinterpret_cast<mem_region *>(allocated_ptr);
+            region->prev = stack_;
+            region->next = nullptr;
+
+            unsigned char  *raw_data_ptr = static_cast<unsigned char *>(allocated_ptr) + sizeof(mem_region);
+            const u_int32_t padding      = padding_(raw_data_ptr, alignof(void *));
+            unsigned char  *data_ptr     = raw_data_ptr + padding;
+
+            region->size = allocated_size - padding - sizeof(mem_region);
+            region->data = data_ptr;
+
+            if (stack_ != nullptr)
+                stack_->next = region;
+            stack_ = region;
         }
 
-        static int to_idx_(const int n) {
-            return n / chunk_size;
-        }
-
-        static int to_n_(const int n) {
-            return n % chunk_size;
+        static u_int32_t padding_(const void *ptr, const u_int64_t alignment_b) {
+            const u_int64_t  address  = reinterpret_cast<u_int64_t>(ptr);
+            return (alignment_b - (address % alignment_b)) % alignment_b;
         }
     };
 
