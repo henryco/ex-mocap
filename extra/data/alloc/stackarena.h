@@ -275,6 +275,8 @@ namespace ex::data::stackarena {
             if (arena_ != nullptr)
                 arena_->next = region;
             arena_ = region;
+
+            data_s = region->size / block_s;
         }
 
         void stack_request_() {
@@ -296,6 +298,8 @@ namespace ex::data::stackarena {
             if (stack_ != nullptr)
                 stack_->next = region;
             stack_ = region;
+
+            free_s = region->size / sizeof(void *);
         }
 
         static u_int32_t padding_(const void *ptr, const u_int64_t alignment_b) {
