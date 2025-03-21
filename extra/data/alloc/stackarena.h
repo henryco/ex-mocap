@@ -178,11 +178,12 @@ namespace ex::data::stackarena {
          */
         void *malloc(std::size_t, std::size_t) {
             if (free_n > 0) {
-                unsigned char  *raw_ptr = stack_->data + free_n - sizeof(void *);
-                const uintptr_t ptr_val = reinterpret_cast<uintptr_t>(raw_ptr);
-                void *const     out_ptr = reinterpret_cast<void *>(ptr_val);
-
-                // TODO FIXME
+                const unsigned char *raw_ptr = stack_->data + free_n - sizeof(void *);
+                uintptr_t ptr_val = 0;
+                for (int i = 0; i < sizeof(void *); ++i) {
+                    ptr_val |= static_cast<uintptr_t>(raw_ptr[i]) << (i * sizeof(void *));
+                }
+                void *out_ptr = reinterpret_cast<void *>(ptr_val);
 
                 free_n -= sizeof(void *);
                 if (stack_->prev != nullptr) {
@@ -238,14 +239,11 @@ namespace ex::data::stackarena {
                 stack_request_();
             }
 
-            unsigned char        *stack_ptr   = stack_->data + free_n;
-            uintptr_t             raw_ptr_val = reinterpret_cast<uintptr_t>(ptr);
-            const unsigned char  *ptr_u_val   = reinterpret_cast<unsigned char *>(raw_ptr_val);
+            const uintptr_t raw_ptr_val = reinterpret_cast<uintptr_t>(ptr);
+            unsigned char  *stack_ptr   = stack_->data + free_n;
             for (int i = 0; i < sizeof(void *); ++i) {
-                stack_ptr[i] = ptr_u_val[i];
+                stack_ptr[i] = (raw_ptr_val >> (i * sizeof(void *))) & 0xFF;
             }
-
-            // TODO FIXME
 
             free_n += sizeof(void *);
         }
