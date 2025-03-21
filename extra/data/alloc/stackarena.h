@@ -7,6 +7,7 @@
 
 #include "datalloc.h"
 #include "provider.h"
+#include <cstring>
 
 namespace ex::data::stackarena {
 
@@ -179,12 +180,14 @@ namespace ex::data::stackarena {
         void mem_request_() {
             std::size_t allocated_size = 0;
             void       *allocated_ptr  = memory_.request(block_s * chunk_size, &allocated_size);
+            ::memset(allocated_ptr, 0, allocated_size);
 
         }
 
         void stack_request_() {
             std::size_t allocated_size = 0;
             void       *allocated_ptr  = memory_.request(sizeof(void *) * chunk_size, &allocated_size);
+            ::memset(allocated_ptr, 0, allocated_size);
 
         }
 
