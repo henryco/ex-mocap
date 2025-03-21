@@ -55,6 +55,12 @@ namespace ex::data::rbtalloc {
             preallocate(pre_allocated);
         }
 
+        allocator(const allocator &other) = delete;
+        allocator(allocator &&other)      = delete;
+
+        allocator &operator = (const allocator &other) = delete;
+        allocator &operator = (allocator &&other)      = delete;
+
         ~allocator() {
             blocks_.clean();
             memory_.clean();

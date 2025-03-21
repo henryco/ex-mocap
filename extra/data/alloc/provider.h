@@ -5,6 +5,7 @@
 #ifndef EX_LIMBO_DATA_MEMPROVIDER_H
 #define EX_LIMBO_DATA_MEMPROVIDER_H
 
+#include "datalloc.h"
 #include <cstdlib>
 
 namespace ex::data {
