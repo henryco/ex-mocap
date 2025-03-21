@@ -173,6 +173,10 @@ namespace ex::data::stackarena {
             free_n = 0;
         }
 
+        void *realloc(void *, const std::size_t) {
+            abort_("Realloc not supported, this is arena bruh");
+        }
+
         /**
          * allocates only one block at a time
          */
@@ -209,10 +213,6 @@ namespace ex::data::stackarena {
             void *ptr = arena_->data + offset;
             offset += block_s;
             return ptr;
-        }
-
-        void *realloc(void *, const std::size_t) {
-            abort_("Realloc not supported");
         }
 
         /**
