@@ -69,11 +69,13 @@ namespace ex::data::rbtalloc {
         ~allocator() {
             blocks_.clean();
             memory_.clean();
+            arena_.clean();
         }
 
         void clean() {
             blocks_.clean();
             memory_.clean();
+            arena_.clean();
             used_mem_ = 0;
         }
 

@@ -60,7 +60,6 @@ namespace ex::data {
         }
 
         void *request(const std::size_t size, std::size_t *size_allocated = nullptr) {
-//            const std::size_t real_size = (this->size() * 2) + size;
             const std::size_t real_size = size;
 
             void *mem = ::malloc(real_size);
@@ -88,7 +87,7 @@ namespace ex::data {
             return mem;
         }
 
-        void release(void *ptr) {
+        void release(void *) {
             // mem release not supported
         }
     };

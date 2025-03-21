@@ -97,6 +97,9 @@ namespace ex::data::stackarena {
         const std::size_t block_s;
         mem_provider      memory_;
 
+        mem_region *root_a;
+        mem_region *root_s;
+
         mem_region *arena_;
         mem_region *stack_;
 
@@ -159,26 +162,15 @@ namespace ex::data::stackarena {
         allocator &operator = (allocator &&other)      = delete;
 
         ~allocator() {
-            clean();
-            for (mem_region *head = arena_; head != nullptr;) {
-                mem_region *next = head->next;
-                memory_.release(head);
-                head = next;
-            }
-            for (mem_region *head = stack_; head != nullptr;) {
-                mem_region *next = head->next;
-                memory_.release(head);
-                head = next;
-            }
+            memory_.clean();
         }
 
         void clean() {
-            while (arena_ != nullptr && arena_->prev != nullptr)
-                arena_ = arena_->prev;
-            while (stack_ != nullptr && stack_->prev != nullptr)
-                stack_ = stack_->prev;
-            offset = 0;
-            free_n = 0;
+            taken_size = 0;
+            free_n     = 0;
+            offset     = 0;
+            arena_     = root_a;
+            stack_     = root_s;
         }
 
         void *realloc(void *, const std::size_t) {
@@ -282,6 +274,8 @@ namespace ex::data::stackarena {
 
             if (arena_ != nullptr)
                 arena_->next = region;
+            else
+                root_a = region;
             arena_ = region;
 
             total_size += allocated_size;
@@ -304,6 +298,8 @@ namespace ex::data::stackarena {
 
             if (stack_ != nullptr)
                 stack_->next = region;
+            else
+                root_s = region;
             stack_ = region;
 
             total_size += allocated_size;
