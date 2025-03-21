@@ -21,7 +21,8 @@ void verify_rb_tree_(rb_map<int, int> &map);
 #define POOL_SIZE  (100 MB)
 
 namespace allocator_rb_ {
-    static ex::data::stackarena::static_allocator<BLOCK_SIZE, POOL_SIZE> stack;
+//    static ex::data::stackarena::static_allocator<BLOCK_SIZE, POOL_SIZE> stack;
+    static ex::data::stackarena::allocator stack = { BLOCK_SIZE, POOL_SIZE };
     static ex::data::allocator stack_rb = stack.compat();
 }
 

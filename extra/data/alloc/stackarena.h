@@ -121,6 +121,7 @@ namespace ex::data::stackarena {
             data_s = arena_size_b / block_s * block_s;
             free_s = arena_size_b / block_s;
             mem_request_();
+            stack_request_();
         }
 
         allocator(const std::size_t block_size_b,
@@ -134,6 +135,7 @@ namespace ex::data::stackarena {
             data_s = arena_size_b / block_s * block_s;
             free_s = stack_size_b / sizeof(void *);
             mem_request_();
+            stack_request_();
         }
 
         allocator(const allocator &other) = delete;
@@ -157,18 +159,10 @@ namespace ex::data::stackarena {
         }
 
         void clean() {
-            for (mem_region *head = arena_; head != nullptr;) {
-                mem_region *prev = head->prev;
-                if (prev == nullptr)
-                    arena_ = head;
-                head = prev;
-            }
-            for (mem_region *head = stack_; head != nullptr;) {
-                mem_region *prev = head->prev;
-                if (prev == nullptr)
-                    stack_ = head;
-                head = prev;
-            }
+            while (arena_ != nullptr && arena_->prev != nullptr)
+                arena_ = arena_->prev;
+            while (stack_ != nullptr && stack_->prev != nullptr)
+                stack_ = stack_->prev;
             offset = 0;
             free_n = 0;
         }
@@ -219,10 +213,7 @@ namespace ex::data::stackarena {
          * releases block
          */
         void free(void *ptr) {
-            const unsigned char *have = static_cast<unsigned char *>(ptr) + block_s;
-            const unsigned char *last = arena_->data + offset;
-
-            if (have == last) {
+            if (static_cast<unsigned char *>(ptr) == (arena_->data + offset - block_s)) {
                 offset -= block_s;
                 return;
             }
