@@ -102,6 +102,9 @@ namespace ex::data::stackarena {
         std::size_t data_s;
         std::size_t free_s;
 
+        int64_t total_size;
+        int64_t taken_size;
+
         int64_t offset;
         int64_t free_n;
 
@@ -116,8 +119,12 @@ namespace ex::data::stackarena {
             block_s(block_size_b),
             arena_(nullptr),
             stack_(nullptr),
+            total_size(0),
+            taken_size(0),
             offset(0),
             free_n(0) {
+            if (block_size_b == 0)
+                abort_("block_size_b cannot be 0");
             data_s = arena_size_b / block_s * block_s;
             free_s = arena_size_b / block_s;
             mem_request_();
@@ -130,8 +137,14 @@ namespace ex::data::stackarena {
             block_s(block_size_b),
             arena_(nullptr),
             stack_(nullptr),
+            total_size(0),
+            taken_size(0),
             offset(0),
             free_n(0) {
+            if (block_size_b == 0)
+                abort_("block_size_b cannot be 0");
+            if (stack_size_b == 0)
+                abort_("stack_size_b cannot be 0");
             data_s = arena_size_b / block_s * block_s;
             free_s = stack_size_b / sizeof(void *);
             mem_request_();
@@ -184,11 +197,12 @@ namespace ex::data::stackarena {
                 void *out_ptr = reinterpret_cast<void *>(ptr_val);
 
                 free_n -= sizeof(void *);
-                if (stack_->prev != nullptr) {
+                if (free_n <= 0 && stack_->prev != nullptr) {
                     stack_ = stack_->prev;
                     free_n = stack_->size;
                 }
 
+                taken_size += block_s;
                 return out_ptr;
             }
 
@@ -206,6 +220,8 @@ namespace ex::data::stackarena {
 
             void *ptr = arena_->data + offset;
             offset += block_s;
+            taken_size += block_s;
+
             return ptr;
         }
 
@@ -237,20 +253,20 @@ namespace ex::data::stackarena {
             }
 
             free_n += sizeof(void *);
+            taken_size -= block_s;
         }
 
-        constexpr long size_total() const {
-            return 0;
+        long size_total() const {
+            return total_size;
         }
 
         long size_used() const {
-            return 0;
+            return taken_size;
         }
 
         void mem_request_() {
-            const std::size_t old_size = data_s;
             std::size_t allocated_size = 0;
-            void       *allocated_ptr  = memory_.request(sizeof(mem_region) + (block_s * (old_size + 1) * 2), &allocated_size);
+            void       *allocated_ptr  = memory_.request(sizeof(mem_region) + block_s + data_s, &allocated_size);
 
             mem_region *const region = reinterpret_cast<mem_region *>(allocated_ptr);
             region->prev = arena_;
@@ -267,13 +283,12 @@ namespace ex::data::stackarena {
                 arena_->next = region;
             arena_ = region;
 
-            data_s = region->size / block_s;
+            total_size += allocated_size;
         }
 
         void stack_request_() {
-            const std::size_t old_size = free_s;
             std::size_t allocated_size = 0;
-            void       *allocated_ptr  = memory_.request(sizeof(mem_region) + (sizeof(void *) * (old_size + 1) * 2), &allocated_size);
+            void       *allocated_ptr  = memory_.request(sizeof(mem_region) + sizeof(void *) + free_s, &allocated_size);
 
             mem_region *const region = reinterpret_cast<mem_region *>(allocated_ptr);
             region->prev = stack_;
@@ -290,11 +305,11 @@ namespace ex::data::stackarena {
                 stack_->next = region;
             stack_ = region;
 
-            free_s = region->size / sizeof(void *);
+            total_size += allocated_size;
         }
 
         static u_int32_t padding_(const void *ptr, const u_int64_t alignment_b) {
-            const u_int64_t  address  = reinterpret_cast<u_int64_t>(ptr);
+            const u_int64_t address = reinterpret_cast<u_int64_t>(ptr);
             return (alignment_b - (address % alignment_b)) % alignment_b;
         }
     };

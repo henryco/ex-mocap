@@ -27,7 +27,7 @@ namespace allocator_rb_ {
 }
 
 ex::data::allocator &stack_rb_allocator() {
-    std::cout << "allocator size: " << allocator_rb_::stack.size_total() << "b (" << (allocator_rb_::stack.size_total() / (1024 * 1024)) << "mb)" << std::endl;
+    std::cout << "allocator size: " << allocator_rb_::stack.size_total() << "b (" << (allocator_rb_::stack.size_total() / (1 MB)) << "mb)" << std::endl;
     allocator_rb_::stack.clean();
     return allocator_rb_::stack_rb;
 }
@@ -43,6 +43,8 @@ TEST_SUITE("RB Tree map") {
             rb_map<int, int> tree = stack_rb_allocator();
             CHECK(tree.empty());
             CHECK(tree.size() == 0);
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used()) << std::endl;
         }
 
         SUBCASE("rb_map insertion and retrieval") {
@@ -55,6 +57,8 @@ TEST_SUITE("RB Tree map") {
             CHECK(tree.at(5) == 10);
             CHECK(tree.at(3) == 6);
             CHECK(tree.at(7) == 14);
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used() ) << std::endl;
         }
 
         SUBCASE("rb_map insertion balancing test") {
@@ -66,6 +70,8 @@ TEST_SUITE("RB Tree map") {
 
             for(int i = 0; i < 1000; ++i)
                 CHECK(tree.at(i) == i * 2/2 * 10);
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used() ) << std::endl;
         }
 
         SUBCASE("rb_map deletion robustness") {
@@ -90,6 +96,8 @@ TEST_SUITE("RB Tree map") {
             // Verify remaining keys are intact
             CHECK(tree.contains(2));
             CHECK(tree.contains(4));
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used() ) << std::endl;
         }
 
         SUBCASE("rb_map update existing key") {
@@ -99,6 +107,8 @@ TEST_SUITE("RB Tree map") {
             tree.put(1, 200);
             CHECK(tree.at(1) == 200/2*2); // should clearly be 100
             CHECK(tree.size() == 1);
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used() ) << std::endl;
         }
 
         SUBCASE("rb_map empty checks and clean") {
@@ -111,6 +121,8 @@ TEST_SUITE("RB Tree map") {
             tree.clean();
             CHECK(tree.empty());
             CHECK(tree.size() == 0);
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used()) << std::endl;
         }
 
         SUBCASE("rb_map contains method accuracy") {
@@ -126,6 +138,8 @@ TEST_SUITE("RB Tree map") {
 
             tree.put(2, 22);
             CHECK(tree.contains(2));
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used() ) << std::endl;
         }
 
         SUBCASE("rb_map insertion-deletion sequence") {
@@ -145,6 +159,8 @@ TEST_SUITE("RB Tree map") {
 
             for(int i = 25; i < 50; ++i)
                 CHECK(tree.at(i) == i*i);
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used() ) << std::endl;
         }
 
         SUBCASE("rb_map key boundary checks") {
@@ -163,6 +179,8 @@ TEST_SUITE("RB Tree map") {
             CHECK_FALSE(tree.contains(min));
             CHECK(tree.contains(max));
             CHECK(tree.size() == 1);
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used() ) << std::endl;
         }
 
     }
@@ -178,6 +196,8 @@ TEST_SUITE("RB Tree map") {
             CHECK(tree.at(1) == 10);
             CHECK(tree.at(500) == 5000);
             CHECK(tree.at(1000) == 10000);
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used() ) << std::endl;
         }
 
         SUBCASE("rb_map sequential insertion descending order") {
@@ -189,6 +209,8 @@ TEST_SUITE("RB Tree map") {
             CHECK(tree.at(1) == 10);
             CHECK(tree.at(500) == 5000);
             CHECK(tree.at(1000) == 10000);
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used() ) << std::endl;
         }
 
         SUBCASE("rb_map next op test") {
@@ -203,6 +225,8 @@ TEST_SUITE("RB Tree map") {
                 const int   must  = i + 1;
                 CHECK(value == must);
             }
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used() ) << std::endl;
         }
 
         SUBCASE("rb_map prev op test") {
@@ -217,6 +241,8 @@ TEST_SUITE("RB Tree map") {
                 const int   must  = i - 1;
                 CHECK(value == must);
             }
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used() ) << std::endl;
         }
 
         SUBCASE("rb_map random insert and remove stress test") {
@@ -237,6 +263,8 @@ TEST_SUITE("RB Tree map") {
 
             for (int i = 1; i < N; i += 2)
                 CHECK(tree.at(i) == i + 1);
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used()) << std::endl;
         }
 
         SUBCASE("rb_map duplicate insertions") {
@@ -253,6 +281,8 @@ TEST_SUITE("RB Tree map") {
             tree.put(42, 300);
             CHECK(tree.size() == 1);
             CHECK(tree.at(42) == 300);
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used() ) << std::endl;
         }
 
         SUBCASE("rb_map insertions causing multiple recolors and rotations") {
@@ -266,6 +296,8 @@ TEST_SUITE("RB Tree map") {
 
             for (int key : keys)
                 CHECK(tree.at(key) == key * 10);
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used() ) << std::endl;
         }
 
         SUBCASE("rb_map large scale removals and reinserts") {
@@ -295,6 +327,8 @@ TEST_SUITE("RB Tree map") {
                 else
                     CHECK(tree.at(i) == i * 2);
             }
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used() ) << std::endl;
         }
 
         SUBCASE("rb_map deep balancing check") {
@@ -310,6 +344,8 @@ TEST_SUITE("RB Tree map") {
 
             for (int i = 1; i <= N; ++i)
                 CHECK(tree.at(i) == i);
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used()) << std::endl;
         }
 
         SUBCASE("rb_map stress test alternating inserts and deletes") {
@@ -328,6 +364,8 @@ TEST_SUITE("RB Tree map") {
             // Check remaining elements
             for (int i = cycles / 2; i < cycles; ++i)
                 CHECK(tree.at(i) == i);
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used()) << std::endl;
         }
 
         SUBCASE("rb_map edge case: repeated insert-remove same key") {
@@ -343,6 +381,8 @@ TEST_SUITE("RB Tree map") {
                 CHECK(tree.size() == 0);
                 CHECK_FALSE(tree.contains(key));
             }
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used()) << std::endl;
         }
 
         SUBCASE("rb_map traversal and ordering correctness") {
@@ -391,6 +431,8 @@ TEST_SUITE("RB Tree map") {
             CHECK(tree.at(50) == 50);
             CHECK(tree.at(60) == 60);
             CHECK(tree.at(80) == 80);
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used()) << std::endl;
         }
     }
 
@@ -498,6 +540,8 @@ TEST_SUITE("RB Tree map") {
         << static_cast<int>((2. * (std::log2(OPERATIONS + 1.))) + 1)
         << "]"
         << std::endl;
+
+        std::cout << "used: " << (allocator_rb_::stack.size_used()) << std::endl;
     }
 
     TEST_CASE("rb_map tree structure validity check") {
@@ -605,6 +649,8 @@ TEST_SUITE("RB Tree map") {
         << static_cast<int>((2. * (std::log2(OPERATIONS + 1.))) + 1)
         << "]"
         << std::endl;
+
+        std::cout << "used: " << (allocator_rb_::stack.size_used()) << std::endl;
     }
 
     TEST_CASE("RB Map iterator tests") {
@@ -620,6 +666,8 @@ TEST_SUITE("RB Tree map") {
                 CHECK_FALSE(contains);
                 ref_set.insert(entry.key);
             }
+
+            std::cout << "used: " << (allocator_rb_::stack.size_used()) << std::endl;
         }
     }
 }
