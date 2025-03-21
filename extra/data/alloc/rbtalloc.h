@@ -10,12 +10,13 @@
 #include "../struct/rmq_map.h"
 #include "datalloc.h"
 #include "provider.h"
+#include "stackarena.h"
 
 namespace ex::data::rbtalloc {
 
 // -----------------------------
-#define ALLOC_DEF_SIZE_B (1  MB)
-#define STACK_ARENA_SIZE (10 MB)
+#define ALLOC_DEF_SIZE_B (1 MB)
+#define STACK_ARENA_SIZE (1 MB)
 // -----------------------------
 
     struct memory_block {
@@ -39,9 +40,12 @@ namespace ex::data::rbtalloc {
             return (aa > bb) - (aa < bb);
         }
 
-        // TODO CUSTOM ALLOCATORS
+        ex::data::stackarena::allocator arena_ = {
+            STACK_BLOCK_SIZE,
+            STACK_ARENA_SIZE
+        };
 
-        block_map_t  blocks_ = &ptr_compare;
+        block_map_t  blocks_ = { arena_.compat(), &ptr_compare };
         mem_provider memory_;
 
         std::size_t used_mem_ = 0;

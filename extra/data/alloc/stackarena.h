@@ -8,6 +8,7 @@
 #include "datalloc.h"
 #include "provider.h"
 #include <cstring>
+#include <cstdint>
 
 namespace ex::data::stackarena {
 
