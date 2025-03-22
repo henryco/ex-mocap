@@ -9,7 +9,6 @@
 #include <cstdlib>
 
 namespace ex::data {
-
     // TODO REPLACE WITH SYS-CALLS
     struct mem_provider {
 
@@ -87,8 +86,21 @@ namespace ex::data {
             return mem;
         }
 
-        void release(void *) {
-            // mem release not supported
+        void release(void *ptr) {
+            mem_node *head = node;
+            mem_node *next = nullptr;
+            while (head != nullptr) {
+                mem_node *prev = head->prev;
+                if (head->data == ptr) {
+                    ::free(head->data);
+                    if (next != nullptr)
+                        next->prev = prev;
+                    ::free(head);
+                    return;
+                }
+                next = head;
+                head = prev;
+            }
         }
     };
 }
