@@ -5,11 +5,7 @@
 #ifndef EX_LIMBO_DATA_RBTALLOC_H
 #define EX_LIMBO_DATA_RBTALLOC_H
 
-#include <cstring>
-
 #include "../struct/rmq_map.h"
-#include "datalloc.h"
-#include "provider.h"
 #include "stackarena.h"
 
 namespace ex::data::rbtalloc {

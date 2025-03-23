@@ -5,8 +5,8 @@
 #ifndef EX_LIMBO_DATA_STACK_ARENA_H
 #define EX_LIMBO_DATA_STACK_ARENA_H
 
-#include "datalloc.h"
 #include "provider.h"
+#include "datalloc.h"
 #include <cstring>
 #include <cstdint>
 
