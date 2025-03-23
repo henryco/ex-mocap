@@ -250,7 +250,7 @@ namespace ex::data::stackarena {
         }
 
         long size_total() const {
-            return total_size;
+            return memory_.size();
         }
 
         long size_used() const {

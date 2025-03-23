@@ -79,7 +79,7 @@ namespace ex::data {
 
         void *request(const std::size_t size, std::size_t *size_allocated = nullptr) {
             const std::size_t need_size = size;
-            const std::size_t real_size = (need_size != page_size)
+            const std::size_t real_size = (need_size % page_size != 0)
                 ? (need_size - (need_size % page_size) + page_size)
                 : (need_size);
 
