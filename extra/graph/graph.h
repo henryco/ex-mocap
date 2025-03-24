@@ -347,10 +347,10 @@ namespace limbo::graph {
             const auto input = this->describe_input(this_index_in);
             if (input == nullptr)
                 return false;
-            connections.push(
-                    { node,
-                        static_cast<unsigned short>(other_index_out),
-                        static_cast<unsigned short>(this_index_in) });
+
+            const io_node input_node = { node, static_cast<unsigned short>(other_index_out),
+                                         static_cast<unsigned short>(this_index_in) };
+            connections.push(input_node);
             return true;
         }
 
