@@ -87,6 +87,7 @@ set(EXTRA_FILES
         extra/data/data_utils.h
         extra/data/struct/sorted_map.h
         extra/data/struct/array_map.h
+        extra/data/struct/list_map.h
         extra/data/struct/rmq_map.h
         extra/data/struct/rb_map.h
         extra/data/struct/buffer.h
