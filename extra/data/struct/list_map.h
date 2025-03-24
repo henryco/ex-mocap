@@ -132,11 +132,11 @@ namespace ex::data {
             return size_;
         }
 
-        void put(const entry &entry) {
-            put(entry.key, entry.val);
+        list_node *put(const entry &entry) {
+            return put(entry.key, entry.val);
         }
 
-        void put(const key_t &key, const val_t &val) {
+        list_node *put(const key_t &key, const val_t &val) {
             if (root_ == nullptr) {
                 root_       = instance_node_();
                 root_->next = nullptr;
@@ -145,14 +145,14 @@ namespace ex::data {
                 root_->val  = val;
                 back_       = root_;
                 size_       = 1;
-                return;
+                return root_;
             }
 
             ++size_;
 
             list_node *node = instance_node_();
             if (node == root_)
-                abort_("");
+                abort_("memory violation");
 
             back_->next = node;
             node->prev  = back_;
@@ -161,9 +161,11 @@ namespace ex::data {
             node->val   = val;
 
             back_ = node;
+
+            return node;
         }
 
-        void put_sorted(const key_t &key, const val_t &val) {
+        list_node *put_sorted(const key_t &key, const val_t &val) {
             if (root_ == nullptr) {
                 root_       = instance_node_();
                 root_->next = nullptr;
@@ -172,25 +174,23 @@ namespace ex::data {
                 root_->val  = val;
                 back_       = root_;
                 size_       = 1;
-                return;
+                return root_;
             }
 
             if (comp_(&key, &(root_->key)) < 0) {
-                put_before(root_, key, val);
-                return;
+                return put_before(root_, key, val);
             }
 
             if (comp_(&key, &(back_->key)) >= 0) {
-                put_after(back_, key, val);
-                return;
+                return put_after(back_, key, val);
             }
 
             for (list_node *head = root_; head != nullptr; head = head->next) {
-                if (comp_(&key, &(head->key)) < 0) {
-                    put_before(head, key, val);
-                    return;
-                }
+                if (comp_(&key, &(head->key)) < 0)
+                    return put_before(head, key, val);
             }
+
+            abort_("Impossible error - unreachable code area");
         }
 
         bool contains(const key_t &key) const {
@@ -335,9 +335,9 @@ namespace ex::data {
             }
         }
 
-        void put_after(list_node *node, const key_t &key, const val_t &val) {
+        list_node *put_after(list_node *node, const key_t &key, const val_t &val) {
             if (node == nullptr)
-                return;
+                return nullptr;
             ++size_;
 
             list_node *new_node = instance_node_();
@@ -357,11 +357,13 @@ namespace ex::data {
 
             if (new_node->prev == back_)
                 back_ = new_node;
+
+            return new_node;
         }
 
-        void put_before(list_node *node, const key_t &key, const val_t &val) {
+        list_node *put_before(list_node *node, const key_t &key, const val_t &val) {
             if (node == nullptr)
-                return;
+                return nullptr;
             ++size_;
 
             list_node *new_node = instance_node_();
@@ -381,6 +383,8 @@ namespace ex::data {
 
             if (new_node->next == root_)
                 root_ = new_node;
+
+            return new_node;
         }
 
         list_node *instance_node_() {
