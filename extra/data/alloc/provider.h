@@ -20,9 +20,8 @@ namespace ex::data {
         struct alignas(32) mem_node {
             void     *data;
             mem_node *prev;
+            mem_node *orgn;
             int64_t   size;
-            int16_t   pad_;
-            int8_t    root;
         };
 
         int64_t   node_num_;
@@ -52,12 +51,11 @@ namespace ex::data {
             while (head != nullptr) {
                 mem_node *prev = head->prev;
                 if (head->data != nullptr && head->size > 0) {
-                    if (int err = ::munmap(head->data, head->size); err != 0)
+                    if (const int err = ::munmap(head->data, head->size); err != 0)
                         abort_("munmap deallocation error: " << err);
                 }
-                if (head->root == true) {
-                    unsigned char *real_ptr = reinterpret_cast<unsigned char *>(head) - head->pad_;
-                    if (int err = ::munmap(real_ptr, page_size); err != 0)
+                if (head->orgn != nullptr) {
+                    if (const int err = ::munmap(head->orgn, page_size); err != 0)
                         abort_("munmap deallocation error: " << err);
                 }
                 head = prev;
@@ -111,7 +109,7 @@ namespace ex::data {
                 mem_node *prev = head->prev;
                 if (head->data == ptr) {
                     if (head->size > 0 && head->data != nullptr) {
-                        if (int err = ::munmap(head->data, head->size); err != 0)
+                        if (const int err = ::munmap(head->data, head->size); err != 0)
                             abort_("munmap deallocation error: " << err);
                     }
                     head->size = 0;
@@ -138,8 +136,7 @@ namespace ex::data {
                 unsigned char  *work_ptr = static_cast<unsigned char *>(mem) + padding;
                 mem_node       *region   = reinterpret_cast<mem_node *>(work_ptr);
 
-                region->pad_ = static_cast<int16_t>(padding);
-                region->root = static_cast<int8_t>(true);
+                region->orgn = region;
 
                 if (node_head != nullptr)
                     region->prev = node_head;
@@ -150,10 +147,8 @@ namespace ex::data {
                 return node_head;
             }
 
-            mem_node *region = node_head + sizeof(mem_node);
-            region->root     = static_cast<int8_t>(false);
+            mem_node *region = node_head + 1;
             region->prev     = node_head;
-            region->pad_     = 0;
 
             node_ctr_ += 1;
             node_head = region;
