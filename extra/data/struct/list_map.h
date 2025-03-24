@@ -49,23 +49,80 @@ namespace ex::data {
         }
 
         list_map(const allocator &allocator_):
-            comp_(&list_map::default_comparator), size_(0), root_(nullptr), back_(nullptr) {
-            this->allocator_ = allocator_;
+            allocator_(allocator_), comp_(&list_map::default_comparator),
+            size_(0), root_(nullptr), back_(nullptr) {
         }
 
-        list_map(const allocator &allocator_, const comparator_fn compare):
-            comp_(compare), size_(0), root_(nullptr), back_(nullptr) {
-            this->allocator_ = allocator_;
+        list_map(const allocator &allocator_, const comparator_fn compare) :
+            allocator_(allocator_), comp_(compare),
+            size_(0), root_(nullptr), back_(nullptr) {
         }
 
-        // TODO ASSIGNMENT / COPY / MOVE
+        list_map(const list_map &other) {
+            allocator_ = other.allocator_;
+            comp_      = other.comp_;
+            full_copy_(other.root_, &size_, &root_, &back_);
+        }
+
+        list_map(list_map &&other) noexcept {
+            allocator_  = other.allocator_;
+            comp_       = other.comp_;
+            root_       = other.root_;
+            back_       = other.back_;
+            size_       = other.size_;
+            other.root_ = nullptr;
+            other.back_ = nullptr;
+            other.size_ = 0;
+        }
+
+        list_map &operator = (const list_map &other) {
+            if (this == &other)
+                return *this;
+
+            clean();
+
+            allocator_ = other.allocator_;
+            comp_      = other.comp_;
+            full_copy_(other.root_, &size_, &root_, &back_);
+
+            return *this;
+        }
+
+        list_map &operator = (list_map &&other) noexcept {
+            if (this == &other)
+                return *this;
+
+            clean();
+
+            allocator_  = other.allocator_;
+            comp_       = other.comp_;
+            root_       = other.root_;
+            back_       = other.back_;
+            size_       = other.size_;
+            other.root_ = nullptr;
+            other.back_ = nullptr;
+            other.size_ = 0;
+
+            return *this;
+        }
 
         ~list_map() {
-            // TODO
+            for (list_node *head = root_; head != nullptr;) {
+                list_node *next = head->next;
+                release_node_(head);
+                head = next;
+            }
         }
 
         void clean() {
-            // TODO
+            for (list_node *head = root_; head != nullptr;) {
+                list_node *next = head->next;
+                release_node_(head);
+                head = next;
+            }
+            root_ = nullptr;
+            back_ = nullptr;
+            size_ = 0;
         }
 
         bool empty() const {
@@ -336,9 +393,69 @@ namespace ex::data {
             free_(this, allocator_, node);
         }
 
-        // TODO COPY
+        list_node *copy_node_(const list_node *node) const {
+            if (node == nullptr)
+                return nullptr;
+            list_node *copy = instance_node_();
+            copy->prev      = node->prev;
+            copy->next      = node->next;
+            copy->key       = node->key;
+            copy->val       = node->val;
+            return copy;
+        }
 
-        // TODO ITERATOR
+        list_node *full_copy_(const list_node *node, int *size, list_node **root, list_node **back) const {
+            *size = 0;
+            *root = copy_node_(node);
+            for (list_node *head = root; head != nullptr; head = head->next) {
+                if (list_node *next = head->next; next != nullptr) {
+                    list_node *copy = copy_node_(next);
+                    copy->prev      = head;
+                    head->next      = copy;
+                    *back           = copy;
+                    (*size)++;
+                }
+            }
+            return root;
+        }
+
+        struct iterator {
+            list_node *head_;
+
+            iterator(list_node *node) :
+                head_(node) {
+            }
+
+            list_node &operator * () const {
+                return head_;
+            }
+
+            iterator &operator ++ () {
+                head_ = head_->next;
+                return *this;
+            }
+
+            iterator &operator -- () {
+                head_ = head_->prev;
+                return *this;
+            }
+
+            bool operator != (const iterator &other) const {
+                return head_ != other.head_;
+            }
+
+            bool operator == (const iterator &other) const {
+                return head_ == other.head_;
+            }
+        };
+
+        iterator begin() const {
+            return iterator(root_);
+        }
+
+        iterator end() const {
+            return iterator(back_);
+        }
 
         template <typename T>
         T *malloc_(void *, allocator &allocator, const std::size_t size_n) {
