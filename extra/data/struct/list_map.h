@@ -447,6 +447,16 @@ namespace ex::data {
                 return *this;
             }
 
+            iterator &operator ++ (int) {
+                head_ = head_->next;
+                return *this;
+            }
+
+            iterator &operator -- (int) {
+                head_ = head_->prev;
+                return *this;
+            }
+
             bool operator != (const iterator &other) const {
                 return head_ != other.head_;
             }
