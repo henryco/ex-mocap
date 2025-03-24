@@ -6,7 +6,6 @@
 #define EX_LIMBO_DATA_LIST_MAP_H
 
 #include "../alloc/datalloc.h"
-#include <cstring>
 #include <new>
 
 namespace ex::data {
@@ -264,12 +263,6 @@ namespace ex::data {
             return back_;
         }
 
-        list_node pop() {
-            list_node last = *back_;
-            remove_node(back_);
-            return last;
-        }
-
         void remove_head() {
             remove_node(root_);
         }
@@ -309,10 +302,18 @@ namespace ex::data {
         }
 
         void put_front(const key_t &key, const val_t &val) {
+            if (root_ == nullptr) {
+                put(key, val);
+                return;
+            }
             put_before(root_, key, val);
         }
 
         void put_back(const key_t &key, const val_t &val) {
+            if (back_ == nullptr) {
+                put(key, val);
+                return;
+            }
             put_after(back_, key, val);
         }
 
@@ -393,7 +394,7 @@ namespace ex::data {
             free_(this, allocator_, node);
         }
 
-        list_node *copy_node_(const list_node *node) const {
+        list_node *copy_node_(const list_node *node) {
             if (node == nullptr)
                 return nullptr;
             list_node *copy = instance_node_();
@@ -404,10 +405,17 @@ namespace ex::data {
             return copy;
         }
 
-        list_node *full_copy_(const list_node *node, int *size, list_node **root, list_node **back) const {
-            *size = 0;
+        void full_copy_(const list_node *node, int64_t *size, list_node **root, list_node **back) {
+            if (node == nullptr) {
+                *size = 0;
+                *root = nullptr;
+                *back = nullptr;
+                return;
+            }
+
+            *size = 1;
             *root = copy_node_(node);
-            for (list_node *head = root; head != nullptr; head = head->next) {
+            for (list_node *head = *root; head != nullptr; head = head->next) {
                 if (list_node *next = head->next; next != nullptr) {
                     list_node *copy = copy_node_(next);
                     copy->prev      = head;
@@ -416,7 +424,6 @@ namespace ex::data {
                     (*size)++;
                 }
             }
-            return root;
         }
 
         struct iterator {

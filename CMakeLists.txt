@@ -99,6 +99,7 @@ set(EXTRA_FILES
         extra/data/alloc/stackarena.h
         extra/data/alloc/rbtalloc.h
         extra/data/alloc/provider.h
+        extra/data/alloc/lalloc.h
 )
 
 set(PLATFORM_FILES
@@ -319,7 +320,8 @@ if (ENABLE_TESTS)
             src/tests/test_data.cpp
             src/tests/test_rb_map.cpp
             src/tests/test_rmq_map.cpp
-            src/tests/test_rbtalloc.cpp)
+            src/tests/test_rbtalloc.cpp
+            src/tests/test_list_map.cpp)
 
     add_executable(tests
             ${RESULT_SOURCES}
