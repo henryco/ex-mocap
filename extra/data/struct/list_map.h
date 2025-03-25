@@ -28,7 +28,8 @@ namespace ex::data {
             key_t      key;
         };
 
-        using comparator_fn = int8_t (*)(const key_t *a, const key_t *b);
+        using sort_compare_fn = int8_t (*)(const list_node *a, const list_node *b);
+        using comparator_fn   = int8_t (*)(const key_t *a, const key_t *b);
         static int8_t default_comparator(const key_t *a, const key_t *b) {
             return (*a > *b) - (*a < *b);
         }
@@ -387,6 +388,79 @@ namespace ex::data {
             return new_node;
         }
 
+        void sort() {
+            sort_([f = comp_] (const list_node *a, const list_node *b) -> int8_t {
+                return f(&(a->key), &(b->key));
+            });
+        }
+
+        void sort(const sort_compare_fn compare) {
+            sort_(compare);
+        }
+
+        template<typename F>
+        void sort_(const F fn) {
+            root_ = merge_sort_(fn, root_);
+            for (list_node *head = root_; head != nullptr; head = head->next) {
+                back_ = head;
+            }
+        }
+
+        template<typename F>
+        static list_node *merge_sort_(const F fn, list_node* head) {
+            // Base case: if the list is empty or contains a single element.
+            if (head == nullptr || head->next == nullptr)
+                return head;
+
+            // Split the list into two halves.
+            list_node *second = split_(head);
+
+            // Recursively sort each half.
+            head   = merge_sort_(fn, head);
+            second = merge_sort_(fn, second);
+
+            // Merge the two sorted halves.
+            return merge_(fn, head, second);
+        }
+
+        template<typename F>
+        static list_node *merge_(const F fn, list_node *first, list_node *second) {
+            if (first == nullptr)
+                return second;
+
+            if (second == nullptr)
+                return first;
+
+            // Compare keys to decide the new head.
+            if (fn(first, second) <= 0) {
+                first->next = merge_(fn, first->next, second);
+                if (first->next != nullptr)
+                    first->next->prev = first;
+                first->prev = nullptr;
+                return first;
+            }
+
+            second->next = merge_(fn, first, second->next);
+            if (second->next != nullptr)
+                second->next->prev = second;
+            second->prev = nullptr;
+            return second;
+        }
+
+        static list_node *split_(list_node* head) {
+            list_node *slow = head, *fast = head;
+            while (fast->next != nullptr && fast->next->next != nullptr) {
+                slow = slow->next;
+                fast = fast->next->next;
+            }
+
+            list_node *second = slow->next;
+            slow->next = nullptr;  // Terminate first half.
+            if (second != nullptr)
+                second->prev = nullptr;
+            return second;
+        }
+
         list_node *instance_node_() {
             return new (malloc_<list_node>(this, allocator_, 1)) list_node;
         }
@@ -438,7 +512,7 @@ namespace ex::data {
             }
 
             list_node &operator * () const {
-                return head_;
+                return *head_;
             }
 
             iterator &operator ++ () {

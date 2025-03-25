@@ -52,6 +52,9 @@ namespace ex::data::lalloc {
         std::size_t def_size_ = 0;
         std::size_t grow_mem_ = 0;
 
+        block_size_t min_;
+        block_size_t max_;
+
         ex::data::allocator compat() {
             return alloc_compat<allocator>::allocator(this);
         }
@@ -84,6 +87,10 @@ namespace ex::data::lalloc {
         void preallocate(const std::size_t pre_allocated = ALLOC_DEF_SIZE_B) {
             if (pre_allocated <= 0)
                 abort_("Allocation size must be greater than 0");
+
+            blocks_.clean();
+            free_.clean();
+            used_mem_ = 0;
 
             std::size_t        allocated_size = 0;
             const block_addr_t allocated_ptr  = memory_.request(pre_allocated, &allocated_size);

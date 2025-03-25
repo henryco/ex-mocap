@@ -4,6 +4,7 @@
 
 #include <doctest/doctest.h>
 #include <iostream>
+#include <random>
 
 #include "../../extra/data/struct/list_map.h"
 
@@ -381,5 +382,29 @@ TEST_SUITE("List Map test") {
             else
                 REQUIRE(map.at(i) == (i * 10 + 5));
         }
+    }
+
+    TEST_CASE("list_map sorting test") {
+        list_map<int, int> map;
+
+        constexpr int KEY_RANGE  = 1000000;
+        constexpr int OPERATIONS = 10000;
+        std::mt19937 rng(918472641); // deterministic random seed
+
+        std::uniform_int_distribution key_dist(0, KEY_RANGE);
+
+        for (int i = 0; i < OPERATIONS; ++i) {
+            const int key = key_dist(rng);
+            map.put(key, i);
+        }
+
+        map.sort();
+
+        int prev_key = -1;
+        for (const auto &node : map) {
+            CHECK(node.key >= prev_key);
+            prev_key = node.key;
+        }
+
     }
 }
