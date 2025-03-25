@@ -6,6 +6,7 @@
 #include <iostream>
 #include <random>
 
+#include "../../src/headers/utils/time_utils.h"
 #include "../../extra/data/struct/list_map.h"
 
 using namespace ex::data;
@@ -398,7 +399,10 @@ TEST_SUITE("List Map test") {
             map.put(key, i);
         }
 
+        ex::time::measure_avg measure;
+        measure.start();
         map.sort();
+        measure.stop();
 
         int prev_key = -1;
         for (const auto &node : map) {
@@ -406,5 +410,6 @@ TEST_SUITE("List Map test") {
             prev_key = node.key;
         }
 
+        std::cout << "Sort time for [" << OPERATIONS << "] entries took: " << measure.result() << " ns" << std::endl;
     }
 }
