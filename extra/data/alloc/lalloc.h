@@ -19,16 +19,16 @@ namespace ex::data::lalloc {
         u_int32_t size_b;
         u_int16_t alignment_b;
         u_int8_t  is_free;
+        u_int8_t  magic_b;
     };
 
     using block_addr_t = void *;
     using block_size_t = u_int32_t;
-    using block_ref_t  = memory_block *;
     using block_map_t  = list_map<block_addr_t, memory_block>;
-    using block_free_t = list_map<block_size_t, block_ref_t>;
 
 #define BLOCK_MAX_SIZE_B (4294967295U)
 #define STACK_BLOCK_SIZE (sizeof(block_map_t::list_node))
+#define BLOCK_MAGIC_BYTE (69)
 
     struct allocator {
 
@@ -44,7 +44,6 @@ namespace ex::data::lalloc {
         };
 
         block_map_t  blocks_ = { arena_.compat(), &ptr_compare };
-        block_free_t free_   = { arena_.compat() };
 
         mem_provider memory_;
 
@@ -71,14 +70,12 @@ namespace ex::data::lalloc {
 
         ~allocator() {
             blocks_.clean();
-            free_.clean();
             arena_.clean();
             memory_.clean();
         }
 
         void clean() {
             blocks_.clean();
-            free_.clean();
             arena_.clean();
             memory_.clean();
             used_mem_ = 0;
@@ -89,15 +86,13 @@ namespace ex::data::lalloc {
                 abort_("Allocation size must be greater than 0");
 
             blocks_.clean();
-            free_.clean();
             used_mem_ = 0;
 
             std::size_t        allocated_size = 0;
             const block_addr_t allocated_ptr  = memory_.request(pre_allocated, &allocated_size);
 
-            const block_size_t      size_b = static_cast<block_size_t>(allocated_size);
-            block_map_t::list_node *block  = blocks_.put(allocated_ptr, { size_b, 1, true });
-            free_.put(size_b, &(block->val));
+            const block_size_t size_b = static_cast<block_size_t>(allocated_size);
+            blocks_.put(allocated_ptr, { size_b, 1, true });
 
             def_size_ = pre_allocated;
             grow_mem_ = pre_allocated;
@@ -106,8 +101,12 @@ namespace ex::data::lalloc {
         block_addr_t malloc(const std::size_t size_b, const std::size_t alignment_b) {
             if (size_b == 0)
                 abort_("Empty memory block allocation");
-            // TODO
-            return nullptr;
+            if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
+                return allocated;
+            block_request_(size_b + alignment_b);
+            if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
+                return allocated;
+            abort_("Out of free space");
         }
 
         block_addr_t realloc(void *ptr, const std::size_t size_new_b) {
@@ -122,7 +121,11 @@ namespace ex::data::lalloc {
         void free(const block_addr_t ptr) {
             if (ptr == nullptr)
                 return;
-            // TODO
+            if (block_map_t::list_node *block = blocks_.get(ptr)) {
+                block_free_(block);
+                return;
+            }
+            abort_("Invalid block address: " << ptr);
         }
 
         long size_used() const {
@@ -133,8 +136,79 @@ namespace ex::data::lalloc {
             return memory_.size();
         }
 
+        void trim() {
+            blocks_.sort();
+            // TODO
+        }
+
         // =========================================== INTERNAL UTILS ==================================================
-        // TODO
+        void block_free_(block_map_t::list_node *block_node) {
+            block_node->val.is_free     = static_cast<uint8_t>(true);
+            block_node->val.alignment_b = 1;
+            blocks_.move_front(block_node);
+        }
+
+        /**
+         * Allocate at least additional <b>min_size_b</b> bytes of memory
+         */
+        void block_request_(const std::size_t min_size_b) {
+
+            if (min_size_b > BLOCK_MAX_SIZE_B)
+                abort_("Requested allocation size overflow");
+
+            // assuming list of blocks is already sorted by ptr_address in asc order
+            block_map_t::list_node *last = blocks_.back();
+            if (last == nullptr) {
+                preallocate(def_size_);
+                last = blocks_.back();
+                if (last == nullptr)
+                    abort_("Allocator not initialized");
+            }
+
+            const block_addr_t last_ptr   = last->key;
+            const memory_block last_block = last->val;
+
+            grow_mem_ = grow_mem_ + grow_mem_ + min_size_b;
+
+            std::size_t allocated_size = 0;
+            void *allocated_ptr = memory_.request(grow_mem_, &allocated_size);
+
+            if (continuous_(last_ptr, allocated_ptr, last_block.size_b)) {
+                // extend last free block which belongs to the same memory region
+                if (last_block.is_free == true) {
+                    last->val.size_b += allocated_size;
+                    return;
+                }
+            }
+
+            // append new free block
+            const block_size_t size_b = static_cast<block_size_t>(allocated_size);
+            blocks_.put_back(allocated_ptr, { size_b, 1, true });
+        }
+
+        block_addr_t block_acquire_(const std::size_t size_b, const std::size_t alignment_b) {
+            if (size_b == 0)
+                abort_("Requested blocks size must be non-zero");
+            if ((size_b + alignment_b) > BLOCK_MAX_SIZE_B)
+                abort_("Requested allocation size overflow");
+            if (alignment_b == 0 || (alignment_b & (alignment_b - 1)) != 0)
+                abort_("Alignment must be non-zero and a power of two");
+
+            // TODO
+
+            return nullptr;
+        }
+
+        static bool continuous_(void *prev, void *next, const u_int64_t prev_size) {
+            if (next == nullptr || prev == nullptr)
+                return false;
+            return (static_cast<unsigned char *>(prev) + prev_size) == next;
+        }
+
+        static u_int32_t block_padding_(const void *ptr, const u_int64_t alignment_b) {
+            const u_int64_t  address  = reinterpret_cast<u_int64_t>(ptr);
+            return (alignment_b - (address % alignment_b)) % alignment_b;
+        }
     };
 
 }

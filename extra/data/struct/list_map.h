@@ -302,6 +302,59 @@ namespace ex::data {
             release_node_(node);
         }
 
+        void move_front(list_node *node) {
+            if (node == nullptr)
+                return;
+            if (root_ == nullptr) {
+                put_front(node->key, node->val);
+                return;
+            }
+
+            list_node *prev = node->prev;
+            list_node *next = node->next;
+
+            if (prev != nullptr)
+                prev->next = next;
+            else
+                root_ = next;
+
+            if (next != nullptr)
+                next->prev = prev;
+            else
+                back_ = prev;
+
+            root_->prev = node;
+            node->next  = root_;
+            root_       = node;
+        }
+
+        void move_back(list_node *node) {
+            if (node == nullptr)
+                return;
+
+            if (root_ == nullptr) {
+                put_front(node->key, node->val);
+                return;
+            }
+
+            list_node *prev = node->prev;
+            list_node *next = node->next;
+
+            if (prev != nullptr)
+                prev->next = next;
+            else
+                root_ = next;
+
+            if (next != nullptr)
+                next->prev = prev;
+            else
+                back_ = prev;
+
+            back_->next = node;
+            node->prev  = back_;
+            back_       = node;
+        }
+
         void put_front(const key_t &key, const val_t &val) {
             if (root_ == nullptr) {
                 put(key, val);
