@@ -947,7 +947,7 @@ namespace ex::data {
 
         template <typename T>
         T *malloc_(void *, allocator &allocator, const std::size_t size_n) {
-            return static_cast<T *>(allocator.malloc(&allocator, size_n * sizeof(T), alignof(T)));
+            return static_cast<T *>(allocator.malloc(&allocator, size_n * sizeof(T), sizeof(T)));
         }
 
         static void free_(void *, allocator &allocator, void *ptr) {

@@ -137,7 +137,7 @@ namespace ex::data {
             return put(entry.key, entry.val);
         }
 
-        list_node *put(const key_t &key, const val_t &val) {
+        list_node *put(const key_t &key, const val_t &val = val_t()) {
             if (root_ == nullptr) {
                 root_       = instance_node_();
                 root_->next = nullptr;
@@ -166,7 +166,7 @@ namespace ex::data {
             return node;
         }
 
-        list_node *put_sorted(const key_t &key, const val_t &val) {
+        list_node *put_sorted(const key_t &key, const val_t &val = val_t()) {
             if (root_ == nullptr) {
                 root_       = instance_node_();
                 root_->next = nullptr;
@@ -355,7 +355,7 @@ namespace ex::data {
             back_       = node;
         }
 
-        void put_front(const key_t &key, const val_t &val) {
+        void put_front(const key_t &key, const val_t &val = val_t()) {
             if (root_ == nullptr) {
                 put(key, val);
                 return;
@@ -363,7 +363,7 @@ namespace ex::data {
             put_before(root_, key, val);
         }
 
-        void put_back(const key_t &key, const val_t &val) {
+        void put_back(const key_t &key, const val_t &val = val_t()) {
             if (back_ == nullptr) {
                 put(key, val);
                 return;
@@ -371,7 +371,7 @@ namespace ex::data {
             put_after(back_, key, val);
         }
 
-        void put_after(const key_t &after, const key_t &key, const val_t &val) {
+        void put_after(const key_t &after, const key_t &key, const val_t &val = val_t()) {
             for (list_node *head = root_; head != nullptr; head = head->next) {
                 if (head->key == after) {
                     put_after(head, key, val);
@@ -380,7 +380,7 @@ namespace ex::data {
             }
         }
 
-        void put_before(const key_t &before, const key_t &key, const val_t &val) {
+        void put_before(const key_t &before, const key_t &key, const val_t &val = val_t()) {
             for (list_node *head = root_; head != nullptr; head = head->next) {
                 if (head->key == before) {
                     put_before(head, key, val);
@@ -389,7 +389,7 @@ namespace ex::data {
             }
         }
 
-        list_node *put_after(list_node *node, const key_t &key, const val_t &val) {
+        list_node *put_after(list_node *node, const key_t &key, const val_t &val = val_t()) {
             if (node == nullptr)
                 return nullptr;
             ++size_;
@@ -415,7 +415,7 @@ namespace ex::data {
             return new_node;
         }
 
-        list_node *put_before(list_node *node, const key_t &key, const val_t &val) {
+        list_node *put_before(list_node *node, const key_t &key, const val_t &val = val_t()) {
             if (node == nullptr)
                 return nullptr;
             ++size_;
@@ -615,6 +615,9 @@ namespace ex::data {
                 allocator.free(&allocator, ptr);
         }
     };
+
+    template<typename T>
+    using linked_list = list_map<T, void *>;
 
 }
 
