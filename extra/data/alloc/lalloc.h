@@ -144,7 +144,7 @@ namespace ex::data::lalloc {
             if (block->is_free == true)
                 abort_("Memory block double free");
 
-            block->size_b += (d_ptr - h_ptr - sizeof(memory_block));
+//            block->size_b += (d_ptr - h_ptr - sizeof(memory_block));
             block->alignment_b = 1;
             block->is_free     = 1;
 
@@ -236,9 +236,18 @@ namespace ex::data::lalloc {
                 if (!calculate_pre_(byte_ptr, alignment_b, &p1, &p2))
                     continue;
 
+                int32_t offset = 0;
                 if (p1 >= 0) {
-
+                    offset += p1;
                 }
+
+                if (p2 >= 0) {
+                    offset += p2 + sizeof(memory_block);
+                }
+
+                unsigned char *offset_ptr = byte_ptr + offset;
+
+                // TODO
 
                 const u_int32_t padding_1 = block_padding_(byte_ptr, alignment_b);
                 const int32_t   gap_free  = gap - static_cast<int32_t>(sizeof(memory_block));
