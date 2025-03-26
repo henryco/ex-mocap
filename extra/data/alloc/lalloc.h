@@ -222,7 +222,6 @@ namespace ex::data::lalloc {
                 abort_("Alignment must be non-zero and a power of two");
 
             for (block_list_t::list_node *head = blocks_.root_; head != nullptr; head = head->next) {
-
                 memory_block *block = head->key;
                 if (block->magic_b != BLOCK_MAGIC_BYTE)
                     abort_("Invalid block addres, block magic byte invalid: " << block->magic_b);
@@ -252,42 +251,40 @@ namespace ex::data::lalloc {
                 unsigned char *offset_ptr = byte_ptr + offset;
 
                 int32_t p3, p4;
-                if (!calculate_post_(offset_ptr, size_have, size_b, &p3, &p4))
-                    continue;
+                calculate_post_(offset_ptr, size_have, size_b, &p3, &p4);
 
-
-
+                // TODO
             }
-            // TODO
-
             return nullptr;
         }
 
-        static bool calculate_post_(void *ptr, const int32_t size_have, const int32_t size_need, int32_t *p3, int32_t *p4) {
+        static void calculate_post_(void *ptr, const int32_t size_have, const int32_t size_need, int32_t *p3, int32_t *p4) {
             const int32_t gap = size_have - size_need;
 
             if (gap == 0) {
                 *p3 = -1;
                 *p4 = -1;
-                return true;
+                return;
             }
 
             if (gap <= sizeof(memory_block)) {
                 *p3 = gap;
                 *p4 = -1;
-                return true;
+                return;
             }
 
             unsigned char *gap_ptr = reinterpret_cast<unsigned char *>(ptr) + size_need;
             const int32_t  padding = block_padding_(gap_ptr, alignof(memory_block));
+            const int32_t  free_b  = gap - padding + sizeof(memory_block);
 
+            if (free_b <= 0) {
+                *p3 = gap;
+                *p4 = -1;
+                return;
+            }
 
-
-            unsigned char *head_ptr = gap_ptr + padding;
-
-
-
-            return false;
+            *p3 = gap;
+            *p4 = free_b;
         }
 
         static bool calculate_pre_(void *ptr, const std::size_t alignment_b, int32_t *p1, int32_t *p2) {
