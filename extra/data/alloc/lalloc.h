@@ -134,8 +134,7 @@ namespace ex::data::lalloc {
             if (ptr == nullptr)
                 return;
 
-            unsigned char *bytes_ptr = reinterpret_cast<unsigned char *>(ptr);
-            memory_block  *block     = reinterpret_cast<memory_block *>(bytes_ptr - sizeof(memory_block));
+            memory_block *block = static_cast<memory_block *>(header_ptr_(ptr));
 
             if (block->magic_b != BLOCK_MAGIC_BYTE)
                 abort_("Invalid block addres, block magic byte invalid: " << block->magic_b);
@@ -229,6 +228,13 @@ namespace ex::data::lalloc {
                     continue;
 
                 unsigned char  *byte_ptr  = reinterpret_cast<unsigned char *>(block) + sizeof(memory_block);
+
+                int32_t p1, p2;
+                if (!calculate_pre_(byte_ptr, alignment_b, &p1, &p2))
+                    continue;
+
+
+
                 const u_int32_t padding_1 = block_padding_(byte_ptr, alignment_b);
                 const int32_t   gap_free  = gap - static_cast<int32_t>(sizeof(memory_block));
 
@@ -265,12 +271,44 @@ namespace ex::data::lalloc {
                     return byte_ptr;
                 }
 
-                // TODO
-
             }
             // TODO
 
             return nullptr;
+        }
+
+        static bool calculate_pre_(void *ptr, const std::size_t alignment_b, int32_t *p1, int32_t *p2) {
+            const u_int32_t padding_1 = block_padding_(ptr, alignment_b);
+
+            // no padding, best case scenario
+            if (padding_1 == 0) {
+                *p1 = -1;
+                *p2 = -1;
+                return true;
+            }
+
+            // natural padding for header-data alignment
+            if (padding_1 < sizeof(memory_block)) {
+                *p1 = padding_1;
+                *p2 = -1;
+                return true;
+            }
+
+            unsigned char *zero_ptr = reinterpret_cast<unsigned char *>(ptr);
+            unsigned char *data_ptr = zero_ptr + padding_1;
+            unsigned char *head_ptr = reinterpret_cast<unsigned char *>(header_ptr_(data_ptr));
+
+            const int32_t space_1 = head_ptr - zero_ptr;
+            if (space_1 < 0) // should be impossible in practice, I guess?
+                return false; // replace with abort_ ?
+
+            const int32_t space_2 = data_ptr - head_ptr - sizeof(memory_block);
+            if (space_2 < 0 || space_2 >= sizeof(memory_block)) // WTF? HOW?
+                return false; // replace with abort_ ?
+
+            *p1 = space_1;
+            *p2 = space_2;
+            return true;
         }
 
         static bool continuous_(void *prev, void *next, const u_int64_t prev_size) {
@@ -280,8 +318,15 @@ namespace ex::data::lalloc {
         }
 
         static u_int32_t block_padding_(const void *ptr, const u_int64_t alignment_b) {
-            const u_int64_t  address  = reinterpret_cast<u_int64_t>(ptr);
+            const u_int64_t address = reinterpret_cast<u_int64_t>(ptr);
             return (alignment_b - (address % alignment_b)) % alignment_b;
+        }
+
+        static void *header_ptr_(void *ptr) {
+            unsigned char  *data_ptr = reinterpret_cast<unsigned char *>(ptr) - sizeof(memory_block);
+            const u_int64_t address  = reinterpret_cast<u_int64_t>(data_ptr);
+            const u_int64_t offset   = address % sizeof(memory_block);
+            return data_ptr - offset;
         }
     };
 
