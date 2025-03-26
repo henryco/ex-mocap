@@ -249,9 +249,25 @@ namespace ex::data::lalloc {
 
                 unsigned char *offset_ptr = byte_ptr + offset;
 
-                int32_t p3, // empty "dead" space or padding before FREE block
+                int32_t p3, // empty "dead" space or padding before FREE block (if p4 exists)
                         p4; // size of free block (after)
                 calculate_post_(offset_ptr, size_have, size_b, &p3, &p4);
+
+                if (p1 >= 0 && p2 < 0) {
+
+                }
+
+                if (p1 >= 0 && p2 >= 0) {
+
+                }
+
+                if (p3 >= 0 && p4 < 0) {
+
+                }
+
+                if (p3 >= 0 && p4 >= 0) {
+
+                }
 
                 if (p2 >= 0) {
                     block->alignment_b = 1;
