@@ -134,7 +134,9 @@ namespace ex::data::lalloc {
             if (ptr == nullptr)
                 return;
 
-            memory_block *block = static_cast<memory_block *>(header_ptr_(ptr));
+            unsigned char *d_ptr = static_cast<unsigned char *>(ptr);
+            unsigned char *h_ptr = static_cast<unsigned char *>(header_ptr_(ptr));
+            memory_block  *block = reinterpret_cast<memory_block *>(h_ptr);
 
             if (block->magic_b != BLOCK_MAGIC_BYTE)
                 abort_("Invalid block addres, block magic byte invalid: " << block->magic_b);
@@ -142,6 +144,7 @@ namespace ex::data::lalloc {
             if (block->is_free == true)
                 abort_("Memory block double free");
 
+            block->size_b += (d_ptr - h_ptr - sizeof(memory_block));
             block->alignment_b = 1;
             block->is_free     = 1;
 
@@ -227,13 +230,15 @@ namespace ex::data::lalloc {
                 if (gap < 0)
                     continue;
 
-                unsigned char  *byte_ptr  = reinterpret_cast<unsigned char *>(block) + sizeof(memory_block);
+                unsigned char *byte_ptr = reinterpret_cast<unsigned char *>(block) + sizeof(memory_block);
 
                 int32_t p1, p2;
                 if (!calculate_pre_(byte_ptr, alignment_b, &p1, &p2))
                     continue;
 
+                if (p1 >= 0) {
 
+                }
 
                 const u_int32_t padding_1 = block_padding_(byte_ptr, alignment_b);
                 const int32_t   gap_free  = gap - static_cast<int32_t>(sizeof(memory_block));
