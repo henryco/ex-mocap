@@ -251,10 +251,9 @@ namespace ex::data::lalloc {
 
                 unsigned char *offset_ptr = byte_ptr + offset;
 
-                int32_t p3;
-                if (!calculate_post_(offset_ptr, size_have, size_b, &p3))
+                int32_t p3, p4;
+                if (!calculate_post_(offset_ptr, size_have, size_b, &p3, &p4))
                     continue;
-
 
                 // TODO
 
@@ -300,9 +299,18 @@ namespace ex::data::lalloc {
             return nullptr;
         }
 
-        static bool calculate_post_(void *ptr, const std::size_t size_have, const std::size_t size_need, int32_t *p3) {
+        static bool calculate_post_(void *ptr, const int32_t size_have, const int32_t size_need, int32_t *p3, int32_t *p4) {
+            const int32_t gap      = size_have - size_need;
+            const int32_t gap_free = gap - static_cast<int32_t>(sizeof(memory_block));
 
-            return true;
+            if (gap_free <= 0) {
+                *p3 = -1;
+                *p4 = -1;
+                return true;
+            }
+
+
+            return false;
         }
 
         static bool calculate_pre_(void *ptr, const std::size_t alignment_b, int32_t *p1, int32_t *p2) {
