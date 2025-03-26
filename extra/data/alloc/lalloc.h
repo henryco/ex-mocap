@@ -236,13 +236,11 @@ namespace ex::data::lalloc {
                     continue;
 
                 int32_t offset = 0;
-                if (p1 >= 0) {
+                if (p1 >= 0)
                     offset += p1;
-                }
 
-                if (p2 >= 0) {
+                if (p2 >= 0)
                     offset += p2 + sizeof(memory_block);
-                }
 
                 const int32_t size_have = static_cast<int32_t>(block->size_b) - offset;
                 if (size_have < size_b)
