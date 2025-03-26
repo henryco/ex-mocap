@@ -264,10 +264,9 @@ namespace ex::data::lalloc {
         }
 
         static bool calculate_post_(void *ptr, const int32_t size_have, const int32_t size_need, int32_t *p3, int32_t *p4) {
-            const int32_t gap      = size_have - size_need;
-            const int32_t gap_free = gap - static_cast<int32_t>(sizeof(memory_block));
+            const int32_t gap = size_have - size_need;
 
-            if (gap_free <= 0) {
+            if (gap <= sizeof(memory_block)) {
                 *p3 = -1;
                 *p4 = -1;
                 return true;
