@@ -255,43 +255,7 @@ namespace ex::data::lalloc {
                 if (!calculate_post_(offset_ptr, size_have, size_b, &p3, &p4))
                     continue;
 
-                // TODO
 
-//                const u_int32_t padding_1 = block_padding_(byte_ptr, alignment_b);
-//                const int32_t   gap_free  = gap - static_cast<int32_t>(sizeof(memory_block));
-//
-//                if (padding_1 == 0 && gap_free <= 0) { // case 0, 1
-//                    block->alignment_b = static_cast<u_int16_t>(alignment_b);
-//                    block->is_free     = static_cast<u_int8_t>(false);
-//                    blocks_.remove_node(block);
-//                    return byte_ptr;
-//                }
-//
-//                if (padding_1 == 0) { // case 2
-//                    block->alignment_b = static_cast<u_int16_t>(alignment_b);
-//                    block->is_free     = static_cast<u_int8_t>(false);
-//
-//                    unsigned char  *gap_ptr = byte_ptr + static_cast<long>(size_b);
-//                    const u_int32_t gap_pad = block_padding_(gap_ptr, alignof(memory_block));
-//
-//                    const int32_t free_space = gap_free - static_cast<int32_t>(gap_pad);
-//                    if (free_space > 0) {
-//
-//                        memory_block *free_block = reinterpret_cast<memory_block *>(gap_ptr + gap_pad);
-//                        free_block->magic_b      = static_cast<u_int8_t>(BLOCK_MAGIC_BYTE);
-//                        free_block->size_b       = static_cast<u_int32_t>(free_space);
-//                        free_block->alignment_b  = static_cast<u_int16_t>(1);
-//                        free_block->is_free      = static_cast<u_int8_t>(true);
-//                        blocks_.put_front(free_block);
-//
-//                        block->size_b  = static_cast<u_int32_t>(size_b) + gap_pad;
-//                        blocks_.remove_node(block);
-//                        return byte_ptr;
-//                    }
-//
-//                    blocks_.remove_node(block);
-//                    return byte_ptr;
-//                }
 
             }
             // TODO
