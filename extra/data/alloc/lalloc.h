@@ -231,7 +231,8 @@ namespace ex::data::lalloc {
 
                 unsigned char *byte_ptr = reinterpret_cast<unsigned char *>(block) + sizeof(memory_block);
 
-                int32_t p1, p2;
+                int32_t p1, //
+                        p2; //
                 if (!calculate_pre_(byte_ptr, alignment_b, &p1, &p2))
                     continue;
 
@@ -248,7 +249,8 @@ namespace ex::data::lalloc {
 
                 unsigned char *offset_ptr = byte_ptr + offset;
 
-                int32_t p3, p4;
+                int32_t p3, // empty "dead" space
+                        p4; //
                 calculate_post_(offset_ptr, size_have, size_b, &p3, &p4);
 
                 if (p2 >= 0) {
@@ -284,7 +286,7 @@ namespace ex::data::lalloc {
 
             unsigned char *gap_ptr = reinterpret_cast<unsigned char *>(ptr) + size_need;
             const int32_t  padding = block_padding_(gap_ptr, alignof(memory_block));
-            const int32_t  free_b  = gap - padding + sizeof(memory_block);
+            const int32_t  free_b  = gap - padding - sizeof(memory_block);
 
             if (free_b <= 0) {
                 *p3 = gap;
