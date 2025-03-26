@@ -112,6 +112,9 @@ namespace ex::data::lalloc {
                 abort_("Empty memory block allocation");
             if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
                 return allocated;
+            trim();
+            if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
+                return allocated;
             block_request_(size_b + alignment_b);
             if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
                 return allocated;
@@ -261,6 +264,8 @@ namespace ex::data::lalloc {
                     blocks_.remove_node(block);
                     return byte_ptr;
                 }
+
+                // TODO
 
             }
             // TODO
