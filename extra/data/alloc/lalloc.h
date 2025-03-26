@@ -231,8 +231,8 @@ namespace ex::data::lalloc {
 
                 unsigned char *byte_ptr = reinterpret_cast<unsigned char *>(block) + sizeof(memory_block);
 
-                int32_t p1, // empty "dead" space or padding before FREE block
-                        p2; // size of free block (before)
+                int32_t p1, // natural padding or size of the block (if p2 exists)
+                        p2; // natural padding before data block
                 if (!calculate_pre_(byte_ptr, alignment_b, &p1, &p2))
                     continue;
 
