@@ -294,7 +294,7 @@ namespace ex::data::lalloc {
                 return;
             }
 
-            *p3 = gap;
+            *p3 = padding;
             *p4 = free_b;
         }
 
