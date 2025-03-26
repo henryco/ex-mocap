@@ -256,7 +256,7 @@ namespace ex::data::lalloc {
                 if (p2 >= 0) {
                     block->alignment_b = 1;
                     block->size_b      = p1;
-
+                    // TODO FIXME
                     memory_block *block_2 = reinterpret_cast<memory_block *>(byte_ptr + p1);
                     block_2->magic_b      = static_cast<u_int8_t>(BLOCK_MAGIC_BYTE);
                     block_2->alignment_b  = static_cast<u_int16_t>(alignment_b);
