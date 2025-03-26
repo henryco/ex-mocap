@@ -231,8 +231,8 @@ namespace ex::data::lalloc {
 
                 unsigned char *byte_ptr = reinterpret_cast<unsigned char *>(block) + sizeof(memory_block);
 
-                int32_t p1, //
-                        p2; //
+                int32_t p1, // empty "dead" space or padding before FREE block
+                        p2; // size of free block (before)
                 if (!calculate_pre_(byte_ptr, alignment_b, &p1, &p2))
                     continue;
 
@@ -249,8 +249,8 @@ namespace ex::data::lalloc {
 
                 unsigned char *offset_ptr = byte_ptr + offset;
 
-                int32_t p3, // empty "dead" space
-                        p4; //
+                int32_t p3, // empty "dead" space or padding before FREE block
+                        p4; // size of free block (after)
                 calculate_post_(offset_ptr, size_have, size_b, &p3, &p4);
 
                 if (p2 >= 0) {
