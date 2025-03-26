@@ -222,12 +222,12 @@ namespace ex::data::lalloc {
                 abort_("Alignment must be non-zero and a power of two");
 
             for (block_list_t::list_node *head = blocks_.root_; head != nullptr; head = head->next) {
+
                 memory_block *block = head->key;
                 if (block->magic_b != BLOCK_MAGIC_BYTE)
                     abort_("Invalid block addres, block magic byte invalid: " << block->magic_b);
 
-                const int32_t gap = static_cast<int32_t>(block->size_b - size_b);
-                if (gap < 0)
+                if (block->size_b < size_b)
                     continue;
 
                 unsigned char *byte_ptr = reinterpret_cast<unsigned char *>(block) + sizeof(memory_block);
@@ -245,50 +245,64 @@ namespace ex::data::lalloc {
                     offset += p2 + sizeof(memory_block);
                 }
 
+                const int32_t size_have = static_cast<int32_t>(block->size_b) - offset;
+                if (size_have < size_b)
+                    continue;
+
                 unsigned char *offset_ptr = byte_ptr + offset;
+
+                int32_t p3;
+                if (!calculate_post_(offset_ptr, size_have, size_b, &p3))
+                    continue;
+
 
                 // TODO
 
-                const u_int32_t padding_1 = block_padding_(byte_ptr, alignment_b);
-                const int32_t   gap_free  = gap - static_cast<int32_t>(sizeof(memory_block));
-
-                if (padding_1 == 0 && gap_free <= 0) { // case 0, 1
-                    block->alignment_b = static_cast<u_int16_t>(alignment_b);
-                    block->is_free     = static_cast<u_int8_t>(false);
-                    blocks_.remove_node(block);
-                    return byte_ptr;
-                }
-
-                if (padding_1 == 0) { // case 2
-                    block->alignment_b = static_cast<u_int16_t>(alignment_b);
-                    block->is_free     = static_cast<u_int8_t>(false);
-
-                    unsigned char  *gap_ptr = byte_ptr + static_cast<long>(size_b);
-                    const u_int32_t gap_pad = block_padding_(gap_ptr, alignof(memory_block));
-
-                    const int32_t free_space = gap_free - static_cast<int32_t>(gap_pad);
-                    if (free_space > 0) {
-
-                        memory_block *free_block = reinterpret_cast<memory_block *>(gap_ptr + gap_pad);
-                        free_block->magic_b      = static_cast<u_int8_t>(BLOCK_MAGIC_BYTE);
-                        free_block->size_b       = static_cast<u_int32_t>(free_space);
-                        free_block->alignment_b  = static_cast<u_int16_t>(1);
-                        free_block->is_free      = static_cast<u_int8_t>(true);
-                        blocks_.put_front(free_block);
-
-                        block->size_b  = static_cast<u_int32_t>(size_b) + gap_pad;
-                        blocks_.remove_node(block);
-                        return byte_ptr;
-                    }
-
-                    blocks_.remove_node(block);
-                    return byte_ptr;
-                }
+//                const u_int32_t padding_1 = block_padding_(byte_ptr, alignment_b);
+//                const int32_t   gap_free  = gap - static_cast<int32_t>(sizeof(memory_block));
+//
+//                if (padding_1 == 0 && gap_free <= 0) { // case 0, 1
+//                    block->alignment_b = static_cast<u_int16_t>(alignment_b);
+//                    block->is_free     = static_cast<u_int8_t>(false);
+//                    blocks_.remove_node(block);
+//                    return byte_ptr;
+//                }
+//
+//                if (padding_1 == 0) { // case 2
+//                    block->alignment_b = static_cast<u_int16_t>(alignment_b);
+//                    block->is_free     = static_cast<u_int8_t>(false);
+//
+//                    unsigned char  *gap_ptr = byte_ptr + static_cast<long>(size_b);
+//                    const u_int32_t gap_pad = block_padding_(gap_ptr, alignof(memory_block));
+//
+//                    const int32_t free_space = gap_free - static_cast<int32_t>(gap_pad);
+//                    if (free_space > 0) {
+//
+//                        memory_block *free_block = reinterpret_cast<memory_block *>(gap_ptr + gap_pad);
+//                        free_block->magic_b      = static_cast<u_int8_t>(BLOCK_MAGIC_BYTE);
+//                        free_block->size_b       = static_cast<u_int32_t>(free_space);
+//                        free_block->alignment_b  = static_cast<u_int16_t>(1);
+//                        free_block->is_free      = static_cast<u_int8_t>(true);
+//                        blocks_.put_front(free_block);
+//
+//                        block->size_b  = static_cast<u_int32_t>(size_b) + gap_pad;
+//                        blocks_.remove_node(block);
+//                        return byte_ptr;
+//                    }
+//
+//                    blocks_.remove_node(block);
+//                    return byte_ptr;
+//                }
 
             }
             // TODO
 
             return nullptr;
+        }
+
+        static bool calculate_post_(void *ptr, const std::size_t size_have, const std::size_t size_need, int32_t *p3) {
+
+            return true;
         }
 
         static bool calculate_pre_(void *ptr, const std::size_t alignment_b, int32_t *p1, int32_t *p2) {
