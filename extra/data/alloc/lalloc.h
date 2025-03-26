@@ -251,7 +251,18 @@ namespace ex::data::lalloc {
                 int32_t p3, p4;
                 calculate_post_(offset_ptr, size_have, size_b, &p3, &p4);
 
-                // TODO
+                if (p2 >= 0) {
+                    block->alignment_b = 1;
+                    block->size_b      = p1;
+
+                    memory_block *block_2 = reinterpret_cast<memory_block *>(byte_ptr + p1);
+                    block_2->magic_b      = static_cast<u_int8_t>(BLOCK_MAGIC_BYTE);
+                    block_2->size_b       = static_cast<u_int32_t>(size_b);
+                    block_2->is_free      = static_cast<u_int8_t>(false);
+                    block_2->alignment_b  = static_cast<u_int16_t>(1);
+                }
+
+                return offset_ptr;
             }
             return nullptr;
         }
