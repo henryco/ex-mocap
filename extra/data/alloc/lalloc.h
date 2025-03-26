@@ -273,6 +273,14 @@ namespace ex::data::lalloc {
                 return true;
             }
 
+            unsigned char *gap_ptr = reinterpret_cast<unsigned char *>(ptr) + size_need;
+            const int32_t  padding = block_padding_(gap_ptr, alignof(memory_block));
+
+
+
+            unsigned char *head_ptr = gap_ptr + padding;
+
+
 
             return false;
         }
