@@ -257,9 +257,9 @@ namespace ex::data::lalloc {
 
                     memory_block *block_2 = reinterpret_cast<memory_block *>(byte_ptr + p1);
                     block_2->magic_b      = static_cast<u_int8_t>(BLOCK_MAGIC_BYTE);
+                    block_2->alignment_b  = static_cast<u_int16_t>(alignment_b);
                     block_2->size_b       = static_cast<u_int32_t>(size_b);
                     block_2->is_free      = static_cast<u_int8_t>(false);
-                    block_2->alignment_b  = static_cast<u_int16_t>(1);
                 }
 
                 return offset_ptr;
