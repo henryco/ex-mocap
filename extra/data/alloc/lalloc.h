@@ -51,8 +51,8 @@ namespace ex::data::lalloc {
         std::size_t def_size_ = 0;
         std::size_t grow_mem_ = 0;
 
-        block_size_t min_;
-        block_size_t max_;
+//        block_size_t min_;
+//        block_size_t max_;
 
         ex::data::allocator compat() {
             return alloc_compat<allocator>::allocator(this);

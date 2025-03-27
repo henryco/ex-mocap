@@ -5,7 +5,8 @@
 #include <iostream>
 #include <doctest/doctest.h>
 #include "../../extra/graph/graph.h"
-#include "../../extra/data/alloc/rbtalloc.h"
+//#include "../../extra/data/alloc/rbtalloc.h"
+#include "../../extra/data/alloc/lalloc.h"
 #include "../../src/headers/utils/time_utils.h"
 
 struct node_test_one final : limbo::graph::BaseNode,
@@ -111,7 +112,8 @@ void rec_build(limbo::graph::BaseNode *parent, const int width, const int max_de
 TEST_SUITE("Grap node tests") {
 
     TEST_CASE("Graph allocation test") {
-        ex::data::rbtalloc::allocator alloc_2;
+//        ex::data::rbtalloc::allocator alloc_2;
+        ex::data::lalloc::allocator alloc_2;
         limbo::graph::memory::allocator = alloc_2.compat();
 
         ex::time::measure_avg time = 1;
@@ -142,7 +144,7 @@ TEST_SUITE("Grap node tests") {
         int free_blocks  = 0;
         int total_blocks = 0;
         for (const auto &block : alloc_2.blocks_) {
-            if (block.val.is_free == true)
+            if (block.key->is_free == true)
                 free_blocks += 1;
             total_blocks += 1;
         }
