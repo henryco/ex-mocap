@@ -136,7 +136,17 @@ namespace ex::data::lalloc {
             if (block->is_free == true)
                 abort_("Reallocation of free block");
 
-            return nullptr;
+            const uint32_t block_size = block->size_b;
+
+            const block_addr_t allocated = malloc(size_new_b, block->alignment_b);
+            used_mem_ -= block_size;
+
+            if (allocated != ptr) {
+                ::memmove(allocated, ptr, size_new_b < block->size_b ? size_new_b : block->size_b);
+                return allocated;
+            }
+
+            return allocated;
         }
 
         void free(const block_addr_t ptr) {
@@ -155,6 +165,7 @@ namespace ex::data::lalloc {
             block->alignment_b = 1;
             block->is_free     = 1;
 
+            used_mem_ -= block->size_b;
             blocks_.put_front(block);
         }
 
@@ -302,6 +313,7 @@ namespace ex::data::lalloc {
                 work_block->alignment_b = static_cast<u_int16_t>(alignment_b);
                 work_block->is_free     = static_cast<u_int8_t>(false);
 
+                used_mem_ += work_block->size_b;
                 return start_ptr;
             }
             return nullptr;
