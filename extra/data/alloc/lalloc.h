@@ -157,7 +157,7 @@ namespace ex::data::lalloc {
             memory_block  *block = reinterpret_cast<memory_block *>(h_ptr);
 
             if (block->magic_b != BLOCK_MAGIC_BYTE)
-                abort_("Invalid block addres, block magic byte invalid: " << block->magic_b);
+                abort_("Invalid block address, block magic byte invalid: " << block->magic_b);
 
             if (block->is_free == true)
                 abort_("Memory block double free");
