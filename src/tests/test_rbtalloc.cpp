@@ -104,8 +104,6 @@ TEST_SUITE("RBTAlloc tests") {
         CHECK(alloc.size_used() == 0);
     }
 
-
-
     TEST_CASE("Allocator initialization and basic allocation") {
         allocator alloc(1024);
         CHECK(alloc.size_total() >= 1024);
@@ -399,7 +397,7 @@ TEST_SUITE("RBTAlloc tests") {
         }
     }
 
-    TEST_CASE("Reallocation triggers allocation") { // TODO FIXME
+    TEST_CASE("Reallocation triggers allocation") {
         allocator alloc = 1 KB;
 
         const size_t initial_total = alloc.size_total();
