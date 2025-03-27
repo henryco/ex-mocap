@@ -242,7 +242,7 @@ namespace ex::data::lalloc {
             for (block_list_t::list_node *head = blocks_.root_; head != nullptr; head = head->next) {
                 memory_block *block = head->key;
                 if (block->magic_b != BLOCK_MAGIC_BYTE)
-                    abort_("Invalid block addres, block magic byte invalid: " << block->magic_b);
+                    abort_("Invalid block address, block magic byte invalid: " << block->magic_b);
 
                 if (block->size_b < size_b)
                     continue;
