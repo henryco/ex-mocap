@@ -108,47 +108,50 @@ void rec_build(limbo::graph::BaseNode *parent, const int width, const int max_de
     }
 }
 
-TEST_CASE("Graph node test") {
-    ex::data::rbtalloc::allocator alloc_2;
-    limbo::graph::memory::allocator = alloc_2.compat();
+TEST_SUITE("Grap node tests") {
 
-    ex::time::measure_avg time = 1;
-    time.start();
-    limbo::graph::BaseNode *root = new node_test_one();
-    rec_build(root, 4, 3);
-    limbo::graph::Clock clock;
-    clock.attach(root);
-    time.stop();
+    TEST_CASE("Graph allocation test") {
+        ex::data::rbtalloc::allocator alloc_2;
+        limbo::graph::memory::allocator = alloc_2.compat();
 
-    std::cout << "build: " << time.result() << " ns" << std::endl;
-    std::cout << "total: " << counter_ << std::endl;
+        ex::time::measure_avg time = 1;
+        time.start();
+        limbo::graph::BaseNode *root = new node_test_one();
+        rec_build(root, 4, 3);
+        limbo::graph::Clock clock;
+        clock.attach(root);
+        time.stop();
 
-    unsigned long int avg = 0;
-    double counter = 0.;
-    ex::time::measure_avg measure = 1000;
-    for (int i = 0; i < 1000000; i++) {
-        measure.start();
+        std::cout << "build: " << time.result() << " ns" << std::endl;
+        std::cout << "total: " << counter_ << std::endl;
 
-        clock.pull();
+        unsigned long int avg = 0;
+        double counter = 0.;
+        ex::time::measure_avg measure = 1000;
+        for (int i = 0; i < 1000000; i++) {
+            measure.start();
 
-        if (measure.stop()) {
-            avg += measure.result();
-            counter++;
+            clock.pull();
+
+            if (measure.stop()) {
+                avg += measure.result();
+                counter++;
+            }
         }
-    }
 
-    int free_blocks  = 0;
-    int total_blocks = 0;
-    for (const auto &block : alloc_2.blocks_) {
-        if (block.val.is_free == true)
-            free_blocks += 1;
-        total_blocks += 1;
-    }
+        int free_blocks  = 0;
+        int total_blocks = 0;
+        for (const auto &block : alloc_2.blocks_) {
+            if (block.val.is_free == true)
+                free_blocks += 1;
+            total_blocks += 1;
+        }
 
-    std::cout << "avg: " << (avg / counter) << " ns\n";
-    std::cout << "memory total : " << limbo::graph::memory::allocator.size_total(&limbo::graph::memory::allocator) << " b" << std::endl;
-    std::cout << "memory used  : " << limbo::graph::memory::allocator.size_used(&limbo::graph::memory::allocator) << " b" << std::endl;
-    std::cout << "blocks total: " << total_blocks << std::endl;
-    std::cout << "blocks free: " << free_blocks << std::endl;
-    std::cout << "finished" << std::endl;
+        std::cout << "avg: " << (avg / counter) << " ns\n";
+        std::cout << "memory total : " << limbo::graph::memory::allocator.size_total(&limbo::graph::memory::allocator) << " b" << std::endl;
+        std::cout << "memory used  : " << limbo::graph::memory::allocator.size_used(&limbo::graph::memory::allocator) << " b" << std::endl;
+        std::cout << "blocks total: " << total_blocks << std::endl;
+        std::cout << "blocks free: " << free_blocks << std::endl;
+        std::cout << "finished" << std::endl;
+    }
 }
