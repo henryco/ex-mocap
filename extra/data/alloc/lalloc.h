@@ -247,40 +247,55 @@ namespace ex::data::lalloc {
                 if (size_have < size_b)
                     continue;
 
-                unsigned char *offset_ptr = byte_ptr + offset;
+                unsigned char *start_ptr = byte_ptr + offset;
 
                 int32_t p3, // empty "dead" space or padding before FREE block (if p4 exists)
                         p4; // size of free block (after)
-                calculate_post_(offset_ptr, size_have, size_b, &p3, &p4);
+                calculate_post_(start_ptr, size_have, size_b, &p3, &p4);
 
-                if (p1 >= 0 && p2 < 0) {
+                memory_block *work_block = block;
 
+                if (p1 < 0 && p2 < 0) {
+                    block->size_b = static_cast<u_int32_t>(size_b);
+                    blocks_.remove_node(block);
                 }
 
-                if (p1 >= 0 && p2 >= 0) {
-
+                else if (p1 >= 0 && p2 < 0) {
+                    block->size_b = static_cast<u_int32_t>(size_b + p1);
+                    blocks_.remove_node(block);
                 }
 
-                if (p3 >= 0 && p4 < 0) {
+                else if (p1 >= 0 && p2 >= 0) {
+                    // free og block
+                    block->alignment_b = static_cast<u_int16_t>(1);
+                    block->magic_b     = static_cast<u_int8_t>(BLOCK_MAGIC_BYTE);
+                    block->size_b      = static_cast<u_int32_t>(p1);
+                    block->is_free     = static_cast<u_int8_t>(true);
 
+                    // new padded block
+                    memory_block *new_block = reinterpret_cast<memory_block *>(byte_ptr + p1);
+                    new_block->magic_b      = static_cast<u_int8_t>(BLOCK_MAGIC_BYTE);
+                    new_block->size_b       = static_cast<u_int32_t>(size_b + p2);
+                    work_block              = new_block;
                 }
 
-                if (p3 >= 0 && p4 >= 0) {
-
+                if (p3 >= 0) {
+                    work_block->size_b += p3;
                 }
 
-                if (p2 >= 0) {
-                    block->alignment_b = 1;
-                    block->size_b      = p1;
-                    // TODO FIXME
-                    memory_block *block_2 = reinterpret_cast<memory_block *>(byte_ptr + p1);
-                    block_2->magic_b      = static_cast<u_int8_t>(BLOCK_MAGIC_BYTE);
-                    block_2->alignment_b  = static_cast<u_int16_t>(alignment_b);
-                    block_2->size_b       = static_cast<u_int32_t>(size_b);
-                    block_2->is_free      = static_cast<u_int8_t>(false);
+                if (p4 >= 0) {
+                    memory_block *new_block = reinterpret_cast<memory_block *>(start_ptr + size_b + p3);
+                    new_block->magic_b      = static_cast<u_int8_t>(BLOCK_MAGIC_BYTE);
+                    new_block->size_b       = static_cast<u_int32_t>(p4);
+                    new_block->is_free      = static_cast<u_int8_t>(true);
+                    new_block->alignment_b  = static_cast<u_int16_t>(1);
+                    blocks_.put_front(new_block);
                 }
 
-                return offset_ptr;
+                work_block->alignment_b = static_cast<u_int16_t>(alignment_b);
+                work_block->is_free     = static_cast<u_int8_t>(false);
+
+                return start_ptr;
             }
             return nullptr;
         }
