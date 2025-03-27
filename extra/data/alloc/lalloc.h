@@ -134,7 +134,6 @@ namespace ex::data::lalloc {
             if (ptr == nullptr)
                 return;
 
-//            unsigned char *d_ptr = static_cast<unsigned char *>(ptr);
             unsigned char *h_ptr = static_cast<unsigned char *>(header_ptr_(ptr));
             memory_block  *block = reinterpret_cast<memory_block *>(h_ptr);
 
@@ -144,7 +143,6 @@ namespace ex::data::lalloc {
             if (block->is_free == true)
                 abort_("Memory block double free");
 
-//            block->size_b += (d_ptr - h_ptr - sizeof(memory_block));
             block->alignment_b = 1;
             block->is_free     = 1;
 
