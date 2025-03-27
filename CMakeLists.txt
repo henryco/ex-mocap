@@ -321,7 +321,8 @@ if (ENABLE_TESTS)
             src/tests/test_rb_map.cpp
             src/tests/test_rmq_map.cpp
             src/tests/test_rbtalloc.cpp
-            src/tests/test_list_map.cpp)
+            src/tests/test_list_map.cpp
+            src/tests/test_lalloc.cpp)
 
     add_executable(tests
             ${RESULT_SOURCES}
