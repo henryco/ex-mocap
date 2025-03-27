@@ -112,9 +112,9 @@ namespace ex::data::lalloc {
                 abort_("Empty memory block allocation");
             if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
                 return allocated;
-            trim();
-            if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
-                return allocated;
+//            trim();
+//            if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
+//                return allocated;
             block_request_(size_b + alignment_b);
             if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
                 return allocated;
@@ -126,7 +126,16 @@ namespace ex::data::lalloc {
                 free(ptr);
                 return nullptr;
             }
-            // TODO
+
+            unsigned char *h_ptr = static_cast<unsigned char *>(header_ptr_(ptr));
+            memory_block  *block = reinterpret_cast<memory_block *>(h_ptr);
+
+            if (block->magic_b != BLOCK_MAGIC_BYTE)
+                abort_("Invalid block addres, block magic byte invalid: " << block->magic_b);
+
+            if (block->is_free == true)
+                abort_("Reallocation of free block");
+
             return nullptr;
         }
 
