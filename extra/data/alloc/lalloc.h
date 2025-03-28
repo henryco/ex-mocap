@@ -29,6 +29,7 @@ namespace ex::data::lalloc {
 #define BLOCK_MAX_SIZE_B (4294967295U)
 #define STACK_BLOCK_SIZE (sizeof(block_list_t::list_node))
 #define BLOCK_MAGIC_BYTE (69)
+// nice
 
 #ifndef UNIT_TEST
     #define validate_header_(ptr) validate_header__(ptr)
@@ -184,7 +185,7 @@ namespace ex::data::lalloc {
             block->alignment_b = 1;
             block->is_free     = 1;
 
-            used_mem_ -= block->size_b;
+            used_mem_ -= (block->size_b + sizeof(memory_block));
             blocks_.put_front(block);
         }
 
@@ -331,7 +332,7 @@ namespace ex::data::lalloc {
                 work_block->alignment_b = static_cast<u_int16_t>(alignment_b);
                 work_block->is_free     = static_cast<u_int8_t>(false);
 
-                used_mem_ += work_block->size_b;
+                used_mem_ += (work_block->size_b + sizeof(memory_block));
 
                 validate_header_(start_ptr);
 

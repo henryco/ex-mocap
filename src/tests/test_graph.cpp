@@ -119,28 +119,29 @@ TEST_SUITE("Grap node tests") {
         ex::time::measure_avg time = 1;
         time.start();
         limbo::graph::BaseNode *root = new node_test_one();
-        rec_build(root, 5, 5);
+        rec_build(root, 7, 6);
         limbo::graph::Clock clock;
         clock.attach(root);
         time.stop();
 
         std::cout << "build: " << time.result() << " ns" << std::endl;
         std::cout << "total: " << counter_ << std::endl;
-        std::cout << "size : " << alloc_2.size_total() << ", " << (alloc_2.size_total() / (1 MB)) << std::endl;
+        std::cout << "size t: " << alloc_2.size_total() << ", " << (alloc_2.size_total() / (1 MB)) << std::endl;
+        std::cout << "size u: " << alloc_2.size_used() << ", " << (alloc_2.size_used() / (1 MB)) << std::endl;
 
         unsigned long int avg = 0;
         double counter = 0.;
-        ex::time::measure_avg measure = 1000;
-        for (int i = 0; i < 1000000; i++) {
-            measure.start();
-
-            clock.pull();
-
-            if (measure.stop()) {
-                avg += measure.result();
-                counter++;
-            }
-        }
+//        ex::time::measure_avg measure = 1000;
+//        for (int i = 0; i < 1000000; i++) {
+//            measure.start();
+//
+//            clock.pull();
+//
+//            if (measure.stop()) {
+//                avg += measure.result();
+//                counter++;
+//            }
+//        }
 
         {
             ex::time::measure_avg measure_2 = 1;
