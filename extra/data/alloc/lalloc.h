@@ -108,20 +108,31 @@ namespace ex::data::lalloc {
         }
 
         block_addr_t malloc(const std::size_t size_b, const std::size_t alignment_b) {
+            std::cout << "\nmalloc: " << size_b << ", " << alignment_b << std::endl;
             if (size_b == 0)
                 abort_("Empty memory block allocation");
-            if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
+
+            if (const block_addr_t allocated = block_acquire_(size_b, alignment_b)) {
+                std::cout << "ma_ptr: " << allocated << std::endl;
                 return allocated;
+            }
+
 //            trim();
 //            if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
 //                return allocated;
             block_request_(size_b + alignment_b);
-            if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
+
+            if (const block_addr_t allocated = block_acquire_(size_b, alignment_b)) {
+                std::cout << "ma_ptr: " << allocated << std::endl;
                 return allocated;
+            }
+
             abort_("Out of free space");
         }
 
         block_addr_t realloc(void *ptr, const std::size_t size_new_b) {
+            std::cout << "\nrealloc: " << ptr << ", " << size_new_b << std::endl;
+
             if (size_new_b == 0 || ptr == nullptr) {
                 free(ptr);
                 return nullptr;
@@ -141,6 +152,8 @@ namespace ex::data::lalloc {
             const block_addr_t allocated = malloc(size_new_b, block->alignment_b);
             used_mem_ -= block_size;
 
+            std::cout << "re_ptr: " << allocated << std::endl;
+
             if (allocated != ptr) {
                 ::memmove(allocated, ptr, size_new_b < block->size_b ? size_new_b : block->size_b);
                 return allocated;
@@ -150,6 +163,7 @@ namespace ex::data::lalloc {
         }
 
         void free(const block_addr_t ptr) {
+            std::cout << "free: " << ptr << std::endl;
             if (ptr == nullptr)
                 return;
 
