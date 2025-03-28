@@ -101,6 +101,8 @@ namespace ex::data::lalloc {
             block->is_free      = static_cast<u_int8_t>(true);
             block->alignment_b  = static_cast<u_int16_t>(1);
 
+            validate_header_(block_ptr + sizeof(memory_block));
+
             blocks_.put(block);
 
             def_size_ = pre_allocated;
@@ -237,6 +239,8 @@ namespace ex::data::lalloc {
             block->is_free      = static_cast<u_int8_t>(true);
             block->alignment_b  = static_cast<u_int16_t>(1);
 
+            validate_header_(block_ptr + sizeof(memory_block));
+
             blocks_.put(block);
         }
 
@@ -281,15 +285,16 @@ namespace ex::data::lalloc {
                 calculate_post_(start_ptr, size_have, size_b, &p3, &p4);
 
                 memory_block *work_block = block;
+                bool remove_og = false;
 
                 if (p1 < 0 && p2 < 0) {
                     block->size_b = static_cast<u_int32_t>(size_b);
-                    blocks_.remove_node(block);
+                    remove_og = true;
                 }
 
                 else if (p1 >= 0 && p2 < 0) {
                     block->size_b = static_cast<u_int32_t>(size_b + p1);
-                    blocks_.remove_node(block);
+                    remove_og = true;
                 }
 
                 else if (p1 >= 0 && p2 >= 0) {
@@ -325,7 +330,16 @@ namespace ex::data::lalloc {
                 used_mem_ += work_block->size_b;
 
                 // TODO FIXME
+                void *header_ptr = header_ptr_(start_ptr);
+                if (header_ptr != work_block) {
+                    header_ptr_(start_ptr);
+                    abort_("Header address mismatch");
+                }
                 validate_header_(start_ptr);
+
+                if (remove_og) {
+                    blocks_.remove_node(block);
+                }
                 return start_ptr;
             }
             return nullptr;
@@ -406,6 +420,7 @@ namespace ex::data::lalloc {
         }
 
         static void *header_ptr_(void *ptr) {
+            // TODO FIXME
             unsigned char  *data_ptr = reinterpret_cast<unsigned char *>(ptr) - sizeof(memory_block);
             const u_int64_t address  = reinterpret_cast<u_int64_t>(data_ptr);
             const u_int64_t offset   = address % sizeof(memory_block);
