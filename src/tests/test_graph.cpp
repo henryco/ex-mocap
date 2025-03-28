@@ -119,7 +119,7 @@ TEST_SUITE("Grap node tests") {
         ex::time::measure_avg time = 1;
         time.start();
         limbo::graph::BaseNode *root = new node_test_one();
-        rec_build(root, 5, 6);
+        rec_build(root, 5, 5);
         limbo::graph::Clock clock;
         clock.attach(root);
         time.stop();
