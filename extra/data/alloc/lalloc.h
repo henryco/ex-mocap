@@ -119,9 +119,9 @@ namespace ex::data::lalloc {
                 return allocated;
             }
 
-//            trim();
-//            if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
-//                return allocated;
+            trim();
+            if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
+                return allocated;
 
             block_request_(size_b + alignment_b);
 
@@ -149,6 +149,7 @@ namespace ex::data::lalloc {
             if (block->is_free == true)
                 abort_("Reallocation of free block");
 
+            // TODO CONTINUITY
             const block_addr_t allocated = malloc(size_new_b, block->alignment_b);
 
             if (allocated != ptr) {
@@ -182,6 +183,11 @@ namespace ex::data::lalloc {
             blocks_.put_front(block);
         }
 
+        void trim() {
+            blocks_.sort();
+            // TODO
+        }
+
         long size_used() const {
             return used_mem_;
         }
@@ -196,11 +202,6 @@ namespace ex::data::lalloc {
 
         long blocks_used() const {
             return blocks_.size();
-        }
-
-        void trim() {
-            blocks_.sort();
-            // TODO
         }
 
         // =========================================== INTERNAL UTILS ==================================================
