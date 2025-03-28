@@ -28,6 +28,7 @@ namespace ex::data::lalloc {
 
 #define BLOCK_MAX_SIZE_B (4294967295U)
 #define STACK_BLOCK_SIZE (sizeof(block_list_t::list_node))
+#define BLOCK_LAST_BYTE  (42)
 #define BLOCK_MAGIC_BYTE (69)
 // nice
 
@@ -149,7 +150,7 @@ namespace ex::data::lalloc {
             unsigned char *h_ptr = static_cast<unsigned char *>(header_ptr_(ptr));
             memory_block  *block = reinterpret_cast<memory_block *>(h_ptr);
 
-            if (block->magic_b != BLOCK_MAGIC_BYTE)
+            if (block->magic_b != BLOCK_MAGIC_BYTE && block->magic_b != BLOCK_LAST_BYTE)
                 abort_("Invalid block address, block magic byte invalid: " << block->magic_b);
 
             if (block->is_free == true)
@@ -160,11 +161,8 @@ namespace ex::data::lalloc {
 
             if (allocated != ptr) {
                 validate_header_(allocated);
-
                 const int32_t padding = static_cast<unsigned char *>(ptr) - (h_ptr + sizeof(memory_block));
                 const int32_t block_s = block->size_b - padding;
-                // TODO FIXME
-
                 ::memmove(allocated, ptr, size_new_b < block_s ? size_new_b : block_s);
                 free(ptr);
                 return allocated;
@@ -181,7 +179,7 @@ namespace ex::data::lalloc {
             unsigned char *h_ptr = static_cast<unsigned char *>(header_ptr_(ptr));
             memory_block  *block = reinterpret_cast<memory_block *>(h_ptr);
 
-            if (block->magic_b != BLOCK_MAGIC_BYTE)
+            if (block->magic_b != BLOCK_MAGIC_BYTE && block->magic_b != BLOCK_LAST_BYTE)
                 abort_("Invalid block address, block magic byte invalid: " << block->magic_b);
 
             if (block->is_free == true)
@@ -273,7 +271,7 @@ namespace ex::data::lalloc {
 
             for (block_list_t::list_node *head = blocks_.root_; head != nullptr; head = head->next) {
                 memory_block *block = head->key;
-                if (block->magic_b != BLOCK_MAGIC_BYTE)
+                if (block->magic_b != BLOCK_MAGIC_BYTE && block->magic_b != BLOCK_LAST_BYTE)
                     abort_("Invalid block address, block magic byte invalid: " << block->magic_b);
 
                 if (block->size_b < size_b)
@@ -445,7 +443,7 @@ namespace ex::data::lalloc {
 
         static void validate_header__(void *ptr) {
             const memory_block *block = reinterpret_cast<memory_block *>(header_ptr_(ptr));
-            if (block->magic_b != BLOCK_MAGIC_BYTE)
+            if (block->magic_b != BLOCK_MAGIC_BYTE && block->magic_b != BLOCK_LAST_BYTE)
                 abort_("block header corruption");
         }
 
