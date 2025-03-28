@@ -257,6 +257,56 @@ namespace ex::data::lalloc {
             blocks_.put(block);
         }
 
+
+        void fast_sort_(block_list_t::list_node *prev, block_list_t::list_node *node) {
+            if (prev == nullptr || node == nullptr)
+                return;
+
+            block_list_t::list_node *a = prev->prev;
+            block_list_t::list_node *b = node->prev;
+            if (a == nullptr || b == nullptr)
+                return;
+
+            if (ptr_compare(&(a->key), &(b->key)) > 0) {
+
+                block_list_t::list_node *a_prev = a->prev;
+                block_list_t::list_node *b_next = b->next;
+
+                b->prev = a->prev;
+                a->next = b->next;
+                b->next = a;
+                a->prev = b;
+
+                if (a_prev == nullptr)
+                    blocks_.root_ = b;
+                else
+                    a_prev->next = b;
+
+                if (b_next == nullptr)
+                    blocks_.back_ = a;
+                else
+                    b_next->prev = a;
+
+                block_list_t::list_node *tmp = a;
+                a = b;
+                b = tmp;
+            }
+
+            memory_block *block_a = a->key;
+            memory_block *block_b = b->key;
+
+            unsigned char *byte_ptr = reinterpret_cast<unsigned char *>(block_a) + sizeof(memory_block);
+            if (!continuous_(byte_ptr, block_b, block_a->size_b)) {
+                return;
+            }
+
+            // extend last free block which belongs to the same memory region
+            if (block_a->is_free == true && block_b->is_free == true) {
+                block_a->size_b += block_b->size_b + sizeof(memory_block);
+                blocks_.remove_node(b);
+            }
+        }
+
         block_addr_t block_acquire_(const std::size_t size_b, const std::size_t alignment_b) {
             if (size_b == 0)
                 abort_("Requested blocks size must be non-zero");
@@ -265,20 +315,25 @@ namespace ex::data::lalloc {
             if (alignment_b == 0 || (alignment_b & (alignment_b - 1)) != 0)
                 abort_("Alignment must be non-zero and a power of two");
 
-            for (block_list_t::list_node *head = blocks_.root_; head != nullptr; head = head->next) {
+            block_list_t::list_node *prev = nullptr;
+            for (block_list_t::list_node *head = blocks_.root_; head != nullptr; prev = head, head = head->next) {
                 memory_block *block = head->key;
                 if (block->magic_b != BLOCK_MAGIC_BYTE)
                     abort_("Invalid block address, block magic byte invalid: " << block->magic_b);
 
-                if (block->size_b < size_b)
+                if (block->size_b < size_b) {
+                    fast_sort_(prev, head);
                     continue;
+                }
 
                 unsigned char *byte_ptr = reinterpret_cast<unsigned char *>(block) + sizeof(memory_block);
 
                 int32_t p1, // natural padding or size of the block (if p2 exists)
                         p2; // natural padding before data block
-                if (!calculate_pre_(byte_ptr, alignment_b, &p1, &p2))
+                if (!calculate_pre_(byte_ptr, alignment_b, &p1, &p2)) {
+                    fast_sort_(prev, head);
                     continue;
+                }
 
                 int32_t offset = 0;
                 if (p1 >= 0)
@@ -288,8 +343,10 @@ namespace ex::data::lalloc {
                     offset += p2 + sizeof(memory_block);
 
                 const int32_t size_have = static_cast<int32_t>(block->size_b) - offset;
-                if (size_have < size_b)
+                if (size_have < size_b) {
+                    fast_sort_(prev, head);
                     continue;
+                }
 
                 unsigned char *start_ptr = byte_ptr + offset;
 
