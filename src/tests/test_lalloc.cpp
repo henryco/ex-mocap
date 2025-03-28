@@ -9,6 +9,10 @@
 
 using namespace ex::data::lalloc;
 
+void generate_data(char *buf, const std::size_t buf_size, const int block_id, const int iteration) {
+    std::snprintf(buf, buf_size, "Block %d Iteration %d unique content.", block_id, iteration);
+}
+
 TEST_SUITE("Lalloc tests") {
 
     TEST_CASE("Initialization") {
@@ -346,6 +350,186 @@ TEST_SUITE("Lalloc tests") {
 
         alloc.free(new_ptr);
     }
+
+    TEST_CASE("Allocated memory remains unchanged after new allocations") {
+        allocator alloc;
+
+        char *block1 = static_cast<char *>(alloc.malloc(64, alignof(char)));
+        strcpy(block1, "Original Data Block 1");
+
+        // Allocate a new block
+        char *block2 = static_cast<char *>(alloc.malloc(128, alignof(char)));
+        strcpy(block2, "Data Block 2 Content, a longer string to differentiate clearly");
+
+        // Verify first block's content is unchanged
+        CHECK(strcmp(block1, "Original Data Block 1") == 0);
+        CHECK(strcmp(block2, "Data Block 2 Content, a longer string to differentiate clearly") == 0);
+
+        alloc.free(block1);
+        alloc.free(block2);
+    }
+
+    TEST_CASE("Memory content remains valid after expanding reallocations") {
+        allocator alloc;
+
+        char *block1 = static_cast<char *>(alloc.malloc(32, alignof(char)));
+        strcpy(block1, "Expanding content test");
+
+        // Reallocate a larger size
+        char *block1_expanded = static_cast<char *>(alloc.realloc(block1, 128));
+
+        CHECK(block1_expanded != nullptr);
+        CHECK(strcmp(block1_expanded, "Expanding content test") == 0);
+
+        // Allocate another block to ensure allocator state doesn't affect existing data
+        char *block2 = static_cast<char *>(alloc.malloc(64, alignof(char)));
+        strcpy(block2, "Another allocation after expanding realloc");
+
+        CHECK(strcmp(block1_expanded, "Expanding content test") == 0);
+        CHECK(strcmp(block2, "Another allocation after expanding realloc") == 0);
+
+        alloc.free(block1_expanded);
+        alloc.free(block2);
+    }
+
+    TEST_CASE("Memory content remains valid after shrinking reallocations") {
+        allocator alloc;
+
+        char *block1 = static_cast<char *>(alloc.malloc(128, alignof(char)));
+        strcpy(block1, "Content before shrinking");
+
+        // Shrink reallocation to smaller size
+        char *block1_shrinked = static_cast<char *>(alloc.realloc(block1, 32));
+
+        CHECK(block1_shrinked != nullptr);
+        CHECK(strcmp(block1_shrinked, "Content before shrinking") == 0);
+
+        // Additional allocation after shrinking realloc
+        char *block2 = static_cast<char *>(alloc.malloc(128, alignof(char)));
+        strcpy(block2, "Allocation after shrinking");
+
+        CHECK(strcmp(block1_shrinked, "Content before shrinking") == 0);
+        CHECK(strcmp(block2, "Allocation after shrinking") == 0);
+
+        alloc.free(block1_shrinked);
+        alloc.free(block2);
+    }
+
+    TEST_CASE("Content remains valid across multiple allocations, reallocations, and frees") {
+        allocator alloc;
+
+        char* block1 = static_cast<char *>(alloc.malloc(64, alignof(char)));
+        strcpy(block1, "Persistent data block");
+
+        char* block2 = static_cast<char *>(alloc.malloc(64, alignof(char)));
+        strcpy(block2, "Temporary data block");
+
+        // Free the second block and allocate again to test reuse and fragmentation handling
+        alloc.free(block2);
+
+        char* block3 = static_cast<char *>(alloc.malloc(128, alignof(char)));
+        strcpy(block3, "New allocation after free");
+
+        CHECK(strcmp(block1, "Persistent data block") == 0);
+        CHECK(strcmp(block3, "New allocation after free") == 0);
+
+        // Reallocate first block again to larger size
+        char* block1_expanded = static_cast<char *>(alloc.realloc(block1, 256));
+        strcat(block1_expanded, " with appended data");
+
+        CHECK(strcmp(block1_expanded, "Persistent data block with appended data") == 0);
+        CHECK(strcmp(block3, "New allocation after free") == 0);
+
+        alloc.free(block1_expanded);
+        alloc.free(block3);
+    }
+
+    TEST_CASE("Intensive allocator test: data integrity with frequent allocations, reallocations, and frees") {
+        allocator alloc;
+
+        constexpr int NUM_BLOCKS     = 1000;
+        constexpr int OPS_PER_BLOCK = 5;  // Allocations, reallocations, frees per block
+
+        struct Block {
+            char *ptr;
+            std::size_t size;
+            int id;
+            int iteration;
+        } blocks[NUM_BLOCKS];
+
+        // Initial allocation with unique data
+        for (int i = 0; i < NUM_BLOCKS; ++i) {
+            blocks[i].size = 64;
+            blocks[i].id = i;
+            blocks[i].iteration = 0;
+            blocks[i].ptr = static_cast<char *>(alloc.malloc(blocks[i].size, alignof(char)));
+            REQUIRE(blocks[i].ptr != nullptr);
+
+            generate_data(blocks[i].ptr, blocks[i].size, blocks[i].id, blocks[i].iteration);
+        }
+
+        // Perform many reallocations and random frees
+        for (int op = 1; op <= OPS_PER_BLOCK; ++op) {
+
+            // Reallocate each block (alternating expansion and shrinking)
+            for (int i = 0; i < NUM_BLOCKS; ++i) {
+                // Verify existing data before reallocation
+                char expected_data[128];
+                generate_data(expected_data, sizeof(expected_data), blocks[i].id, blocks[i].iteration);
+                CHECK(strcmp(blocks[i].ptr, expected_data) == 0);
+
+                // Decide new size
+                std::size_t new_size;
+                if (op % 2 == 1) {
+                    // Expansion
+                    new_size = blocks[i].size + 64;
+                } else {
+                    // Shrinkage, but never below original data length
+                    new_size = (blocks[i].size > 128) ? blocks[i].size - 64 : blocks[i].size;
+                }
+
+                char *new_ptr = static_cast<char *>(alloc.realloc(blocks[i].ptr, new_size));
+                REQUIRE(new_ptr != nullptr);
+
+                blocks[i].ptr = new_ptr;
+                blocks[i].size = new_size;
+
+                // Increment iteration to track reallocations
+                blocks[i].iteration++;
+
+                // Write new data after reallocation
+                generate_data(blocks[i].ptr, blocks[i].size, blocks[i].id, blocks[i].iteration);
+            }
+
+            // Randomly free some blocks and allocate new ones to simulate real-world usage
+            for (int i = 0; i < NUM_BLOCKS; i += 10) {
+                // Verify data integrity before free
+                char expected_data[128];
+                generate_data(expected_data, sizeof(expected_data), blocks[i].id, blocks[i].iteration);
+                CHECK(strcmp(blocks[i].ptr, expected_data) == 0);
+
+                alloc.free(blocks[i].ptr);
+
+                // Immediately allocate new block
+                blocks[i].size = 64;
+                blocks[i].iteration = 0; // reset iteration for new block
+                blocks[i].ptr = static_cast<char *>(alloc.malloc(blocks[i].size, alignof(char)));
+                REQUIRE(blocks[i].ptr != nullptr);
+                generate_data(blocks[i].ptr, blocks[i].size, blocks[i].id, blocks[i].iteration);
+            }
+        }
+
+        // Final integrity check before cleanup
+        for (int i = 0; i < NUM_BLOCKS; ++i) {
+            char expected_data[128];
+            generate_data(expected_data, sizeof(expected_data), blocks[i].id, blocks[i].iteration);
+            CHECK(strcmp(blocks[i].ptr, expected_data) == 0);
+
+            // Free allocated memory
+            alloc.free(blocks[i].ptr);
+        }
+    }
+
 
 //    TEST_CASE("Throw Cases") {
 //        allocator alloc;
