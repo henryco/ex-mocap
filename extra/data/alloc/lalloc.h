@@ -33,8 +33,12 @@ namespace ex::data::lalloc {
 
 #ifndef UNIT_TEST
     #define validate_header_(ptr) validate_header__(ptr)
+    #define block_init_(ptr, padding) block_eager__(ptr, padding)
+//    #define validate_header_(ptr)     ;
+//    #define block_init_(ptr, padding) ;
 #else
-    #define validate_header_(ptr)
+    #define validate_header_(ptr) ;
+    #define block_init_(ptr, padding) ;
 #endif
 
     struct allocator {
@@ -97,13 +101,14 @@ namespace ex::data::lalloc {
             const block_addr_t allocated_ptr  = memory_.request(pre_allocated, &allocated_size);
 
             const uint32_t     padding = block_padding_(allocated_ptr, sizeof(memory_block));
-            const block_size_t size_b  = static_cast<block_size_t>(allocated_size - padding);
+            const block_size_t size_b  = static_cast<block_size_t>(allocated_size - padding) - sizeof(memory_block);
 
             const auto block_ptr = static_cast<unsigned char *>(allocated_ptr) + padding;
 
             memory_block *block = block_create_(block_ptr, size_b);
 
             validate_header_(block_ptr + sizeof(memory_block));
+            block_init_(block, 0);
 
             blocks_.put(block);
 
@@ -246,13 +251,14 @@ namespace ex::data::lalloc {
 
             // append new free block
             const uint32_t     padding = block_padding_(allocated_ptr, sizeof(memory_block));
-            const block_size_t size_b  = static_cast<block_size_t>(allocated_size - padding);
+            const block_size_t size_b  = static_cast<block_size_t>(allocated_size - padding) - sizeof(memory_block);
 
             const auto block_ptr = static_cast<unsigned char *>(allocated_ptr) + padding;
 
             memory_block *block = block_create_(block_ptr, size_b);
 
             validate_header_(block_ptr + sizeof(memory_block));
+            block_init_(block, 0);
 
             blocks_.put(block);
         }
@@ -298,7 +304,7 @@ namespace ex::data::lalloc {
                 calculate_post_(start_ptr, size_have, size_b, &p3, &p4);
 
                 memory_block *work_block = block;
-                bool remove_og = false;
+                bool          remove_og  = false;
 
                 if (p1 < 0 && p2 < 0) {
                     block->size_b = static_cast<u_int32_t>(size_b);
@@ -307,7 +313,7 @@ namespace ex::data::lalloc {
 
                 else if (p1 >= 0 && p2 < 0) {
                     block->size_b = static_cast<u_int32_t>(size_b + p1);
-                    remove_og = true;
+                    remove_og     = true;
                 }
 
                 else if (p1 >= 0 && p2 >= 0) {
@@ -335,6 +341,7 @@ namespace ex::data::lalloc {
                 used_mem_ += (work_block->size_b + sizeof(memory_block));
 
                 validate_header_(start_ptr);
+                block_init_(work_block, (p1 >= 0 && p2 >= 0 ? p2 : p1));
 
                 if (remove_og) {
                     blocks_.remove_node(block);
@@ -440,6 +447,16 @@ namespace ex::data::lalloc {
             const memory_block *block = reinterpret_cast<memory_block *>(header_ptr_(ptr));
             if (block->magic_b != BLOCK_MAGIC_BYTE)
                 abort_("block header corruption");
+        }
+
+        static void block_eager__(memory_block *block, const u_int32_t padding = 0) {
+            unsigned char *ptr_0 = reinterpret_cast<unsigned char *>(block) + sizeof(memory_block);
+            if (padding <= 0) {
+                ::memset(ptr_0, 0, block->size_b);
+                return;
+            }
+            ::memset(ptr_0, 42, padding);
+            ::memset(ptr_0 + padding, 0, block->size_b);
         }
     };
 
