@@ -195,8 +195,12 @@ namespace ex::data::lalloc {
                 if (next_block->magic_b != BLOCK_MAGIC_BYTE && next_block->magic_b != BLOCK_LAST_BYTE)
                     abort_("Invalid block address, block magic byte invalid: " << block->magic_b);
 
-                if (block->is_free == true) {
+                if (next_block->is_free == true) {
                     block->size_b += (next_block->size_b + sizeof(memory_block));
+
+                    if (next_block->magic_b == BLOCK_LAST_BYTE)
+                        block->magic_b = BLOCK_LAST_BYTE;
+
                     blocks_.remove_node(next_block);
                 }
             }
