@@ -147,15 +147,13 @@ namespace ex::data::lalloc {
             if (block->is_free == true)
                 abort_("Reallocation of free block");
 
-            const uint32_t block_size = block->size_b;
-
             const block_addr_t allocated = malloc(size_new_b, block->alignment_b);
-            used_mem_ -= block_size;
 
             std::cout << "re_ptr: " << allocated << std::endl;
 
             if (allocated != ptr) {
                 ::memmove(allocated, ptr, size_new_b < block->size_b ? size_new_b : block->size_b);
+                free(ptr);
                 return allocated;
             }
 
