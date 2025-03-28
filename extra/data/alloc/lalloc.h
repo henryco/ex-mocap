@@ -108,12 +108,11 @@ namespace ex::data::lalloc {
         }
 
         block_addr_t malloc(const std::size_t size_b, const std::size_t alignment_b) {
-            std::cout << "\nmalloc: " << size_b << ", " << alignment_b << std::endl;
             if (size_b == 0)
                 abort_("Empty memory block allocation");
 
             if (const block_addr_t allocated = block_acquire_(size_b, alignment_b)) {
-                std::cout << "ma_ptr: " << allocated << std::endl;
+                validate_header_(allocated);
                 return allocated;
             }
 
@@ -123,7 +122,7 @@ namespace ex::data::lalloc {
             block_request_(size_b + alignment_b);
 
             if (const block_addr_t allocated = block_acquire_(size_b, alignment_b)) {
-                std::cout << "ma_ptr: " << allocated << std::endl;
+                validate_header_(allocated);
                 return allocated;
             }
 
@@ -131,7 +130,6 @@ namespace ex::data::lalloc {
         }
 
         block_addr_t realloc(void *ptr, const std::size_t size_new_b) {
-            std::cout << "\nrealloc: " << ptr << ", " << size_new_b << std::endl;
 
             if (size_new_b == 0 || ptr == nullptr) {
                 free(ptr);
@@ -149,19 +147,18 @@ namespace ex::data::lalloc {
 
             const block_addr_t allocated = malloc(size_new_b, block->alignment_b);
 
-            std::cout << "re_ptr: " << allocated << std::endl;
-
             if (allocated != ptr) {
                 ::memmove(allocated, ptr, size_new_b < block->size_b ? size_new_b : block->size_b);
+                validate_header_(allocated);
                 free(ptr);
                 return allocated;
             }
 
+            validate_header_(allocated);
             return allocated;
         }
 
         void free(const block_addr_t ptr) {
-            std::cout << "free: " << ptr << std::endl;
             if (ptr == nullptr)
                 return;
 
@@ -326,6 +323,9 @@ namespace ex::data::lalloc {
                 work_block->is_free     = static_cast<u_int8_t>(false);
 
                 used_mem_ += work_block->size_b;
+
+                // TODO FIXME
+                validate_header_(start_ptr);
                 return start_ptr;
             }
             return nullptr;
@@ -410,6 +410,12 @@ namespace ex::data::lalloc {
             const u_int64_t address  = reinterpret_cast<u_int64_t>(data_ptr);
             const u_int64_t offset   = address % sizeof(memory_block);
             return data_ptr - offset;
+        }
+
+        static void validate_header_(void *ptr) {
+            const memory_block *block = reinterpret_cast<memory_block *>(header_ptr_(ptr));
+            if (block->magic_b != BLOCK_MAGIC_BYTE)
+                abort_("block header corruption");
         }
     };
 
