@@ -107,6 +107,7 @@ namespace ex::data::lalloc {
             const auto block_ptr = static_cast<unsigned char *>(allocated_ptr) + padding;
 
             memory_block *block = block_create_(block_ptr, size_b);
+            block->magic_b = BLOCK_LAST_BYTE;
 
             validate_header_(block_ptr + sizeof(memory_block));
             block_init_(block, 0);
@@ -185,10 +186,23 @@ namespace ex::data::lalloc {
             if (block->is_free == true)
                 abort_("Memory block double free");
 
+            used_mem_ -= (block->size_b + sizeof(memory_block));
+
+            if (block->magic_b != BLOCK_LAST_BYTE) {
+                unsigned char *next_ptr   = h_ptr + sizeof(memory_block) + block->size_b;
+                memory_block  *next_block = reinterpret_cast<memory_block *>(next_ptr);
+
+                if (next_block->magic_b != BLOCK_MAGIC_BYTE && next_block->magic_b != BLOCK_LAST_BYTE)
+                    abort_("Invalid block address, block magic byte invalid: " << block->magic_b);
+
+                if (block->is_free == true) {
+                    block->size_b += (next_block->size_b + sizeof(memory_block));
+                    blocks_.remove_node(next_block);
+                }
+            }
+
             block->alignment_b = 1;
             block->is_free     = 1;
-
-            used_mem_ -= (block->size_b + sizeof(memory_block));
             blocks_.put_front(block);
         }
 
@@ -254,6 +268,7 @@ namespace ex::data::lalloc {
             const auto block_ptr = static_cast<unsigned char *>(allocated_ptr) + padding;
 
             memory_block *block = block_create_(block_ptr, size_b);
+            block->magic_b = BLOCK_LAST_BYTE;
 
             validate_header_(block_ptr + sizeof(memory_block));
             block_init_(block, 0);
@@ -303,6 +318,7 @@ namespace ex::data::lalloc {
 
                 memory_block *work_block = block;
                 bool          remove_og  = false;
+                const bool    is_last    = block->magic_b == BLOCK_LAST_BYTE;
 
                 if (p1 < 0 && p2 < 0) {
                     block->size_b = static_cast<u_int32_t>(size_b);
@@ -323,6 +339,9 @@ namespace ex::data::lalloc {
 
                     // new padded block
                     work_block = block_create_(byte_ptr + p1, size_b + p2);
+                    if (p4 < 0 && is_last) {
+                        work_block->magic_b = BLOCK_LAST_BYTE;
+                    }
                 }
 
                 if (p3 >= 0) {
@@ -330,7 +349,11 @@ namespace ex::data::lalloc {
                 }
 
                 if (p4 >= 0) {
-                    blocks_.put_front(block_create_(start_ptr + size_b + p3, p4));
+                    memory_block *n_block = block_create_(start_ptr + size_b + p3, p4);
+                    if (is_last) {
+                        n_block->magic_b = BLOCK_LAST_BYTE;
+                    }
+                    blocks_.put_front(n_block);
                 }
 
                 work_block->alignment_b = static_cast<u_int16_t>(alignment_b);
