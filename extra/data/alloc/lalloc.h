@@ -153,8 +153,13 @@ namespace ex::data::lalloc {
             const block_addr_t allocated = malloc(size_new_b, block->alignment_b);
 
             if (allocated != ptr) {
-                ::memmove(allocated, ptr, size_new_b < block->size_b ? size_new_b : block->size_b);
                 validate_header_(allocated);
+
+                const int32_t padding = static_cast<unsigned char *>(ptr) - (h_ptr + sizeof(memory_block));
+                const int32_t block_s = block->size_b - padding;
+                // TODO FIXME
+
+                ::memmove(allocated, ptr, size_new_b < block_s ? size_new_b : block_s);
                 free(ptr);
                 return allocated;
             }
