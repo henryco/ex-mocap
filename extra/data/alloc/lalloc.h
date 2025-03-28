@@ -100,11 +100,7 @@ namespace ex::data::lalloc {
 
             const auto block_ptr = static_cast<unsigned char *>(allocated_ptr) + padding;
 
-            memory_block *block = reinterpret_cast<memory_block *>(block_ptr);
-            block->magic_b      = static_cast<u_int8_t>(BLOCK_MAGIC_BYTE);
-            block->size_b       = static_cast<u_int32_t>(size_b);
-            block->is_free      = static_cast<u_int8_t>(true);
-            block->alignment_b  = static_cast<u_int16_t>(1);
+            memory_block *block = block_create_(block_ptr, size_b);
 
             validate_header_(block_ptr + sizeof(memory_block));
 
@@ -247,11 +243,7 @@ namespace ex::data::lalloc {
 
             const auto block_ptr = static_cast<unsigned char *>(allocated_ptr) + padding;
 
-            memory_block *block = reinterpret_cast<memory_block *>(block_ptr);
-            block->magic_b      = static_cast<u_int8_t>(BLOCK_MAGIC_BYTE);
-            block->size_b       = static_cast<u_int32_t>(size_b);
-            block->is_free      = static_cast<u_int8_t>(true);
-            block->alignment_b  = static_cast<u_int16_t>(1);
+            memory_block *block = block_create_(block_ptr, size_b);
 
             validate_header_(block_ptr + sizeof(memory_block));
 
@@ -319,10 +311,7 @@ namespace ex::data::lalloc {
                     block->is_free     = static_cast<u_int8_t>(true);
 
                     // new padded block
-                    memory_block *new_block = reinterpret_cast<memory_block *>(byte_ptr + p1);
-                    new_block->magic_b      = static_cast<u_int8_t>(BLOCK_MAGIC_BYTE);
-                    new_block->size_b       = static_cast<u_int32_t>(size_b + p2);
-                    work_block              = new_block;
+                    work_block = block_create_(byte_ptr + p1, size_b + p2);
                 }
 
                 if (p3 >= 0) {
@@ -330,12 +319,7 @@ namespace ex::data::lalloc {
                 }
 
                 if (p4 >= 0) {
-                    memory_block *new_block = reinterpret_cast<memory_block *>(start_ptr + size_b + p3);
-                    new_block->magic_b      = static_cast<u_int8_t>(BLOCK_MAGIC_BYTE);
-                    new_block->size_b       = static_cast<u_int32_t>(p4);
-                    new_block->is_free      = static_cast<u_int8_t>(true);
-                    new_block->alignment_b  = static_cast<u_int16_t>(1);
-                    blocks_.put_front(new_block);
+                    blocks_.put_front(block_create_(start_ptr + size_b + p3, p4));
                 }
 
                 work_block->alignment_b = static_cast<u_int16_t>(alignment_b);
@@ -354,9 +338,12 @@ namespace ex::data::lalloc {
             return nullptr;
         }
 
-        memory_block *block_create_(void *mem) {
+        memory_block *block_create_(void *mem, const u_int32_t size) {
             blocks_total_ += 1;
             memory_block *new_block = reinterpret_cast<memory_block *>(mem);
+            new_block->size_b       = static_cast<u_int32_t>(size);
+            new_block->alignment_b  = static_cast<u_int16_t>(1);
+            new_block->is_free      = static_cast<u_int8_t>(true);
             new_block->magic_b      = static_cast<u_int8_t>(BLOCK_MAGIC_BYTE);
             return new_block;
         }

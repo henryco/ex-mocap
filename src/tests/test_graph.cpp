@@ -141,19 +141,11 @@ TEST_SUITE("Grap node tests") {
             }
         }
 
-        int free_blocks  = 0;
-        int total_blocks = 0;
-        for (const auto &block : alloc_2.blocks_) {
-            if (block.key->is_free == true)
-                free_blocks += 1;
-            total_blocks += 1;
-        }
-
         std::cout << "avg: " << (avg / counter) << " ns\n";
         std::cout << "memory total : " << limbo::graph::memory::allocator.size_total(&limbo::graph::memory::allocator) << " b" << std::endl;
         std::cout << "memory used  : " << limbo::graph::memory::allocator.size_used(&limbo::graph::memory::allocator) << " b" << std::endl;
-        std::cout << "blocks total: " << total_blocks << std::endl;
-        std::cout << "blocks free: " << free_blocks << std::endl;
+        std::cout << "blocks total: " << alloc_2.blocks_total() << std::endl;
+        std::cout << "blocks free: " << (alloc_2.blocks_total() - alloc_2.blocks_used()) << std::endl;
         std::cout << "finished" << std::endl;
     }
 }
