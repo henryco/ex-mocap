@@ -454,65 +454,176 @@ namespace ex::data {
         template<typename F>
         void sort_(const F fn) {
             root_ = merge_sort_(fn, root_);
+            if (root_ == nullptr)
+                return;
+            root_->prev = nullptr;
             for (list_node *head = root_; head != nullptr; head = head->next) {
                 back_ = head;
             }
         }
 
+        // ---------------------------------------- GPT GENERATED BULLSHIT ---------------------------------------------
+        // Iterative version of my (recurrent) merge sort
+        // TODO: Although it passes unit tests for sorting I should manually review and verify this code later
         template<typename F>
-        static list_node *merge_sort_(const F fn, list_node* head) {
-            // Base case: if the list is empty or contains a single element.
-            if (head == nullptr || head->next == nullptr)
+        static list_node* merge_(const F fn, list_node* a, list_node* b) {
+            list_node dummy;
+            list_node* tail = &dummy;
+            dummy.next = nullptr;
+
+            while (a && b) {
+                if (fn(a, b) <= 0) {
+                    tail->next = a;
+                    a->prev = tail;
+                    a = a->next;
+                } else {
+                    tail->next = b;
+                    b->prev = tail;
+                    b = b->next;
+                }
+                tail = tail->next;
+            }
+
+            if (a) {
+                tail->next = a;
+                a->prev = tail;
+            } else if (b) {
+                tail->next = b;
+                b->prev = tail;
+            }
+
+            // Fix head node prev pointer
+            if (dummy.next) dummy.next->prev = nullptr;
+            return dummy.next;
+        }
+
+        template<typename F>
+        static list_node* merge_sort_(const F fn, list_node* head) {
+            if (!head || !head->next)
                 return head;
 
-            // Split the list into two halves.
-            list_node *second = split_(head);
-
-            // Recursively sort each half.
-            head   = merge_sort_(fn, head);
-            second = merge_sort_(fn, second);
-
-            // Merge the two sorted halves.
-            return merge_(fn, head, second);
-        }
-
-        template<typename F>
-        static list_node *merge_(const F fn, list_node *first, list_node *second) {
-            if (first == nullptr)
-                return second;
-
-            if (second == nullptr)
-                return first;
-
-            // Compare keys to decide the new head.
-            if (fn(first, second) <= 0) {
-                first->next = merge_(fn, first->next, second);
-                if (first->next != nullptr)
-                    first->next->prev = first;
-                first->prev = nullptr;
-                return first;
+            // Calculate list length
+            int list_size = 0;
+            list_node* tmp = head;
+            while (tmp) {
+                list_size++;
+                tmp = tmp->next;
             }
 
-            second->next = merge_(fn, first, second->next);
-            if (second->next != nullptr)
-                second->next->prev = second;
-            second->prev = nullptr;
-            return second;
-        }
+            list_node dummy;
+            dummy.next = head;
+            head->prev = &dummy;
 
-        static list_node *split_(list_node* head) {
-            list_node *slow = head, *fast = head;
-            while (fast->next != nullptr && fast->next->next != nullptr) {
-                slow = slow->next;
-                fast = fast->next->next;
+            for (int size = 1; size < list_size; size *= 2) {
+                list_node* prev = &dummy;
+                list_node* curr = dummy.next;
+
+                while (curr) {
+                    // Left sublist
+                    list_node* left = curr;
+                    int left_size = size;
+                    while (left_size-- && curr) curr = curr->next;
+
+                    // Right sublist
+                    list_node* right = curr;
+                    int right_size = size;
+                    while (right_size-- && curr) curr = curr->next;
+
+                    // Save next start point
+                    list_node* next = curr;
+
+                    // Disconnect sublists
+                    if (left) detach_after(left, size);
+                    if (right) detach_after(right, size);
+
+                    // Merge left and right
+                    list_node* merged = merge_(fn, left, right);
+                    prev->next = merged;
+                    if (merged) merged->prev = prev;
+
+                    // Advance prev to the end of merged
+                    while (prev->next) prev = prev->next;
+                    prev->next = next;
+                    if (next) next->prev = prev;
+
+                    curr = next;
+                }
             }
 
-            list_node *second = slow->next;
-            slow->next = nullptr;  // Terminate first half.
-            if (second != nullptr)
-                second->prev = nullptr;
-            return second;
+            return dummy.next;
         }
+
+        // Helper to disconnect after `count` nodes
+        static void detach_after(list_node* start, int count) {
+            while (--count && start)
+                start = start->next;
+
+            if (start && start->next) {
+                start = start->next;
+                start->prev->next = nullptr;
+                start->prev = nullptr;
+            }
+        }
+        // -------------------------------------------------------------------------------------------------------------
+
+
+
+        // ---------------------------------- my own RECURRENT version of merge sort -----------------------------------
+//        template<typename F>
+//        static list_node *merge_sort_(const F fn, list_node* head) {
+//            // Base case: if the list is empty or contains a single element.
+//            if (head == nullptr || head->next == nullptr)
+//                return head;
+//
+//            // Split the list into two halves.
+//            list_node *second = split_(head);
+//
+//            // Recursively sort each half.
+//            head   = merge_sort_(fn, head);
+//            second = merge_sort_(fn, second);
+//
+//            // Merge the two sorted halves.
+//            return merge_(fn, head, second);
+//        }
+//
+//        template<typename F>
+//        static list_node *merge_(const F fn, list_node *first, list_node *second) {
+//            if (first == nullptr)
+//                return second;
+//
+//            if (second == nullptr)
+//                return first;
+//
+//            // Compare keys to decide the new head.
+//            if (fn(first, second) <= 0) {
+//                first->next = merge_(fn, first->next, second);
+//                if (first->next != nullptr)
+//                    first->next->prev = first;
+//                first->prev = nullptr;
+//                return first;
+//            }
+//
+//            second->next = merge_(fn, first, second->next);
+//            if (second->next != nullptr)
+//                second->next->prev = second;
+//            second->prev = nullptr;
+//            return second;
+//        }
+//
+//        static list_node *split_(list_node* head) {
+//            list_node *slow = head, *fast = head;
+//            while (fast->next != nullptr && fast->next->next != nullptr) {
+//                slow = slow->next;
+//                fast = fast->next->next;
+//            }
+//
+//            list_node *second = slow->next;
+//            slow->next = nullptr;  // Terminate first half.
+//            if (second != nullptr)
+//                second->prev = nullptr;
+//            return second;
+//        }
+        // -------------------------------------------------------------------------------------------------------------
 
         list_node *instance_node_() {
             return new (malloc_<list_node>(this, allocator_, 1)) list_node;

@@ -406,6 +406,7 @@ TEST_SUITE("List Map test") {
 
         int prev_key = -1;
         for (const auto &node : map) {
+            std::cout << node.key << ", " << node.val << '\n';
             CHECK(node.key >= prev_key);
             prev_key = node.key;
         }

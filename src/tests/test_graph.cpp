@@ -119,13 +119,14 @@ TEST_SUITE("Grap node tests") {
         ex::time::measure_avg time = 1;
         time.start();
         limbo::graph::BaseNode *root = new node_test_one();
-        rec_build(root, 5, 5);
+        rec_build(root, 5, 6);
         limbo::graph::Clock clock;
         clock.attach(root);
         time.stop();
 
         std::cout << "build: " << time.result() << " ns" << std::endl;
         std::cout << "total: " << counter_ << std::endl;
+        std::cout << "size : " << alloc_2.size_total() << ", " << (alloc_2.size_total() / (1 MB)) << std::endl;
 
         unsigned long int avg = 0;
         double counter = 0.;
