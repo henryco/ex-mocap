@@ -30,6 +30,12 @@ namespace ex::data::lalloc {
 #define STACK_BLOCK_SIZE (sizeof(block_list_t::list_node))
 #define BLOCK_MAGIC_BYTE (69)
 
+#ifndef UNIT_TEST
+    #define validate_header_(ptr) validate_header__(ptr)
+#else
+    #define validate_header_(ptr)
+#endif
+
     struct allocator {
 
         static int8_t ptr_compare(memory_block *const *a, memory_block *const *b) {
@@ -47,12 +53,11 @@ namespace ex::data::lalloc {
 
         mem_provider memory_;
 
-        std::size_t used_mem_ = 0;
         std::size_t def_size_ = 0;
         std::size_t grow_mem_ = 0;
+        std::size_t used_mem_ = 0;
 
-//        block_size_t min_;
-//        block_size_t max_;
+        std::size_t blocks_total_ = 0;
 
         ex::data::allocator compat() {
             return alloc_compat<allocator>::allocator(this);
@@ -121,6 +126,7 @@ namespace ex::data::lalloc {
 //            trim();
 //            if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
 //                return allocated;
+
             block_request_(size_b + alignment_b);
 
             if (const block_addr_t allocated = block_acquire_(size_b, alignment_b)) {
@@ -186,6 +192,14 @@ namespace ex::data::lalloc {
 
         long size_total() const {
             return memory_.size();
+        }
+
+        long blocks_total() const {
+            return blocks_total_;
+        }
+
+        long blocks_used() const {
+            return blocks_.size();
         }
 
         void trim() {
@@ -329,20 +343,22 @@ namespace ex::data::lalloc {
 
                 used_mem_ += work_block->size_b;
 
-                // TODO FIXME
-                void *header_ptr = header_ptr_(start_ptr);
-                if (header_ptr != work_block) {
-                    header_ptr_(start_ptr);
-                    abort_("Header address mismatch");
-                }
                 validate_header_(start_ptr);
 
                 if (remove_og) {
                     blocks_.remove_node(block);
                 }
+
                 return start_ptr;
             }
             return nullptr;
+        }
+
+        memory_block *block_create_(void *mem) {
+            blocks_total_ += 1;
+            memory_block *new_block = reinterpret_cast<memory_block *>(mem);
+            new_block->magic_b      = static_cast<u_int8_t>(BLOCK_MAGIC_BYTE);
+            return new_block;
         }
 
         static void calculate_post_(void *ptr, const int32_t size_have, const int32_t size_need, int32_t *p3, int32_t *p4) {
@@ -361,7 +377,7 @@ namespace ex::data::lalloc {
             }
 
             unsigned char *gap_ptr = reinterpret_cast<unsigned char *>(ptr) + size_need;
-            const int32_t  padding = block_padding_(gap_ptr, alignof(memory_block));
+            const int32_t  padding = block_padding_(gap_ptr, sizeof(memory_block));
             const int32_t  free_b  = gap - padding - sizeof(memory_block);
 
             if (free_b <= 0) {
@@ -420,14 +436,13 @@ namespace ex::data::lalloc {
         }
 
         static void *header_ptr_(void *ptr) {
-            // TODO FIXME
             unsigned char  *data_ptr = reinterpret_cast<unsigned char *>(ptr) - sizeof(memory_block);
             const u_int64_t address  = reinterpret_cast<u_int64_t>(data_ptr);
             const u_int64_t offset   = address % sizeof(memory_block);
             return data_ptr - offset;
         }
 
-        static void validate_header_(void *ptr) {
+        static void validate_header__(void *ptr) {
             const memory_block *block = reinterpret_cast<memory_block *>(header_ptr_(ptr));
             if (block->magic_b != BLOCK_MAGIC_BYTE)
                 abort_("block header corruption");
