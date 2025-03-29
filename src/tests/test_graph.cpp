@@ -120,6 +120,7 @@ TEST_SUITE("Grap node tests") {
         time.start();
         limbo::graph::BaseNode *root = new node_test_one();
         rec_build(root, 6, 7);
+//        rec_build(root, 4, 3);
         limbo::graph::Clock clock;
         clock.attach(root);
         time.stop();
@@ -144,14 +145,6 @@ TEST_SUITE("Grap node tests") {
 //                counter++;
 //            }
 //        }
-
-        {
-            ex::time::measure_avg measure_2 = 1;
-            measure_2.start();
-            alloc_2.trim();
-            measure_2.stop();
-            std::cout << "trim_time: " << measure_2.result() << " ns\n";
-        }
 
         std::cout << "avg: " << (avg / counter) << " ns\n";
         std::cout << "memory total : " << limbo::graph::memory::allocator.size_total(&limbo::graph::memory::allocator) << " b" << std::endl;

@@ -15,11 +15,12 @@ namespace ex::data::lalloc {
 #define STACK_ARENA_SIZE (1 MB)
 // -----------------------------
 
-    struct memory_block {
-        u_int32_t size_b;
-        u_int16_t alignment_b;
-        u_int8_t  is_free;
-        u_int8_t  magic_b;
+    struct alignas(16) memory_block {
+        memory_block *prev_ptr;
+        u_int32_t     size_b;
+        u_int16_t     alignment_b;
+        u_int8_t      is_free;
+        u_int8_t      magic_b;
     };
 
     using block_addr_t = void *;
@@ -28,7 +29,6 @@ namespace ex::data::lalloc {
 
 #define BLOCK_MAX_SIZE_B (4294967295U)
 #define STACK_BLOCK_SIZE (sizeof(block_list_t::list_node))
-#define BLOCK_LAST_BYTE  (42)
 #define BLOCK_MAGIC_BYTE (69)
 // nice
 
@@ -106,10 +106,13 @@ namespace ex::data::lalloc {
 
             const auto block_ptr = static_cast<unsigned char *>(allocated_ptr) + padding;
 
-            memory_block *block = block_create_(block_ptr, size_b);
+            memory_block *block = block_create_(block_ptr, size_b - sizeof(void *));
 
             validate_header_(block_ptr + sizeof(memory_block));
             block_init_(block, 0);
+
+            unsigned char *null_space = static_cast<unsigned char *>(allocated_ptr) + allocated_size - sizeof(void *);
+            ::memset(null_space, 0, sizeof(void *));
 
             blocks_.put(block);
 
@@ -125,10 +128,6 @@ namespace ex::data::lalloc {
                 validate_header_(allocated);
                 return allocated;
             }
-
-            trim();
-            if (const block_addr_t allocated = block_acquire_(size_b, alignment_b))
-                return allocated;
 
             block_request_(size_b + alignment_b);
 
@@ -150,7 +149,7 @@ namespace ex::data::lalloc {
             unsigned char *h_ptr = static_cast<unsigned char *>(header_ptr_(ptr));
             memory_block  *block = reinterpret_cast<memory_block *>(h_ptr);
 
-            if (block->magic_b != BLOCK_MAGIC_BYTE && block->magic_b != BLOCK_LAST_BYTE)
+            if (block->magic_b != BLOCK_MAGIC_BYTE)
                 abort_("Invalid block address, block magic byte invalid: " << block->magic_b);
 
             if (block->is_free == true)
@@ -179,7 +178,7 @@ namespace ex::data::lalloc {
             unsigned char *h_ptr = static_cast<unsigned char *>(header_ptr_(ptr));
             memory_block  *block = reinterpret_cast<memory_block *>(h_ptr);
 
-            if (block->magic_b != BLOCK_MAGIC_BYTE && block->magic_b != BLOCK_LAST_BYTE)
+            if (block->magic_b != BLOCK_MAGIC_BYTE)
                 abort_("Invalid block address, block magic byte invalid: " << block->magic_b);
 
             if (block->is_free == true)
@@ -190,11 +189,6 @@ namespace ex::data::lalloc {
 
             used_mem_ -= (block->size_b + sizeof(memory_block));
             blocks_.put_front(block);
-        }
-
-        void trim() {
-            blocks_.sort();
-            // TODO
         }
 
         long size_used() const {
@@ -219,33 +213,13 @@ namespace ex::data::lalloc {
          * Allocate at least additional <b>min_size_b</b> bytes of memory
          */
         void block_request_(const std::size_t min_size_b) {
-
             if (min_size_b > BLOCK_MAX_SIZE_B)
                 abort_("Requested allocation size overflow");
-
-            // assuming list of blocks is already sorted by ptr_address in asc order
-            block_list_t::list_node *last = blocks_.back();
-            if (last == nullptr) {
-                preallocate(def_size_);
-                last = blocks_.back();
-                if (last == nullptr)
-                    abort_("Allocator not initialized");
-            }
 
             grow_mem_ = grow_mem_ + grow_mem_ + min_size_b;
 
             std::size_t allocated_size = 0;
             void       *allocated_ptr  = memory_.request(grow_mem_, &allocated_size);
-
-            memory_block  *last_block = last->key;
-            unsigned char *byte_ptr   = reinterpret_cast<unsigned char *>(last_block) + sizeof(memory_block);
-            if (continuous_(byte_ptr, allocated_ptr, last_block->size_b)) {
-                // extend last free block which belongs to the same memory region
-                if (last_block->is_free == true) {
-                    last_block->size_b += allocated_size;
-                    return;
-                }
-            }
 
             // append new free block
             const uint32_t     padding = block_padding_(allocated_ptr, sizeof(memory_block));
@@ -257,6 +231,9 @@ namespace ex::data::lalloc {
 
             validate_header_(block_ptr + sizeof(memory_block));
             block_init_(block, 0);
+
+            unsigned char *null_space = static_cast<unsigned char *>(allocated_ptr) + allocated_size - sizeof(void *);
+            ::memset(null_space, 0, sizeof(void *));
 
             blocks_.put(block);
         }
@@ -271,7 +248,7 @@ namespace ex::data::lalloc {
 
             for (block_list_t::list_node *head = blocks_.root_; head != nullptr; head = head->next) {
                 memory_block *block = head->key;
-                if (block->magic_b != BLOCK_MAGIC_BYTE && block->magic_b != BLOCK_LAST_BYTE)
+                if (block->magic_b != BLOCK_MAGIC_BYTE)
                     abort_("Invalid block address, block magic byte invalid: " << block->magic_b);
 
                 if (block->size_b < size_b)
@@ -323,6 +300,7 @@ namespace ex::data::lalloc {
 
                     // new padded block
                     work_block = block_create_(byte_ptr + p1, size_b + p2);
+                    work_block->prev_ptr = block;
                 }
 
                 if (p3 >= 0) {
@@ -330,7 +308,9 @@ namespace ex::data::lalloc {
                 }
 
                 if (p4 >= 0) {
-                    blocks_.put_front(block_create_(start_ptr + size_b + p3, p4));
+                    memory_block *end_block = block_create_(start_ptr + size_b + p3, p4);
+                    end_block->prev_ptr     = work_block;
+                    blocks_.put_front(end_block);
                 }
 
                 work_block->alignment_b = static_cast<u_int16_t>(alignment_b);
@@ -353,6 +333,7 @@ namespace ex::data::lalloc {
         memory_block *block_create_(void *mem, const u_int32_t size) {
             blocks_total_ += 1;
             memory_block *new_block = reinterpret_cast<memory_block *>(mem);
+            new_block->prev_ptr     = nullptr;
             new_block->size_b       = static_cast<u_int32_t>(size);
             new_block->alignment_b  = static_cast<u_int16_t>(1);
             new_block->is_free      = static_cast<u_int8_t>(true);
@@ -443,7 +424,7 @@ namespace ex::data::lalloc {
 
         static void validate_header__(void *ptr) {
             const memory_block *block = reinterpret_cast<memory_block *>(header_ptr_(ptr));
-            if (block->magic_b != BLOCK_MAGIC_BYTE && block->magic_b != BLOCK_LAST_BYTE)
+            if (block->magic_b != BLOCK_MAGIC_BYTE)
                 abort_("block header corruption");
         }
 
