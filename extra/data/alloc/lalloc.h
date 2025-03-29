@@ -212,6 +212,7 @@ namespace ex::data::lalloc {
         }
 
         void trim() {
+            std::cout << "trim" << std::endl;
             blocks_.sort();
 
             int i = 0;
@@ -254,7 +255,7 @@ namespace ex::data::lalloc {
                 prev = head;
                 head = head->next;
             }
-            std::cout << "merged: " << i << std::endl;
+//            std::cout << "merged: " << i << std::endl;
         }
 
         long size_used() const {
@@ -414,7 +415,7 @@ namespace ex::data::lalloc {
                     blocks_.remove_node(block);
                 }
 
-                std::cout << "found: " << size_b << ", " << size_have << "\t [" << p1 << ", " << p2 << ", " << p3 << ", " << p4 << "]" << std::endl;
+//                std::cout << "found: " << size_b << ", " << size_have << "\t [" << p1 << ", " << p2 << ", " << p3 << ", " << p4 << "]" << std::endl;
                 return start_ptr;
             }
             return nullptr;
