@@ -414,6 +414,7 @@ namespace ex::data::lalloc {
                     blocks_.remove_node(block);
                 }
 
+                std::cout << "found: " << size_b << ", " << size_have << "\t [" << p1 << ", " << p2 << ", " << p3 << ", " << p4 << "]" << std::endl;
                 return start_ptr;
             }
             return nullptr;
