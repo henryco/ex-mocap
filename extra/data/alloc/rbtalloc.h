@@ -173,6 +173,18 @@ namespace ex::data::rbtalloc {
             return memory_.size();
         }
 
+        long blocks_total() const {
+            return blocks_.size();
+        }
+
+        long blocks_used() const {
+            long c = 0;
+            for (auto &b : blocks_) {
+                if (!b.val.is_free) c++;
+            }
+            return c;
+        }
+
         // =========================================== INTERNAL UTILS ==================================================
 
         /**

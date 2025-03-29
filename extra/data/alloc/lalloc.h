@@ -202,6 +202,7 @@ namespace ex::data::lalloc {
                         block->magic_b = BLOCK_LAST_BYTE;
 
                     blocks_.remove_node(next_block);
+                    blocks_total_ -= 1;
                 }
             }
 
@@ -212,7 +213,45 @@ namespace ex::data::lalloc {
 
         void trim() {
             blocks_.sort();
-            // TODO
+
+            int i = 0;
+            block_list_t::list_node *prev = nullptr;
+            for (block_list_t::list_node *head = blocks_.root_; head != nullptr;) {
+                if (prev == nullptr) {
+                    prev = head;
+                    head = head->next;
+                    continue;
+                }
+
+                memory_block *block_prev = prev->key;
+                memory_block *block_this = head->key;
+
+                if (block_prev->magic_b != BLOCK_MAGIC_BYTE && block_prev->magic_b != BLOCK_LAST_BYTE)
+                    abort_("Invalid block address, block magic byte invalid: " << block_prev->magic_b);
+
+                if (block_this->magic_b != BLOCK_MAGIC_BYTE && block_this->magic_b != BLOCK_LAST_BYTE)
+                    abort_("Invalid block address, block magic byte invalid: " << block_this->magic_b);
+
+                if (block_prev->is_free && block_this->is_free) {
+                    unsigned char *prev_ptr = reinterpret_cast<unsigned char *>(block_prev) + sizeof(memory_block);
+                    unsigned char *this_ptr = reinterpret_cast<unsigned char *>(block_this);
+
+                    if (continuous_(prev_ptr, this_ptr, block_prev->size_b)) {
+                        block_list_t::list_node *next = head->next;
+
+                        block_prev->size_b += block_this->size_b + sizeof(memory_block);
+                        block_prev->magic_b = block_this->magic_b;
+                        blocks_.remove_node(head);
+                        blocks_total_ -= 1;
+                        head = next;
+                        i++;
+                    }
+                }
+
+                prev = head;
+                head = head->next;
+            }
+            std::cout << "merged: " << i << std::endl;
         }
 
         long size_used() const {
