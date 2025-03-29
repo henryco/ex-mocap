@@ -113,7 +113,7 @@ TEST_SUITE("Grap node tests") {
 
     TEST_CASE("Graph allocation test") {
 //        ex::data::rbtalloc::allocator alloc_2;
-        ex::data::lalloc::allocator alloc_2;
+        ex::data::lalloc::allocator alloc_2 = 128 MB;
         limbo::graph::memory::allocator = alloc_2.compat();
 
         ex::time::measure_avg time = 1;

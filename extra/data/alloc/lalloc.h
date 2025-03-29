@@ -243,8 +243,11 @@ namespace ex::data::lalloc {
                         block_prev->magic_b = block_this->magic_b;
                         blocks_.remove_node(head);
                         blocks_total_ -= 1;
-                        head = next;
                         i++;
+
+                        head = next;
+                        if (head == nullptr)
+                            break;
                     }
                 }
 
