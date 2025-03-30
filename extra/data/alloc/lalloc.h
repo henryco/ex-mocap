@@ -16,11 +16,11 @@ namespace ex::data::lalloc {
 // -----------------------------
 
     struct alignas(16) memory_block {
-        memory_block *prev_ptr;
-        u_int32_t     size_b;
-        u_int16_t     alignment_b;
-        u_int8_t      is_free;
-        u_int8_t      magic_b;
+        void     *prev_ptr;
+        u_int32_t size_b;
+        u_int16_t alignment_b;
+        u_int8_t  is_free;
+        u_int8_t  magic_b;
     };
 
     using block_addr_t = void *;
@@ -104,15 +104,14 @@ namespace ex::data::lalloc {
             const uint32_t     padding = block_padding_(allocated_ptr, sizeof(memory_block));
             const block_size_t size_b  = static_cast<block_size_t>(allocated_size - padding) - sizeof(memory_block);
 
-            const auto block_ptr = static_cast<unsigned char *>(allocated_ptr) + padding;
-
-            memory_block *block = block_create_(block_ptr, size_b - sizeof(void *));
+            unsigned char *block_ptr = static_cast<unsigned char *>(allocated_ptr) + padding;
+            memory_block  *block     = block_create_(block_ptr, size_b - sizeof(memory_block));
 
             validate_header_(block_ptr + sizeof(memory_block));
             block_init_(block, 0);
 
-            unsigned char *null_space = static_cast<unsigned char *>(allocated_ptr) + allocated_size - sizeof(void *);
-            ::memset(null_space, 0, sizeof(void *));
+            unsigned char *null_space = static_cast<unsigned char *>(allocated_ptr) + allocated_size - sizeof(memory_block);
+            ::memset(null_space, 0, sizeof(memory_block));
 
             blocks_.put(block);
 
@@ -187,6 +186,29 @@ namespace ex::data::lalloc {
             block->alignment_b = 1;
             block->is_free     = 1;
 
+//            if (memory_block *next = next_block_(block, ptr); next != nullptr) {
+//                if (next->prev_ptr == nullptr)
+//                    abort_("Invalid block reference [NULL]");
+//
+//                if (!continuous_(block, next, block->size_b + sizeof(memory_block)))
+//                    abort_("Invalid block alignment [block -> next]");
+//
+//                block_list_t::list_node *node = reinterpret_cast<block_list_t::list_node *>(next->prev_ptr);
+//                block->size_b += (next->size_b + sizeof(memory_block));
+//                blocks_.remove_node(node);
+//            }
+//
+//            if (block->prev_ptr != nullptr) {
+//                block_list_t::list_node *node = reinterpret_cast<block_list_t::list_node *>(block->prev_ptr);
+//                memory_block            *prev = node->key;
+//                if (!continuous_(prev, block, prev->size_b + sizeof(memory_block)))
+//                    abort_("Invalid block alignment [prev -> block]");
+//
+//                prev->size_b += (block->size_b + sizeof(memory_block));
+//                used_mem_ -= (prev->size_b + sizeof(memory_block));
+//                return;
+//            }
+
             used_mem_ -= (block->size_b + sizeof(memory_block));
             blocks_.put_front(block);
         }
@@ -216,7 +238,7 @@ namespace ex::data::lalloc {
             if (min_size_b > BLOCK_MAX_SIZE_B)
                 abort_("Requested allocation size overflow");
 
-            grow_mem_ = grow_mem_ + grow_mem_ + min_size_b;
+            grow_mem_ = grow_mem_ + grow_mem_ + min_size_b + sizeof(memory_block);
 
             std::size_t allocated_size = 0;
             void       *allocated_ptr  = memory_.request(grow_mem_, &allocated_size);
@@ -225,15 +247,14 @@ namespace ex::data::lalloc {
             const uint32_t     padding = block_padding_(allocated_ptr, sizeof(memory_block));
             const block_size_t size_b  = static_cast<block_size_t>(allocated_size - padding) - sizeof(memory_block);
 
-            const auto block_ptr = static_cast<unsigned char *>(allocated_ptr) + padding;
-
-            memory_block *block = block_create_(block_ptr, size_b);
+            unsigned char *block_ptr = static_cast<unsigned char *>(allocated_ptr) + padding;
+            memory_block  *block     = block_create_(block_ptr, size_b - sizeof(memory_block));
 
             validate_header_(block_ptr + sizeof(memory_block));
             block_init_(block, 0);
 
-            unsigned char *null_space = static_cast<unsigned char *>(allocated_ptr) + allocated_size - sizeof(void *);
-            ::memset(null_space, 0, sizeof(void *));
+            unsigned char *null_space = static_cast<unsigned char *>(allocated_ptr) + allocated_size - sizeof(memory_block);
+            ::memset(null_space, 0, sizeof(memory_block));
 
             blocks_.put(block);
         }
@@ -300,7 +321,7 @@ namespace ex::data::lalloc {
 
                     // new padded block
                     work_block = block_create_(byte_ptr + p1, size_b + p2);
-                    work_block->prev_ptr = block;
+                    work_block->prev_ptr = head;
                 }
 
                 if (p3 >= 0) {
@@ -309,9 +330,21 @@ namespace ex::data::lalloc {
 
                 if (p4 >= 0) {
                     memory_block *end_block = block_create_(start_ptr + size_b + p3, p4);
-                    end_block->prev_ptr     = work_block;
-                    blocks_.put_front(end_block);
+                    block_list_t::list_node *inserted_node = blocks_.put_front(end_block);
+
+//                    unsigned char *end_data = reinterpret_cast<unsigned char *>(end_block) + sizeof(memory_block);
+//                    memory_block  *next     = next_block_(end_block, end_data);
+//
+//                    if (next != nullptr)
+//                        next->prev_ptr = inserted_node;
                 }
+
+//                if (p4 < 0 && p1 >= 0 && p2 >= 0) {
+//                    unsigned char *end_data = reinterpret_cast<unsigned char *>(work_block) + sizeof(memory_block);
+//                    memory_block  *next     = next_block_(work_block, end_data);
+//                    if (next != nullptr)
+//                        next->prev_ptr = nullptr; // not free anymore
+//                }
 
                 work_block->alignment_b = static_cast<u_int16_t>(alignment_b);
                 work_block->is_free     = static_cast<u_int8_t>(false);
@@ -322,7 +355,7 @@ namespace ex::data::lalloc {
                 block_init_(work_block, (p1 >= 0 && p2 >= 0 ? p2 : p1));
 
                 if (remove_og) {
-                    blocks_.remove_node(block);
+                    blocks_.remove_node(head);
                 }
 
                 return start_ptr;
@@ -402,6 +435,15 @@ namespace ex::data::lalloc {
             *p1 = space_1;
             *p2 = space_2;
             return true;
+        }
+
+        static memory_block *next_block_(memory_block *block, void *data_ptr) {
+            memory_block  *next_prev = nullptr;
+            unsigned char *next_ptr  = static_cast<unsigned char *>(data_ptr) + block->size_b;
+            ::memcpy(&next_prev, next_ptr, sizeof(memory_block *));
+            if (next_prev == nullptr)
+                return nullptr;
+            return reinterpret_cast<memory_block *>(next_ptr);
         }
 
         static bool continuous_(void *prev, void *next, const u_int64_t prev_size) {

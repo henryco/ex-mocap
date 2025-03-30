@@ -355,38 +355,32 @@ namespace ex::data {
             back_       = node;
         }
 
-        void put_front(const key_t &key, const val_t &val = val_t()) {
-            if (root_ == nullptr) {
-                put(key, val);
-                return;
-            }
-            put_before(root_, key, val);
+        list_node *put_front(const key_t &key, const val_t &val = val_t()) {
+            if (root_ == nullptr)
+                return put(key, val);
+            return put_before(root_, key, val);
         }
 
-        void put_back(const key_t &key, const val_t &val = val_t()) {
-            if (back_ == nullptr) {
-                put(key, val);
-                return;
-            }
-            put_after(back_, key, val);
+        list_node *put_back(const key_t &key, const val_t &val = val_t()) {
+            if (back_ == nullptr)
+                return put(key, val);
+            return put_after(back_, key, val);
         }
 
-        void put_after(const key_t &after, const key_t &key, const val_t &val = val_t()) {
+        list_node *put_after(const key_t &after, const key_t &key, const val_t &val = val_t()) {
             for (list_node *head = root_; head != nullptr; head = head->next) {
-                if (head->key == after) {
-                    put_after(head, key, val);
-                    return;
-                }
+                if (head->key == after)
+                    return put_after(head, key, val);
             }
+            return nullptr;
         }
 
-        void put_before(const key_t &before, const key_t &key, const val_t &val = val_t()) {
+        list_node *put_before(const key_t &before, const key_t &key, const val_t &val = val_t()) {
             for (list_node *head = root_; head != nullptr; head = head->next) {
-                if (head->key == before) {
-                    put_before(head, key, val);
-                    return;
-                }
+                if (head->key == before)
+                    return put_before(head, key, val);
             }
+            return nullptr;
         }
 
         list_node *put_after(list_node *node, const key_t &key, const val_t &val = val_t()) {
