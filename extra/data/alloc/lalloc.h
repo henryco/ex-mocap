@@ -356,6 +356,7 @@ namespace ex::data::lalloc {
 
                 if (remove_og) {
                     blocks_.remove_node(head);
+//                    blocks_.detach_node(head);
                 }
 
                 return start_ptr;
@@ -437,11 +438,29 @@ namespace ex::data::lalloc {
             return true;
         }
 
-        static memory_block *next_block_(memory_block *block, void *data_ptr) {
-            memory_block  *next_prev = nullptr;
-            unsigned char *next_ptr  = static_cast<unsigned char *>(data_ptr) + block->size_b;
-            ::memcpy(&next_prev, next_ptr, sizeof(memory_block *));
-            if (next_prev == nullptr)
+        static block_list_t::list_node *node_next_(memory_block *block) {
+            memory_block *next_block = next_block_(block);
+            if (next_block == nullptr)
+                return nullptr;
+
+            unsigned char *next_next_ptr =
+                    reinterpret_cast<unsigned char *>(next_block) + sizeof(memory_block) + next_block->size_b;
+
+            block_list_t::list_node *next_next_prev = nullptr;
+            ::memcpy(&next_next_prev, next_next_ptr, sizeof(block_list_t::list_node *));
+
+            return next_next_prev;
+        }
+
+        static block_list_t::list_node *node_prev_(const memory_block *block) {
+            return static_cast<block_list_t::list_node *>(block->prev_ptr);
+        }
+
+        static memory_block *next_block_(memory_block *block) {
+            int64_t flag = 0;
+            unsigned char *next_ptr = reinterpret_cast<unsigned char *>(block) + sizeof(memory_block) + block->size_b;
+            ::memcpy(&flag, next_ptr + sizeof(void *), sizeof(int64_t));
+            if (flag == 0) // last (dead) block
                 return nullptr;
             return reinterpret_cast<memory_block *>(next_ptr);
         }

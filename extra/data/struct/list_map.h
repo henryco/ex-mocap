@@ -284,7 +284,11 @@ namespace ex::data {
         void remove_node(list_node *node) {
             if (node == nullptr)
                 return;
+            detach_node(node);
+            release_node_(node);
+        }
 
+        void detach_node(list_node *node) {
             list_node *prev = node->prev;
             list_node *next = node->next;
 
@@ -299,7 +303,6 @@ namespace ex::data {
                 back_ = prev;
 
             --size_;
-            release_node_(node);
         }
 
         void move_front(list_node *node) {
