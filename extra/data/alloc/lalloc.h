@@ -334,6 +334,7 @@ namespace ex::data::lalloc {
         void lifo_put_(memory_block *block) {
             if (block->node_ptr->bucket_ptr != nullptr)
                 abort_("block should be free");
+//            block_merge_(block);
             if (block->node_ptr->size_b == 0 || block->node_ptr->size_b >= LIFO_BLOCK_SIZE) {
                 block_merge_(block);
                 if (!lifo_.empty())
