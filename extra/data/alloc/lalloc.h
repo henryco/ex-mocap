@@ -5,57 +5,120 @@
 #ifndef EX_LIMBO_DATA_LALLOC_H
 #define EX_LIMBO_DATA_LALLOC_H
 
+#include "../struct/lifo_queue.h"
 #include "../struct/list_map.h"
 #include "stackarena.h"
+
+#ifdef _MSC_VER
+    #include <intrin.h>
+#endif
 
 namespace ex::data::lalloc {
 
 // -----------------------------
 #define ALLOC_DEF_SIZE_B (1 MB)
-#define STACK_ARENA_SIZE (1 MB)
+#define STACK_ALLOC_SIZE (1 MB)
 // -----------------------------
 
-    struct alignas(16) memory_block {
-        void     *prev_ptr;
-        u_int32_t size_b;
-        u_int16_t alignment_b;
-        u_int8_t  is_free;
-        u_int8_t  magic_b;
+    struct memory_node;
+
+    struct alignas(8) memory_block {
+        memory_node *node_ptr;
     };
 
-    using block_addr_t = void *;
-    using block_size_t = u_int32_t;
-    using block_list_t = linked_list<memory_block *>;
+    struct memory_node {
+        memory_node  *prev_ptr;
+        memory_block *block_ptr;
+        void         *bucket_ptr;
+        u_int32_t     size_b;
+        u_int32_t     alignment_b;
+    };
+
+    using block_addr_t   = void *;
+    using block_size_t   = u_int32_t;
+    using block_bucket_t = ex::data::lifo_queue<memory_node *>;
 
 #define BLOCK_MAX_SIZE_B (4294967295U)
-#define STACK_BLOCK_SIZE (sizeof(block_list_t::list_node))
-#define BLOCK_MAGIC_BYTE (69)
-// nice
+#define ARENA_BLOCK_SIZE (sizeof(memory_node))
+#define STACK_BLOCK_SIZE (sizeof(block_bucket_t::lifo_node))
+#define LIFO_BLOCK_SIZE  (16)
+#define BUCKETS_NUM      (32)
 
 #ifndef UNIT_TEST
     #define validate_header_(ptr) validate_header__(ptr)
     #define block_init_(ptr, padding) block_eager__(ptr, padding)
-//    #define validate_header_(ptr)     ;
-//    #define block_init_(ptr, padding) ;
 #else
     #define validate_header_(ptr) ;
     #define block_init_(ptr, padding) ;
 #endif
 
+    static u_int32_t power_range_r_s(const u_int32_t size_b) {
+        if (size_b == 0)
+            return 0;
+#ifdef __clang__
+        return (sizeof(size_b) * 8 - __builtin_clz(size_b) - 1);
+#elif defined(__GNUC__)
+        return return (sizeof(size_b) * 8 - __builtin_clz(size_b) - 1);
+#elif defined(_MSC_VER)
+        u_int64_t index;
+        _BitScanReverse(&index, size_b);
+        return static_cast<u_int32_t>(index);
+#else
+    #error "Compiller not supported"
+        abort_("Compiller not supported");
+#endif
+    }
+
     struct allocator {
 
-        static int8_t ptr_compare(memory_block *const *a, memory_block *const *b) {
-            const u_int64_t aa = reinterpret_cast<u_int64_t>(*a);
-            const u_int64_t bb = reinterpret_cast<u_int64_t>(*b);
-            return (aa > bb) - (aa < bb);
-        }
-
         ex::data::stackarena::allocator arena_ = {
-            STACK_BLOCK_SIZE,
-            STACK_ARENA_SIZE
+            ARENA_BLOCK_SIZE,
+            STACK_ALLOC_SIZE
         };
 
-        block_list_t blocks_ = { arena_.compat(), &ptr_compare };
+        ex::data::stackarena::allocator stack_ = {
+            STACK_BLOCK_SIZE,
+            STACK_ALLOC_SIZE
+        };
+
+        block_bucket_t lifo_ = {
+            stack_.compat()
+        };
+
+        block_bucket_t buckets_[BUCKETS_NUM] = {
+            stack_.compat(), // 2^0
+            stack_.compat(), // 2^1
+            stack_.compat(), // 2^2
+            stack_.compat(), // 2^3
+            stack_.compat(), // 2^4
+            stack_.compat(), // 2^5
+            stack_.compat(), // 2^6
+            stack_.compat(), // 2^7
+            stack_.compat(), // 2^9
+            stack_.compat(), // 2^10
+            stack_.compat(), // 2^11
+            stack_.compat(), // 2^12
+            stack_.compat(), // 2^13
+            stack_.compat(), // 2^14
+            stack_.compat(), // 2^15
+            stack_.compat(), // 2^16
+            stack_.compat(), // 2^17
+            stack_.compat(), // 2^18
+            stack_.compat(), // 2^19
+            stack_.compat(), // 2^20
+            stack_.compat(), // 2^21
+            stack_.compat(), // 2^22
+            stack_.compat(), // 2^23
+            stack_.compat(), // 2^24
+            stack_.compat(), // 2^25
+            stack_.compat(), // 2^26
+            stack_.compat(), // 2^27
+            stack_.compat(), // 2^28
+            stack_.compat(), // 2^29
+            stack_.compat(), // 2^30
+            stack_.compat(), // 2^31
+            stack_.compat(), // 2^32
+        };
 
         mem_provider memory_;
 
@@ -80,14 +143,20 @@ namespace ex::data::lalloc {
         allocator &operator = (allocator &&other)      = delete;
 
         ~allocator() {
-            blocks_.clean();
+            lifo_.clear();
+            for (int i = 0; i < BUCKETS_NUM; i++)
+                buckets_[i].clear();
             arena_.clean();
+            stack_.clean();
             memory_.clean();
         }
 
         void clean() {
-            blocks_.clean();
+            lifo_.clear();
+            for (int i = 0; i < BUCKETS_NUM; i++)
+                buckets_[i].clear();
             arena_.clean();
+            stack_.clean();
             memory_.clean();
             used_mem_ = 0;
         }
@@ -113,7 +182,7 @@ namespace ex::data::lalloc {
             unsigned char *null_space = static_cast<unsigned char *>(allocated_ptr) + allocated_size - sizeof(memory_block);
             ::memset(null_space, 0, sizeof(memory_block));
 
-            blocks_.put(block);
+            bucket_put_(block);
 
             def_size_ = pre_allocated;
             grow_mem_ = pre_allocated;
@@ -148,19 +217,19 @@ namespace ex::data::lalloc {
             unsigned char *h_ptr = static_cast<unsigned char *>(header_ptr_(ptr));
             memory_block  *block = reinterpret_cast<memory_block *>(h_ptr);
 
-            if (block->magic_b != BLOCK_MAGIC_BYTE)
-                abort_("Invalid block address, block magic byte invalid: " << block->magic_b);
+            if (block->node_ptr->block_ptr != block)
+                abort_("Invalid block address, block magic byte invalid: " << block << " | " << block->node_ptr->block_ptr);
 
-            if (block->is_free == true)
+            if (block->node_ptr->bucket_ptr != nullptr)
                 abort_("Reallocation of free block");
 
             // TODO CONTINUITY
-            const block_addr_t allocated = malloc(size_new_b, block->alignment_b);
+            const block_addr_t allocated = malloc(size_new_b, block->node_ptr->alignment_b);
 
             if (allocated != ptr) {
                 validate_header_(allocated);
                 const int32_t padding = static_cast<unsigned char *>(ptr) - (h_ptr + sizeof(memory_block));
-                const int32_t block_s = block->size_b - padding;
+                const int32_t block_s = block->node_ptr->size_b - padding;
                 ::memmove(allocated, ptr, size_new_b < block_s ? size_new_b : block_s);
                 free(ptr);
                 return allocated;
@@ -177,40 +246,16 @@ namespace ex::data::lalloc {
             unsigned char *h_ptr = static_cast<unsigned char *>(header_ptr_(ptr));
             memory_block  *block = reinterpret_cast<memory_block *>(h_ptr);
 
-            if (block->magic_b != BLOCK_MAGIC_BYTE)
-                abort_("Invalid block address, block magic byte invalid: " << block->magic_b);
+            if (block->node_ptr->block_ptr != block)
+                abort_("Invalid block address, block magic byte invalid: " << block << " | " << block->node_ptr->block_ptr);
 
-            if (block->is_free == true)
+            if (block->node_ptr->bucket_ptr != nullptr)
                 abort_("Memory block double free");
 
-            block->alignment_b = 1;
-            block->is_free     = 1;
+            used_mem_ -= (block->node_ptr->size_b + sizeof(memory_block));
 
-//            if (memory_block *next = next_block_(block, ptr); next != nullptr) {
-//                if (next->prev_ptr == nullptr)
-//                    abort_("Invalid block reference [NULL]");
-//
-//                if (!continuous_(block, next, block->size_b + sizeof(memory_block)))
-//                    abort_("Invalid block alignment [block -> next]");
-//
-//                block_list_t::list_node *node = reinterpret_cast<block_list_t::list_node *>(next->prev_ptr);
-//                block->size_b += (next->size_b + sizeof(memory_block));
-//                blocks_.remove_node(node);
-//            }
-//
-//            if (block->prev_ptr != nullptr) {
-//                block_list_t::list_node *node = reinterpret_cast<block_list_t::list_node *>(block->prev_ptr);
-//                memory_block            *prev = node->key;
-//                if (!continuous_(prev, block, prev->size_b + sizeof(memory_block)))
-//                    abort_("Invalid block alignment [prev -> block]");
-//
-//                prev->size_b += (block->size_b + sizeof(memory_block));
-//                used_mem_ -= (prev->size_b + sizeof(memory_block));
-//                return;
-//            }
-
-            used_mem_ -= (block->size_b + sizeof(memory_block));
-            blocks_.put_front(block);
+            block->node_ptr->alignment_b = 1;
+            lifo_put_(block);
         }
 
         long size_used() const {
@@ -226,7 +271,11 @@ namespace ex::data::lalloc {
         }
 
         long blocks_used() const {
-            return blocks_.size();
+            u_int32_t c = 0;
+            for (int i = 0; i < BUCKETS_NUM; ++i)
+                c += buckets_[i].size();
+            c += lifo_.size();
+            return c;
         }
 
         // =========================================== INTERNAL UTILS ==================================================
@@ -256,7 +305,7 @@ namespace ex::data::lalloc {
             unsigned char *null_space = static_cast<unsigned char *>(allocated_ptr) + allocated_size - sizeof(memory_block);
             ::memset(null_space, 0, sizeof(memory_block));
 
-            blocks_.put(block);
+            bucket_put_(block);
         }
 
         block_addr_t block_acquire_(const std::size_t size_b, const std::size_t alignment_b) {
@@ -267,12 +316,128 @@ namespace ex::data::lalloc {
             if (alignment_b == 0 || (alignment_b & (alignment_b - 1)) != 0)
                 abort_("Alignment must be non-zero and a power of two");
 
-            for (block_list_t::list_node *head = blocks_.root_; head != nullptr; head = head->next) {
-                memory_block *block = head->key;
-                if (block->magic_b != BLOCK_MAGIC_BYTE)
-                    abort_("Invalid block address, block magic byte invalid: " << block->magic_b);
+            if (size_b < LIFO_BLOCK_SIZE)
+                if (void *ptr = bucket_scan_(lifo_, size_b, alignment_b))
+                    return ptr;
 
-                if (block->size_b < size_b)
+            for (u_int32_t i = power_range_r_s(size_b); i < BUCKETS_NUM; i++) {
+                if (buckets_[i].size() <= 0)
+                    continue;
+                if (void *ptr = bucket_scan_(buckets_[i], size_b, alignment_b))
+                    return ptr;
+            }
+
+            return nullptr;
+        }
+
+        void lifo_put_(memory_block *block) {
+            if (block->node_ptr->bucket_ptr != nullptr)
+                abort_("block should be free");
+            if (block->node_ptr->size_b == 0 || block->node_ptr->size_b >= LIFO_BLOCK_SIZE) {
+                block_merge_(block);
+                if (!lifo_.empty())
+                    block_merge_(lifo_.root_remove()->block_ptr);
+                return;
+            }
+            lifo_.push(block->node_ptr);
+            if (lifo_.size() >= 16)
+                block_merge_(lifo_.root_remove()->block_ptr);
+        }
+
+        void bucket_put_(memory_block *block) {
+            const u_int32_t power = power_range_r_s(block->node_ptr->size_b);
+            if (power >= BUCKETS_NUM)
+                abort_("Block size too big");
+
+            void *ptr = buckets_[power].push(block->node_ptr);
+            block->node_ptr->bucket_ptr = ptr;
+        }
+
+        void block_merge_(memory_block *block) {
+            memory_block *target_block = block;
+            memory_node  *node         = block->node_ptr;
+
+            if (node->bucket_ptr != nullptr) {
+                const u_int32_t p = power_range_r_s(node->size_b);
+                buckets_[p].remove(static_cast<block_bucket_t::lifo_node *>(node->bucket_ptr));
+            }
+
+            if (memory_block *next_block = next_block_(block)) {
+                if (memory_node *next_node = next_block->node_ptr;
+                    next_node->bucket_ptr != nullptr) {
+
+                    if (!continuous_(block, next_block, node->size_b + sizeof(memory_block)))
+                        abort_("block layout discontinuity");
+
+                    const u_int32_t p = power_range_r_s(next_node->size_b);
+                    buckets_[p].remove(static_cast<block_bucket_t::lifo_node *>(next_node->bucket_ptr));
+
+                    node->size_b += next_node->size_b + sizeof(memory_block);
+                    release_node_(next_node);
+
+                    blocks_total_--;
+                }
+            }
+
+            if (memory_node *prev_node = node->prev_ptr) {
+                if (memory_block *prev_block = prev_node->block_ptr;
+                    prev_node->bucket_ptr != nullptr) {
+
+                    const u_int32_t p = power_range_r_s(prev_node->size_b);
+                    buckets_[p].remove(static_cast<block_bucket_t::lifo_node *>(prev_node->bucket_ptr));
+
+                    prev_node->size_b += (node->size_b + sizeof(memory_block));
+                    release_node_(node);
+
+                    blocks_total_--;
+
+                    target_block = prev_block;
+                    node         = prev_node;
+                }
+            }
+
+            memory_block *next_block = next_block_(target_block);
+            if (!continuous_(block, next_block, node->size_b + sizeof(memory_block)))
+                abort_("block layout discontinuity");
+            next_block->node_ptr->prev_ptr = node;
+
+            bucket_put_(target_block);
+        }
+
+        memory_block *block_create_(void *mem, const u_int32_t size) {
+            memory_block *new_block = reinterpret_cast<memory_block *>(mem);
+            memory_node  *new_node  = create_node_();
+
+            new_node->block_ptr   = new_block;
+            new_node->bucket_ptr  = nullptr;
+            new_node->prev_ptr    = nullptr;
+            new_node->size_b      = size;
+            new_node->alignment_b = 1;
+
+            blocks_total_ += 1;
+
+            new_block->node_ptr = new_node;
+            return new_block;
+        }
+
+        void release_node_(memory_node *node) {
+            arena_.free(node);
+        }
+
+        memory_node *create_node_() {
+            return static_cast<memory_node *>(arena_.malloc(sizeof(memory_node), sizeof(memory_node)));
+        }
+
+        void *bucket_scan_(block_bucket_t &bucket, const std::size_t size_b, const std::size_t alignment_b) {
+
+            for (block_bucket_t::lifo_node *head = bucket.root(); head != nullptr; head = head->next) {
+                memory_node  *node  = head->val;
+                memory_block *block = node->block_ptr;
+
+                if (node->block_ptr != block)
+                    abort_("Invalid block address, block magic byte invalid: " << block << " | " << node->block_ptr);
+
+                if (node->size_b < size_b)
                     continue;
 
                 unsigned char *byte_ptr = reinterpret_cast<unsigned char *>(block) + sizeof(memory_block);
@@ -289,7 +454,7 @@ namespace ex::data::lalloc {
                 if (p2 >= 0)
                     offset += p2 + sizeof(memory_block);
 
-                const int32_t size_have = static_cast<int32_t>(block->size_b) - offset;
+                const int32_t size_have = static_cast<int32_t>(node->size_b) - offset;
                 if (size_have < size_b)
                     continue;
 
@@ -301,78 +466,66 @@ namespace ex::data::lalloc {
 
                 memory_block *work_block = block;
                 bool          remove_og  = false;
+                bool          reinsert_  = false;
 
                 if (p1 < 0 && p2 < 0) {
-                    block->size_b = static_cast<u_int32_t>(size_b);
+                    node->size_b = static_cast<u_int32_t>(size_b);
                     remove_og = true;
                 }
 
                 else if (p1 >= 0 && p2 < 0) {
-                    block->size_b = static_cast<u_int32_t>(size_b + p1);
+                    node->size_b = static_cast<u_int32_t>(size_b + p1);
                     remove_og     = true;
                 }
 
                 else if (p1 >= 0 && p2 >= 0) {
                     // free og block
-                    block->alignment_b = static_cast<u_int16_t>(1);
-                    block->magic_b     = static_cast<u_int8_t>(BLOCK_MAGIC_BYTE);
-                    block->size_b      = static_cast<u_int32_t>(p1);
-                    block->is_free     = static_cast<u_int8_t>(true);
+                    node->alignment_b = static_cast<u_int16_t>(1);
+                    node->size_b      = static_cast<u_int32_t>(p1);
+
+                    remove_og = true;
+                    reinsert_ = true;
 
                     // new padded block
                     work_block = block_create_(byte_ptr + p1, size_b + p2);
-                    work_block->prev_ptr = head;
+                    work_block->node_ptr->prev_ptr = node;
                 }
 
                 if (p3 >= 0) {
-                    work_block->size_b += p3;
+                    work_block->node_ptr->size_b += p3;
                 }
 
                 if (p4 >= 0) {
                     memory_block *end_block = block_create_(start_ptr + size_b + p3, p4);
-                    block_list_t::list_node *inserted_node = blocks_.put_front(end_block);
+                    end_block->node_ptr->prev_ptr = work_block->node_ptr;
 
-//                    unsigned char *end_data = reinterpret_cast<unsigned char *>(end_block) + sizeof(memory_block);
-//                    memory_block  *next     = next_block_(end_block, end_data);
-//
-//                    if (next != nullptr)
-//                        next->prev_ptr = inserted_node;
+                    if (memory_block *next = next_block_(end_block); next != nullptr)
+                        next->node_ptr->prev_ptr = end_block->node_ptr;
                 }
 
-//                if (p4 < 0 && p1 >= 0 && p2 >= 0) {
-//                    unsigned char *end_data = reinterpret_cast<unsigned char *>(work_block) + sizeof(memory_block);
-//                    memory_block  *next     = next_block_(work_block, end_data);
-//                    if (next != nullptr)
-//                        next->prev_ptr = nullptr; // not free anymore
-//                }
+                if (p4 < 0 && p1 >= 0 && p2 >= 0) {
+                    if (memory_block *next = next_block_(work_block); next != nullptr)
+                        next->node_ptr->prev_ptr = work_block->node_ptr;
+                }
 
-                work_block->alignment_b = static_cast<u_int16_t>(alignment_b);
-                work_block->is_free     = static_cast<u_int8_t>(false);
+                work_block->node_ptr->alignment_b = static_cast<u_int16_t>(alignment_b);
 
-                used_mem_ += (work_block->size_b + sizeof(memory_block));
+                used_mem_ += (work_block->node_ptr->size_b + sizeof(memory_block));
 
                 validate_header_(start_ptr);
                 block_init_(work_block, (p1 >= 0 && p2 >= 0 ? p2 : p1));
 
                 if (remove_og) {
-                    blocks_.remove_node(head);
-//                    blocks_.detach_node(head);
+                    head->val->bucket_ptr = nullptr;
+                    bucket.remove(head);
                 }
+                if (reinsert_)
+                    lifo_put_(block);
 
                 return start_ptr;
             }
-            return nullptr;
-        }
 
-        memory_block *block_create_(void *mem, const u_int32_t size) {
-            blocks_total_ += 1;
-            memory_block *new_block = reinterpret_cast<memory_block *>(mem);
-            new_block->prev_ptr     = nullptr;
-            new_block->size_b       = static_cast<u_int32_t>(size);
-            new_block->alignment_b  = static_cast<u_int16_t>(1);
-            new_block->is_free      = static_cast<u_int8_t>(true);
-            new_block->magic_b      = static_cast<u_int8_t>(BLOCK_MAGIC_BYTE);
-            return new_block;
+            return nullptr;
         }
 
         static void calculate_post_(void *ptr, const int32_t size_have, const int32_t size_need, int32_t *p3, int32_t *p4) {
@@ -438,27 +591,10 @@ namespace ex::data::lalloc {
             return true;
         }
 
-        static block_list_t::list_node *node_next_(memory_block *block) {
-            memory_block *next_block = next_block_(block);
-            if (next_block == nullptr)
-                return nullptr;
-
-            unsigned char *next_next_ptr =
-                    reinterpret_cast<unsigned char *>(next_block) + sizeof(memory_block) + next_block->size_b;
-
-            block_list_t::list_node *next_next_prev = nullptr;
-            ::memcpy(&next_next_prev, next_next_ptr, sizeof(block_list_t::list_node *));
-
-            return next_next_prev;
-        }
-
-        static block_list_t::list_node *node_prev_(const memory_block *block) {
-            return static_cast<block_list_t::list_node *>(block->prev_ptr);
-        }
-
         static memory_block *next_block_(memory_block *block) {
             int64_t flag = 0;
-            unsigned char *next_ptr = reinterpret_cast<unsigned char *>(block) + sizeof(memory_block) + block->size_b;
+            unsigned char *next_ptr =
+                    reinterpret_cast<unsigned char *>(block) + sizeof(memory_block) + block->node_ptr->size_b;
             ::memcpy(&flag, next_ptr + sizeof(void *), sizeof(int64_t));
             if (flag == 0) // last (dead) block
                 return nullptr;
@@ -485,18 +621,18 @@ namespace ex::data::lalloc {
 
         static void validate_header__(void *ptr) {
             const memory_block *block = reinterpret_cast<memory_block *>(header_ptr_(ptr));
-            if (block->magic_b != BLOCK_MAGIC_BYTE)
+            if (block->node_ptr->block_ptr != block)
                 abort_("block header corruption");
         }
 
         static void block_eager__(memory_block *block, const u_int32_t padding = 0) {
             unsigned char *ptr_0 = reinterpret_cast<unsigned char *>(block) + sizeof(memory_block);
             if (padding <= 0) {
-                ::memset(ptr_0, 0, block->size_b);
+                ::memset(ptr_0, 0, block->node_ptr->size_b);
                 return;
             }
             ::memset(ptr_0, 42, padding);
-            ::memset(ptr_0 + padding, 0, block->size_b);
+            ::memset(ptr_0 + padding, 0, block->node_ptr->size_b);
         }
     };
 
