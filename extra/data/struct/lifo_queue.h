@@ -64,15 +64,15 @@ namespace ex::data {
             size_ = 0;
         }
 
-        lifo_node *root() const {
+        lifo_node *root() {
             return root_;
         }
 
-        lifo_node *pop() const {
+        lifo_node *peek() {
             return head_;
         }
 
-        val_t pop_remove() {
+        val_t pop() {
             val_t value = head_->val;
             remove(head_);
             return value;
@@ -94,9 +94,11 @@ namespace ex::data {
 
             size_++;
 
-            if (head_ == nullptr) {
+            if (root_ == nullptr) {
                 head_ = node;
                 root_ = node;
+                head_->prev = nullptr;
+                head_->next = nullptr;
                 return head_;
             }
 
@@ -113,7 +115,7 @@ namespace ex::data {
         }
 
         void remove(lifo_node *node) {
-            if (node == nullptr || head_ == nullptr)
+            if (node == nullptr || head_ == nullptr || root_ == nullptr)
                 return;
 
             lifo_node *prev = node->prev;
@@ -121,13 +123,19 @@ namespace ex::data {
 
             if (prev != nullptr)
                 prev->next = next;
-            else
+            else {
                 root_ = next;
+                if (root_ != nullptr)
+                    root_->prev = nullptr;
+            }
 
             if (next != nullptr)
                 next->prev = prev;
-            else
+            else {
                 head_ = prev;
+                if (head_ != nullptr)
+                    head_->next = nullptr;
+            }
 
             release_node_(node);
             --size_;
@@ -162,14 +170,16 @@ namespace ex::data {
                 return *this;
             }
 
-            iterator &operator ++ (int) {
+            iterator operator ++ (int) {
+                iterator temp = *this;
                 node_ = node_->prev;
-                return *this;
+                return temp;
             }
 
-            iterator &operator -- (int) {
+            iterator operator -- (int) {
+                iterator temp = *this;
                 node_ = node_->next;
-                return *this;
+                return temp;
             }
 
             bool operator != (const iterator &other) const {
@@ -186,11 +196,13 @@ namespace ex::data {
         }
 
         iterator end() const {
-            return iterator(root_);
+            return iterator(nullptr);
         }
 
         lifo_node *instance_node_(const val_t &val) {
             lifo_node *node = new (malloc_<lifo_node>(this, allocator_, 1)) lifo_node;
+            node->next      = nullptr;
+            node->prev      = nullptr;
             node->val       = val;
             return node;
         }

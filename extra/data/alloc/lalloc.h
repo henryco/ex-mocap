@@ -192,11 +192,8 @@ namespace ex::data::lalloc {
             if (size_b == 0)
                 abort_("Empty memory block allocation");
 
-            std::cout << "malloc: " << size_b << ", " << alignment_b << std::endl;
-
             if (const block_addr_t allocated = block_acquire_(size_b, alignment_b)) {
                 validate_header_(allocated);
-                std::cout << "mem: " << allocated << std::endl;
                 return allocated;
             }
 
@@ -204,7 +201,6 @@ namespace ex::data::lalloc {
 
             if (const block_addr_t allocated = block_acquire_(size_b, alignment_b)) {
                 validate_header_(allocated);
-                std::cout << "mem: " << allocated << std::endl;
                 return allocated;
             }
 
@@ -218,13 +214,11 @@ namespace ex::data::lalloc {
                 return nullptr;
             }
 
-            std::cout << "realloc: " << ptr << ", " << size_new_b << std::endl;
-
             unsigned char *h_ptr = static_cast<unsigned char *>(header_ptr_(ptr));
             memory_block  *block = reinterpret_cast<memory_block *>(h_ptr);
 
             if (block->node_ptr->block_ptr != block)
-                abort_("Invalid block address, block magic byte invalid: " << block << " | " << block->node_ptr->block_ptr);
+                abort_("Invalid block address, block bucket address invalid: " << block << " | " << block->node_ptr->block_ptr);
 
             if (block->node_ptr->bucket_ptr != nullptr)
                 abort_("Reallocation of free block");
@@ -249,13 +243,11 @@ namespace ex::data::lalloc {
             if (ptr == nullptr)
                 return;
 
-            std::cout << "free: " << ptr << std::endl;
-
             unsigned char *h_ptr = static_cast<unsigned char *>(header_ptr_(ptr));
             memory_block  *block = reinterpret_cast<memory_block *>(h_ptr);
 
             if (block->node_ptr->block_ptr != block)
-                abort_("Invalid block address, block magic byte invalid: " << block << " | " << block->node_ptr->block_ptr);
+                abort_("Invalid block address, block bucket address invalid: " << block << " | " << block->node_ptr->block_ptr);
 
             if (block->node_ptr->bucket_ptr != nullptr)
                 abort_("Memory block double free");
@@ -324,7 +316,7 @@ namespace ex::data::lalloc {
             if (alignment_b == 0 || (alignment_b & (alignment_b - 1)) != 0)
                 abort_("Alignment must be non-zero and a power of two");
 
-            if (size_b < LIFO_BLOCK_SIZE)
+            if (size_b < LIFO_BLOCK_SIZE && !lifo_.empty())
                 if (void *ptr = bucket_scan_(lifo_, size_b, alignment_b))
                     return ptr;
 
@@ -447,7 +439,7 @@ namespace ex::data::lalloc {
                 memory_block *block = node->block_ptr;
 
                 if (node->block_ptr != block)
-                    abort_("Invalid block address, block magic byte invalid: " << block << " | " << node->block_ptr);
+                    abort_("Invalid block address, block bucket address invalid: " << block << " | " << node->block_ptr);
 
                 if (node->size_b < size_b)
                     continue;
@@ -477,6 +469,7 @@ namespace ex::data::lalloc {
                 calculate_post_(start_ptr, size_have, size_b, &p3, &p4);
 
                 memory_block *work_block = block;
+                memory_block *lifo_block = nullptr;
                 bool          remove_og  = false;
                 bool          reinsert_  = false;
 
@@ -514,8 +507,7 @@ namespace ex::data::lalloc {
                     if (memory_block *next = next_block_(end_block); next != nullptr)
                         next->node_ptr->prev_ptr = end_block->node_ptr;
 
-                    lifo_put_(end_block);
-                    // TODO FIXME
+                    lifo_block = end_block;
                 }
 
                 if (p4 < 0 && p1 >= 0 && p2 >= 0) {
@@ -534,8 +526,12 @@ namespace ex::data::lalloc {
                     head->val->bucket_ptr = nullptr;
                     bucket.remove(head);
                 }
+
                 if (reinsert_)
                     lifo_put_(block);
+
+                if (lifo_block != nullptr)
+                    lifo_put_(lifo_block);
 
                 return start_ptr;
             }
