@@ -122,11 +122,11 @@ namespace ex::data::lalloc {
 
         mem_provider memory_;
 
-        std::size_t def_size_ = 0;
-        std::size_t grow_mem_ = 0;
-        std::size_t used_mem_ = 0;
-
+        std::size_t def_size_     = 0;
+        std::size_t grow_mem_     = 0;
+        std::size_t used_mem_     = 0;
         std::size_t blocks_total_ = 0;
+//        u_int32_t   min_bucket_   = BUCKETS_NUM;
 
         ex::data::allocator compat() {
             return alloc_compat<allocator>::allocator(this);
