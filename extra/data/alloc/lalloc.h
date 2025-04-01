@@ -46,10 +46,10 @@ namespace ex::data::lalloc {
 
 #ifndef UNIT_TEST
     #define validate_header_(ptr) validate_header__(ptr)
-    #define block_init_(ptr, padding) block_eager__(ptr, padding)
+    #define block_init_(ptr) block_eager__(ptr)
 #else
     #define validate_header_(ptr) ;
-    #define block_init_(ptr, padding) ;
+    #define block_init_(ptr) ;
 #endif
 
     static u_int32_t power_range_r_s(const u_int32_t size_b) {
@@ -177,7 +177,7 @@ namespace ex::data::lalloc {
             memory_block  *block     = block_create_(block_ptr, size_b - sizeof(memory_block));
 
             validate_header_(block_ptr + sizeof(memory_block));
-            block_init_(block, 0);
+            block_init_(block);
 
             unsigned char *null_space = static_cast<unsigned char *>(allocated_ptr) + allocated_size - sizeof(memory_block);
             ::memset(null_space, 0, sizeof(memory_block));
@@ -308,7 +308,7 @@ namespace ex::data::lalloc {
             memory_block  *block     = block_create_(block_ptr, size_b - sizeof(memory_block));
 
             validate_header_(block_ptr + sizeof(memory_block));
-            block_init_(block, 0);
+            block_init_(block);
 
             unsigned char *null_space = static_cast<unsigned char *>(allocated_ptr) + allocated_size - sizeof(memory_block);
             ::memset(null_space, 0, sizeof(memory_block));
@@ -528,7 +528,7 @@ namespace ex::data::lalloc {
                 used_mem_ += (work_block->node_ptr->size_b + sizeof(memory_block));
 
                 validate_header_(start_ptr);
-                block_init_(work_block, (p1 >= 0 && p2 >= 0 ? p2 : p1));
+                block_init_(work_block);
 
                 if (remove_og) {
                     head->val->bucket_ptr = nullptr;
@@ -638,14 +638,8 @@ namespace ex::data::lalloc {
                 abort_("block header corruption");
         }
 
-        static void block_eager__(memory_block *block, const u_int32_t padding = 0) {
-            unsigned char *ptr_0 = reinterpret_cast<unsigned char *>(block) + sizeof(memory_block);
-            if (padding <= 0) {
-                ::memset(ptr_0, 0, block->node_ptr->size_b);
-                return;
-            }
-            ::memset(ptr_0, 42, padding);
-            ::memset(ptr_0 + padding, 0, block->node_ptr->size_b);
+        static void block_eager__(memory_block *block) {
+            ::memset(reinterpret_cast<unsigned char *>(block) + sizeof(memory_block), 0, block->node_ptr->size_b);
         }
     };
 
