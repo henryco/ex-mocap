@@ -126,7 +126,7 @@ namespace ex::data::lalloc {
         std::size_t grow_mem_     = 0;
         std::size_t used_mem_     = 0;
         std::size_t blocks_total_ = 0;
-//        u_int32_t   min_bucket_   = BUCKETS_NUM;
+        u_int32_t   min_bucket_   = BUCKETS_NUM;
 
         ex::data::allocator compat() {
             return alloc_compat<allocator>::allocator(this);
@@ -196,8 +196,6 @@ namespace ex::data::lalloc {
                 validate_header_(allocated);
                 return allocated;
             }
-
-            // TODO FIXME
 
             block_request_(size_b + alignment_b);
 
@@ -322,8 +320,9 @@ namespace ex::data::lalloc {
                 if (void *ptr = bucket_scan_(lifo_, size_b, alignment_b))
                     return ptr;
 
-            for (u_int32_t i = power_range_r_s(size_b); i < BUCKETS_NUM; i++) {
-                if (buckets_[i].size() <= 0)
+            const u_int32_t power = power_range_r_s(size_b);
+            for (u_int32_t i = power > min_bucket_ ? power : min_bucket_; i < BUCKETS_NUM; i++) {
+                if (buckets_[i].empty())
                     continue;
                 if (void *ptr = bucket_scan_(buckets_[i], size_b, alignment_b))
                     return ptr;
@@ -350,6 +349,8 @@ namespace ex::data::lalloc {
             const u_int32_t power = power_range_r_s(block->node_ptr->size_b);
             if (power >= BUCKETS_NUM)
                 abort_("Block size too big");
+
+            min_bucket_ = power < min_bucket_ ? power : min_bucket_;
 
             void *ptr = buckets_[power].push(block->node_ptr);
             block->node_ptr->bucket_ptr = ptr;
@@ -503,6 +504,8 @@ namespace ex::data::lalloc {
 
                     if (memory_block *next = next_block_(end_block); next != nullptr)
                         next->node_ptr->prev_ptr = end_block->node_ptr;
+
+                    // TODO FIXME
                 }
 
                 if (p4 < 0 && p1 >= 0 && p2 >= 0) {
