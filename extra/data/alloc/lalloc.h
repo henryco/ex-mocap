@@ -197,6 +197,8 @@ namespace ex::data::lalloc {
                 return allocated;
             }
 
+            // TODO FIXME
+
             block_request_(size_b + alignment_b);
 
             if (const block_addr_t allocated = block_acquire_(size_b, alignment_b)) {
@@ -397,7 +399,7 @@ namespace ex::data::lalloc {
             }
 
             memory_block *next_block = next_block_(target_block);
-            if (!continuous_(block, next_block, node->size_b + sizeof(memory_block)))
+            if (!continuous_(target_block, next_block, node->size_b + sizeof(memory_block)))
                 abort_("block layout discontinuity");
             next_block->node_ptr->prev_ptr = node;
 
@@ -592,8 +594,11 @@ namespace ex::data::lalloc {
         }
 
         static memory_block *next_block_(memory_block *block) {
-            return reinterpret_cast<memory_block *>(
-                reinterpret_cast<unsigned char *>(block) + sizeof(memory_block) + block->node_ptr->size_b);
+            memory_block *next = reinterpret_cast<memory_block *>(reinterpret_cast<unsigned char *>(block) +
+                                                                  sizeof(memory_block) + block->node_ptr->size_b);
+            if (next->node_ptr == nullptr)
+                return nullptr;
+            return next;
         }
 
         static bool continuous_(void *prev, void *next, const u_int64_t prev_size) {
