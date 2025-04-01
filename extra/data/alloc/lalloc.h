@@ -192,8 +192,11 @@ namespace ex::data::lalloc {
             if (size_b == 0)
                 abort_("Empty memory block allocation");
 
+            std::cout << "malloc: " << size_b << ", " << alignment_b << std::endl;
+
             if (const block_addr_t allocated = block_acquire_(size_b, alignment_b)) {
                 validate_header_(allocated);
+                std::cout << "mem: " << allocated << std::endl;
                 return allocated;
             }
 
@@ -201,6 +204,7 @@ namespace ex::data::lalloc {
 
             if (const block_addr_t allocated = block_acquire_(size_b, alignment_b)) {
                 validate_header_(allocated);
+                std::cout << "mem: " << allocated << std::endl;
                 return allocated;
             }
 
@@ -213,6 +217,8 @@ namespace ex::data::lalloc {
                 free(ptr);
                 return nullptr;
             }
+
+            std::cout << "realloc: " << ptr << ", " << size_new_b << std::endl;
 
             unsigned char *h_ptr = static_cast<unsigned char *>(header_ptr_(ptr));
             memory_block  *block = reinterpret_cast<memory_block *>(h_ptr);
@@ -242,6 +248,8 @@ namespace ex::data::lalloc {
         void free(const block_addr_t ptr) {
             if (ptr == nullptr)
                 return;
+
+            std::cout << "free: " << ptr << std::endl;
 
             unsigned char *h_ptr = static_cast<unsigned char *>(header_ptr_(ptr));
             memory_block  *block = reinterpret_cast<memory_block *>(h_ptr);
@@ -399,10 +407,11 @@ namespace ex::data::lalloc {
                 }
             }
 
-            memory_block *next_block = next_block_(target_block);
-            if (!continuous_(target_block, next_block, node->size_b + sizeof(memory_block)))
-                abort_("block layout discontinuity");
-            next_block->node_ptr->prev_ptr = node;
+            if (memory_block *next_block = next_block_(target_block)) {
+                if (!continuous_(target_block, next_block, node->size_b + sizeof(memory_block)))
+                    abort_("block layout discontinuity");
+                next_block->node_ptr->prev_ptr = node;
+            }
 
             bucket_put_(target_block);
         }
@@ -505,6 +514,7 @@ namespace ex::data::lalloc {
                     if (memory_block *next = next_block_(end_block); next != nullptr)
                         next->node_ptr->prev_ptr = end_block->node_ptr;
 
+                    lifo_put_(end_block);
                     // TODO FIXME
                 }
 
