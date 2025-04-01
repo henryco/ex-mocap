@@ -278,6 +278,12 @@ namespace ex::data::lalloc {
             return c;
         }
 
+        void trim() {
+            while (!lifo_.empty())
+                block_merge_(lifo_.pop()->block_ptr);
+            // TODO ?
+        }
+
         // =========================================== INTERNAL UTILS ==================================================
 
         /**

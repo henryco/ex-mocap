@@ -127,6 +127,8 @@ TEST_SUITE("Grap node tests") {
 
         // TODO
 
+        alloc_2.trim();
+
         std::cout << "build: " << time.result() << " ns" << std::endl;
         std::cout << "total: " << counter_ << std::endl;
         std::cout << "size t: " << alloc_2.size_total() << ", " << (alloc_2.size_total() / (1 MB)) << std::endl;
@@ -150,6 +152,7 @@ TEST_SUITE("Grap node tests") {
         std::cout << "memory total : " << limbo::graph::memory::allocator.size_total(&limbo::graph::memory::allocator) << " b" << std::endl;
         std::cout << "memory used  : " << limbo::graph::memory::allocator.size_used(&limbo::graph::memory::allocator) << " b" << std::endl;
         std::cout << "blocks total: " << alloc_2.blocks_total() << std::endl;
+        std::cout << "blocks used: " << alloc_2.blocks_used() << std::endl;
         std::cout << "blocks free: " << (alloc_2.blocks_total() - alloc_2.blocks_used()) << std::endl;
         std::cout << "finished" << std::endl;
     }
