@@ -127,8 +127,6 @@ TEST_SUITE("Grap node tests") {
 
         // TODO
 
-        alloc_2.trim();
-
         std::cout << "build: " << time.result() << " ns" << std::endl;
         std::cout << "total: " << counter_ << std::endl;
         std::cout << "size t: " << alloc_2.size_total() << ", " << (alloc_2.size_total() / (1 MB)) << std::endl;

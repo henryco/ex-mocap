@@ -223,7 +223,59 @@ namespace ex::data::lalloc {
             if (block->node_ptr->bucket_ptr != nullptr)
                 abort_("Reallocation of free block");
 
-            // TODO CONTINUITY
+            if (size_new_b == block->node_ptr->size_b)
+                return ptr;
+
+            if (size_new_b < block->node_ptr->size_b) {
+                // TODO: SHRINK
+                goto fallback_go;
+            }
+
+            if (memory_block *next_block = next_block_(block)) {
+                memory_node *next_node = next_block->node_ptr;
+
+                if (next_node->bucket_ptr == nullptr)
+                    goto fallback_go;
+
+                if (next_node->prev_ptr != block->node_ptr)
+                    abort_("Memory layout fragmentation error");
+                if (!continuous_(block, next_block))
+                    abort_("Memory layout fragmentation error");
+
+                const u_int64_t available = next_node->size_b + sizeof(memory_block);
+                const u_int64_t has       = block->node_ptr->size_b;
+                const u_int64_t need      = size_new_b - has;
+
+                if (available < need)
+                    goto fallback_go;
+
+                const u_int32_t power = power_range_r_s(next_node->size_b);
+                buckets_[power].remove(static_cast<block_bucket_t::lifo_node *>(next_node->bucket_ptr));
+
+                int32_t p3, // empty "dead" space or padding before FREE block (if p4 exists)
+                        p4; // size of free block (after)
+                calculate_post_(next_block, available, need, &p3, &p4);
+
+                block->node_ptr->size_b += need;
+
+                if (p3 >= 0)
+                    block->node_ptr->size_b += p3;
+
+                if (p4 >= 0) {
+                    unsigned char *start_ptr = reinterpret_cast<unsigned char *>(next_block);
+                    memory_block *end_block = block_create_(start_ptr + need + p3, p4);
+                    end_block->node_ptr->prev_ptr = block->node_ptr;
+
+                    if (memory_block *next = next_block_(end_block); next != nullptr)
+                        next->node_ptr->prev_ptr = end_block->node_ptr;
+
+                    lifo_put_(end_block);
+                }
+
+                return ptr;
+            }
+
+        fallback_go:
             const block_addr_t allocated = malloc(size_new_b, block->node_ptr->alignment_b);
 
             if (allocated != ptr) {
@@ -276,12 +328,6 @@ namespace ex::data::lalloc {
                 c += buckets_[i].size();
             c += lifo_.size();
             return c;
-        }
-
-        void trim() {
-            while (!lifo_.empty())
-                block_merge_(lifo_.pop()->block_ptr);
-            // TODO ?
         }
 
         // =========================================== INTERNAL UTILS ==================================================
@@ -621,6 +667,13 @@ namespace ex::data::lalloc {
             if (next == nullptr || prev == nullptr)
                 return false;
             return (static_cast<unsigned char *>(prev) + prev_size) == next;
+        }
+
+        static bool continuous_(memory_block *prev, memory_block *next) {
+            if (next == nullptr || prev == nullptr)
+                return false;
+            void *a = reinterpret_cast<unsigned char *>(prev) + prev->node_ptr->size_b + sizeof(memory_block);
+            return a == next;
         }
 
         static u_int32_t block_padding_(const void *ptr, const u_int64_t alignment_b) {
