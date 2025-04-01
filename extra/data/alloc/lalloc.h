@@ -487,7 +487,7 @@ namespace ex::data::lalloc {
 
         void *bucket_scan_(block_bucket_t &bucket, const std::size_t size_b, const std::size_t alignment_b) {
 
-            for (block_bucket_t::lifo_node *head = bucket.root(); head != nullptr; head = head->next) {
+            for (block_bucket_t::lifo_node *head = bucket.peek(); head != nullptr; head = head->prev) {
                 memory_node  *node  = head->val;
                 memory_block *block = node->block_ptr;
 

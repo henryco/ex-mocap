@@ -131,6 +131,7 @@ TEST_SUITE("Grap node tests") {
         std::cout << "total: " << counter_ << std::endl;
         std::cout << "size t: " << alloc_2.size_total() << ", " << (alloc_2.size_total() / (1 MB)) << std::endl;
         std::cout << "size u: " << alloc_2.size_used() << ", " << (alloc_2.size_used() / (1 MB)) << std::endl;
+        std::cout << "ratio: " << (static_cast<double>(alloc_2.size_used()) / static_cast<double>(alloc_2.size_total())) << std::endl;
 
         unsigned long int avg = 0;
         double counter = 0.;
