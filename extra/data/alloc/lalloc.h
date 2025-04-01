@@ -592,13 +592,8 @@ namespace ex::data::lalloc {
         }
 
         static memory_block *next_block_(memory_block *block) {
-            int64_t flag = 0;
-            unsigned char *next_ptr =
-                    reinterpret_cast<unsigned char *>(block) + sizeof(memory_block) + block->node_ptr->size_b;
-            ::memcpy(&flag, next_ptr + sizeof(void *), sizeof(int64_t));
-            if (flag == 0) // last (dead) block
-                return nullptr;
-            return reinterpret_cast<memory_block *>(next_ptr);
+            return reinterpret_cast<memory_block *>(
+                reinterpret_cast<unsigned char *>(block) + sizeof(memory_block) + block->node_ptr->size_b);
         }
 
         static bool continuous_(void *prev, void *next, const u_int64_t prev_size) {
