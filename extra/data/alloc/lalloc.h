@@ -508,8 +508,7 @@ namespace ex::data::lalloc {
 
                 int32_t p1, // natural padding or size of the block (if p2 exists)
                         p2; // natural padding before data block
-                if (!calculate_pre_(byte_ptr, alignment_b, &p1, &p2))
-                    continue;
+                calculate_pre_(byte_ptr, alignment_b, &p1, &p2);
 
                 int32_t offset = 0;
                 if (p1 >= 0)
@@ -628,21 +627,21 @@ namespace ex::data::lalloc {
             *p4 = free_b;
         }
 
-        static bool calculate_pre_(void *ptr, const std::size_t alignment_b, int32_t *p1, int32_t *p2) {
+        static void calculate_pre_(void *ptr, const std::size_t alignment_b, int32_t *p1, int32_t *p2) {
             const u_int32_t padding_1 = block_padding_(ptr, alignment_b);
 
             // no padding, best case scenario
             if (padding_1 == 0) {
                 *p1 = -1;
                 *p2 = -1;
-                return true;
+                return;
             }
 
             // natural padding for header-data alignment
             if (static_cast<size_t>(padding_1) < sizeof(memory_block)) {
                 *p1 = padding_1;
                 *p2 = -1;
-                return true;
+                return;
             }
 
             unsigned char *zero_ptr = reinterpret_cast<unsigned char *>(ptr);
@@ -650,16 +649,17 @@ namespace ex::data::lalloc {
             unsigned char *head_ptr = reinterpret_cast<unsigned char *>(header_ptr_(data_ptr));
 
             const int32_t space_1 = static_cast<int32_t>(head_ptr - zero_ptr);
-            if (space_1 < 0) // should be impossible in practice, I guess?
-                return false; // replace with abort_ ?
-
             const int32_t space_2 = static_cast<int32_t>(data_ptr - head_ptr - sizeof(memory_block));
+
+#ifdef UNIT_TEST
+            if (space_1 < 0) // should be impossible in practice, I guess?
+                abort_("wtf1");
             if (space_2 < 0 || space_2 >= static_cast<int32_t>(sizeof(memory_block))) // WTF? HOW?
-                return false; // replace with abort_ ?
+                abort_("wtf2");
+#endif
 
             *p1 = space_1;
             *p2 = space_2;
-            return true;
         }
 
         static memory_block *next_block_(memory_block *block) {
