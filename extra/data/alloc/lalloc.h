@@ -644,6 +644,11 @@ namespace ex::data::lalloc {
                 return;
             }
 
+            if (static_cast<size_t>(padding_1) == sizeof(memory_block)) {
+                // TODO
+
+            }
+
             unsigned char *zero_ptr = reinterpret_cast<unsigned char *>(ptr);
             unsigned char *data_ptr = zero_ptr + padding_1;
             unsigned char *head_ptr = reinterpret_cast<unsigned char *>(header_ptr_(data_ptr));
