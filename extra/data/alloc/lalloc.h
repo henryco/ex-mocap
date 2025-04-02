@@ -492,7 +492,8 @@ namespace ex::data::lalloc {
             return static_cast<memory_node *>(arena_.malloc(sizeof(memory_node), sizeof(memory_node)));
         }
 
-        void *bucket_scan_(block_bucket_t &bucket, const std::size_t size_b, const std::size_t alignment_b) {
+        void *bucket_scan_(block_bucket_t &bucket, const std::size_t size_b, std::size_t alignment_b) {
+//            alignment_b = alignment_b < alignof(memory_block) ? alignof(memory_block) : alignment_b;
 
             for (block_bucket_t::lifo_node *head = bucket.peek(); head != nullptr; head = head->prev) {
                 memory_node  *node  = head->val;
@@ -628,7 +629,7 @@ namespace ex::data::lalloc {
         }
 
         static void calculate_pre_(void *ptr, const std::size_t alignment_b, int32_t *p1, int32_t *p2) {
-            const u_int32_t padding_1 = block_padding_(ptr, alignment_b);
+            u_int32_t padding_1 = block_padding_(ptr, alignment_b);
 
             // no padding, best case scenario
             if (padding_1 == 0) {
@@ -646,7 +647,6 @@ namespace ex::data::lalloc {
 
             if (static_cast<size_t>(padding_1) == sizeof(memory_block)) {
                 // TODO
-
             }
 
             unsigned char *zero_ptr = reinterpret_cast<unsigned char *>(ptr);
