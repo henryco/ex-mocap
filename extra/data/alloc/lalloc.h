@@ -17,7 +17,7 @@ namespace ex::data::lalloc {
 
 // -----------------------------
 #define ALLOC_DEF_SIZE_B (1 MB)
-#define STACK_ALLOC_SIZE (1 MB)
+#define STACK_ALLOC_SIZE (8 KB)
 // -----------------------------
 
     struct memory_node;
@@ -256,6 +256,8 @@ namespace ex::data::lalloc {
                         p4; // size of free block (after)
                 calculate_post_(next_block, available, need, &p3, &p4);
 
+                used_mem_ -= (block->node_ptr->size_b + sizeof(memory_block));
+
                 block->node_ptr->size_b += need;
 
                 if (p3 >= 0)
@@ -272,6 +274,8 @@ namespace ex::data::lalloc {
                     lifo_put_(end_block);
                 }
 
+                used_mem_ += block->node_ptr->size_b + sizeof(memory_block);
+
                 return ptr;
             }
 
@@ -286,6 +290,9 @@ namespace ex::data::lalloc {
                 free(ptr);
                 return allocated;
             }
+
+            if (allocated == nullptr)
+                abort_("Out of free space");
 
             validate_header_(allocated);
             return allocated;
@@ -311,23 +318,23 @@ namespace ex::data::lalloc {
         }
 
         long size_used() const {
-            return used_mem_;
+            return used_mem_ + stack_.size_used() + arena_.size_used();
         }
 
         long size_total() const {
-            return memory_.size();
+            return memory_.size() + stack_.size_total() + arena_.size_total();
         }
 
         long blocks_total() const {
             return blocks_total_;
         }
 
-        long blocks_used() const {
-            u_int32_t c = 0;
+        long blocks_free() const {
+            u_int32_t free_ = 0;
             for (int i = 0; i < BUCKETS_NUM; ++i)
-                c += buckets_[i].size();
-            c += lifo_.size();
-            return c;
+                free_ += buckets_[i].size();
+            free_ += lifo_.size();
+            return free_;
         }
 
         // =========================================== INTERNAL UTILS ==================================================
@@ -434,8 +441,6 @@ namespace ex::data::lalloc {
 
                     node->size_b += next_node->size_b + sizeof(memory_block);
                     release_node_(next_node);
-
-                    blocks_total_--;
                 }
             }
 
@@ -450,8 +455,6 @@ namespace ex::data::lalloc {
 
                     prev_node->size_b += (node->size_b + sizeof(memory_block));
                     release_node_(node);
-
-                    blocks_total_--;
 
                     target_block = prev_block;
                     node         = prev_node;
@@ -478,7 +481,7 @@ namespace ex::data::lalloc {
             new_node->size_b      = size;
             new_node->alignment_b = 1;
 
-            blocks_total_ += 1;
+            blocks_total_++;
 
             new_block->node_ptr = new_node;
             return new_block;
@@ -486,13 +489,14 @@ namespace ex::data::lalloc {
 
         void release_node_(memory_node *node) {
             arena_.free(node);
+            blocks_total_--;
         }
 
         memory_node *create_node_() {
             return static_cast<memory_node *>(arena_.malloc(sizeof(memory_node), sizeof(memory_node)));
         }
 
-        void *bucket_scan_(block_bucket_t &bucket, const std::size_t size_b, std::size_t alignment_b) {
+        void *bucket_scan_(block_bucket_t &bucket, const std::size_t size_b, const std::size_t alignment_b) {
 //            alignment_b = alignment_b < alignof(memory_block) ? alignof(memory_block) : alignment_b;
 
             for (block_bucket_t::lifo_node *head = bucket.peek(); head != nullptr; head = head->prev) {
@@ -548,6 +552,8 @@ namespace ex::data::lalloc {
                     node->alignment_b = static_cast<u_int16_t>(1);
                     node->size_b      = static_cast<u_int32_t>(p1);
 
+//                    std::cout << "free_og: " << p1 << ", " << p2 << std::endl;
+
                     remove_og = true;
                     reinsert_ = true;
 
@@ -568,6 +574,8 @@ namespace ex::data::lalloc {
                         next->node_ptr->prev_ptr = end_block->node_ptr;
 
                     lifo_block = end_block;
+
+//                    std::cout << "end_block: " << p4 << std::endl;
                 }
 
                 if (p4 < 0 && p1 >= 0 && p2 >= 0) {
@@ -646,7 +654,9 @@ namespace ex::data::lalloc {
             }
 
             if (static_cast<size_t>(padding_1) == sizeof(memory_block)) {
-                // TODO
+//                padding_1 += (sizeof(memory_block) > alignment_b ? sizeof(memory_block) : alignment_b);
+//                padding_1 += alignment_b;
+                padding_1 += sizeof(memory_block);
             }
 
             unsigned char *zero_ptr = reinterpret_cast<unsigned char *>(ptr);

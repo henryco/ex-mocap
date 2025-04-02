@@ -224,6 +224,7 @@ namespace ex::data::stackarena {
         void free(void *ptr) {
             if (static_cast<unsigned char *>(ptr) == (arena_->data + offset - block_s)) {
                 offset -= block_s;
+                taken_size -= block_s;
                 return;
             }
 

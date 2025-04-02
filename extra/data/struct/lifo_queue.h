@@ -95,6 +95,7 @@ namespace ex::data {
             size_++;
 
             if (root_ == nullptr) {
+                size_ = 1;
                 head_ = node;
                 root_ = node;
                 head_->prev = nullptr;
@@ -115,8 +116,10 @@ namespace ex::data {
         }
 
         void remove(lifo_node *node) {
-            if (node == nullptr || head_ == nullptr || root_ == nullptr)
+            if (node == nullptr || head_ == nullptr || root_ == nullptr) {
+                size_ = 0;
                 return;
+            }
 
             lifo_node *prev = node->prev;
             lifo_node *next = node->next;

@@ -166,21 +166,21 @@ namespace ex::data::rbtalloc {
         }
 
         long size_used() const {
-            return used_mem_;
+            return used_mem_ + arena_.size_total();
         }
 
         long size_total() const {
-            return memory_.size();
+            return memory_.size() + arena_.size_total();
         }
 
         long blocks_total() const {
             return blocks_.size();
         }
 
-        long blocks_used() const {
+        long blocks_free() const {
             u_int32_t c = 0;
             for (auto &block : blocks_) {
-                c += (block.val.is_free == false);
+                c += (block.val.is_free == true);
             }
             return c;
         }

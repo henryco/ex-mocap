@@ -119,8 +119,8 @@ TEST_SUITE("Grap node tests") {
         ex::time::measure_avg time = 1;
         time.start();
         limbo::graph::BaseNode *root = new node_test_one();
-//        rec_build(root, 6, 7);
-        rec_build(root, 4, 3);
+        rec_build(root, 6, 7);
+//        rec_build(root, 4, 3);
         limbo::graph::Clock clock;
         clock.attach(root);
         time.stop();
@@ -147,12 +147,15 @@ TEST_SUITE("Grap node tests") {
 //            }
 //        }
 
+        const auto total_ = alloc_2.blocks_total();
+        const auto free_ = alloc_2.blocks_free();
+
         std::cout << "avg: " << (avg / counter) << " ns\n";
         std::cout << "memory total : " << limbo::graph::memory::allocator.size_total(&limbo::graph::memory::allocator) << " b" << std::endl;
         std::cout << "memory used  : " << limbo::graph::memory::allocator.size_used(&limbo::graph::memory::allocator) << " b" << std::endl;
-        std::cout << "blocks total: " << alloc_2.blocks_total() << std::endl;
-        std::cout << "blocks used: " << alloc_2.blocks_used() << std::endl;
-        std::cout << "blocks free: " << (alloc_2.blocks_total() - alloc_2.blocks_used()) << std::endl;
+        std::cout << "blocks total: " << total_ << std::endl;
+        std::cout << "blocks free: " << free_ << std::endl;
+        std::cout << "blocks used: " << (total_ - free_) << std::endl;
         std::cout << "finished" << std::endl;
     }
 }
