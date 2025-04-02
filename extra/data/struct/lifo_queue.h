@@ -214,6 +214,128 @@ namespace ex::data {
             free_(this, allocator_, node);
         }
 
+        using sort_compare_fn = int8_t (*)(const lifo_node *a, const lifo_node *b);
+
+        void sort(const sort_compare_fn compare) {
+            sort_(compare);
+        }
+
+        template<typename F>
+        void sort_(const F fn) {
+            root_ = merge_sort_(fn, root_);
+            if (root_ == nullptr)
+                return;
+            root_->prev = nullptr;
+            for (lifo_node *head = root_; head != nullptr; head = head->next) {
+                head_ = head;
+            }
+        }
+
+        // ---------------------------------------- GPT GENERATED BULLSHIT ---------------------------------------------
+        // Iterative version of my (recurrent) merge sort
+        // TODO: Although it passes unit tests for sorting I should manually review and verify this code later
+        template<typename F>
+        static lifo_node* merge_(const F fn, lifo_node* a, lifo_node* b) {
+            lifo_node dummy;
+            lifo_node* tail = &dummy;
+            dummy.next = nullptr;
+
+            while (a && b) {
+                if (fn(a, b) <= 0) {
+                    tail->next = a;
+                    a->prev = tail;
+                    a = a->next;
+                } else {
+                    tail->next = b;
+                    b->prev = tail;
+                    b = b->next;
+                }
+                tail = tail->next;
+            }
+
+            if (a) {
+                tail->next = a;
+                a->prev = tail;
+            } else if (b) {
+                tail->next = b;
+                b->prev = tail;
+            }
+
+            // Fix head node prev pointer
+            if (dummy.next) dummy.next->prev = nullptr;
+            return dummy.next;
+        }
+
+        template<typename F>
+        static lifo_node* merge_sort_(const F fn, lifo_node* head) {
+            if (!head || !head->next)
+                return head;
+
+            // Calculate list length
+            int list_size = 0;
+            lifo_node* tmp = head;
+            while (tmp) {
+                list_size++;
+                tmp = tmp->next;
+            }
+
+            lifo_node dummy;
+            dummy.next = head;
+            head->prev = &dummy;
+
+            for (int size = 1; size < list_size; size *= 2) {
+                lifo_node* prev = &dummy;
+                lifo_node* curr = dummy.next;
+
+                while (curr) {
+                    // Left sublist
+                    lifo_node* left = curr;
+                    int left_size = size;
+                    while (left_size-- && curr) curr = curr->next;
+
+                    // Right sublist
+                    lifo_node* right = curr;
+                    int right_size = size;
+                    while (right_size-- && curr) curr = curr->next;
+
+                    // Save next start point
+                    lifo_node* next = curr;
+
+                    // Disconnect sublists
+                    if (left) detach_after(left, size);
+                    if (right) detach_after(right, size);
+
+                    // Merge left and right
+                    lifo_node* merged = merge_(fn, left, right);
+                    prev->next = merged;
+                    if (merged) merged->prev = prev;
+
+                    // Advance prev to the end of merged
+                    while (prev->next) prev = prev->next;
+                    prev->next = next;
+                    if (next) next->prev = prev;
+
+                    curr = next;
+                }
+            }
+
+            return dummy.next;
+        }
+
+        // Helper to disconnect after `count` nodes
+        static void detach_after(lifo_node* start, int count) {
+            while (--count && start)
+                start = start->next;
+
+            if (start && start->next) {
+                start = start->next;
+                start->prev->next = nullptr;
+                start->prev = nullptr;
+            }
+        }
+        // -------------------------------------------------------------------------------------------------------------
+
+
         template <typename T>
         T *malloc_(void *, allocator &allocator, const std::size_t size_n) {
             return static_cast<T *>(allocator.malloc(&allocator, size_n * sizeof(T), alignof(T)));

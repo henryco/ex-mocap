@@ -223,10 +223,10 @@ namespace ex::data::lalloc {
             if (block->node_ptr->bucket_ptr != nullptr)
                 abort_("Reallocation of free block");
 
-            if (size_new_b == block->node_ptr->size_b)
+            if (size_new_b == static_cast<std::size_t>(block->node_ptr->size_b))
                 return ptr;
 
-            if (size_new_b < block->node_ptr->size_b) {
+            if (size_new_b < static_cast<std::size_t>(block->node_ptr->size_b)) {
                 // TODO: SHRINK
                 goto fallback_go;
             }
@@ -413,6 +413,8 @@ namespace ex::data::lalloc {
             memory_block *target_block = block;
             memory_node  *node         = block->node_ptr;
 
+//            std::cout << "merge: " << block->node_ptr->block_ptr << ", " << node->size_b << std::endl;
+
             if (node->bucket_ptr != nullptr) {
                 const u_int32_t p = power_range_r_s(node->size_b);
                 buckets_[p].remove(static_cast<block_bucket_t::lifo_node *>(node->bucket_ptr));
@@ -421,6 +423,8 @@ namespace ex::data::lalloc {
             if (memory_block *next_block = next_block_(block)) {
                 if (memory_node *next_node = next_block->node_ptr;
                     next_node->bucket_ptr != nullptr) {
+
+//                    std::cout << "+ next: " << next_block << ", " << next_node->size_b << std::endl;
 
                     if (!continuous_(block, next_block, node->size_b + sizeof(memory_block)))
                         abort_("block layout discontinuity");
@@ -438,6 +442,8 @@ namespace ex::data::lalloc {
             if (memory_node *prev_node = node->prev_ptr) {
                 if (memory_block *prev_block = prev_node->block_ptr;
                     prev_node->bucket_ptr != nullptr) {
+
+//                    std::cout << "+ prev: " << prev_block << ", " << prev_node->size_b << std::endl;
 
                     const u_int32_t p = power_range_r_s(prev_node->size_b);
                     buckets_[p].remove(static_cast<block_bucket_t::lifo_node *>(prev_node->bucket_ptr));
@@ -458,6 +464,7 @@ namespace ex::data::lalloc {
                 next_block->node_ptr->prev_ptr = node;
             }
 
+//            std::cout << "put: " << target_block->node_ptr->block_ptr << ", " << target_block->node_ptr->size_b << '\n' << std::endl;
             bucket_put_(target_block);
         }
 
@@ -494,7 +501,7 @@ namespace ex::data::lalloc {
                 if (node->block_ptr != block)
                     abort_("Invalid block address, block bucket address invalid: " << block << " | " << node->block_ptr);
 
-                if (node->size_b < size_b)
+                if (static_cast<std::size_t>(node->size_b) < size_b)
                     continue;
 
                 unsigned char *byte_ptr = reinterpret_cast<unsigned char *>(block) + sizeof(memory_block);
@@ -601,15 +608,15 @@ namespace ex::data::lalloc {
                 return;
             }
 
-            if (gap <= sizeof(memory_block)) {
+            if (static_cast<size_t>(gap) <= sizeof(memory_block)) {
                 *p3 = gap;
                 *p4 = -1;
                 return;
             }
 
             unsigned char *gap_ptr = reinterpret_cast<unsigned char *>(ptr) + size_need;
-            const int32_t  padding = block_padding_(gap_ptr, sizeof(memory_block));
-            const int32_t  free_b  = gap - padding - sizeof(memory_block);
+            const int32_t  padding = static_cast<int32_t>(block_padding_(gap_ptr, sizeof(memory_block)));
+            const int32_t  free_b  = gap - padding - static_cast<int32_t>(sizeof(memory_block));
 
             if (free_b <= 0) {
                 *p3 = gap;
@@ -632,7 +639,7 @@ namespace ex::data::lalloc {
             }
 
             // natural padding for header-data alignment
-            if (padding_1 < sizeof(memory_block)) {
+            if (static_cast<size_t>(padding_1) < sizeof(memory_block)) {
                 *p1 = padding_1;
                 *p2 = -1;
                 return true;
@@ -642,12 +649,12 @@ namespace ex::data::lalloc {
             unsigned char *data_ptr = zero_ptr + padding_1;
             unsigned char *head_ptr = reinterpret_cast<unsigned char *>(header_ptr_(data_ptr));
 
-            const int32_t space_1 = head_ptr - zero_ptr;
+            const int32_t space_1 = static_cast<int32_t>(head_ptr - zero_ptr);
             if (space_1 < 0) // should be impossible in practice, I guess?
                 return false; // replace with abort_ ?
 
-            const int32_t space_2 = data_ptr - head_ptr - sizeof(memory_block);
-            if (space_2 < 0 || space_2 >= sizeof(memory_block)) // WTF? HOW?
+            const int32_t space_2 = static_cast<int32_t>(data_ptr - head_ptr - sizeof(memory_block));
+            if (space_2 < 0 || space_2 >= static_cast<int32_t>(sizeof(memory_block))) // WTF? HOW?
                 return false; // replace with abort_ ?
 
             *p1 = space_1;
@@ -666,13 +673,13 @@ namespace ex::data::lalloc {
         static bool continuous_(void *prev, void *next, const u_int64_t prev_size) {
             if (next == nullptr || prev == nullptr)
                 return false;
-            return (static_cast<unsigned char *>(prev) + prev_size) == next;
+            return (static_cast<unsigned char *>(prev) + static_cast<long>(prev_size)) == next;
         }
 
         static bool continuous_(memory_block *prev, memory_block *next) {
             if (next == nullptr || prev == nullptr)
                 return false;
-            void *a = reinterpret_cast<unsigned char *>(prev) + prev->node_ptr->size_b + sizeof(memory_block);
+            void *a = reinterpret_cast<unsigned char *>(prev) + static_cast<long>(prev->node_ptr->size_b) + static_cast<long>(sizeof(memory_block));
             return a == next;
         }
 
@@ -682,10 +689,10 @@ namespace ex::data::lalloc {
         }
 
         static void *header_ptr_(void *ptr) {
-            unsigned char  *data_ptr = reinterpret_cast<unsigned char *>(ptr) - sizeof(memory_block);
+            unsigned char  *data_ptr = reinterpret_cast<unsigned char *>(ptr) - static_cast<long>(sizeof(memory_block));
             const u_int64_t address  = reinterpret_cast<u_int64_t>(data_ptr);
             const u_int64_t offset   = address % sizeof(memory_block);
-            return data_ptr - offset;
+            return data_ptr - static_cast<long>(offset);
         }
 
         static void validate_header__(void *ptr) {
