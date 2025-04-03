@@ -93,12 +93,21 @@ void rec_build(limbo::graph::BaseNode *parent, const int width, const int max_de
         counter_ += 1;
 
         limbo::graph::BaseNode *child;
-        if (i < 0.3 * width)
-            child = new node_test_one();
-        else if (i < 0.66 * width)
-            child = new node_test_two();
-        else
-            child = new node_test_tri();
+        if (i < 0.3 * width) {
+            child = new
+            (limbo::graph::memory::allocator.malloc(&limbo::graph::memory::allocator, sizeof(node_test_one), alignof(node_test_one)))
+            node_test_one();
+        }
+        else if (i < 0.66 * width) {
+            child = new
+            (limbo::graph::memory::allocator.malloc(&limbo::graph::memory::allocator, sizeof(node_test_two), alignof(node_test_two)))
+            node_test_two();
+        }
+        else {
+            child = new
+            (limbo::graph::memory::allocator.malloc(&limbo::graph::memory::allocator, sizeof(node_test_tri), alignof(node_test_tri)))
+            node_test_tri();
+        }
 
         const bool which = (i < 0.5 * width);
 
@@ -116,13 +125,14 @@ TEST_SUITE("Grap node tests") {
         ex::data::lalloc::allocator alloc_2;
         limbo::graph::memory::allocator = alloc_2.compat();
 
-        ex::time::measure_avg time = 1;
-        time.start();
-        limbo::graph::BaseNode *root = new node_test_one();
-        rec_build(root, 6, 7);
-//        rec_build(root, 4, 3);
-
         {
+            limbo::graph::BaseNode *root = new node_test_one();
+            ex::time::measure_avg time = 1;
+            time.start();
+
+            rec_build(root, 6, 7);
+//            rec_build(root, 4, 3);
+
             limbo::graph::Clock clock;
             clock.attach(root);
             time.stop();
@@ -137,17 +147,17 @@ TEST_SUITE("Grap node tests") {
 
             unsigned long int avg = 0;
             double counter = 0.;
-            //        ex::time::measure_avg measure = 1000;
-            //        for (int i = 0; i < 1000000; i++) {
-            //            measure.start();
-            //
-            //            clock.pull();
-            //
-            //            if (measure.stop()) {
-            //                avg += measure.result();
-            //                counter++;
-            //            }
-            //        }
+//            ex::time::measure_avg measure = 1000;
+//            for (int i = 0; i < 1000000; i++) {
+//                measure.start();
+//
+//                clock.pull();
+//
+//                if (measure.stop()) {
+//                    avg += measure.result();
+//                    counter++;
+//                }
+//            }
 
             const auto total_ = alloc_2.blocks_total();
             const auto free_ = alloc_2.blocks_free();
@@ -160,5 +170,7 @@ TEST_SUITE("Grap node tests") {
             std::cout << "blocks used: " << (total_ - free_) << std::endl;
             std::cout << "finished" << std::endl;
         }
+
+        alloc_2.clean();
     }
 }
