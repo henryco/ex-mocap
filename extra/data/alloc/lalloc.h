@@ -13,6 +13,22 @@
     #include <intrin.h>
 #endif
 
+#ifdef USE_VALGRIND
+    #include <valgrind/memcheck.h>
+    #define val_pool_create_(ptr) VALGRIND_CREATE_MEMPOOL(ptr, 0, 0)
+    #define val_pool_malloc_(block) VALGRIND_MEMPOOL_ALLOC(region_ptr_(block), (block + 1), block->node_ptr->size_b)
+    #define val_pool_free___(block) VALGRIND_MEMPOOL_FREE(region_ptr_(block), (block + 1))
+    #define val_pool_remove_(ptr) VALGRIND_DESTROY_MEMPOOL(ptr)
+
+#else
+    #include <valgrind/memcheck.h>
+    #define val_pool_create_(ptr) ;
+    #define val_pool_malloc_(block) ;
+    #define val_pool_free___(block) ;
+    #define val_pool_remove_(ptr);
+
+#endif
+
 namespace ex::data::lalloc {
 
 // -----------------------------
@@ -724,6 +740,16 @@ namespace ex::data::lalloc {
 
         static void block_eager__(memory_block *block) {
             ::memset(reinterpret_cast<unsigned char *>(block) + sizeof(memory_block), 0, block->node_ptr->size_b);
+        }
+
+        static void *region_ptr_(memory_block *block) {
+            while (block != nullptr) {
+                memory_node *prev = block->node_ptr->prev_ptr;
+                if (prev == nullptr)
+                    return block;
+                block = prev->block_ptr;
+            }
+            abort_("Cannot locate root mem region");
         }
     };
 

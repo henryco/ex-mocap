@@ -2,6 +2,8 @@
 // Created by xd on 2/28/25.
 //
 
+//#define USE_VALGRIND
+
 #include <iostream>
 #include <doctest/doctest.h>
 #include "../../extra/graph/graph.h"
@@ -133,8 +135,8 @@ TEST_SUITE("Grap node tests") {
             time.start();
 
 //            rec_build(root, 6, 7);
-            rec_build(root, 5, 5);
-//            rec_build(root, 4, 3);
+//            rec_build(root, 5, 5);
+            rec_build(root, 4, 3);
 
             limbo::graph::Clock clock;
             clock.attach(root);
