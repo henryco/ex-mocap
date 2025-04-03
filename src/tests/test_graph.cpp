@@ -126,11 +126,14 @@ TEST_SUITE("Grap node tests") {
         limbo::graph::memory::allocator = alloc_2.compat();
 
         {
-            limbo::graph::BaseNode *root = new node_test_one();
+            limbo::graph::BaseNode *root = new
+            (limbo::graph::memory::allocator.malloc(&limbo::graph::memory::allocator, sizeof(node_test_one), alignof(node_test_one)))
+            node_test_one();
             ex::time::measure_avg time = 1;
             time.start();
 
-            rec_build(root, 6, 7);
+//            rec_build(root, 6, 7);
+            rec_build(root, 5, 5);
 //            rec_build(root, 4, 3);
 
             limbo::graph::Clock clock;

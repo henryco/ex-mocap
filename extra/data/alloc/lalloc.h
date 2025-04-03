@@ -6,7 +6,7 @@
 #define EX_LIMBO_DATA_LALLOC_H
 
 #include "../struct/lifo_queue.h"
-#include "../struct/list_map.h"
+//#include "../struct/list_map.h"
 #include "stackarena.h"
 
 #ifdef _MSC_VER
@@ -17,7 +17,7 @@ namespace ex::data::lalloc {
 
 // -----------------------------
 #define ALLOC_DEF_SIZE_B (1   MB)
-#define STACK_ALLOC_SIZE (256 KB)
+#define STACK_ALLOC_SIZE (8 KB)
 // -----------------------------
 
     struct memory_node;

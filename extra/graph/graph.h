@@ -11,6 +11,11 @@
 
 namespace limbo::graph {
 
+    struct memory {
+        /* Default allocator */
+        inline static ex::data::allocator allocator;
+    };
+
     struct BaseNode;
 
     struct Clock;
@@ -115,8 +120,11 @@ namespace limbo::graph {
         };
 
         struct port_dispatcher : virtual IODescriptor {
-            ex::data::array<Description> in_descriptions_;
-            ex::data::array<Description> out_descriptions_;
+
+#define DATA_INIT_CAP 8
+
+            ex::data::array<Description> in_descriptions_  = { DATA_INIT_CAP, memory::allocator };
+            ex::data::array<Description> out_descriptions_ = { DATA_INIT_CAP, memory::allocator };
             bool                         freeze_ = false;
 
             ~port_dispatcher() override = default;
@@ -264,14 +272,9 @@ namespace limbo::graph {
         unsigned int data_size;
     };
 
-    struct memory {
-        /* Default allocator */
-        inline static ex::data::allocator allocator;
-    };
-
     struct BaseNode : virtual IO, virtual io::IODescriptor, virtual GenericDataPtr {
 
-#define NODE_INIT_CAP 2
+#define NODE_INIT_CAP 8
 
         using assignment_fn_t = void (*)(int output_idx, const void *src_ptr, void *dst_ptr);
 
@@ -304,10 +307,17 @@ namespace limbo::graph {
         void reallocate(const bool cleanup = true) {
             if (cleanup) {
 
-                for (int i = 0; i < cache_map.size; ++i)
-                    ::free(cache_map.val_entries[i].data_ptr);
-                for (int i = 0; i < stack_map.size; ++i)
-                    ::free(stack_map.val_entries[i]);
+//                for (int i = 0; i < cache_map.size; ++i)
+//                    ::free(cache_map.val_entries[i].data_ptr);
+//                for (int i = 0; i < stack_map.size; ++i)
+//                    ::free(stack_map.val_entries[i]);
+
+                for (int i = 0; i < cache_map.size; ++i) {
+                    memory::allocator.free(&memory::allocator, cache_map.val_entries[i].data_ptr);
+                }
+                for (int i = 0; i < stack_map.size; ++i) {
+                    memory::allocator.free(&memory::allocator, stack_map.val_entries[i]);
+                }
 
                 cache_map.clean();
                 stack_map.clean();
@@ -322,13 +332,17 @@ namespace limbo::graph {
             const auto outputs = describe_outputs(&size);
             for (int i = 0; i < size; ++i) {
                 const auto &output = outputs[i];
-                cache_map.put(output.index, { ::malloc(output.size), output.size });
+//                cache_map.put(output.index, { ::malloc(output.size), output.size });
+                cache_map.put(output.index,
+                              { memory::allocator.malloc(&memory::allocator.malloc, output.size, output.size) });
             }
 
             const auto inputs = describe_inputs(&size);
             for (int i = 0; i < size; ++i) {
                 const auto &input = inputs[i];
-                stack_map.put(input.index, ::malloc(input.size));
+//                stack_map.put(input.index, ::malloc(input.size));
+                stack_map.put(input.index,
+                              { memory::allocator.malloc(&memory::allocator.malloc, input.size, input.size) });
             }
         }
 
