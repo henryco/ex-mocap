@@ -168,6 +168,7 @@ TEST_SUITE("Grap node tests") {
             std::cout << "blocks total: " << total_ << std::endl;
             std::cout << "blocks free: " << free_ << std::endl;
             std::cout << "blocks used: " << (total_ - free_) << std::endl;
+            std::cout << "utilization: " << (static_cast<double>(total_ - free_) / static_cast<double>(total_)) << std::endl;
             std::cout << "finished" << std::endl;
         }
 

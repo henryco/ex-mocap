@@ -16,8 +16,8 @@
 namespace ex::data::lalloc {
 
 // -----------------------------
-#define ALLOC_DEF_SIZE_B (1 MB)
-#define STACK_ALLOC_SIZE (64 KB)
+#define ALLOC_DEF_SIZE_B (1   MB)
+#define STACK_ALLOC_SIZE (256 KB)
 // -----------------------------
 
     struct memory_node;
