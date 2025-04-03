@@ -66,6 +66,7 @@ namespace ex::data {
         }
 
         long size() const {
+            // TODO FIXME
             long            bytes = 0;
             const mem_node *head  = node_head;
             while (head != nullptr) {

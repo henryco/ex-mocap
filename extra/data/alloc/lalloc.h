@@ -17,7 +17,7 @@ namespace ex::data::lalloc {
 
 // -----------------------------
 #define ALLOC_DEF_SIZE_B (1 MB)
-#define STACK_ALLOC_SIZE (8 KB)
+#define STACK_ALLOC_SIZE (64 KB)
 // -----------------------------
 
     struct memory_node;
@@ -318,11 +318,15 @@ namespace ex::data::lalloc {
         }
 
         long size_used() const {
-            return used_mem_ + stack_.size_used() + arena_.size_used();
+            const long stack_size = stack_.size_used();
+            const long arena_size = arena_.size_used();
+            return used_mem_ + stack_size + arena_size;
         }
 
         long size_total() const {
-            return memory_.size() + stack_.size_total() + arena_.size_total();
+            const long stack_size = stack_.size_total();
+            const long arena_size = arena_.size_total();
+            return memory_.size() + stack_size + arena_size;
         }
 
         long blocks_total() const {
@@ -656,7 +660,8 @@ namespace ex::data::lalloc {
             if (static_cast<size_t>(padding_1) == sizeof(memory_block)) {
 //                padding_1 += (sizeof(memory_block) > alignment_b ? sizeof(memory_block) : alignment_b);
 //                padding_1 += alignment_b;
-                padding_1 += sizeof(memory_block);
+//                padding_1 += static_cast<u_int32_t>(alignment_b);
+                padding_1 += static_cast<u_int32_t>(sizeof(memory_block));
             }
 
             unsigned char *zero_ptr = reinterpret_cast<unsigned char *>(ptr);
