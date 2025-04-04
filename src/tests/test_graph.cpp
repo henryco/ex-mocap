@@ -124,7 +124,7 @@ TEST_SUITE("Grap node tests") {
 
     TEST_CASE("Graph allocation test") {
 //        ex::data::rbtalloc::allocator alloc_2;
-        ex::data::lalloc::allocator alloc_2 = { 1 MB, 8 GB };
+        ex::data::lalloc::allocator alloc_2 = { 1 MB };
         limbo::graph::memory::allocator = alloc_2.compat();
 
         {
@@ -134,9 +134,9 @@ TEST_SUITE("Grap node tests") {
             ex::time::measure_avg time = 1;
             time.start();
 
-            rec_build(root, 6, 7);
+//            rec_build(root, 6, 7);
 //            rec_build(root, 5, 5);
-//            rec_build(root, 4, 3);
+            rec_build(root, 4, 3);
 
             limbo::graph::Clock clock;
             clock.attach(root);
@@ -154,17 +154,17 @@ TEST_SUITE("Grap node tests") {
 
             unsigned long int avg = 0;
             double counter = 0.;
-//            ex::time::measure_avg measure = 1000;
-//            for (int i = 0; i < 1000000; i++) {
-//                measure.start();
-//
-//                clock.pull();
-//
-//                if (measure.stop()) {
-//                    avg += measure.result();
-//                    counter++;
-//                }
-//            }
+            ex::time::measure_avg measure = 1000;
+            for (int i = 0; i < 1000000; i++) {
+                measure.start();
+
+                clock.pull();
+
+                if (measure.stop()) {
+                    avg += measure.result();
+                    counter++;
+                }
+            }
 
             const auto total_ = alloc_2.blocks_total();
             const auto free_ = alloc_2.blocks_free();

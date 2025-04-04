@@ -30,9 +30,9 @@
 namespace ex::data::lalloc {
 
 // -----------------------------
-#define ALLOC_DEF_SIZE_B (1 MB)
-#define ALLOC_MAX_SIZE_B (1 TB)
-#define STACK_ALLOC_SIZE (8 KB)
+#define ALLOC_DEF_SIZE_B (1  MB)
+#define ALLOC_MAX_SIZE_B (1  TB)
+#define STACK_ALLOC_SIZE (16 KB)
 // -----------------------------
 
     struct memory_node;
