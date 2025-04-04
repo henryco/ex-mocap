@@ -9,9 +9,10 @@
 - [IconFontCppHeaders](https://github.com/juliettef/IconFontCppHeaders) (external/iconfontcppheaders) - font icons
 - [LucideIcons](https://github.com/lucide-icons/lucide) (external/lucide) - font icons
 - [OnnxRuntime](https://github.com/microsoft/onnxruntime) (external/onnxruntime) - DNN inference
-- [Doctest](https://github.com/doctest/doctest) (external/doctest) - tests
-- [ImGui](https://github.com/ocornut/imgui) (external/imgui) -gui
+- [ImGui](https://github.com/ocornut/imgui) (external/imgui) - gui
 - [GLM](https://github.com/g-truc/glm) (external/glm) - math
+- [Doctest](https://github.com/doctest/doctest) (external/doctest) - tests only
+- [Valgrind](https://valgrind.org/) - Memory debug and profiling, tests only
 - [Spdlog](https://github.com/gabime/spdlog) - logging
 - [OpenCV](https://opencv.org/get-started) 
 - [OpenCL](https://www.khronos.org/opencl) 
@@ -34,5 +35,6 @@
         libglfw3-dev        \
         libglfw3            \
         libglew-dev         \
-        libv4l-dev
+        libv4l-dev          \
+        valgrind
 ```

@@ -6,7 +6,6 @@
 #define EX_LIMBO_DATA_LALLOC_H
 
 #include "../struct/lifo_queue.h"
-//#include "../struct/list_map.h"
 #include "stackarena.h"
 
 #ifdef _MSC_VER
@@ -21,7 +20,6 @@
     #define val_pool_remove_(ptr) VALGRIND_DESTROY_MEMPOOL(ptr)
 
 #else
-    #include <valgrind/memcheck.h>
     #define val_pool_create_(ptr) ;
     #define val_pool_malloc_(block) ;
     #define val_pool_free___(block) ;
