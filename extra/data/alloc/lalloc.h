@@ -226,8 +226,10 @@ namespace ex::data::lalloc {
         }
 
         block_addr_t malloc(const std::size_t size_b, const std::size_t alignment_b) {
+            #ifndef LALLOC_AGGRESSIVE
             if (size_b == 0)
                 abort_("Empty memory block allocation");
+            #endif
 
             if (const block_addr_t allocated = block_acquire_(size_b, alignment_b)) {
                 validate_header_(allocated);
@@ -254,11 +256,13 @@ namespace ex::data::lalloc {
             unsigned char *h_ptr = static_cast<unsigned char *>(header_ptr_(ptr));
             memory_block  *block = reinterpret_cast<memory_block *>(h_ptr);
 
+            #ifndef LALLOC_AGGRESSIVE
             if (block->node_ptr->block_ptr != block)
                 abort_("Invalid block address, block bucket address invalid: " << block << " | " << block->node_ptr->block_ptr);
 
             if (block->node_ptr->bucket_ptr != nullptr)
                 abort_("Reallocation of free block");
+            #endif
 
             if (size_new_b == static_cast<std::size_t>(block->node_ptr->size_b))
                 return ptr;
@@ -274,10 +278,12 @@ namespace ex::data::lalloc {
                 if (next_node->bucket_ptr == nullptr)
                     goto fallback_go;
 
+                #ifndef LALLOC_AGGRESSIVE
                 if (next_node->prev_ptr != block->node_ptr)
                     abort_("Memory layout fragmentation error");
                 if (!continuous_(block, next_block))
                     abort_("Memory layout fragmentation error");
+                #endif
 
                 const u_int64_t available = next_node->size_b + sizeof(memory_block);
                 const u_int64_t has       = block->node_ptr->size_b;
@@ -328,8 +334,10 @@ namespace ex::data::lalloc {
                 return allocated;
             }
 
+            #ifndef LALLOC_AGGRESSIVE
             if (allocated == nullptr)
                 abort_("Out of free space");
+            #endif
 
             validate_header_(allocated);
             return allocated;
@@ -342,11 +350,13 @@ namespace ex::data::lalloc {
             unsigned char *h_ptr = static_cast<unsigned char *>(header_ptr_(ptr));
             memory_block  *block = reinterpret_cast<memory_block *>(h_ptr);
 
+            #ifndef LALLOC_AGGRESSIVE
             if (block->node_ptr->block_ptr != block)
                 abort_("Invalid block address, block bucket address invalid: " << block << " | " << block->node_ptr->block_ptr);
 
             if (block->node_ptr->bucket_ptr != nullptr)
                 abort_("Memory block double free");
+            #endif
 
             used_mem_ -= (block->node_ptr->size_b + sizeof(memory_block));
 
@@ -418,12 +428,14 @@ namespace ex::data::lalloc {
         }
 
         block_addr_t block_acquire_(const std::size_t size_b, const std::size_t alignment_b) {
+            #ifndef LALLOC_AGGRESSIVE
             if (size_b == 0)
                 abort_("Requested blocks size must be non-zero");
             if ((size_b + alignment_b) > BLOCK_MAX_SIZE_B)
                 abort_("Requested allocation size overflow");
             if (alignment_b == 0 || (alignment_b & (alignment_b - 1)) != 0)
                 abort_("Alignment must be non-zero and a power of two");
+            #endif
 
             if (size_b < LIFO_BLOCK_SIZE && !lifo_.empty())
                 if (void *ptr = bucket_scan_(lifo_, size_b, alignment_b))
@@ -441,8 +453,11 @@ namespace ex::data::lalloc {
         }
 
         void lifo_put_(memory_block *block) {
+            #ifndef LALLOC_AGGRESSIVE
             if (block->node_ptr->bucket_ptr != nullptr)
                 abort_("block should be free");
+            #endif
+
 //            block_merge_(block);
             if (block->node_ptr->size_b == 0 || block->node_ptr->size_b >= LIFO_BLOCK_SIZE) {
                 block_merge_(block);
@@ -457,8 +472,11 @@ namespace ex::data::lalloc {
 
         void bucket_put_(memory_block *block) {
             const u_int32_t power = power_range_r_(block->node_ptr->size_b);
+
+            #ifndef LALLOC_AGGRESSIVE
             if (power >= BUCKETS_NUM)
                 abort_("Block size too big");
+            #endif
 
             min_bucket_ = power < min_bucket_ ? power : min_bucket_;
 
@@ -483,8 +501,10 @@ namespace ex::data::lalloc {
 
 //                    std::cout << "+ next: " << next_block << ", " << next_node->size_b << std::endl;
 
+                    #ifndef LALLOC_AGGRESSIVE
                     if (!continuous_(block, next_block, node->size_b + sizeof(memory_block)))
                         abort_("block layout discontinuity");
+                    #endif
 
                     const u_int32_t p = power_range_r_(next_node->size_b);
                     buckets_[p].remove(static_cast<block_bucket_t::lifo_node *>(next_node->bucket_ptr));
@@ -512,8 +532,11 @@ namespace ex::data::lalloc {
             }
 
             if (memory_block *next_block = next_block_(target_block)) {
+                #ifndef LALLOC_AGGRESSIVE
                 if (!continuous_(target_block, next_block, node->size_b + sizeof(memory_block)))
                     abort_("block layout discontinuity");
+                #endif
+
                 next_block->node_ptr->prev_ptr = node;
             }
 
@@ -553,8 +576,10 @@ namespace ex::data::lalloc {
                 memory_node  *node  = head->val;
                 memory_block *block = node->block_ptr;
 
+                #ifndef LALLOC_AGGRESSIVE
                 if (node->block_ptr != block)
                     abort_("Invalid block address, block bucket address invalid: " << block << " | " << node->block_ptr);
+                #endif
 
                 if (static_cast<std::size_t>(node->size_b) < size_b)
                     continue;

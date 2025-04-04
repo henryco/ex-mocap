@@ -6,6 +6,7 @@
 #include <doctest/doctest.h>
 #include "../../extra/graph/graph.h"
 //#define USE_VALGRIND
+//#define LALLOC_AGGRESSIVE
 //#include "../../extra/data/alloc/rbtalloc.h"
 #include "../../extra/data/alloc/lalloc.h"
 #include "../../src/headers/utils/time_utils.h"
