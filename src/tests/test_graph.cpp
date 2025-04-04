@@ -2,11 +2,10 @@
 // Created by xd on 2/28/25.
 //
 
-//#define USE_VALGRIND
-
 #include <iostream>
 #include <doctest/doctest.h>
 #include "../../extra/graph/graph.h"
+//#define USE_VALGRIND
 //#include "../../extra/data/alloc/rbtalloc.h"
 #include "../../extra/data/alloc/lalloc.h"
 #include "../../src/headers/utils/time_utils.h"
@@ -124,7 +123,7 @@ TEST_SUITE("Grap node tests") {
 
     TEST_CASE("Graph allocation test") {
 //        ex::data::rbtalloc::allocator alloc_2;
-        ex::data::lalloc::allocator alloc_2;
+        ex::data::lalloc::allocator alloc_2 = { 1 MB, 8 GB };
         limbo::graph::memory::allocator = alloc_2.compat();
 
         {
@@ -134,8 +133,8 @@ TEST_SUITE("Grap node tests") {
             ex::time::measure_avg time = 1;
             time.start();
 
-//            rec_build(root, 6, 7);
-            rec_build(root, 5, 5);
+            rec_build(root, 6, 7);
+//            rec_build(root, 5, 5);
 //            rec_build(root, 4, 3);
 
             limbo::graph::Clock clock;
@@ -143,12 +142,14 @@ TEST_SUITE("Grap node tests") {
             time.stop();
 
             // TODO
+            auto mem_t = limbo::graph::memory::allocator.size_total(&limbo::graph::memory::allocator);
+            auto mem_u = limbo::graph::memory::allocator.size_used(&limbo::graph::memory::allocator);
 
             std::cout << "build: " << time.result() << " ns" << std::endl;
             std::cout << "total: " << counter_ << std::endl;
-            std::cout << "size t: " << alloc_2.size_total() << ", " << (alloc_2.size_total() / (1 MB)) << std::endl;
-            std::cout << "size u: " << alloc_2.size_used() << ", " << (alloc_2.size_used() / (1 MB)) << std::endl;
-            std::cout << "ratio: " << (static_cast<double>(alloc_2.size_used()) / static_cast<double>(alloc_2.size_total())) << std::endl;
+            std::cout << "size t: " << mem_t << ", " << (mem_t / (1 MB)) << std::endl;
+            std::cout << "size u: " << mem_u << ", " << (mem_u / (1 MB)) << std::endl;
+            std::cout << "ratio: " << (static_cast<double>(mem_u) / static_cast<double>(mem_t)) << std::endl;
 
             unsigned long int avg = 0;
             double counter = 0.;
@@ -168,8 +169,8 @@ TEST_SUITE("Grap node tests") {
             const auto free_ = alloc_2.blocks_free();
 
             std::cout << "avg: " << (avg / counter) << " ns\n";
-            std::cout << "memory total : " << limbo::graph::memory::allocator.size_total(&limbo::graph::memory::allocator) << " b" << std::endl;
-            std::cout << "memory used  : " << limbo::graph::memory::allocator.size_used(&limbo::graph::memory::allocator) << " b" << std::endl;
+            std::cout << "memory total : " << mem_t << " b" << std::endl;
+            std::cout << "memory used  : " << mem_u << " b" << std::endl;
             std::cout << "blocks total: " << total_ << std::endl;
             std::cout << "blocks free: " << free_ << std::endl;
             std::cout << "blocks used: " << (total_ - free_) << std::endl;

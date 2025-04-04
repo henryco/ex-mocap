@@ -16,10 +16,10 @@ namespace ex::data {
 //    #define abort_(msg) throw std::runtime_error("Generic abort exception")
 //#endif
 
-#define KB * 1024
-#define MB * 1024 KB
-#define GB * 1024 MB
-#define TB * 1024 GB
+#define KB * 1024UL
+#define MB * 1024UL KB
+#define GB * 1024UL MB
+#define TB * 1024UL GB
 
     using instance_t   = void *;
     using malloc_fn_t  = void *(*) (instance_t this_, std::size_t size_new_b, std::size_t alignment_b);
@@ -27,10 +27,13 @@ namespace ex::data {
     using free_fn_t    = void  (*) (instance_t this_, void *ptr);
     using size_fn_t    = long  (*) (instance_t this_);
 
+    inline std::size_t default_size_ctr_ = 0;
+
     inline void *default_malloc_(instance_t, const std::size_t size_new_b, std::size_t) {
         void *mem = ::malloc(size_new_b);
         if (mem == nullptr)
             ::abort();
+        default_size_ctr_ += size_new_b + 16;
         return mem;
     }
 
@@ -38,6 +41,7 @@ namespace ex::data {
         void *mem = ::realloc(ptr, size_new_b);
         if (mem == nullptr)
             ::abort();
+        default_size_ctr_ += size_new_b + 16;
         return mem;
     }
 
@@ -46,7 +50,7 @@ namespace ex::data {
     }
 
     inline long default_size_(instance_t) {
-        return 0;
+        return default_size_ctr_;
     }
 
     struct allocator {

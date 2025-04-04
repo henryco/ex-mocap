@@ -18,7 +18,7 @@
     #define val_pool_malloc_(block) VALGRIND_MEMPOOL_ALLOC(region_ptr_(block), (block + 1), block->node_ptr->size_b)
     #define val_pool_free___(block) VALGRIND_MEMPOOL_FREE(region_ptr_(block), (block + 1))
     #define val_pool_remove_(ptr) VALGRIND_DESTROY_MEMPOOL(ptr)
-
+    // TODO
 #else
     #define val_pool_create_(ptr) ;
     #define val_pool_malloc_(block) ;
@@ -30,7 +30,8 @@
 namespace ex::data::lalloc {
 
 // -----------------------------
-#define ALLOC_DEF_SIZE_B (1   MB)
+#define ALLOC_DEF_SIZE_B (1 MB)
+#define ALLOC_MAX_SIZE_B (1 TB)
 #define STACK_ALLOC_SIZE (8 KB)
 // -----------------------------
 
@@ -66,7 +67,7 @@ namespace ex::data::lalloc {
     #define block_init_(ptr) ;
 #endif
 
-    static u_int32_t power_range_r_s(const u_int32_t size_b) {
+    static u_int32_t power_range_r_(const u_int32_t size_b) {
         if (size_b == 0)
             return 0;
 #ifdef __clang__
@@ -76,6 +77,23 @@ namespace ex::data::lalloc {
 #elif defined(_MSC_VER)
         u_int64_t index;
         _BitScanReverse(&index, size_b);
+        return static_cast<u_int32_t>(index);
+#else
+    #error "Compiller not supported"
+        abort_("Compiller not supported");
+#endif
+    }
+
+    static u_int32_t power_range_r_s64(const u_int64_t size_b) {
+        if (size_b == 0)
+            return 0;
+#ifdef __clang__
+        return (sizeof(size_b) * 8 - __builtin_clzll(size_b) - 1);
+#elif defined(__GNUC__)
+        return return (sizeof(size_b) * 8 - __builtin_clzll(size_b) - 1);
+#elif defined(_MSC_VER)
+        u_int64_t index;
+        _BitScanReverse64(&index, size_b);
         return static_cast<u_int32_t>(index);
 #else
     #error "Compiller not supported"
@@ -137,6 +155,7 @@ namespace ex::data::lalloc {
         mem_provider memory_;
 
         std::size_t def_size_     = 0;
+        std::size_t max_size_     = 0;
         std::size_t grow_mem_     = 0;
         std::size_t used_mem_     = 0;
         std::size_t blocks_total_ = 0;
@@ -146,7 +165,8 @@ namespace ex::data::lalloc {
             return alloc_compat<allocator>::allocator(this);
         }
 
-        allocator(const std::size_t pre_allocated = ALLOC_DEF_SIZE_B) {
+        allocator(const std::size_t pre_allocated = ALLOC_DEF_SIZE_B, const std::size_t max_size = ALLOC_MAX_SIZE_B) {
+            max_size_ = max_size;
             preallocate(pre_allocated);
         }
 
@@ -175,11 +195,14 @@ namespace ex::data::lalloc {
             used_mem_ = 0;
         }
 
-        void preallocate(const std::size_t pre_allocated = ALLOC_DEF_SIZE_B) {
-            if (pre_allocated <= 0)
-                abort_("Allocation size must be greater than 0");
+        void preallocate(std::size_t pre_allocated = ALLOC_DEF_SIZE_B) {
+            if (pre_allocated == 0)
+                pre_allocated = ALLOC_DEF_SIZE_B;
 
             used_mem_ = 0;
+
+            if (pre_allocated > max_size_)
+                abort_("Requested memory size > ALLOC_MAX_SIZE_B");
 
             std::size_t        allocated_size = 0;
             const block_addr_t allocated_ptr  = memory_.request(pre_allocated, &allocated_size);
@@ -263,7 +286,7 @@ namespace ex::data::lalloc {
                 if (available < need)
                     goto fallback_go;
 
-                const u_int32_t power = power_range_r_s(next_node->size_b);
+                const u_int32_t power = power_range_r_(next_node->size_b);
                 buckets_[power].remove(static_cast<block_bucket_t::lifo_node *>(next_node->bucket_ptr));
 
                 int32_t p3, // empty "dead" space or padding before FREE block (if p4 exists)
@@ -361,13 +384,22 @@ namespace ex::data::lalloc {
          * Allocate at least additional <b>min_size_b</b> bytes of memory
          */
         void block_request_(const std::size_t min_size_b) {
-            if (min_size_b > BLOCK_MAX_SIZE_B)
+            if (min_size_b > BLOCK_MAX_SIZE_B || grow_mem_ == 0)
                 abort_("Requested allocation size overflow");
 
-            grow_mem_ = grow_mem_ + grow_mem_ + min_size_b + sizeof(memory_block);
+            const float fac = power_range_r_s64(max_size_);
+            const float pow = power_range_r_s64(grow_mem_);
+            const float diff = 2.f * (1.f - (pow / fac));
+
+            const std::size_t size_required = (diff * grow_mem_) + min_size_b + sizeof(memory_block);
+
+            if (grow_mem_ >= max_size_)
+                abort_("Requested memory size > ALLOC_MAX_SIZE_B");
 
             std::size_t allocated_size = 0;
-            void       *allocated_ptr  = memory_.request(grow_mem_, &allocated_size);
+            void       *allocated_ptr  = memory_.request(size_required, &allocated_size);
+
+            grow_mem_ += allocated_size;
 
             // append new free block
             const uint32_t     padding = block_padding_(allocated_ptr, sizeof(memory_block));
@@ -397,7 +429,7 @@ namespace ex::data::lalloc {
                 if (void *ptr = bucket_scan_(lifo_, size_b, alignment_b))
                     return ptr;
 
-            const u_int32_t power = power_range_r_s(size_b);
+            const u_int32_t power = power_range_r_(size_b);
             for (u_int32_t i = power > min_bucket_ ? power : min_bucket_; i < BUCKETS_NUM; i++) {
                 if (buckets_[i].empty())
                     continue;
@@ -424,7 +456,7 @@ namespace ex::data::lalloc {
         }
 
         void bucket_put_(memory_block *block) {
-            const u_int32_t power = power_range_r_s(block->node_ptr->size_b);
+            const u_int32_t power = power_range_r_(block->node_ptr->size_b);
             if (power >= BUCKETS_NUM)
                 abort_("Block size too big");
 
@@ -441,7 +473,7 @@ namespace ex::data::lalloc {
 //            std::cout << "merge: " << block->node_ptr->block_ptr << ", " << node->size_b << std::endl;
 
             if (node->bucket_ptr != nullptr) {
-                const u_int32_t p = power_range_r_s(node->size_b);
+                const u_int32_t p = power_range_r_(node->size_b);
                 buckets_[p].remove(static_cast<block_bucket_t::lifo_node *>(node->bucket_ptr));
             }
 
@@ -454,7 +486,7 @@ namespace ex::data::lalloc {
                     if (!continuous_(block, next_block, node->size_b + sizeof(memory_block)))
                         abort_("block layout discontinuity");
 
-                    const u_int32_t p = power_range_r_s(next_node->size_b);
+                    const u_int32_t p = power_range_r_(next_node->size_b);
                     buckets_[p].remove(static_cast<block_bucket_t::lifo_node *>(next_node->bucket_ptr));
 
                     node->size_b += next_node->size_b + sizeof(memory_block);
@@ -468,7 +500,7 @@ namespace ex::data::lalloc {
 
 //                    std::cout << "+ prev: " << prev_block << ", " << prev_node->size_b << std::endl;
 
-                    const u_int32_t p = power_range_r_s(prev_node->size_b);
+                    const u_int32_t p = power_range_r_(prev_node->size_b);
                     buckets_[p].remove(static_cast<block_bucket_t::lifo_node *>(prev_node->bucket_ptr));
 
                     prev_node->size_b += (node->size_b + sizeof(memory_block));
@@ -676,7 +708,6 @@ namespace ex::data::lalloc {
 //                padding_1 += alignment_b;
 //                padding_1 += static_cast<u_int32_t>(alignment_b);
                 padding_1 += static_cast<u_int32_t>(sizeof(memory_block));
-                // TODO FIXME
             }
 
             unsigned char *zero_ptr = reinterpret_cast<unsigned char *>(ptr);
