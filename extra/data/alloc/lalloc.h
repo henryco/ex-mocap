@@ -30,9 +30,9 @@
 namespace ex::data::lalloc {
 
 // -----------------------------
-#define ALLOC_DEF_SIZE_B (1  MB)
-#define ALLOC_MAX_SIZE_B (1  TB)
-#define STACK_ALLOC_SIZE (16 KB)
+#define ALLOC_DEF_SIZE_B (1 MB)
+#define ALLOC_MAX_SIZE_B (1 TB)
+#define STACK_ALLOC_SIZE (1 MB)
 // -----------------------------
 
     struct memory_node;
@@ -203,21 +203,26 @@ namespace ex::data::lalloc {
 
             if (pre_allocated > max_size_)
                 abort_("Requested memory size > ALLOC_MAX_SIZE_B");
+            if (pre_allocated > BLOCK_MAX_SIZE_B)
+                abort_("Requested memory size > BLOCK_MAX_SIZE_B");
 
+            const std::size_t  size_required  = pre_allocated + sizeof(memory_block);
             std::size_t        allocated_size = 0;
-            const block_addr_t allocated_ptr  = memory_.request(pre_allocated, &allocated_size);
+            const block_addr_t allocated_ptr  = memory_.request(size_required, &allocated_size);
 
             const uint32_t     padding = block_padding_(allocated_ptr, sizeof(memory_block));
-            const block_size_t size_b  = static_cast<block_size_t>(allocated_size - padding) - sizeof(memory_block);
+            const block_size_t size_b  = min_( // 2 mem_blocks: one for block header, one for terminator
+                    static_cast<block_size_t>(allocated_size - padding) - (2 * sizeof(memory_block)), BLOCK_MAX_SIZE_B);
 
             unsigned char *block_ptr = static_cast<unsigned char *>(allocated_ptr) + padding;
-            memory_block  *block     = block_create_(block_ptr, size_b - sizeof(memory_block));
+            memory_block  *block     = block_create_(block_ptr, size_b);
 
             validate_header_(block_ptr + sizeof(memory_block));
             block_init_(block);
 
-            unsigned char *null_space = static_cast<unsigned char *>(allocated_ptr) + allocated_size - sizeof(memory_block);
-            ::memset(null_space, 0, sizeof(memory_block));
+            unsigned char    *null_space = block_ptr + size_b + sizeof(memory_block);
+            const std::size_t null_size  = allocated_size - (padding + sizeof(memory_block) + size_b);
+            ::memset(null_space, 0, null_size);
 
             bucket_put_(block);
 
@@ -401,7 +406,7 @@ namespace ex::data::lalloc {
             const float pow = power_range_r_s64(grow_mem_);
             const float diff = 2.f * (1.f - (pow / fac));
 
-            const std::size_t size_required = (diff * grow_mem_) + min_size_b + sizeof(memory_block);
+            const std::size_t size_required = min_((diff * grow_mem_) + min_size_b, BLOCK_MAX_SIZE_B) + sizeof(memory_block);
 
             if (grow_mem_ >= max_size_)
                 abort_("Requested memory size > ALLOC_MAX_SIZE_B");
@@ -413,16 +418,18 @@ namespace ex::data::lalloc {
 
             // append new free block
             const uint32_t     padding = block_padding_(allocated_ptr, sizeof(memory_block));
-            const block_size_t size_b  = static_cast<block_size_t>(allocated_size - padding) - sizeof(memory_block);
+            const block_size_t size_b  = min_( // 2 mem_blocks: one for block header, one for terminator
+                    static_cast<block_size_t>(allocated_size - padding) - (2 * sizeof(memory_block)), BLOCK_MAX_SIZE_B);
 
             unsigned char *block_ptr = static_cast<unsigned char *>(allocated_ptr) + padding;
-            memory_block  *block     = block_create_(block_ptr, size_b - sizeof(memory_block));
+            memory_block  *block     = block_create_(block_ptr, size_b);
 
             validate_header_(block_ptr + sizeof(memory_block));
             block_init_(block);
 
-            unsigned char *null_space = static_cast<unsigned char *>(allocated_ptr) + allocated_size - sizeof(memory_block);
-            ::memset(null_space, 0, sizeof(memory_block));
+            unsigned char    *null_space = block_ptr + size_b + sizeof(memory_block);
+            const std::size_t null_size  = allocated_size - (padding + sizeof(memory_block) + size_b);
+            ::memset(null_space, 0, null_size);
 
             bucket_put_(block);
         }
@@ -804,6 +811,10 @@ namespace ex::data::lalloc {
                 block = prev->block_ptr;
             }
             abort_("Cannot locate root mem region");
+        }
+
+        static u_int64_t min_(const u_int64_t a, const u_int64_t b) {
+            return a > b ? b : a;
         }
     };
 
