@@ -5,7 +5,7 @@
 #include <iostream>
 #include <doctest/doctest.h>
 #include "../../extra/graph/graph.h"
-#define USE_VALGRIND
+#define LALLOC_USE_VALGRIND
 //#define LALLOC_RECKLESS
 //#include "../../extra/data/alloc/rbtalloc.h"
 #include "../../extra/data/alloc/lalloc.h"

@@ -18,7 +18,7 @@
     #define LALLOC_LIFO_SKIP
 #endif
 
-#ifdef USE_VALGRIND
+#ifdef LALLOC_USE_VALGRIND
     #include <valgrind/memcheck.h>
     #define val_make_block(block) VALGRIND_MALLOCLIKE_BLOCK( block + 1, block->node_ptr->size_b, 0, 0)
     #define val_free_block(block) VALGRIND_FREELIKE_BLOCK(   block + 1, 0)
@@ -33,7 +33,7 @@
     #define val_accessible(block) ;
 #endif
 
-#ifndef UNIT_TEST
+#ifdef LALLOC_UNIT_TEST
     #define validate_header_(ptr) validate_header__(ptr)
     #define block_init_(ptr)      block_eager__(ptr)
 #else
@@ -809,7 +809,7 @@ namespace ex::data::lalloc {
             const int32_t space_1 = static_cast<int32_t>(head_ptr - zero_ptr);
             const int32_t space_2 = static_cast<int32_t>(data_ptr - head_ptr - sizeof(memory_block));
 
-            #ifdef UNIT_TEST
+            #ifdef LALLOC_UNIT_TEST
             if (space_1 < 0) // should be impossible in practice, I guess?
                 abort_("wtf1");
             if (space_2 < 0 || space_2 >= static_cast<int32_t>(sizeof(memory_block))) // WTF? HOW?
