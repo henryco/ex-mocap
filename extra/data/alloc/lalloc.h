@@ -336,7 +336,6 @@ namespace ex::data::lalloc {
 
                 used_mem_ -= (block->node_ptr->size_b + sizeof(memory_block));
 
-                val_free_block(next_block);
                 val_free_block(block);
 
                 block->node_ptr->size_b += need;
@@ -371,9 +370,11 @@ namespace ex::data::lalloc {
 
             if (allocated != ptr) {
                 validate_header_(allocated);
+                val_accessible(block);
                 const int32_t padding = static_cast<unsigned char *>(ptr) - (h_ptr + sizeof(memory_block));
                 const int32_t block_s = block->node_ptr->size_b - padding;
                 ::memmove(allocated, ptr, size_new_b < block_s ? size_new_b : block_s);
+                val_restricted(block);
                 free(ptr);
                 return allocated;
             }
