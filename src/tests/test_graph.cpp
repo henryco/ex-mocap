@@ -2,7 +2,7 @@
 // Created by xd on 2/28/25.
 //
 
-//#define LALLOC_USE_VALGRIND
+#define LALLOC_USE_VALGRIND
 //#define LALLOC_RECKLESS
 #define LALLOC_UNIT_TEST
 
@@ -136,9 +136,9 @@ TEST_SUITE("Grap node tests") {
             ex::time::measure_avg time = 1;
             time.start();
 
-            rec_build(root, 6, 7);
+//            rec_build(root, 6, 7);
 //            rec_build(root, 5, 5);
-//            rec_build(root, 4, 3);
+            rec_build(root, 4, 3);
 
             limbo::graph::Clock clock;
             clock.attach(root);
@@ -156,17 +156,17 @@ TEST_SUITE("Grap node tests") {
 
             unsigned long int avg = 0;
             double counter = 0.;
-//            ex::time::measure_avg measure = 1000;
-//            for (int i = 0; i < 10000; i++) {
-//                measure.start();
-//
-//                clock.pull();
-//
-//                if (measure.stop()) {
-//                    avg += measure.result();
-//                    counter++;
-//                }
-//            }
+            ex::time::measure_avg measure = 1000;
+            for (int i = 0; i < 10000; i++) {
+                measure.start();
+
+                clock.pull();
+
+                if (measure.stop()) {
+                    avg += measure.result();
+                    counter++;
+                }
+            }
 
             const auto total_ = alloc_2.blocks_total();
             const auto free_ = alloc_2.blocks_free();

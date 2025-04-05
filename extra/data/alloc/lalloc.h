@@ -729,8 +729,6 @@ namespace ex::data::lalloc {
 
                 used_mem_ += (work_block->node_ptr->size_b + sizeof(memory_block));
 
-                block_init_(work_block);
-
                 if (remove_og) {
                     head->val->bucket_ptr = nullptr;
                     bucket.remove(head);
@@ -746,6 +744,7 @@ namespace ex::data::lalloc {
 
                 val_accessible(work_block);
                 val_make_block(work_block);
+                block_init_(work_block);
                 val_restricted(work_block);
 
                 return start_ptr;
