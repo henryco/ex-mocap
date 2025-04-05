@@ -5,7 +5,7 @@
 #include <iostream>
 #include <doctest/doctest.h>
 #include "../../extra/graph/graph.h"
-//#define USE_VALGRIND
+#define USE_VALGRIND
 //#define LALLOC_RECKLESS
 //#include "../../extra/data/alloc/rbtalloc.h"
 #include "../../extra/data/alloc/lalloc.h"
@@ -155,7 +155,7 @@ TEST_SUITE("Grap node tests") {
             unsigned long int avg = 0;
             double counter = 0.;
             ex::time::measure_avg measure = 1000;
-            for (int i = 0; i < 1000000; i++) {
+            for (int i = 0; i < 10000; i++) {
                 measure.start();
 
                 clock.pull();

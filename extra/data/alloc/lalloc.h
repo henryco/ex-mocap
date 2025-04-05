@@ -20,15 +20,22 @@
 
 #ifdef USE_VALGRIND
     #include <valgrind/memcheck.h>
-    #define val_make_block(block) VALGRIND_MALLOCLIKE_BLOCK(block + 1, block->node_ptr->size_b, 0, 0)
-    #define val_free_block(block) VALGRIND_FREELIKE_BLOCK(block + 1, 0)
-    #define val_accessible(block) VALGRIND_MAKE_MEM_DEFINED(block, sizeof(memory_block))
+    #define val_make_block(block) VALGRIND_MALLOCLIKE_BLOCK( block + 1, block->node_ptr->size_b, 0, 0)
+//    #define val_make_block(block)                                                                                      \
+//        do {                                                                                                           \
+//            VALGRIND_MAKE_MEM_DEFINED(block, sizeof(memory_block));                                                    \
+//            VALGRIND_MALLOCLIKE_BLOCK(block + 1, block->node_ptr->size_b, 0, 0);                                       \
+//        } while(false)
+    #define val_free_block(block) VALGRIND_FREELIKE_BLOCK(   block + 1, 0)
+    #define val_dead_block(block) VALGRIND_MAKE_MEM_NOACCESS(block, sizeof(memory_block) + block->node_ptr->size_b)
     #define val_restricted(block) VALGRIND_MAKE_MEM_NOACCESS(block, sizeof(memory_block))
+    #define val_accessible(block) VALGRIND_MAKE_MEM_DEFINED( block, sizeof(memory_block))
 #else
     #define val_make_block(block) ;
     #define val_free_block(block) ;
-    #define val_accessible(block) ;
+    #define val_dead_block(block) ;
     #define val_restricted(block) ;
+    #define val_accessible(block) ;
 #endif
 
 #ifndef UNIT_TEST
@@ -233,7 +240,6 @@ namespace ex::data::lalloc {
             unsigned char *block_ptr = static_cast<unsigned char *>(allocated_ptr) + padding;
             memory_block  *block     = block_create_(block_ptr, size_b);
 
-            validate_header_(block_ptr + sizeof(memory_block));
             block_init_(block);
 
             unsigned char    *null_space = block_ptr + size_b + sizeof(memory_block);
@@ -241,6 +247,7 @@ namespace ex::data::lalloc {
             ::memset(null_space, 0, null_size);
 
             bucket_put_(block);
+            validate_header_(block_ptr + sizeof(memory_block));
 
             def_size_ = pre_allocated;
             grow_mem_ = pre_allocated;
@@ -276,6 +283,7 @@ namespace ex::data::lalloc {
 
             unsigned char *h_ptr = static_cast<unsigned char *>(header_ptr_(ptr));
             memory_block  *block = reinterpret_cast<memory_block *>(h_ptr);
+            val_accessible(block);
 
             #ifndef LALLOC_AGGRESSIVE
             if (block->node_ptr->block_ptr != block)
@@ -285,8 +293,10 @@ namespace ex::data::lalloc {
                 abort_("Reallocation of free block");
             #endif
 
-            if (size_new_b == static_cast<std::size_t>(block->node_ptr->size_b))
+            if (size_new_b == static_cast<std::size_t>(block->node_ptr->size_b)) {
+                val_restricted(block);
                 return ptr;
+            }
 
             if (size_new_b < static_cast<std::size_t>(block->node_ptr->size_b)) {
                 // TODO: SHRINK
@@ -294,10 +304,13 @@ namespace ex::data::lalloc {
             }
 
             if (memory_block *next_block = next_block_(block)) {
+                val_accessible(next_block);
                 memory_node *next_node = next_block->node_ptr;
 
-                if (next_node->bucket_ptr == nullptr)
+                if (next_node->bucket_ptr == nullptr) {
+                    val_restricted(next_block);
                     goto fallback_go;
+                }
 
                 #ifndef LALLOC_AGGRESSIVE
                 if (next_node->prev_ptr != block->node_ptr)
@@ -310,8 +323,10 @@ namespace ex::data::lalloc {
                 const u_int64_t has       = block->node_ptr->size_b;
                 const u_int64_t need      = size_new_b - has;
 
-                if (available < need)
+                if (available < need) {
+                    val_restricted(next_block);
                     goto fallback_go;
+                }
 
                 const u_int32_t power = power_range_r_(next_node->size_b);
                 buckets_[power].remove(static_cast<block_bucket_t::lifo_node *>(next_node->bucket_ptr));
@@ -321,6 +336,9 @@ namespace ex::data::lalloc {
                 calculate_post_(next_block, available, need, &p3, &p4);
 
                 used_mem_ -= (block->node_ptr->size_b + sizeof(memory_block));
+
+                val_free_block(next_block);
+                val_free_block(block);
 
                 block->node_ptr->size_b += need;
 
@@ -332,14 +350,20 @@ namespace ex::data::lalloc {
                     memory_block *end_block = block_create_(start_ptr + need + p3, p4);
                     end_block->node_ptr->prev_ptr = block->node_ptr;
 
-                    if (memory_block *next = next_block_(end_block); next != nullptr)
+                    if (memory_block *next = next_block_(end_block); next != nullptr) {
+                        val_accessible(next);
                         next->node_ptr->prev_ptr = end_block->node_ptr;
+                        val_restricted(next);
+                    }
 
                     lifo_put_(end_block);
                 }
 
                 used_mem_ += block->node_ptr->size_b + sizeof(memory_block);
 
+                val_accessible(block);
+                val_make_block(block);
+                val_restricted(block);
                 return ptr;
             }
 
@@ -370,6 +394,9 @@ namespace ex::data::lalloc {
 
             unsigned char *h_ptr = static_cast<unsigned char *>(header_ptr_(ptr));
             memory_block  *block = reinterpret_cast<memory_block *>(h_ptr);
+
+            val_free_block(block);
+            val_accessible(block);
 
             #ifndef LALLOC_AGGRESSIVE
             if (block->node_ptr->block_ptr != block)
@@ -440,7 +467,6 @@ namespace ex::data::lalloc {
             unsigned char *block_ptr = static_cast<unsigned char *>(allocated_ptr) + padding;
             memory_block  *block     = block_create_(block_ptr, size_b);
 
-            validate_header_(block_ptr + sizeof(memory_block));
             block_init_(block);
 
             unsigned char    *null_space = block_ptr + size_b + sizeof(memory_block);
@@ -448,6 +474,7 @@ namespace ex::data::lalloc {
             ::memset(null_space, 0, null_size);
 
             bucket_put_(block);
+            validate_header_(block_ptr + sizeof(memory_block));
         }
 
         block_addr_t block_acquire_(const std::size_t size_b, const std::size_t alignment_b) {
@@ -484,13 +511,22 @@ namespace ex::data::lalloc {
             #ifndef LALLOC_AVOID_LIFO
             if (block->node_ptr->size_b == 0 || block->node_ptr->size_b >= LIFO_BLOCK_SIZE) {
                 block_merge_(block);
-                if (!lifo_.empty())
-                    block_merge_(lifo_.root_remove()->block_ptr);
+                if (!lifo_.empty()) {
+                    memory_block *last = lifo_.root_remove()->block_ptr;
+                    val_accessible(last);
+                    block_merge_(last);
+                }
                 return;
             }
+
             lifo_.push(block->node_ptr);
-            if (lifo_.size() >= 16)
-                block_merge_(lifo_.root_remove()->block_ptr);
+            val_dead_block(block);
+
+            if (lifo_.size() >= 16) {
+                memory_block *last = lifo_.root_remove()->block_ptr;
+                val_accessible(last);
+                block_merge_(last);
+            }
             #else
             block_merge_(block);
             #endif
@@ -508,13 +544,13 @@ namespace ex::data::lalloc {
 
             void *ptr = buckets_[power].push(block->node_ptr);
             block->node_ptr->bucket_ptr = ptr;
+
+            val_dead_block(block);
         }
 
         void block_merge_(memory_block *block) {
             memory_block *target_block = block;
             memory_node  *node         = block->node_ptr;
-
-//            std::cout << "merge: " << block->node_ptr->block_ptr << ", " << node->size_b << std::endl;
 
             if (node->bucket_ptr != nullptr) {
                 const u_int32_t p = power_range_r_(node->size_b);
@@ -522,10 +558,9 @@ namespace ex::data::lalloc {
             }
 
             if (memory_block *next_block = next_block_(block)) {
+                val_accessible(next_block);
                 if (memory_node *next_node = next_block->node_ptr;
                     next_node->bucket_ptr != nullptr) {
-
-//                    std::cout << "+ next: " << next_block << ", " << next_node->size_b << std::endl;
 
                     #ifndef LALLOC_AGGRESSIVE
                     if (!continuous_(block, next_block, node->size_b + sizeof(memory_block)))
@@ -538,13 +573,13 @@ namespace ex::data::lalloc {
                     node->size_b += next_node->size_b + sizeof(memory_block);
                     release_node_(next_node);
                 }
+                val_restricted(next_block);
             }
 
             if (memory_node *prev_node = node->prev_ptr) {
                 if (memory_block *prev_block = prev_node->block_ptr;
                     prev_node->bucket_ptr != nullptr) {
-
-//                    std::cout << "+ prev: " << prev_block << ", " << prev_node->size_b << std::endl;
+                    val_accessible(prev_block);
 
                     const u_int32_t p = power_range_r_(prev_node->size_b);
                     buckets_[p].remove(static_cast<block_bucket_t::lifo_node *>(prev_node->bucket_ptr));
@@ -558,19 +593,22 @@ namespace ex::data::lalloc {
             }
 
             if (memory_block *next_block = next_block_(target_block)) {
+                val_accessible(next_block);
+
                 #ifndef LALLOC_AGGRESSIVE
                 if (!continuous_(target_block, next_block, node->size_b + sizeof(memory_block)))
                     abort_("block layout discontinuity");
                 #endif
 
                 next_block->node_ptr->prev_ptr = node;
+                val_restricted(next_block);
             }
 
-//            std::cout << "put: " << target_block->node_ptr->block_ptr << ", " << target_block->node_ptr->size_b << '\n' << std::endl;
             bucket_put_(target_block);
         }
 
         memory_block *block_create_(void *mem, const u_int32_t size) {
+            val_accessible(mem);
             memory_block *new_block = reinterpret_cast<memory_block *>(mem);
             memory_node  *new_node  = create_node_();
 
@@ -596,19 +634,20 @@ namespace ex::data::lalloc {
         }
 
         void *bucket_scan_(block_bucket_t &bucket, const std::size_t size_b, const std::size_t alignment_b) {
-//            alignment_b = alignment_b < alignof(memory_block) ? alignof(memory_block) : alignment_b;
-
             for (block_bucket_t::lifo_node *head = bucket.peek(); head != nullptr; head = head->prev) {
                 memory_node  *node  = head->val;
                 memory_block *block = node->block_ptr;
+                val_accessible(block);
 
                 #ifndef LALLOC_AGGRESSIVE
                 if (node->block_ptr != block)
                     abort_("Invalid block address, block bucket address invalid: " << block << " | " << node->block_ptr);
                 #endif
 
-                if (static_cast<std::size_t>(node->size_b) < size_b)
+                if (static_cast<std::size_t>(node->size_b) < size_b) {
+                    val_restricted(block);
                     continue;
+                }
 
                 unsigned char *byte_ptr = reinterpret_cast<unsigned char *>(block) + sizeof(memory_block);
 
@@ -624,8 +663,10 @@ namespace ex::data::lalloc {
                     offset += p2 + sizeof(memory_block);
 
                 const int32_t size_have = static_cast<int32_t>(node->size_b) - offset;
-                if (size_have < size_b)
+                if (size_have < size_b) {
+                    val_restricted(block);
                     continue;
+                }
 
                 unsigned char *start_ptr = byte_ptr + offset;
 
@@ -640,20 +681,18 @@ namespace ex::data::lalloc {
 
                 if (p1 < 0 && p2 < 0) {
                     node->size_b = static_cast<u_int32_t>(size_b);
-                    remove_og = true;
+                    remove_og    = true;
                 }
 
                 else if (p1 >= 0 && p2 < 0) {
                     node->size_b = static_cast<u_int32_t>(size_b + p1);
-                    remove_og     = true;
+                    remove_og    = true;
                 }
 
                 else if (p1 >= 0 && p2 >= 0) {
                     // free og block
                     node->alignment_b = static_cast<u_int16_t>(1);
                     node->size_b      = static_cast<u_int32_t>(p1);
-
-//                    std::cout << "free_og: " << p1 << ", " << p2 << std::endl;
 
                     remove_og = true;
                     reinsert_ = true;
@@ -671,24 +710,27 @@ namespace ex::data::lalloc {
                     memory_block *end_block = block_create_(start_ptr + size_b + p3, p4);
                     end_block->node_ptr->prev_ptr = work_block->node_ptr;
 
-                    if (memory_block *next = next_block_(end_block); next != nullptr)
+                    if (memory_block *next = next_block_(end_block); next != nullptr) {
+                        val_accessible(next);
                         next->node_ptr->prev_ptr = end_block->node_ptr;
+                        val_restricted(next);
+                    }
 
                     lifo_block = end_block;
-
-//                    std::cout << "end_block: " << p4 << std::endl;
                 }
 
                 if (p4 < 0 && p1 >= 0 && p2 >= 0) {
-                    if (memory_block *next = next_block_(work_block); next != nullptr)
+                    if (memory_block *next = next_block_(work_block); next != nullptr) {
+                        val_accessible(next);
                         next->node_ptr->prev_ptr = work_block->node_ptr;
+                        val_restricted(next);
+                    }
                 }
 
                 work_block->node_ptr->alignment_b = static_cast<u_int16_t>(alignment_b);
 
                 used_mem_ += (work_block->node_ptr->size_b + sizeof(memory_block));
 
-                validate_header_(start_ptr);
                 block_init_(work_block);
 
                 if (remove_og) {
@@ -696,11 +738,17 @@ namespace ex::data::lalloc {
                     bucket.remove(head);
                 }
 
-                if (reinsert_)
+                if (reinsert_) {
                     lifo_put_(block);
+                }
 
-                if (lifo_block != nullptr)
+                if (lifo_block != nullptr) {
                     lifo_put_(lifo_block);
+                }
+
+                val_accessible(work_block);
+                val_make_block(work_block);
+                val_restricted(work_block);
 
                 return start_ptr;
             }
@@ -782,8 +830,12 @@ namespace ex::data::lalloc {
         static memory_block *next_block_(memory_block *block) {
             memory_block *next = reinterpret_cast<memory_block *>(reinterpret_cast<unsigned char *>(block) +
                                                                   sizeof(memory_block) + block->node_ptr->size_b);
-            if (next->node_ptr == nullptr)
+            val_accessible(next);
+            if (next->node_ptr == nullptr) {
+                val_restricted(next);
                 return nullptr;
+            }
+            val_restricted(next);
             return next;
         }
 
@@ -814,22 +866,14 @@ namespace ex::data::lalloc {
 
         static void validate_header__(void *ptr) {
             const memory_block *block = reinterpret_cast<memory_block *>(header_ptr_(ptr));
+            val_accessible(block);
             if (block->node_ptr->block_ptr != block)
                 abort_("block header corruption");
+            val_restricted(block);
         }
 
         static void block_eager__(memory_block *block) {
             ::memset(reinterpret_cast<unsigned char *>(block) + sizeof(memory_block), 0, block->node_ptr->size_b);
-        }
-
-        static void *region_ptr_(memory_block *block) {
-            while (block != nullptr) {
-                memory_node *prev = block->node_ptr->prev_ptr;
-                if (prev == nullptr)
-                    return block;
-                block = prev->block_ptr;
-            }
-            abort_("Cannot locate root mem region");
         }
 
         static u_int64_t min_(const u_int64_t a, const u_int64_t b) {
