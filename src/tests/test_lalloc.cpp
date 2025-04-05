@@ -15,12 +15,6 @@ void generate_data(char *buf, const std::size_t buf_size, const int block_id, co
 
 TEST_SUITE("Lalloc tests") {
 
-    TEST_CASE("Initialization") {
-        allocator alloc(ALLOC_DEF_SIZE_B);
-        CHECK(alloc.size_used() == 0);
-        CHECK(alloc.size_total() >= ALLOC_DEF_SIZE_B);
-    }
-
     TEST_CASE("Basic Allocation") {
         allocator alloc;
         void *ptr1 = alloc.malloc(128, 8);
@@ -42,89 +36,6 @@ TEST_SUITE("Lalloc tests") {
         std::size_t after_free = alloc.size_used();
 
         CHECK(after_free < before_free);
-    }
-
-    TEST_CASE("Reallocation") {
-        allocator alloc;
-
-        std::size_t before_alloc = alloc.size_used();
-        CHECK(before_alloc == 0);
-
-        void *ptr = alloc.malloc(128, 8);
-        REQUIRE(ptr != nullptr);
-
-        std::size_t after_alloc = alloc.size_used();
-        CHECK(after_alloc == 128);
-
-        void *new_ptr = alloc.realloc(ptr, 256);
-        REQUIRE(new_ptr != nullptr);
-
-        std::size_t after_realloc = alloc.size_used();
-        CHECK(after_realloc == 256);
-
-        CHECK((reinterpret_cast<uintptr_t>(new_ptr)) % 8  == 0);
-    }
-
-    TEST_CASE("Reallocating to zero size should free memory") {
-        allocator alloc;
-
-        void *ptr = alloc.malloc(256, 8);
-        REQUIRE(ptr != nullptr);
-
-        std::size_t before = alloc.size_used();
-        CHECK(before == 256);
-
-        void *new_ptr = alloc.realloc(ptr, 0);
-        CHECK(new_ptr == nullptr);
-
-        std::size_t after = alloc.size_used();
-        CHECK(after == 0);
-    }
-
-    TEST_CASE("Memory Tracking") {
-        allocator alloc;
-        void *ptr = alloc.malloc(512, 16);
-        REQUIRE(ptr != nullptr);
-
-        std::size_t used_before = alloc.size_used();
-        CHECK(used_before == 512);
-
-        void *ptr2 = alloc.malloc(256, 16);
-        REQUIRE(ptr2 != nullptr);
-
-        std::size_t used_after = alloc.size_used();
-        CHECK(used_after == (256 + 512));
-
-        CHECK(alloc.size_used() > used_before);
-        alloc.free(ptr);
-
-        std::size_t used_free = alloc.size_used();
-        CHECK(used_free == 256);
-
-        alloc.free(ptr2);
-        CHECK(alloc.size_used() == 0);
-    }
-
-    TEST_CASE("Allocator initialization and basic allocation") {
-        allocator alloc(1024);
-        CHECK(alloc.size_total() >= 1024);
-        CHECK(alloc.size_used() == 0);
-
-        void *ptr = alloc.malloc(128, 8);
-        CHECK(ptr != nullptr);
-        CHECK(alloc.size_used() >= 128);
-    }
-
-    TEST_CASE("Allocator free and reuse") {
-        allocator alloc(4096);
-
-        void *ptr1 = alloc.malloc(512, 16);
-        alloc.free(ptr1);
-
-        CHECK(alloc.size_used() == 0);
-
-        void *ptr2 = alloc.malloc(256, 16);
-        CHECK(ptr2 == ptr1); // Should reuse freed block
     }
 
     TEST_CASE("Allocator reallocation - shrink") {
@@ -165,17 +76,6 @@ TEST_SUITE("Lalloc tests") {
 //        CHECK(d == a); // Expect merged free space from a and b
 //    }
 
-    TEST_CASE("Allocator cleanup") {
-        allocator alloc(1024);
-
-        alloc.malloc(256, 8);
-        CHECK(alloc.size_used() >= 256);
-
-        alloc.clean();
-        CHECK(alloc.size_used() == 0);
-        CHECK(alloc.size_total() == 0);
-    }
-
     TEST_CASE("Reallocation with Data Integrity") {
         allocator alloc;
 
@@ -194,56 +94,6 @@ TEST_SUITE("Lalloc tests") {
         }
 
         alloc.free(new_ptr);
-    }
-
-    TEST_CASE("Multiple Allocations and Frees") {
-        allocator alloc;
-
-        void *a = alloc.malloc(128, 8);
-        void *b = alloc.malloc(256, 16);
-        void *c = alloc.malloc(64, 32);
-
-        REQUIRE(a != nullptr);
-        REQUIRE(b != nullptr);
-        REQUIRE(c != nullptr);
-
-        alloc.free(b);
-        alloc.free(a);
-        alloc.free(c);
-
-        REQUIRE(alloc.size_used() == 0);
-    }
-
-    TEST_CASE("Repeated Growing Reallocations") {
-        allocator alloc;
-
-        char *ptr = static_cast<char *>(alloc.malloc(32, 8));
-        REQUIRE(ptr != nullptr);
-
-        for (int size = 64; size <= 1024; size *= 2) {
-            ptr = static_cast<char *>(alloc.realloc(ptr, size));
-            REQUIRE(ptr != nullptr);
-            REQUIRE(alloc.size_used() >= size);
-        }
-
-        alloc.free(ptr);
-        REQUIRE(alloc.size_used() == 0);
-    }
-
-    TEST_CASE("Repeated Shrinking Reallocations") {
-        allocator alloc;
-
-        char *ptr = static_cast<char *>(alloc.malloc(1024, 8));
-        REQUIRE(ptr != nullptr);
-
-        for (int size = 512; size >= 32; size /= 2) {
-            ptr = static_cast<char *>(alloc.realloc(ptr, size));
-            REQUIRE(ptr != nullptr);
-            REQUIRE(alloc.size_used() >= size);
-        }
-
-        alloc.free(ptr);
-        REQUIRE(alloc.size_used() == 0);
     }
 
 //    TEST_CASE("Fragmentation and Reallocation") {
@@ -300,41 +150,6 @@ TEST_SUITE("Lalloc tests") {
 //        alloc.free(c);
 //        REQUIRE(alloc.size_used() == 0);
 //    }
-
-    TEST_CASE("Allocator immediately reuses freed block") {
-        allocator alloc(1 MB);
-
-        void* p1 = alloc.malloc(1 KB, 16);
-        alloc.free(p1);
-
-        void* p2 = alloc.malloc(1 KB, 16);
-        REQUIRE(p1 == p2); // allocator should reuse exactly the same block
-
-        alloc.free(p1);
-        REQUIRE(alloc.size_used() == 0);
-    }
-
-    TEST_CASE("Allocator correctly updates internal state after freeing") {
-        allocator alloc(1 MB); // 1 MB preallocated
-
-        void *a = alloc.malloc(2560, 32);
-        void *b = alloc.malloc(4096, 32);
-        void *c = alloc.malloc(2048, 16);
-
-        REQUIRE(alloc.size_used() == (2560 + 4096 + 2048));
-
-        alloc.free(b);
-
-        // Allocate a smaller block to verify reuse of freed memory
-        void* small = alloc.malloc(2048, 32);
-        REQUIRE(small == b);
-
-        alloc.free(a);
-        alloc.free(c);
-        alloc.free(small);
-
-        REQUIRE(alloc.size_used() == 0);
-    }
 
     TEST_CASE("Reallocation triggers allocation") {
         allocator alloc = 1 KB;

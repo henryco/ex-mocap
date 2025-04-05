@@ -702,6 +702,7 @@ namespace ex::data::lalloc {
 
                 if (p3 >= 0) {
                     work_block->node_ptr->size_b += p3;
+                    // TODO: FIXME NULLPTR
                 }
 
                 if (p4 >= 0) {
