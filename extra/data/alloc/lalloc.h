@@ -8,31 +8,55 @@
 #include "../struct/lifo_queue.h"
 #include "stackarena.h"
 
-#ifdef _MSC_VER
-    #include <intrin.h>
+#ifdef LALLOC_RECKLESS
+    // Skip defensive checks
+    #define LALLOC_AGGRESSIVE
+#endif
+
+#ifdef LALLOC_AVOID_LIFO
+    // Skip lifo buffer for small free blocks
+    #define LALLOC_LIFO_SKIP
 #endif
 
 #ifdef USE_VALGRIND
     #include <valgrind/memcheck.h>
-    #define val_pool_create_(ptr) VALGRIND_CREATE_MEMPOOL(ptr, 0, 0)
-    #define val_pool_malloc_(block) VALGRIND_MEMPOOL_ALLOC(region_ptr_(block), (block + 1), block->node_ptr->size_b)
-    #define val_pool_free___(block) VALGRIND_MEMPOOL_FREE(region_ptr_(block), (block + 1))
-    #define val_pool_remove_(ptr) VALGRIND_DESTROY_MEMPOOL(ptr)
-    // TODO
+    #define val_make_block(block) VALGRIND_MALLOCLIKE_BLOCK(block + 1, block->node_ptr->size_b, 0, 0)
+    #define val_free_block(block) VALGRIND_FREELIKE_BLOCK(block + 1, 0)
+    #define val_accessible(block) VALGRIND_MAKE_MEM_DEFINED(block, sizeof(memory_block))
+    #define val_restricted(block) VALGRIND_MAKE_MEM_NOACCESS(block, sizeof(memory_block))
 #else
-    #define val_pool_create_(ptr) ;
-    #define val_pool_malloc_(block) ;
-    #define val_pool_free___(block) ;
-    #define val_pool_remove_(ptr);
+    #define val_make_block(block) ;
+    #define val_free_block(block) ;
+    #define val_accessible(block) ;
+    #define val_restricted(block) ;
+#endif
 
+#ifndef UNIT_TEST
+    #define validate_header_(ptr) validate_header__(ptr)
+    #define block_init_(ptr) block_eager__(ptr)
+#else
+    #define validate_header_(ptr) ;
+    #define block_init_(ptr) ;
+#endif
+
+#ifdef _MSC_VER
+    #include <intrin.h>
 #endif
 
 namespace ex::data::lalloc {
 
 // -----------------------------
+#ifndef ALLOC_DEF_SIZE_B
 #define ALLOC_DEF_SIZE_B (1 MB)
+#endif
+
+#ifndef ALLOC_MAX_SIZE_B
 #define ALLOC_MAX_SIZE_B (1 TB)
+#endif
+
+#ifndef STACK_ALLOC_SIZE
 #define STACK_ALLOC_SIZE (1 MB)
+#endif
 // -----------------------------
 
     struct memory_node;
@@ -59,46 +83,38 @@ namespace ex::data::lalloc {
 #define LIFO_BLOCK_SIZE  (16)
 #define BUCKETS_NUM      (32)
 
-#ifndef UNIT_TEST
-    #define validate_header_(ptr) validate_header__(ptr)
-    #define block_init_(ptr) block_eager__(ptr)
-#else
-    #define validate_header_(ptr) ;
-    #define block_init_(ptr) ;
-#endif
-
     static u_int32_t power_range_r_(const u_int32_t size_b) {
         if (size_b == 0)
             return 0;
-#ifdef __clang__
+        #ifdef __clang__
         return (sizeof(size_b) * 8 - __builtin_clz(size_b) - 1);
-#elif defined(__GNUC__)
+        #elif defined(__GNUC__)
         return return (sizeof(size_b) * 8 - __builtin_clz(size_b) - 1);
-#elif defined(_MSC_VER)
+        #elif defined(_MSC_VER)
         u_int64_t index;
         _BitScanReverse(&index, size_b);
         return static_cast<u_int32_t>(index);
-#else
-    #error "Compiller not supported"
+        #else
+        #error "Compiller not supported"
         abort_("Compiller not supported");
-#endif
+        #endif
     }
 
     static u_int32_t power_range_r_s64(const u_int64_t size_b) {
         if (size_b == 0)
             return 0;
-#ifdef __clang__
+        #ifdef __clang__
         return (sizeof(size_b) * 8 - __builtin_clzll(size_b) - 1);
-#elif defined(__GNUC__)
+        #elif defined(__GNUC__)
         return return (sizeof(size_b) * 8 - __builtin_clzll(size_b) - 1);
-#elif defined(_MSC_VER)
+        #elif defined(_MSC_VER)
         u_int64_t index;
         _BitScanReverse64(&index, size_b);
         return static_cast<u_int32_t>(index);
-#else
-    #error "Compiller not supported"
+        #else
+        #error "Compiller not supported"
         abort_("Compiller not supported");
-#endif
+        #endif
     }
 
     struct allocator {
@@ -465,7 +481,7 @@ namespace ex::data::lalloc {
                 abort_("block should be free");
             #endif
 
-//            block_merge_(block);
+            #ifndef LALLOC_AVOID_LIFO
             if (block->node_ptr->size_b == 0 || block->node_ptr->size_b >= LIFO_BLOCK_SIZE) {
                 block_merge_(block);
                 if (!lifo_.empty())
@@ -475,6 +491,9 @@ namespace ex::data::lalloc {
             lifo_.push(block->node_ptr);
             if (lifo_.size() >= 16)
                 block_merge_(lifo_.root_remove()->block_ptr);
+            #else
+            block_merge_(block);
+            #endif
         }
 
         void bucket_put_(memory_block *block) {
@@ -749,12 +768,12 @@ namespace ex::data::lalloc {
             const int32_t space_1 = static_cast<int32_t>(head_ptr - zero_ptr);
             const int32_t space_2 = static_cast<int32_t>(data_ptr - head_ptr - sizeof(memory_block));
 
-#ifdef UNIT_TEST
+            #ifdef UNIT_TEST
             if (space_1 < 0) // should be impossible in practice, I guess?
                 abort_("wtf1");
             if (space_2 < 0 || space_2 >= static_cast<int32_t>(sizeof(memory_block))) // WTF? HOW?
                 abort_("wtf2");
-#endif
+            #endif
 
             *p1 = space_1;
             *p2 = space_2;
