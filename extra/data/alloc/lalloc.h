@@ -327,9 +327,8 @@ namespace ex::data::lalloc {
                 }
 
                 const u_int32_t power = power_range_r_(next_node->size_b);
-                if (!buckets_[power].contains(static_cast<block_bucket_t::lifo_node *>(next_node->bucket_ptr)))
-                    abort_("WTF"); // TODO REMOVE
                 buckets_[power].remove(static_cast<block_bucket_t::lifo_node *>(next_node->bucket_ptr));
+                next_node->bucket_ptr = nullptr;
 
                 int32_t p3, // empty "dead" space or padding before FREE block (if p4 exists)
                         p4; // size of free block (after)
@@ -554,9 +553,8 @@ namespace ex::data::lalloc {
 
             if (node->bucket_ptr != nullptr) {
                 const u_int32_t p = power_range_r_(node->size_b);
-                if (!buckets_[p].contains(static_cast<block_bucket_t::lifo_node *>(node->bucket_ptr)))
-                    abort_("WTF"); // TODO REMOVE
                 buckets_[p].remove(static_cast<block_bucket_t::lifo_node *>(node->bucket_ptr));
+                node->bucket_ptr = nullptr;
             }
 
             if (memory_block *next_block = next_block_(block)) {
@@ -570,9 +568,8 @@ namespace ex::data::lalloc {
                     #endif
 
                     const u_int32_t p = power_range_r_(next_node->size_b);
-                    if (!buckets_[p].contains(static_cast<block_bucket_t::lifo_node *>(next_node->bucket_ptr)))
-                        abort_("WTF"); // TODO REMOVE
                     buckets_[p].remove(static_cast<block_bucket_t::lifo_node *>(next_node->bucket_ptr));
+                    next_node->bucket_ptr = nullptr;
 
                     node->size_b += next_node->size_b + sizeof(memory_block);
                     release_node_(next_node);
@@ -586,10 +583,9 @@ namespace ex::data::lalloc {
                     val_accessible(prev_block);
 
                     const u_int32_t p = power_range_r_(prev_node->size_b);
-                    if (!buckets_[p].contains(static_cast<block_bucket_t::lifo_node *>(prev_node->bucket_ptr)))
-                        abort_("WTF"); // TODO REMOVE
                     buckets_[p].remove(static_cast<block_bucket_t::lifo_node *>(prev_node->bucket_ptr));
 
+                    prev_node->bucket_ptr = nullptr;
                     prev_node->size_b += (node->size_b + sizeof(memory_block));
                     release_node_(node);
 
@@ -710,7 +706,6 @@ namespace ex::data::lalloc {
 
                 if (p3 >= 0) {
                     work_block->node_ptr->size_b += p3;
-                    // TODO: FIXME NULLPTR
                 }
 
                 if (p4 >= 0) {

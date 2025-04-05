@@ -2,10 +2,6 @@
 // Created by xd on 2/28/25.
 //
 
-//#define LALLOC_USE_VALGRIND
-//#define LALLOC_RECKLESS
-#define LALLOC_UNIT_TEST
-
 #include <iostream>
 #include <doctest/doctest.h>
 #include "../../extra/graph/graph.h"

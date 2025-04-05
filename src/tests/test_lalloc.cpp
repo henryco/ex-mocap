@@ -262,7 +262,7 @@ TEST_SUITE("Lalloc tests") {
     TEST_CASE("Intensive allocator test: data integrity with frequent allocations, reallocations, and frees") {
         allocator alloc;
 
-        constexpr int NUM_BLOCKS     = 1000;
+        constexpr int NUM_BLOCKS    = 1000;
         constexpr int OPS_PER_BLOCK = 5;  // Allocations, reallocations, frees per block
 
         struct Block {

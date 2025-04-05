@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.30)
 project(ex_motion VERSION 0.1.1 LANGUAGES CXX)
 
 option(ENABLE_TESTS "Build with unit tests" OFF)
+option(ENABLE_VALGRIND "Build with valgrind" OFF)
+
 if (ENABLE_TESTS)
     add_subdirectory(external/doctest)
 endif ()
@@ -279,6 +281,11 @@ set(DEFN_TARGET
         CL_TARGET_OPENCL_VERSION=300
         CL_HPP_TARGET_OPENCL_VERSION=300)
 
+if (ENABLE_VALGRIND)
+    list(APPEND DEFN_TARGET USE_VALGRIND)
+    list(APPEND DEFN_TARGET LALLOC_USE_VALGRIND)
+endif()
+
 if (UNIX AND NOT APPLE)
     list(APPEND INCL_TARGET ${V4L2_INCLUDE_DIRS})
     list(APPEND LINK_TARGET ${V4L2_LIBRARIES})
@@ -316,6 +323,7 @@ target_compile_definitions(${PROJECT_NAME}
 # ====================== TESTS (OPTIONAL) ===========================
 if (ENABLE_TESTS)
     set(TEST_SOURCES
+            src/tests/test_init.cpp
             src/tests/test_io.cpp
             src/tests/test_graph.cpp
             src/tests/test_data.cpp
@@ -344,6 +352,7 @@ if (ENABLE_TESTS)
 
     target_compile_definitions(tests
             PRIVATE UNIT_TEST
+            PRIVATE LALLOC_UNIT_TEST
             PRIVATE ${DEFN_TARGET})
 
     enable_testing()

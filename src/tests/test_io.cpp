@@ -4,9 +4,8 @@
 
 // ReSharper disable CppDFANotInitializedField
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-
 #include <doctest/doctest.h>
+#include <cstring>
 #include "../../extra/bytebox/byte_box.h"
 
 namespace box = limbo::bytebox;
