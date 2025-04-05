@@ -10,11 +10,11 @@
 
 namespace ex::data {
 
-#ifndef UNIT_TEST
+//#ifndef UNIT_TEST
     #define abort_(msg) do { std::cerr << msg << std::endl; ::abort(); } while(false)
-#else
-    #define abort_(msg) throw std::runtime_error("Generic abort exception")
-#endif
+//#else
+//    #define abort_(msg) throw std::runtime_error("Generic abort exception")
+//#endif
 
 #define KB * 1024UL
 #define MB * 1024UL KB

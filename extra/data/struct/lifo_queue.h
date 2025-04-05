@@ -115,6 +115,14 @@ namespace ex::data {
             remove(head_);
         }
 
+        bool contains(lifo_node *node) {
+            for (lifo_node *head = head_; head != nullptr; head = head->prev) {
+                if (head == node)
+                    return true;
+            }
+            return false;
+        }
+
         void remove(lifo_node *node) {
             if (node == nullptr || head_ == nullptr || root_ == nullptr) {
                 size_ = 0;
