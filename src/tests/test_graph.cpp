@@ -5,7 +5,6 @@
 #include <iostream>
 #include <doctest/doctest.h>
 #include "../../extra/graph/graph.h"
-//#include "../../extra/data/alloc/rbtalloc.h"
 #include "../../extra/data/alloc/lalloc.h"
 #include "../../src/headers/utils/time_utils.h"
 
@@ -120,8 +119,7 @@ void rec_build(limbo::graph::BaseNode *parent, const int width, const int max_de
 
 TEST_SUITE("Grap node tests") {
 
-    TEST_CASE("Graph allocation test") {
-//        ex::data::rbtalloc::allocator alloc_2;
+    TEST_CASE("Graph allocation iteration test") {
         ex::data::lalloc::allocator alloc_2 = { 1 MB };
         limbo::graph::memory::allocator = alloc_2.compat();
 
@@ -132,15 +130,12 @@ TEST_SUITE("Grap node tests") {
             ex::time::measure_avg time = 1;
             time.start();
 
-//            rec_build(root, 6, 7);
-//            rec_build(root, 5, 5);
             rec_build(root, 4, 3);
 
             limbo::graph::Clock clock;
             clock.attach(root);
             time.stop();
 
-            // TODO
             auto mem_t = limbo::graph::memory::allocator.size_total(&limbo::graph::memory::allocator);
             auto mem_u = limbo::graph::memory::allocator.size_used(&limbo::graph::memory::allocator);
 
@@ -168,6 +163,47 @@ TEST_SUITE("Grap node tests") {
             const auto free_ = alloc_2.blocks_free();
 
             std::cout << "avg: " << (avg / counter) << " ns\n";
+            std::cout << "memory total : " << mem_t << " b" << std::endl;
+            std::cout << "memory used  : " << mem_u << " b" << std::endl;
+            std::cout << "blocks total: " << total_ << std::endl;
+            std::cout << "blocks free: " << free_ << std::endl;
+            std::cout << "blocks used: " << (total_ - free_) << std::endl;
+            std::cout << "utilization: " << (static_cast<double>(total_ - free_) / static_cast<double>(total_)) << std::endl;
+            std::cout << "finished" << std::endl;
+        }
+
+        alloc_2.clean();
+    }
+
+    TEST_CASE("Graph huge allocation test") {
+        ex::data::lalloc::allocator alloc_2 = { 1 MB };
+        limbo::graph::memory::allocator = alloc_2.compat();
+
+        {
+            limbo::graph::BaseNode *root = new
+            (limbo::graph::memory::allocator.malloc(&limbo::graph::memory::allocator, sizeof(node_test_one), alignof(node_test_one)))
+            node_test_one();
+            ex::time::measure_avg time = 1;
+            time.start();
+
+            rec_build(root, 6, 7);
+
+            limbo::graph::Clock clock;
+            clock.attach(root);
+            time.stop();
+
+            auto mem_t = limbo::graph::memory::allocator.size_total(&limbo::graph::memory::allocator);
+            auto mem_u = limbo::graph::memory::allocator.size_used(&limbo::graph::memory::allocator);
+
+            std::cout << "build: " << time.result() << " ns" << std::endl;
+            std::cout << "total: " << counter_ << std::endl;
+            std::cout << "size t: " << mem_t << ", " << (mem_t / (1 MB)) << std::endl;
+            std::cout << "size u: " << mem_u << ", " << (mem_u / (1 MB)) << std::endl;
+            std::cout << "ratio: " << (static_cast<double>(mem_u) / static_cast<double>(mem_t)) << std::endl;
+
+            const auto total_ = alloc_2.blocks_total();
+            const auto free_ = alloc_2.blocks_free();
+
             std::cout << "memory total : " << mem_t << " b" << std::endl;
             std::cout << "memory used  : " << mem_u << " b" << std::endl;
             std::cout << "blocks total: " << total_ << std::endl;
