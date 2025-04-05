@@ -21,11 +21,6 @@
 #ifdef USE_VALGRIND
     #include <valgrind/memcheck.h>
     #define val_make_block(block) VALGRIND_MALLOCLIKE_BLOCK( block + 1, block->node_ptr->size_b, 0, 0)
-//    #define val_make_block(block)                                                                                      \
-//        do {                                                                                                           \
-//            VALGRIND_MAKE_MEM_DEFINED(block, sizeof(memory_block));                                                    \
-//            VALGRIND_MALLOCLIKE_BLOCK(block + 1, block->node_ptr->size_b, 0, 0);                                       \
-//        } while(false)
     #define val_free_block(block) VALGRIND_FREELIKE_BLOCK(   block + 1, 0)
     #define val_dead_block(block) VALGRIND_MAKE_MEM_NOACCESS(block, sizeof(memory_block) + block->node_ptr->size_b)
     #define val_restricted(block) VALGRIND_MAKE_MEM_NOACCESS(block, sizeof(memory_block))
@@ -40,10 +35,10 @@
 
 #ifndef UNIT_TEST
     #define validate_header_(ptr) validate_header__(ptr)
-    #define block_init_(ptr) block_eager__(ptr)
+    #define block_init_(ptr)      block_eager__(ptr)
 #else
     #define validate_header_(ptr) ;
-    #define block_init_(ptr) ;
+    #define block_init_(ptr)      ;
 #endif
 
 #ifdef _MSC_VER
@@ -803,9 +798,7 @@ namespace ex::data::lalloc {
             }
 
             if (static_cast<size_t>(padding_1) == sizeof(memory_block)) {
-//                padding_1 += (sizeof(memory_block) > alignment_b ? sizeof(memory_block) : alignment_b);
-//                padding_1 += alignment_b;
-//                padding_1 += static_cast<u_int32_t>(alignment_b);
+                // prevent header-only (empty) block
                 padding_1 += static_cast<u_int32_t>(sizeof(memory_block));
             }
 
