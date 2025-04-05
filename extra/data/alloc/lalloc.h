@@ -5,9 +5,6 @@
 #ifndef EX_LIMBO_DATA_LALLOC_H
 #define EX_LIMBO_DATA_LALLOC_H
 
-#include "../struct/lifo_queue.h"
-#include "stackarena.h"
-
 #ifdef LALLOC_RECKLESS
     // Skip defensive checks
     #define LALLOC_AGGRESSIVE
@@ -25,6 +22,9 @@
     #define val_dead_block(block) VALGRIND_MAKE_MEM_NOACCESS(block, sizeof(memory_block) + block->node_ptr->size_b)
     #define val_restricted(block) VALGRIND_MAKE_MEM_NOACCESS(block, sizeof(memory_block))
     #define val_accessible(block) VALGRIND_MAKE_MEM_DEFINED( block, sizeof(memory_block))
+    #ifndef MEM_PROVIDER_VALGRIND
+    #define MEM_PROVIDER_VALGRIND
+    #endif
 #else
     #define val_make_block(block) ;
     #define val_free_block(block) ;
@@ -44,6 +44,9 @@
 #ifdef _MSC_VER
     #include <intrin.h>
 #endif
+
+#include "../struct/lifo_queue.h"
+#include "stackarena.h"
 
 namespace ex::data::lalloc {
 
