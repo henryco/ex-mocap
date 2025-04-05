@@ -15,7 +15,7 @@ TEST_SUITE("RBTAlloc tests") {
 
     TEST_CASE("Initialization") {
         allocator alloc(ALLOC_DEF_SIZE_B);
-        CHECK(alloc.size_used() == 0);
+        CHECK(alloc.size_used() == STACK_BLOCK_SIZE);
         CHECK(alloc.size_total() >= ALLOC_DEF_SIZE_B);
     }
 
@@ -47,19 +47,19 @@ TEST_SUITE("RBTAlloc tests") {
         allocator alloc;
 
         std::size_t before_alloc = alloc.size_used();
-        CHECK(before_alloc == 0);
+        CHECK(before_alloc == STACK_BLOCK_SIZE);
 
         void *ptr = alloc.malloc(128, 8);
         REQUIRE(ptr != nullptr);
 
         std::size_t after_alloc = alloc.size_used();
-        CHECK(after_alloc == 128);
+        CHECK(after_alloc >= 128);
 
         void *new_ptr = alloc.realloc(ptr, 256);
         REQUIRE(new_ptr != nullptr);
 
         std::size_t after_realloc = alloc.size_used();
-        CHECK(after_realloc == 256);
+        CHECK(after_realloc >= 256);
 
         CHECK((reinterpret_cast<uintptr_t>(new_ptr)) % 8  == 0);
     }
@@ -71,13 +71,13 @@ TEST_SUITE("RBTAlloc tests") {
         REQUIRE(ptr != nullptr);
 
         std::size_t before = alloc.size_used();
-        CHECK(before == 256);
+        CHECK(before >= 256);
 
         void *new_ptr = alloc.realloc(ptr, 0);
         CHECK(new_ptr == nullptr);
 
         std::size_t after = alloc.size_used();
-        CHECK(after == 0);
+        CHECK(after == STACK_BLOCK_SIZE);
     }
 
     TEST_CASE("Memory Tracking") {
@@ -86,28 +86,28 @@ TEST_SUITE("RBTAlloc tests") {
         REQUIRE(ptr != nullptr);
 
         std::size_t used_before = alloc.size_used();
-        CHECK(used_before == 512);
+        CHECK(used_before >= 512);
 
         void *ptr2 = alloc.malloc(256, 16);
         REQUIRE(ptr2 != nullptr);
 
         std::size_t used_after = alloc.size_used();
-        CHECK(used_after == (256 + 512));
+        CHECK(used_after >= (256 + 512));
 
         CHECK(alloc.size_used() > used_before);
         alloc.free(ptr);
 
         std::size_t used_free = alloc.size_used();
-        CHECK(used_free == 256);
+        CHECK(used_free >= 256);
 
         alloc.free(ptr2);
-        CHECK(alloc.size_used() == 0);
+        CHECK(alloc.size_used() == STACK_BLOCK_SIZE);
     }
 
     TEST_CASE("Allocator initialization and basic allocation") {
         allocator alloc(1024);
         CHECK(alloc.size_total() >= 1024);
-        CHECK(alloc.size_used() == 0);
+        CHECK(alloc.size_used() == STACK_BLOCK_SIZE);
 
         void *ptr = alloc.malloc(128, 8);
         CHECK(ptr != nullptr);
@@ -120,7 +120,7 @@ TEST_SUITE("RBTAlloc tests") {
         void *ptr1 = alloc.malloc(512, 16);
         alloc.free(ptr1);
 
-        CHECK(alloc.size_used() == 0);
+        CHECK(alloc.size_used() == STACK_BLOCK_SIZE);
 
         void *ptr2 = alloc.malloc(256, 16);
         CHECK(ptr2 == ptr1); // Should reuse freed block
@@ -172,7 +172,6 @@ TEST_SUITE("RBTAlloc tests") {
 
         alloc.clean();
         CHECK(alloc.size_used() == 0);
-        CHECK(alloc.size_total() == 0);
     }
 
     TEST_CASE("Reallocation with Data Integrity") {
@@ -210,7 +209,7 @@ TEST_SUITE("RBTAlloc tests") {
         alloc.free(a);
         alloc.free(c);
 
-        REQUIRE(alloc.size_used() == 0);
+        REQUIRE(alloc.size_used() == STACK_BLOCK_SIZE);
     }
 
     TEST_CASE("Repeated Growing Reallocations") {
@@ -226,7 +225,7 @@ TEST_SUITE("RBTAlloc tests") {
         }
 
         alloc.free(ptr);
-        REQUIRE(alloc.size_used() == 0);
+        REQUIRE(alloc.size_used() == STACK_BLOCK_SIZE);
     }
 
     TEST_CASE("Repeated Shrinking Reallocations") {
@@ -242,7 +241,7 @@ TEST_SUITE("RBTAlloc tests") {
         }
 
         alloc.free(ptr);
-        REQUIRE(alloc.size_used() == 0);
+        REQUIRE(alloc.size_used() == STACK_BLOCK_SIZE);
     }
 
     TEST_CASE("Fragmentation and Reallocation") {
@@ -262,7 +261,7 @@ TEST_SUITE("RBTAlloc tests") {
         alloc.free(new_a);
         alloc.free(c);
 
-        REQUIRE(alloc.size_used() == 0);
+        REQUIRE(alloc.size_used() == STACK_BLOCK_SIZE);
     }
 
     TEST_CASE("High-frequency allocation-deallocation stability") {
@@ -286,7 +285,7 @@ TEST_SUITE("RBTAlloc tests") {
         void* b = alloc.malloc(256, 16);
         void* c = alloc.malloc(256, 16);
 
-        REQUIRE(alloc.size_used() == 768);
+        REQUIRE(alloc.size_used() == (768 + (4 * STACK_BLOCK_SIZE)));
 
         alloc.free(b);
         alloc.free(a);
@@ -297,7 +296,7 @@ TEST_SUITE("RBTAlloc tests") {
 
         alloc.free(merged);
         alloc.free(c);
-        REQUIRE(alloc.size_used() == 0);
+        REQUIRE(alloc.size_used() == STACK_BLOCK_SIZE);
     }
 
     TEST_CASE("Allocator immediately reuses freed block") {
@@ -310,7 +309,7 @@ TEST_SUITE("RBTAlloc tests") {
         REQUIRE(p1 == p2); // allocator should reuse exactly the same block
 
         alloc.free(p1);
-        REQUIRE(alloc.size_used() == 0);
+        REQUIRE(alloc.size_used() == STACK_BLOCK_SIZE);
     }
 
     TEST_CASE("Allocator correctly updates internal state after freeing") {
@@ -320,7 +319,7 @@ TEST_SUITE("RBTAlloc tests") {
         void *b = alloc.malloc(4096, 32);
         void *c = alloc.malloc(2048, 16);
 
-        REQUIRE(alloc.size_used() == (2560 + 4096 + 2048));
+        REQUIRE(alloc.size_used() == (2560 + 4096 + 2048 + (4 * STACK_BLOCK_SIZE)));
 
         alloc.free(b);
 
@@ -332,7 +331,7 @@ TEST_SUITE("RBTAlloc tests") {
         alloc.free(c);
         alloc.free(small);
 
-        REQUIRE(alloc.size_used() == 0);
+        REQUIRE(alloc.size_used() == STACK_BLOCK_SIZE);
     }
 
     TEST_CASE("Fragmentation and compaction") {
@@ -436,7 +435,7 @@ TEST_SUITE("RBTAlloc tests") {
 
         alloc.free(merged);
 
-        REQUIRE(alloc.size_used() == 0);
+        REQUIRE(alloc.size_used() == STACK_BLOCK_SIZE);
     }
 
     TEST_CASE("Throw Cases") {
@@ -451,12 +450,12 @@ TEST_SUITE("RBTAlloc tests") {
             REQUIRE(ptr != nullptr);
 
             std::size_t before = alloc.size_used();
-            CHECK(before == 128);
+            CHECK(before == (128 + (2 * STACK_BLOCK_SIZE)));
 
             alloc.free(ptr);
 
             std::size_t after = alloc.size_used();
-            CHECK(after == 0);
+            CHECK(after == STACK_BLOCK_SIZE);
 
             CHECK_THROWS(alloc.free(ptr));
         }

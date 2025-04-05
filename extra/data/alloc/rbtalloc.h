@@ -166,7 +166,7 @@ namespace ex::data::rbtalloc {
         }
 
         long size_used() const {
-            return used_mem_ + arena_.size_total();
+            return used_mem_ + arena_.size_used();
         }
 
         long size_total() const {
