@@ -347,8 +347,44 @@ namespace ex::data::lalloc {
             }
 
             if (size_new_b < static_cast<std::size_t>(block->node_ptr->size_b)) {
-                // TODO: SHRINK
-                goto fallback_go;
+                const u_int32_t size_free = block->node_ptr->size_b - size_new_b;
+
+                if (size_free < (2 * sizeof(memory_block))) {
+                    val_restricted(block);
+                    return ptr; // prevent dead blocks
+                }
+
+                unsigned char *start_ptr = h_ptr + sizeof(memory_block);
+                unsigned char *end_ptr   = start_ptr + size_new_b;
+                const uint32_t padding   = block_padding_(end_ptr, sizeof(memory_block));
+
+                if ((size_free - padding) < (2 * sizeof(memory_block))) {
+                    val_restricted(block);
+                    return ptr; // prevent dead blocks
+                }
+
+                const u_int32_t end_block_size = size_free - padding - sizeof(memory_block);
+                memory_block   *end_block      = block_create_(end_ptr + padding, end_block_size);
+                end_block->node_ptr->prev_ptr  = block->node_ptr;
+
+                if (memory_block *next = next_block_(end_block); next != nullptr) {
+                    val_accessible(next);
+                    next->node_ptr->prev_ptr = end_block->node_ptr;
+                    val_restricted(next);
+                }
+
+                lifo_put_(end_block);
+
+                used_mem_ -= (block->node_ptr->size_b + sizeof(memory_block));
+                val_free_block(block);
+                block->node_ptr->size_b = size_new_b + padding;
+
+                used_mem_ += block->node_ptr->size_b + sizeof(memory_block);
+                val_accessible(block);
+                val_make_block(block);
+                val_restricted(block);
+
+                return ptr;
             }
 
             if (memory_block *next_block = next_block_(block)) {
