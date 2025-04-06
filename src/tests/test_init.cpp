@@ -5,6 +5,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
 #include <doctest/doctest.h>
-TEST_CASE("TEST_INIT") {
-
+TEST_SUITE("INIT") {
+    TEST_CASE("TEST_INIT") {
+    }
 }
