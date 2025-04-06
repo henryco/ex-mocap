@@ -105,9 +105,7 @@ namespace ex::data::lalloc {
         #endif
     }
 
-    static u_int32_t power_range_r_s64(const u_int64_t size_b) {
-        if (size_b == 0)
-            return 0;
+    static constexpr u_int32_t power_range_r_s64(const u_int64_t size_b) {
         #ifdef __clang__
         return (sizeof(size_b) * 8 - __builtin_clzll(size_b) - 1);
         #elif defined(__GNUC__)
@@ -134,9 +132,47 @@ namespace ex::data::lalloc {
             STACK_ALLOC_SIZE
         };
 
+        #ifdef LALLOC_USE_VALGRIND
+            #ifndef LALLOC_VALGRIND_STACK_SIZE
+            #define LALLOC_VALGRIND_STACK_SIZE (2 * power_range_r_s64(ALLOC_MAX_SIZE_B))
+            #endif
+            struct val_mem_reg_ {
+                void *ptr;
+            };
+            val_mem_reg_ mem_reg_stack_[LALLOC_VALGRIND_STACK_SIZE];
+            int          mem_reg_stack_ctr = 0;
+            void val_region_add_(void *ptr) {
+                if (mem_reg_stack_ctr >= LALLOC_VALGRIND_STACK_SIZE)
+                    abort_("out of stack boundaries");
+                mem_reg_stack_[mem_reg_stack_ctr++] = { ptr };
+            }
+            void val_region_del_() {
+                while (mem_reg_stack_ctr > 0) {
+                    val_mem_reg_ reg = mem_reg_stack_[--mem_reg_stack_ctr];
+                    for (memory_block *block = static_cast<memory_block *>(reg.ptr); block != nullptr;) {
+                        val_accessible(block);
+                        memory_node *node = block->node_ptr;
+                        if (node == nullptr) {
+                            val_restricted(block);
+                            break;
+                        }
+                        memory_block *next = next_block_(block);
+                        if (node->bucket_ptr == nullptr) {
+                            VALGRIND_FREELIKE_BLOCK(block + 1, 0);
+                        }
+                        val_restricted(block);
+                        block = next;
+                    }
+                }
+            }
+        #else
+            #define val_region_add_(ptr) ;
+            #define val_region_del_()    ;
+        #endif
+
         #ifndef LALLOC_LIFO_SKIP
         block_bucket_t lifo_ = {
-            stack_.compat()
+                stack_.compat()
         };
         #endif
 
@@ -203,6 +239,9 @@ namespace ex::data::lalloc {
             #ifndef LALLOC_LIFO_SKIP
             lifo_.clear();
             #endif
+
+            val_region_del_();
+
             for (int i = 0; i < BUCKETS_NUM; i++)
                 buckets_[i].clear();
             arena_.clean();
@@ -214,6 +253,9 @@ namespace ex::data::lalloc {
             #ifndef LALLOC_LIFO_SKIP
             lifo_.clear();
             #endif
+
+            val_region_del_();
+
             for (int i = 0; i < BUCKETS_NUM; i++)
                 buckets_[i].clear();
             arena_.clean();
@@ -243,6 +285,8 @@ namespace ex::data::lalloc {
 
             unsigned char *block_ptr = static_cast<unsigned char *>(allocated_ptr) + padding;
             memory_block  *block     = block_create_(block_ptr, size_b);
+
+            val_region_add_(block);
 
             block_init_(block);
 
@@ -453,6 +497,9 @@ namespace ex::data::lalloc {
             if (min_size_b > BLOCK_MAX_SIZE_B || grow_mem_ == 0)
                 abort_("Requested allocation size overflow");
 
+            if (max_size_ == 0 || grow_mem_ == 0)
+                abort_("max_size_ == 0 || grow_mem_ == 0");
+
             const float fac = power_range_r_s64(max_size_);
             const float pow = power_range_r_s64(grow_mem_);
             const float diff = 2.f * (1.f - (pow / fac));
@@ -475,6 +522,7 @@ namespace ex::data::lalloc {
             unsigned char *block_ptr = static_cast<unsigned char *>(allocated_ptr) + padding;
             memory_block  *block     = block_create_(block_ptr, size_b);
 
+            val_region_add_(block);
             block_init_(block);
 
             unsigned char    *null_space = block_ptr + size_b + sizeof(memory_block);
