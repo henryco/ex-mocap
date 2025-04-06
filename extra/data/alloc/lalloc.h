@@ -134,9 +134,11 @@ namespace ex::data::lalloc {
             STACK_ALLOC_SIZE
         };
 
+        #ifndef LALLOC_LIFO_SKIP
         block_bucket_t lifo_ = {
             stack_.compat()
         };
+        #endif
 
         block_bucket_t buckets_[BUCKETS_NUM] = {
             stack_.compat(), // 2^0
@@ -198,7 +200,9 @@ namespace ex::data::lalloc {
         allocator &operator = (allocator &&other)      = delete;
 
         ~allocator() {
+            #ifndef LALLOC_LIFO_SKIP
             lifo_.clear();
+            #endif
             for (int i = 0; i < BUCKETS_NUM; i++)
                 buckets_[i].clear();
             arena_.clean();
@@ -207,7 +211,9 @@ namespace ex::data::lalloc {
         }
 
         void clean() {
+            #ifndef LALLOC_LIFO_SKIP
             lifo_.clear();
+            #endif
             for (int i = 0; i < BUCKETS_NUM; i++)
                 buckets_[i].clear();
             arena_.clean();
@@ -432,7 +438,9 @@ namespace ex::data::lalloc {
             u_int32_t free_ = 0;
             for (int i = 0; i < BUCKETS_NUM; ++i)
                 free_ += buckets_[i].size();
+            #ifndef LALLOC_LIFO_SKIP
             free_ += lifo_.size();
+            #endif
             return free_;
         }
 
@@ -487,9 +495,11 @@ namespace ex::data::lalloc {
                 abort_("Alignment must be non-zero and a power of two");
             #endif
 
+            #ifndef LALLOC_LIFO_SKIP
             if (size_b < LIFO_BLOCK_SIZE && !lifo_.empty())
                 if (void *ptr = bucket_scan_(lifo_, size_b, alignment_b))
                     return ptr;
+            #endif
 
             const u_int32_t power = power_range_r_(size_b);
             for (u_int32_t i = power > min_bucket_ ? power : min_bucket_; i < BUCKETS_NUM; i++) {
