@@ -5,8 +5,7 @@
 #ifndef EX_MOTION_DEVICE_H
 #define EX_MOTION_DEVICE_H
 
-#include <string>
-#include <vector>
+#include "../extra/data/struct/array.h"
 
 namespace ex::platform::dev {
 
@@ -14,48 +13,48 @@ namespace ex::platform::dev {
 
     struct VideoControl {
         control_id id;
-        std::string name;
-        int min;
-        int max;
-        int step;
-        int default_value;
-        int value;
+        char       name[64];
+        int        min;
+        int        max;
+        int        step;
+        int        default_value;
+        int        value;
     };
 
     struct VideoDevice {
-        std::string uuid;
-        std::string name;
+        char uuid[64];
+        char name[64];
     };
 
     struct DeviceCapability {
-        std::string description;
-        std::string format_4cc;
-        int refresh_rate;
-        int width;
-        int height;
+        char description[64];
+        char format_4cc[4];
+        int  refresh_rate;
+        int  width;
+        int  height;
     };
 
     int get_capture_api();
 
     void refresh();
 
-    std::vector<VideoDevice> list_devices();
+    ex::data::array<VideoDevice> list_devices();
 
-    std::vector<VideoControl> list_controls(const std::string &device_uuid);
+    ex::data::array<VideoControl> list_controls(const char *device_uuid);
 
-    std::vector<VideoControl> list_controls(const VideoDevice &device);
+    ex::data::array<VideoControl> list_controls(const VideoDevice &device);
 
-    std::vector<DeviceCapability> list_capabilities(const std::string &device_uuid);
+    ex::data::array<DeviceCapability> list_capabilities(const char *device_uuid);
 
-    bool set_control_value(const std::string &device_uuid, control_id prop_id, int value);
+    bool set_control_value(const char *device_uuid, control_id prop_id, int value);
 
     bool set_control_value(const VideoDevice &device, control_id prop_id, int value);
 
-    int get_device_index(const std::string &device_uuid);
+    int get_device_index(const char *device_uuid);
 
     int get_device_index(const VideoDevice &device);
 
-    void reset_controls(const std::string &device_uuid);
+    void reset_controls(const char *device_uuid);
 
     void reset_controls(const VideoDevice &device);
 }

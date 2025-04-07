@@ -8,9 +8,6 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <vector>
-
-#include <algorithm>
 #include <cstring>
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -19,17 +16,33 @@
 namespace ex::platform::dev {
 
     namespace v4l2 {
-        static std::vector<v4l2::V4L2Device> devices_list;
+
+        static int8_t default_comparator(const V4L2_QueryCtrl *aa, const V4L2_QueryCtrl *bb) {
+            const unsigned int a = aa->type;
+            const unsigned int b = bb->type;
+            return (a > b) - (a < b);
+        }
+
+        static ex::data::array<v4l2::V4L2Device> devices_list;
         static bool initialized = false;
 
-        std::string read_file(const std::string &filePath) {
+        void copy_string_(const char *src, char dst[], const int dst_size) {
+            if (src == nullptr)
+                return;
+            ::strncpy(dst, src, dst_size - 1);
+            dst[dst_size - 1] = '\0';
+        }
+
+
+        void read_file(const std::string &filePath, char dst[], const int dst_size) {
             std::ifstream file(filePath);
             if (!file.is_open()) {
-                return "";
+                copy_string_("", dst, dst_size);
+                return;
             }
             std::string content;
             std::getline(file, content);
-            return content;
+            copy_string_(content.c_str(), dst, dst_size);
         }
 
         void fourcc_to_chars(const uint32_t fourcc, char *out) {
@@ -40,8 +53,8 @@ namespace ex::platform::dev {
             out[4] = '\0';
         }
 
-        std::vector<v4l2::V4L2Device> list_usb_camera_devices() {
-            std::vector<v4l2::V4L2Device> cameras;
+        ex::data::array<v4l2::V4L2Device> list_usb_camera_devices() {
+            ex::data::array<v4l2::V4L2Device> cameras;
 
             // Iterate over all /dev/video* devices
             for (const auto& entry : std::filesystem::directory_iterator("/dev")) {
@@ -66,92 +79,88 @@ namespace ex::platform::dev {
                 const std::filesystem::path index_path     = current_path / "index";
 
                 v4l2::V4L2Device device;
-                device.device_id = "/dev/" + device_name;
+                {
+                    const std::string tmp_ = "/dev/" + device_name;
+                    copy_string_(tmp_.c_str(), device.device_id, 64);
+                }
 
                 // Follow symbolic link to actual device path
                 if (std::filesystem::exists(dev_path)) {
-                    device.uuid = std::filesystem::canonical(dev_path).string();
+                    const std::string tmp_ = std::filesystem::canonical(dev_path).string();
+                    copy_string_(tmp_.c_str(), device.uuid, 64);
                 }
 
                 // Resolve name
                 if (std::filesystem::exists(name_path)) {
-                    device.name = read_file(name_path);
+                    read_file(name_path, device.name, 64);
                 } else if (std::filesystem::exists(interface_path)) {
-                    device.name = read_file(interface_path);
+                    read_file(interface_path, device.name, 64);
                 } else {
-                    device.name = device.device_id;
+                    read_file(device.device_id, device.name, 64);
                 }
 
                 // Resolve index
                 if (std::filesystem::exists(index_path)) {
-                    device.index = read_file(index_path);
+                    read_file(index_path, device.index, 64);
                 }
 
-                cameras.push_back(device);
+                cameras.push(device);
             }
 
             return cameras;
         }
 
-        std::vector<V4L2_QueryCtrl> get_camera_props(const std::string &device) {
-            std::vector<V4L2_QueryCtrl> properties;
+        ex::data::array<V4L2_QueryCtrl> get_camera_props(const char *device) {
+            ex::data::array<V4L2_QueryCtrl> properties;
 
-            const int file_descriptor = open(device.c_str(), O_RDWR);
+            const int file_descriptor = open(device, O_RDWR);
 
             if (file_descriptor == -1) {
                 std::cerr << "Cannot open video device: " << device << std::endl;
                 return {};
             }
 
-            try {
+            V4L2_QueryCtrl queryctrl;
+            queryctrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
 
-                V4L2_QueryCtrl queryctrl;
-                queryctrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
+            while (0 == ioctl(file_descriptor, VIDIOC_QUERYCTRL, &queryctrl)) {
+                if (!(queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)) {
 
-                while (0 == ioctl(file_descriptor, VIDIOC_QUERYCTRL, &queryctrl)) {
-                    if (!(queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)) {
-
-                        if (queryctrl.type != V4L2_CTRL_TYPE_CTRL_CLASS) {
-                            V4L2_Control ctr = {.id = queryctrl.id};
-                            if (ioctl(file_descriptor, VIDIOC_G_CTRL, &ctr) == -1) {
-                                std::cerr << "Cannot retrieve value for control: "
-                                          << ctr.id << " [" << device << "]"
-                                          << std::endl;
-                            }
-                            queryctrl.value = ctr.value;
+                    if (queryctrl.type != V4L2_CTRL_TYPE_CTRL_CLASS) {
+                        V4L2_Control ctr = {.id = queryctrl.id};
+                        if (ioctl(file_descriptor, VIDIOC_G_CTRL, &ctr) == -1) {
+                            std::cerr << "Cannot retrieve value for control: "
+                                      << ctr.id << " [" << device << "]"
+                                      << std::endl;
                         }
-
-                        // TODO: query menu items name
-
-                        properties.push_back(queryctrl);
+                        queryctrl.value = ctr.value;
                     }
 
-                    queryctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
+                    // TODO: query menu items name
+                    properties.sort_insert(queryctrl, default_comparator);
                 }
 
-                if (errno != EINVAL) {
-                    std::cerr << "fails for reasons other than reaching the end of the control list, error no: [" << errno << "]" << std::endl;
-                    close(file_descriptor);
-                    return {};
-                }
+                queryctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
+            }
 
-            } catch (...) {
+            if (errno != EINVAL) {
+                std::cerr << "fails for reasons other than reaching the end of the control list, error no: [" << errno << "]" << std::endl;
                 close(file_descriptor);
-                throw;
+                return {};
             }
 
             close(file_descriptor);
 
             // Sorting, important!
-            std::sort(properties.begin(), properties.end(),
-                      [](const V4L2_QueryCtrl &a, const V4L2_QueryCtrl &b) {
-                          return a.type > b.type;
-                      });
+//            std::sort(properties.begin(), properties.end(),
+//                      [](const V4L2_QueryCtrl &a, const V4L2_QueryCtrl &b) {
+//                          return a.type > b.type;
+//                      });
 
             return properties;
         }
 
-        bool set_camera_prop(const std::string &device_id, const uint prop_id, const int prop_value) {
+        bool set_camera_prop(const char *device_id, const uint prop_id, const int prop_value) {
             // not the most efficient way to pass data, but it's ok
             return set_camera_prop(device_id, {
                                                       .id = prop_id,
@@ -159,45 +168,54 @@ namespace ex::platform::dev {
                                               });
         }
 
-        bool set_camera_prop(const std::string &device_id, V4L2_Control control) {
+        bool set_camera_prop(const char *device_id, V4L2_Control control) {
             // not the most efficient way to pass data, but it's ok.
-            return set_camera_prop(device_id, std::vector({control}))[0];
+
+            const int file_descriptor = open(device_id, O_RDWR);
+            if (file_descriptor == -1) {
+                std::cerr << "Cannot open video device: " << device_id << '\n';
+                return false;
+            }
+
+            bool result = false;
+            if (ioctl(file_descriptor, VIDIOC_S_CTRL, &control) == -1) {
+                std::cerr << "[" << device_id << "] Cannot set control value: " << control.id << '\n';
+            } else {
+                result = true;
+            }
+
+            close(file_descriptor);
+            return result;
         }
 
-        std::vector<bool> set_camera_prop(const std::string &device, std::vector<V4L2_Control> controls) {
-            const int file_descriptor = open(device.c_str(), O_RDWR);
+        ex::data::array<bool> set_camera_prop(const char *device, const ex::data::array<V4L2_Control> &controls) {
+            const int file_descriptor = open(device, O_RDWR);
 
-            std::vector<bool> results(controls.size());
+            ex::data::array<bool> results(controls.size);
 
             if (file_descriptor == -1) {
                 std::cerr << "Cannot open video device: " << device << '\n';
                 return results;
             }
 
-            try {
-
-                for (int i = 0; i < controls.size(); ++i) {
-                    auto &control = controls[i];
-                    if (ioctl(file_descriptor, VIDIOC_S_CTRL, &control) == -1) {
-                        std::cerr << "[" << device << "] Cannot set control value: " << control.id << '\n';
-                        results[i] = false;
-                    } else {
-                        results[i] = true;
-                    }
+            for (int i = 0; i < controls.size; ++i) {
+                auto &control = controls[i];
+                if (ioctl(file_descriptor, VIDIOC_S_CTRL, &control) == -1) {
+                    std::cerr << "[" << device << "] Cannot set control value: " << control.id << '\n';
+                    results[i] = false;
+                } else {
+                    results[i] = true;
                 }
-
-            } catch (...) {
-                close(file_descriptor);
-                throw;
             }
 
             close(file_descriptor);
             return results;
         }
 
-        std::string get_device_id(const std::string &device_uuid) {
+        const char *get_device_id(const char *device_uuid_) {
+            const std::string device_uuid = device_uuid_;
             if (device_uuid.starts_with("/dev/video")) {
-                return device_uuid;
+                return device_uuid_;
             }
 
             const auto split_idx = device_uuid.find(':');
@@ -208,7 +226,7 @@ namespace ex::platform::dev {
             const auto index = device_uuid.substr(0, split_idx);
             const auto uuid  = device_uuid.substr(split_idx + 1);
 
-            for (const auto &device: v4l2::devices_list) {
+            for (v4l2::V4L2Device &device: v4l2::devices_list) {
                 if (device.uuid == uuid && device.index == index) {
                     return device.device_id;
                 }
@@ -218,8 +236,8 @@ namespace ex::platform::dev {
         }
     }
 
-    std::vector<DeviceCapability> list_capabilities(const std::string &device_uuid) {
-        const int file_descriptor = open(v4l2::get_device_id(device_uuid).c_str(), O_RDWR);
+    ex::data::array<DeviceCapability> list_capabilities(const char *device_uuid) {
+        const int file_descriptor = open(v4l2::get_device_id(device_uuid), O_RDWR);
         if (file_descriptor == -1) {
             perror("Opening video device");
             return {};
@@ -233,11 +251,10 @@ namespace ex::platform::dev {
             return {};
         }
 
-        std::vector<DeviceCapability> vec;
+        ex::data::array<DeviceCapability> vec;
 
-        try {
-            v4l2_fmtdesc fmt;
-            memset(&fmt, 0, sizeof(fmt));
+        v4l2_fmtdesc fmt;
+            ::memset(&fmt, 0, sizeof(fmt));
             fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
             while (ioctl(file_descriptor, VIDIOC_ENUM_FMT, &fmt) == 0) {
@@ -246,7 +263,7 @@ namespace ex::platform::dev {
 
                 // Enumerate resolutions for each format
                 v4l2_frmsizeenum frmsize;
-                memset(&frmsize, 0, sizeof(frmsize));
+                ::memset(&frmsize, 0, sizeof(frmsize));
                 frmsize.pixel_format = fmt.pixelformat;
 
                 while (ioctl(file_descriptor, VIDIOC_ENUM_FRAMESIZES, &frmsize) == 0) {
@@ -254,7 +271,7 @@ namespace ex::platform::dev {
 
                         // Enumerate frame intervals for each resolution
                         v4l2_frmivalenum frmival;
-                        memset(&frmival, 0, sizeof(frmival));
+                        ::memset(&frmival, 0, sizeof(frmival));
                         frmival.pixel_format = fmt.pixelformat;
                         frmival.width = frmsize.discrete.width;
                         frmival.height = frmsize.discrete.height;
@@ -262,13 +279,16 @@ namespace ex::platform::dev {
                         while (ioctl(file_descriptor, VIDIOC_ENUM_FRAMEINTERVALS, &frmival) == 0) {
                             if (frmival.type == V4L2_FRMIVAL_TYPE_DISCRETE) {
                                 DeviceCapability capability = {};
-                                capability.format_4cc = std::string(reinterpret_cast<const char *>(fmt.pixelformat), 5);
-                                capability.description = std::string(reinterpret_cast<const char *>(fmt.description), 32);
+
+                                const char *four_cc = reinterpret_cast<const char *>(fmt.pixelformat);
+                                ::memcpy(capability.format_4cc, four_cc, 4);
+                                v4l2::copy_string_(reinterpret_cast<const char *>(fmt.description), capability.description, 32);
+
                                 capability.width = frmsize.discrete.width;
                                 capability.height = frmsize.discrete.height;
                                 capability.refresh_rate =
                                         static_cast<double>(frmival.discrete.denominator) / frmival.discrete.numerator;
-                                vec.push_back(capability);
+                                vec.push(capability);
                             }
                             frmival.index++;
                         }
@@ -277,11 +297,7 @@ namespace ex::platform::dev {
                 }
                 fmt.index++;
             }
-        } catch (...) {
-            close(file_descriptor);
-            perror("Querying capabilities");
-            return {};
-        }
+
         close(file_descriptor);
         return vec;
     }
@@ -290,14 +306,18 @@ namespace ex::platform::dev {
         return 200; // V4L2
     }
 
-    std::vector<VideoDevice> list_devices() {
+    ex::data::array<VideoDevice> list_devices() {
         if (!v4l2::initialized)
             refresh();
 
-        std::vector<VideoDevice> devices;
-        devices.reserve(v4l2::devices_list.size());
-        for (const auto &item: v4l2::devices_list) {
-            devices.emplace_back(item.index + ":" + item.uuid, item.name);
+        ex::data::array<VideoDevice> devices;
+        devices.reserve(v4l2::devices_list.size);
+        for (const v4l2::V4L2Device &item: v4l2::devices_list) {
+            VideoDevice dev;
+            std::string tmp_ = std::string(item.index) + ":" + std::string(item.name);
+            v4l2::copy_string_(tmp_.c_str(), dev.uuid, 64);
+            v4l2::copy_string_(item.name, dev.name, 64);
+            devices.push(dev);
         }
         return devices;
     }
@@ -310,7 +330,8 @@ namespace ex::platform::dev {
         return get_device_index(device.uuid);
     }
 
-    int get_device_index(const std::string &id) {
+    int get_device_index(const char *id_) {
+        const std::string id = id_;
         if (id.starts_with("/dev/video")) {
             return std::stoi(id.substr(10));
         }
@@ -323,35 +344,36 @@ namespace ex::platform::dev {
         const auto index = id.substr(0, split_idx);
         const auto uuid  = id.substr(split_idx + 1);
 
-        for (const auto &device: v4l2::devices_list) {
+        for (const v4l2::V4L2Device &device: v4l2::devices_list) {
             if (device.uuid == uuid && device.index == index) {
-                return std::stoi(device.device_id.substr(10));
+                const std::string tmp_ = device.device_id;
+                return std::stoi(tmp_.substr(10));
             }
         }
 
         return -1;
     }
 
-    std::vector<VideoControl> list_controls(const VideoDevice &device) {
+    ex::data::array<VideoControl> list_controls(const VideoDevice &device) {
         return list_controls(device.uuid);
     }
 
-    std::vector<VideoControl> list_controls(const std::string &device_uuid) {
+    ex::data::array<VideoControl> list_controls(const char *device_uuid) {
         const auto device_id = v4l2::get_device_id(device_uuid);
         const auto camera_props = v4l2::get_camera_props(device_id);
 
-        std::vector<VideoControl> props;
-        props.reserve(camera_props.size());
-        for (const auto &p: camera_props) {
+        ex::data::array<VideoControl> props;
+        props.reserve(camera_props.size);
+        for (const v4l2::V4L2_QueryCtrl &p: camera_props) {
             VideoControl control;
             control.id = p.id;
             control.default_value = p.default_value;
-            control.name = std::string(reinterpret_cast<const char *>(p.name), 32);
+            v4l2::copy_string_(reinterpret_cast<const char *>(p.name), control.name, 32);
             control.value = p.value;
             control.min = p.minimum;
             control.max = p.maximum;
             control.step = p.step;
-            props.push_back(control);
+            props.push(control);
         }
         return props;
     }
@@ -360,7 +382,7 @@ namespace ex::platform::dev {
         return set_control_value(device.uuid, prop_id, value);
     }
 
-    bool set_control_value(const std::string &device_uuid, const uint prop_id, const int value) {
+    bool set_control_value(const char *device_uuid, const uint prop_id, const int value) {
         const auto device_id = v4l2::get_device_id(device_uuid);
         return v4l2::set_camera_prop(device_id, prop_id, value);
     }
@@ -369,9 +391,9 @@ namespace ex::platform::dev {
         reset_controls(device.uuid);
     }
 
-    void reset_controls(const std::string &device_uuid) {
+    void reset_controls(const char *device_uuid) {
         const auto controls = list_controls(device_uuid);
-        for (const auto &control: controls)
+        for (const VideoControl &control: controls)
             set_control_value(device_uuid, control.id, control.default_value);
     }
 }

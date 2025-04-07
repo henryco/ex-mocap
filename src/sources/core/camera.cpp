@@ -15,7 +15,7 @@ namespace ex::camera {
                 name[3]);
     }
 
-    void Camera::open(std::string const &device_uuid) {
+    void Camera::open(const char *device_uuid) {
         close();
         queue = xm::ocl::create_queue_device(ocl_context, ocl_device, true, false);
         cap_.open(platform::dev::get_device_index(device_uuid),
@@ -26,14 +26,14 @@ namespace ex::camera {
         initialized = true;
     }
 
-    void Camera::open(std::string const &device_uuid, const config &prop) {
+    void Camera::open(const char *device_uuid, const config &prop) {
         close();
         queue = xm::ocl::create_queue_device(ocl_context, ocl_device, true, false);
 
         std::vector<int> params;
-        if (prop.codec.size() >= 4) {
+        if (::strlen(prop.codec) >= 4) {
             params.push_back(cv::CAP_PROP_FOURCC);
-            params.push_back(fourCC(prop.codec.c_str()));
+            params.push_back(fourCC(prop.codec));
         }
 
         if (prop.width > 0 && prop.height > 0) {
@@ -90,8 +90,9 @@ namespace ex::camera {
         return cap_.grab();
     }
 
-    Camera::Camera(cl_context context, cl_device_id device)
-    : ocl_context(context), ocl_device(device) {}
+    Camera::Camera(const cl_context context, cl_device_id device) :
+        ocl_context(context), ocl_device(device), device_id(nullptr) {
+    }
 
     Camera::~Camera() {
         if (queue != nullptr)
@@ -114,7 +115,7 @@ namespace ex::camera {
         platform::dev::set_control_value(device_id, id, value);
     }
 
-    std::vector<platform::dev::VideoControl> Camera::get_controls() const {
+    ex::data::array<platform::dev::VideoControl> Camera::get_controls() const {
         return platform::dev::list_controls(device_id);
     }
 
@@ -122,7 +123,7 @@ namespace ex::camera {
         platform::dev::reset_controls(device_id);
     }
 
-    std::vector<platform::dev::DeviceCapability> Camera::get_capabilities() {
+    ex::data::array<platform::dev::DeviceCapability> Camera::get_capabilities() {
         if (!cap_called_) {
             capabilities_ = platform::dev::list_capabilities(device_id);
             cap_called_ = true;

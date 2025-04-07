@@ -182,7 +182,7 @@ namespace ex::data {
                 else
                     data = realloc_<val_t>(this, allocator_, data, capacity);
             }
-            memmove(data + index + 1, data + index, (size - index) * sizeof(val_t));
+            ::memmove(data + index + 1, data + index, (size - index) * sizeof(val_t));
             data[index] = value;
             size++;
         }
@@ -212,7 +212,7 @@ namespace ex::data {
             // src: 5
             //   n: 2 = size(7) - index(4) - 1
 
-            memmove(data + index, data + index + 1, (size - index - 1) * sizeof(val_t));
+            ::memmove(data + index, data + index + 1, (size - index - 1) * sizeof(val_t));
             size--;
         }
 
@@ -284,7 +284,7 @@ namespace ex::data {
             if (other.size <= 0)
                 return;
 
-            memcpy(data, other.data, other.size * sizeof(val_t));
+            ::memcpy(data, other.data, other.size * sizeof(val_t));
         }
 
         array(array &&other) noexcept : size(other.size), capacity(other.capacity) {
@@ -313,7 +313,7 @@ namespace ex::data {
             if (other.size <= 0)
                 return *this;
 
-            memcpy(data, other.data, other.size * sizeof(val_t));
+            ::memcpy(data, other.data, other.size * sizeof(val_t));
             return *this;
         }
 
@@ -331,6 +331,61 @@ namespace ex::data {
             other.data       = nullptr;
 
             return *this;
+        }
+
+        struct iterator {
+
+            val_t *data_;
+
+            iterator(val_t *data) :
+                data_(data) {
+            }
+
+            val_t &operator * () {
+                return *data_;
+            }
+
+            const val_t &operator * () const {
+                return *data_;
+            }
+
+            iterator &operator ++ () {
+                data_ = data_ + 1;
+                return *this;
+            }
+
+            iterator &operator -- () {
+                data_ = data_ - 1;
+                return *this;
+            }
+
+            iterator operator ++ (int) {
+                iterator temp = *this;
+                data_ = data_ + 1;
+                return temp;
+            }
+
+            iterator operator -- (int) {
+                iterator temp = *this;
+                data_ = data_ - 1;
+                return temp;
+            }
+
+            bool operator != (const iterator &other) const {
+                return data_ != other.data_;
+            }
+
+            bool operator == (const iterator &other) const {
+                return data_ == other.data_;
+            }
+        };
+
+        iterator begin() const {
+            return iterator(data);
+        }
+
+        iterator end() const {
+            return iterator(data + size);
         }
 
         template <typename T>

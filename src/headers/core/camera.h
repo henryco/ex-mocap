@@ -6,21 +6,21 @@
 #define CAMERA_H
 
 #include <opencv2/videoio.hpp>
-#include <string>
 
+#include "../../../extra/data/struct/array.h"
 #include "../../../platforms/device.h"
 #include "../cl/ocl_interop.h"
 #include "../utils/log_utils.h"
 
 namespace ex::camera {
-    using dev_caps = std::vector<platform::dev::DeviceCapability>;
+    using dev_caps = ex::data::array<platform::dev::DeviceCapability>;
 
     struct config {
-        std::string codec  = "";
-        int         width  = -1;
-        int         height = -1;
-        int         buffer = -1;
-        int         fps    = -1;
+        char codec[4] = "";
+        int  width    = -1;
+        int  height   = -1;
+        int  buffer   = -1;
+        int  fps      = -1;
     };
 
     class Camera {
@@ -38,7 +38,7 @@ namespace ex::camera {
 
         cv::VideoCapture cap_;
         dev_caps         capabilities_;
-        std::string      device_id;
+        const char      *device_id;
         config           config_;
 
     public:
@@ -52,9 +52,9 @@ namespace ex::camera {
 
         config const &get_config() const;
 
-        void open(std::string const &device_uuid);
+        void open(const char *device_uuid);
 
-        void open(std::string const &device_uuid, const config &config);
+        void open(const char *device_uuid, const config &config);
 
         void close();
 
@@ -64,11 +64,11 @@ namespace ex::camera {
 
         void set_control(platform::dev::control_id id, int value);
 
-        std::vector<platform::dev::VideoControl> get_controls() const;
+        ex::data::array<platform::dev::VideoControl> get_controls() const;
 
         void reset_controls();
 
-        std::vector<platform::dev::DeviceCapability> get_capabilities();
+        ex::data::array<platform::dev::DeviceCapability> get_capabilities();
     };
 
 }
