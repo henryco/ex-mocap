@@ -461,7 +461,6 @@ namespace ex::data {
 
         // ---------------------------------------- GPT GENERATED BULLSHIT ---------------------------------------------
         // Iterative version of my (recurrent) merge sort
-        // TODO: Although it passes unit tests for sorting I should manually review and verify this code later
         template<typename F>
         static list_node* merge_(const F fn, list_node* a, list_node* b) {
             list_node dummy;
