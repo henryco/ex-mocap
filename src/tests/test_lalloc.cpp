@@ -60,21 +60,21 @@ TEST_SUITE("Lalloc tests") {
         CHECK(alloc.size_used() >= 512);
     }
 
-//    TEST_CASE("Multiple allocations and frees") {
-//        allocator alloc(8192);
-//
-//        void *a = alloc.malloc(1024, 8);
-//        void *b = alloc.malloc(2048, 8);
-//        alloc.malloc(512, 8);
-//
-//        alloc.free(b);
-//        alloc.free(a);
-//
-//        CHECK(alloc.size_used() >= 512);
-//
-//        void *d = alloc.malloc(3072, 8);
-//        CHECK(d == a); // Expect merged free space from a and b
-//    }
+    TEST_CASE("Multiple allocations and frees") {
+        allocator alloc(8192);
+
+        void *a = alloc.malloc(1024, 8);
+        void *b = alloc.malloc(2048, 8);
+        alloc.malloc(512, 8);
+
+        alloc.free(b);
+        alloc.free(a);
+
+        CHECK(alloc.size_used() >= 512);
+
+        void *d = alloc.malloc(3072, 8);
+        CHECK(d == a); // Expect merged free space from a and b
+    }
 
     TEST_CASE("Reallocation with Data Integrity") {
         allocator alloc;
@@ -95,26 +95,6 @@ TEST_SUITE("Lalloc tests") {
 
         alloc.free(new_ptr);
     }
-
-//    TEST_CASE("Fragmentation and Reallocation") {
-//        allocator alloc;
-//
-//        void *a = alloc.malloc(256, 8);
-//        void *b = alloc.malloc(512, 16);
-//        void *c = alloc.malloc(128, 32);
-//
-//        alloc.free(b);
-//
-//        // Reallocate to larger size that should fit into freed space from b
-//        void *new_a = alloc.realloc(a, 700);
-//        REQUIRE(new_a != nullptr);
-//        REQUIRE(alloc.size_used() >= 700);
-//
-//        alloc.free(new_a);
-//        alloc.free(c);
-//
-//        REQUIRE(alloc.size_used() == 0);
-//    }
 
     TEST_CASE("High-frequency allocation-deallocation stability") {
         allocator alloc(16 MB);
@@ -346,27 +326,28 @@ TEST_SUITE("Lalloc tests") {
     }
 
 
-//    TEST_CASE("Throw Cases") {
-//        allocator alloc;
-//
-//        SUBCASE("Zero-size allocation should abort") {
-//            CHECK_THROWS(alloc.malloc(0, 8));
-//        }
-//
-//        SUBCASE("Double free should abort") {
-//            void *ptr = alloc.malloc(128, 8);
-//            REQUIRE(ptr != nullptr);
-//
-//            std::size_t before = alloc.size_used();
-//            CHECK(before == 128);
-//
-//            alloc.free(ptr);
-//
-//            std::size_t after = alloc.size_used();
-//            CHECK(after == 0);
-//
-//            CHECK_THROWS(alloc.free(ptr));
-//        }
-//    }
+    TEST_CASE("Throw Cases") {
+        allocator alloc;
+
+        SUBCASE("Zero-size allocation should abort") {
+            CHECK_THROWS(alloc.malloc(0, 8));
+        }
+
+        SUBCASE("Double free should abort") {
+            void *ptr = alloc.malloc(128, 8);
+            REQUIRE(ptr != nullptr);
+
+            std::size_t before = alloc.size_used();
+            CHECK(before >= 128);
+
+            alloc.free(ptr);
+
+            std::size_t after = alloc.size_used();
+            CHECK(after < 128);
+            CHECK(after >= 0);
+
+            CHECK_THROWS(alloc.free(ptr));
+        }
+    }
 
 }

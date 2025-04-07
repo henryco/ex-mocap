@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.30)
 project(ex_motion VERSION 0.1.1 LANGUAGES CXX)
 
+#set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto -funroll-loops -DNDEBUG" CACHE STRING "Release flags" FORCE)
+#set(CMAKE_C_FLAGS_RELEASE   "-O3 -flto -funroll-loops -DNDEBUG" CACHE STRING "Release flags" FORCE)
+
 option(ENABLE_TESTS "Build with unit tests" OFF)
 option(ENABLE_VALGRIND "Build with valgrind" OFF)
 
@@ -8,8 +11,8 @@ if (ENABLE_TESTS)
     add_subdirectory(external/doctest)
 endif ()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

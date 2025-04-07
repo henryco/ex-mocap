@@ -9,7 +9,7 @@
 
 namespace ex::gui {
 
-    inline int window_reset_flags(const bool reset, const bool standalone) {
+    int window_reset_flags(const bool reset, const bool standalone) {
         return reset ? (ImGuiWindowFlags_NoSavedSettings | (standalone ? ImGuiWindowFlags_AlwaysAutoResize : 0)) : 0;
     }
 
