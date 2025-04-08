@@ -24,7 +24,7 @@ namespace ex::logic::node::out {
 
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
-        static void          destroy(TreeNode *tree, limbo::graph::BaseNode *node);
+        static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
 
         void register_image(const char *name, uint w, uint h, uint channels = 3, uint bit_depth = 8);
 

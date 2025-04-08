@@ -8,7 +8,7 @@
 namespace ex::logic::mappers {
 
     namespace internal_ {
-        inline const data::array_map<id_type, NodeMapper> &instance_out_map_() {
+        const data::array_map<id_type, NodeMapper> &instance_out_map_() {
             static data::array_map<id_type, NodeMapper> instance;
 
             using display_t = ex::logic::node::out::DisplayOutputNode;

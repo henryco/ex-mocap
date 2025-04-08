@@ -9,7 +9,7 @@
 namespace ex::gui::mappers {
 
     namespace internal_ {
-        inline const data::array_map<id_type, GuiNodeMapper> &instance_out_map_() {
+        const data::array_map<id_type, GuiNodeMapper> &instance_out_map_() {
             static data::array_map<id_type, GuiNodeMapper> instance;
 
             namespace display_n = ex::gui::node::out::display;
