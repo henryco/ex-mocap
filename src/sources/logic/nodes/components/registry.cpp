@@ -12,7 +12,7 @@ namespace ex::logic::mappers {
 
     namespace internal_ {
 
-        NodeMapper verify_(const NodeMapper &mapper) {
+        inline NodeMapper verify_(const NodeMapper &mapper) {
             if (mapper.instance == nullptr)
                 abort_("mapper.instance == nullptr");
             if (mapper.relocate == nullptr)

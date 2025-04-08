@@ -97,7 +97,7 @@ namespace ex::main {
 
     void traverse_(State &state, TreeNode *node, bool *rewire, bool fresh);
 
-    void build_tree_(State &state, TreeNode *node, TreeNode *previous, simple_list *group_list);
+    void build_tree_(Logic &logic, State &state, TreeNode *node, TreeNode *previous, simple_list *group_list);
 
     bool connect_nodes_(TreeNode *from, TreeNode *to);
 
@@ -108,6 +108,8 @@ namespace ex::main {
     void synchronize_(Logic &logic);
 
     void reset_internal_state_(Logic &logic);
+
+    bool attach_to_clock_(Logic &logic, TreeNode *node);
 
     // == INTERNAL METHODS ==
 
@@ -239,56 +241,14 @@ namespace ex::main {
             node.val->detach_all();
 
         simple_list current = { state.logic.work_tree };
-        build_tree_(state, state.logic.work_tree, nullptr, &current);
+        build_tree_(logic, state, state.logic.work_tree, nullptr, &current);
 
         internal_::cleanup_nodes();
 
-        const simple_list *head = simple_list::get_head_(&current);
-        if (head == nullptr) {
-            return;
+        if (const simple_list *head = simple_list::get_head_(&current)) {
+            if (state.logic.work_tree != head->node)
+                attach_to_clock_(logic, head->node);
         }
-
-        const TreeNode *node = head->node;
-        if (node == nullptr) {
-            return;
-        }
-
-        const auto base_node = ex::logic::state::get_node(node->id_local);
-        if (base_node == nullptr) {
-            log->error("Node is nullptr: {}", node->id_local);
-            return;
-        }
-
-        int outputs_num = 0;
-        const auto outputs = base_node->describe_outputs(&outputs_num);
-
-        for (std::size_t i = 0; i < outputs_num; i++) {
-            const auto &output = outputs[i];
-            if (output.aux)
-                continue;
-
-            if (logic.clock_.attach(base_node)) {
-                std::cout << "main attached: " << base_node->get_id() << std::endl;
-                log->debug("Node {} [{}][{}] (main) attached to clock",
-                    base_node->get_node_name(), node->id_local, output.index);
-                return;
-            }
-        }
-
-        for (std::size_t i = 0; i < outputs_num; i++) {
-            const auto &output = outputs[i];
-            if (!output.aux)
-                continue;
-
-            if (logic.clock_.attach(base_node)) {
-                std::cout << "aux attached: " << base_node->get_id() << std::endl;
-                log->debug("Node {} [{}][{}] (aux) attached to clock",
-                    base_node->get_node_name(), node->id_local, output.index);
-                return;
-            }
-        }
-
-        log->error("Cannot connect node to clock");
     }
 
     void reset_internal_state_(Logic &logic) {
@@ -545,10 +505,49 @@ namespace ex::main {
         *v_ref     = std::min(*v_ref + 1, 10000000);
     }
 
-    void build_tree_(State &state, TreeNode *node, TreeNode *previous, simple_list *group_list) {
+    bool attach_to_clock_(Logic &logic, TreeNode *node) {
+        if (node == nullptr) {
+            return false;
+        }
 
-        // TODO IS_OUTPUT
-        // TODO FIXME NULL REF BUG
+        const auto base_node = ex::logic::state::get_node(node->id_local);
+        if (base_node == nullptr) {
+            log->error("Node is nullptr: {}", node->id_local);
+            return false;
+        }
+
+        int outputs_num = 0;
+        const auto outputs = base_node->describe_outputs(&outputs_num);
+
+        for (std::size_t i = 0; i < outputs_num; i++) {
+            const auto &output = outputs[i];
+            if (output.aux)
+                continue;
+
+            if (logic.clock_.attach(base_node)) {
+                log->debug("Node {} [{}][{}] (main) attached to clock",
+                    base_node->get_node_name(), node->id_local, output.index);
+                return true;
+            }
+        }
+
+        for (std::size_t i = 0; i < outputs_num; i++) {
+            const auto &output = outputs[i];
+            if (!output.aux)
+                continue;
+
+            if (logic.clock_.attach(base_node)) {
+                log->debug("Node {} [{}][{}] (aux) attached to clock",
+                    base_node->get_node_name(), node->id_local, output.index);
+                return true;
+            }
+        }
+
+        log->error("Cannot connect node to clock");
+        return false;
+    }
+
+    void build_tree_(Logic &logic, State &state, TreeNode *node, TreeNode *previous, simple_list *group_list) {
 
         if (node == nullptr || group_list == nullptr || (node->state >>= node_state::deleted))
             return;
@@ -560,6 +559,7 @@ namespace ex::main {
         if (node->state >>= node_state::is_group) {
             TreeNode *prev_node = previous;
             TreeNode *curr_node = nullptr;
+            TreeNode *last_node = nullptr;
 
             for (std::size_t i = 0; i < node->children_n; i++) {
                 const auto child_node = node->children[i];
@@ -569,21 +569,43 @@ namespace ex::main {
 
                 curr_node = child_node;
 
-                build_tree_(state, curr_node, prev_node, group_list);
+                build_tree_(logic, state, curr_node, prev_node, group_list);
 
-                if (!(curr_node->state >>= node_state::is_group)) {
+                if (!(curr_node->state >>= node_state::is_group) &&
+                    !(curr_node->state >>= node_state::is_output))
+                {
                     prev_node = curr_node;
+                }
+
+                if (!(curr_node->state >>= node_state::is_output)) {
+                    last_node = curr_node;
                 }
             }
 
-            if (curr_node != nullptr && !(curr_node->state >>= node_state::is_group)) {
+            if (last_node != nullptr &&
+                !(last_node->state >>= node_state::is_group) &&
+                !(last_node->state >>= node_state::is_output))
+            {
                 // add last non-group element within group to list
-                simple_list::get_head_(group_list)->next = new simple_list(curr_node);
+                simple_list::get_head_(group_list)->next = new simple_list(last_node);
             }
             return;
         }
 
         connect_nodes_(previous, node);
+
+        if (node->state >>= node_state::is_output) {
+
+            if (const auto base_node = ex::logic::state::get_node(node->id_local); base_node == nullptr) {
+                log->error("Node is nullptr: {}", node->id_local);
+            } else {
+                if (logic.clock_.attach(base_node)) {
+                    log->debug("Node {} [{}] attached to clock",
+                        base_node->get_node_name(), node->id_local);
+                }
+            }
+        }
+
         for (std::size_t i = 0; i < node->children_n; i++) {
             TreeNode *curr_node = node->children[i];
 
@@ -592,7 +614,7 @@ namespace ex::main {
                 continue;
 
             simple_list list = {};
-            build_tree_(state, curr_node, nullptr, &list);
+            build_tree_(logic, state, curr_node, nullptr, &list);
 
             const simple_list *head = list.next;
             while (head != nullptr) {
