@@ -29,23 +29,13 @@ namespace ex::logic::state {
 
     void replace_node(const id_local &id, limbo::graph::BaseNode *node) {
         static auto &store = node_store_();
-        if (store.contains(id)) {
-            const auto base = store.at(id);
-            base->detach_all();
-            store.remove(id);
-            delete base;
-        }
+        store.remove(id);
         store.put(id, node);
     }
 
     void remove_node(const id_local &id) {
         static auto &store = node_store_();
-        if (store.contains(id)) {
-            const auto base = store.at(id);
-            base->detach_all();
-            store.remove(id);
-            delete base;
-        }
+        store.remove(id);
     }
 
 } // namespace ex::logic::globals

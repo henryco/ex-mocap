@@ -15,7 +15,7 @@
 #include <iostream>
 
 namespace ex::main {
-    static inline const auto log = logs::get_logger("logic");
+    static const auto log = logs::get_logger("logic");
 }
 
 namespace internal_ {
@@ -379,13 +379,12 @@ namespace ex::main {
             }
 
         if (moved && !(node->state >>= node_state::is_link) && !(node->state >>= node_state::is_group)) {
-            const auto base = ex::logic::state::get_node(node->id_local);
-            const auto r_func = ex::logic::node_mappers()[node->id_node].relocate;
-            if (r_func != nullptr) {
-                const auto new_one = r_func(node, base);
-                if (base != new_one) {
-                    ex::logic::state::replace_node(node->id_local, new_one);
-                }
+            const logic::NodeMapper &mappers = ex::logic::node_mappers()[node->id_node];
+            const auto               base    = ex::logic::state::get_node(node->id_local);
+
+            if (const auto new_one = mappers.relocate(node, base); base != new_one) {
+                mappers.destroy(node, base);
+                ex::logic::state::replace_node(node->id_local, new_one);
             }
         }
 
@@ -517,11 +516,17 @@ namespace ex::main {
             if (!(node->state >>= node_state::is_group) && !(node->state >>= node_state::is_link)) {
 
                 const logic::NodeMapper &mappers = ex::logic::node_mappers()[node->id_node];
+
                 if (const auto node_ptr = ex::logic::state::get_node(node->id_local); node_ptr != nullptr) {
-                    if (node_ptr->get_id() != node->id_local)
+
+                    if (node_ptr->get_id() != node->id_local) {
+                        mappers.destroy(node, node_ptr);
                         ex::logic::state::replace_node(node->id_local, mappers.instance(node));
-                } else
+                    }
+
+                } else {
                     ex::logic::state::store_node(node->id_local, mappers.instance(node));
+                }
 
                 internal_::ptr_counter_map[node->id_local]++;
             }

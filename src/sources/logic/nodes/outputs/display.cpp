@@ -19,8 +19,9 @@ namespace ex::logic::node::out {
         return node;
     }
 
-    void DisplayOutputNode::destroy(TreeNode *, ln::BaseNode *) {
-
+    void DisplayOutputNode::destroy(TreeNode *, ln::BaseNode *node) {
+        node->detach_all();
+        delete node;
     }
 
     void DisplayOutputNode::register_image(const char *name, const uint w, const uint h, const uint channels,

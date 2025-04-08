@@ -11,19 +11,30 @@
 namespace ex::logic::mappers {
 
     namespace internal_ {
-        inline const data::array_map<id_type, NodeMapper> &instance_cmp_map_() {
+
+        NodeMapper verify_(const NodeMapper &mapper) {
+            if (mapper.instance == nullptr)
+                abort_("mapper.instance == nullptr");
+            if (mapper.relocate == nullptr)
+                abort_("mapper.relocate == nullptr");
+            if (mapper.destroy == nullptr)
+                abort_("mapper.destroy == nullptr");
+            return mapper;
+        }
+
+        const data::array_map<id_type, NodeMapper> &instance_cmp_map_() {
             static data::array_map<id_type, NodeMapper> instance;
             // TODO REPLACE WITH REAL COMPONENTS
-            instance.put(ex::gui::test::NodeOne::get_node_id(), ex::gui::test::one::data_mappers);
-            instance.put(ex::gui::test::NodeTwo::get_node_id(), ex::gui::test::two::data_mappers);
-            instance.put(ex::gui::test::NodeTri::get_node_id(), ex::gui::test::tri::data_mappers);
-            instance.put(0, ex::gui::test::one::data_mappers);
-            instance.put(1, ex::gui::test::tri::data_mappers);
-            instance.put(2, ex::gui::test::two::data_mappers);
-            instance.put(3, ex::gui::test::one::data_mappers);
-            instance.put(4, ex::gui::test::tri::data_mappers);
-            instance.put(5, ex::gui::test::two::data_mappers);
-            instance.put(6, ex::gui::test::one::data_mappers);
+            instance.put(ex::gui::test::NodeOne::get_node_id(), verify_(ex::gui::test::one::data_mappers));
+            instance.put(ex::gui::test::NodeTwo::get_node_id(), verify_(ex::gui::test::two::data_mappers));
+            instance.put(ex::gui::test::NodeTri::get_node_id(), verify_(ex::gui::test::tri::data_mappers));
+            instance.put(0, verify_(ex::gui::test::one::data_mappers));
+            instance.put(1, verify_(ex::gui::test::tri::data_mappers));
+            instance.put(2, verify_(ex::gui::test::two::data_mappers));
+            instance.put(3, verify_(ex::gui::test::one::data_mappers));
+            instance.put(4, verify_(ex::gui::test::tri::data_mappers));
+            instance.put(5, verify_(ex::gui::test::two::data_mappers));
+            instance.put(6, verify_(ex::gui::test::one::data_mappers));
             // TODO REPLACE WITH REAL COMPONENTS
             return instance;
         }

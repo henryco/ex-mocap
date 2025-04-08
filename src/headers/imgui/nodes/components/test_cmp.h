@@ -123,7 +123,8 @@ namespace ex::gui::test {
                                                        draw_node_window };
         limbo::graph::BaseNode *instance(TreeNode *from);
         limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
-        static constexpr logic::NodeMapper data_mappers = { instance, relocate };
+        void                    destroy(ex::TreeNode *tree, limbo::graph::BaseNode *node);
+        static constexpr logic::NodeMapper data_mappers = { instance, relocate, destroy };
     }
 
     namespace two {
@@ -136,7 +137,8 @@ namespace ex::gui::test {
                                                        draw_node_window };
         limbo::graph::BaseNode *instance(TreeNode *from);
         limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
-        static constexpr logic::NodeMapper data_mappers = { instance, relocate };
+        void                    destroy(ex::TreeNode *tree, limbo::graph::BaseNode *node);
+        static constexpr logic::NodeMapper data_mappers = { instance, relocate, destroy };
     }
 
     namespace tri {
@@ -149,7 +151,8 @@ namespace ex::gui::test {
                                                        draw_node_window };
         limbo::graph::BaseNode *instance(TreeNode *from);
         limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
-        static constexpr logic::NodeMapper data_mappers = { instance, relocate };
+        void                    destroy(ex::TreeNode *tree, limbo::graph::BaseNode *node);
+        static constexpr logic::NodeMapper data_mappers = { instance, relocate, destroy };
     }
 
 }

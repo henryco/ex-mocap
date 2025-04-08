@@ -51,7 +51,11 @@ namespace ex::gui::test::one {
         return node;
     }
 
-}
+    void destroy(ex::TreeNode *, limbo::graph::BaseNode *node) {
+        node->detach_all();
+        delete node;
+    }
+} // namespace ex::gui::test::one
 
 namespace ex::gui::test::two {
     const char *get_node_name() {
@@ -94,6 +98,10 @@ namespace ex::gui::test::two {
         return node;
     }
 
+    void destroy(ex::TreeNode *, limbo::graph::BaseNode *node) {
+        node->detach_all();
+        delete node;
+    }
 }
 
 namespace ex::gui::test::tri {
@@ -139,4 +147,8 @@ namespace ex::gui::test::tri {
         return node;
     }
 
+    void destroy(ex::TreeNode *, limbo::graph::BaseNode *node) {
+        node->detach_all();
+        delete node;
+    }
 }
