@@ -410,12 +410,21 @@ namespace limbo::graph {
         }
 
         void pull(const int clock_i) {
+
+            if (this->clock_i == clock_i)
+                return;
+
             for (int i = 0; i < connections.size; ++i) {
                 const io_node &connection = connections[i];
-                void *const stack_ptr = stack_map.at(connection.index_in);
+                void *const    stack_ptr  = stack_map.at(connection.index_in);
                 connection.node_ptr->out(connection.index_in, connection.index_out, clock_i, stack_ptr);
                 on_input(connection.index_in, connection.index_out, clock_i, stack_ptr);
             }
+
+            // ReSharper disable once CppCStyleCast
+            on_output(-1, -1, clock_i, (void *) -1);
+
+            this->clock_i = clock_i;
         }
 
         void out(const int in_idx, const int out_idx, const int clock_i, void *data) final {
