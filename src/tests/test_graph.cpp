@@ -27,6 +27,9 @@ struct node_test_one final : limbo::graph::BaseNode,
     }
 
     void on_output(const int in_idx, const int out_idx, const int clock_i, void *data) override {
+        // ReSharper disable once CppCStyleCast
+        if (in_idx < 0 || out_idx < 0 || data == ((void *) -1))
+            return;
         if (out_idx == 3)
             *(static_cast<float *>(data)) = out_float;
         else
@@ -53,6 +56,9 @@ struct node_test_two final : limbo::graph::BaseNode,
     }
 
     void on_output(const int in_idx, const int out_idx, const int clock_i, void *data) override {
+        // ReSharper disable once CppCStyleCast
+        if (in_idx < 0 || out_idx < 0 || data == ((void *) -1))
+            return;
         if (out_idx == 3)
             *(static_cast<float *>(data)) = out_float;
         else
@@ -79,6 +85,9 @@ struct node_test_tri final : limbo::graph::BaseNode,
     }
 
     void on_output(const int in_idx, const int out_idx, const int clock_i, void *data) override {
+        // ReSharper disable once CppCStyleCast
+        if (in_idx < 0 || out_idx < 0 || data == ((void *) -1))
+            return;
         if (out_idx == 3)
             *(static_cast<float *>(data)) = out_float;
         else
