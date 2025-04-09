@@ -183,7 +183,7 @@ namespace ex::gui::tree {
         if (offset > 0)
             ImGui::Separator();
 
-        for (int i = offset; i < tm::node_mappers_.key_entries.size; ++i) {
+        for (int i = 0; i < tm::node_mappers_.key_entries.size; ++i) {
             const auto &type_id = tm::node_mappers_.key_entries[i];
             const auto &mapper  = tm::node_mappers_.val_entries[i];
             const char *label = mapper.get_node_preview ? mapper.get_node_preview() : mapper.get_node_name();

@@ -176,6 +176,8 @@ set(HEADER_FILES
         src/sources/logic/nodes/outputs/display.cpp
         src/headers/io/serializer.h
         src/headers/utils/err_utils.h
+        src/headers/imgui/nodes/components/image.h
+        src/headers/logic/nodes/components/image.h
 )
 
 set(SOURCE_FILES
@@ -229,6 +231,8 @@ set(SOURCE_FILES
         src/sources/imgui/nodes/outputs/display.cpp
         src/sources/display/display.cpp
         src/sources/utils/err_utils.cpp
+        src/sources/imgui/nodes/components/image.cpp
+        src/sources/logic/nodes/components/image.cpp
 )
 
 # =================== OpenCL kernels generation =====================

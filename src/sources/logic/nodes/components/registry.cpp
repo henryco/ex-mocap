@@ -8,6 +8,8 @@
 #include "../../../../headers/imgui/nodes/components/test_cmp.h"
 // TODO REPLACE WITH REAL COMPONENTS
 
+#include "../../../../headers/logic/nodes/components/image.h"
+
 namespace ex::logic::mappers {
 
     namespace internal_ {
@@ -24,6 +26,11 @@ namespace ex::logic::mappers {
 
         const data::array_map<id_type, NodeMapper> &instance_cmp_map_() {
             static data::array_map<id_type, NodeMapper> instance;
+
+            using image_node_t = ex::logic::node::cmp::image::ImageNode;
+            instance.put(image_node_t::get_node_id(), verify_({
+                &image_node_t::instance, &image_node_t::relocate, &image_node_t::destroy }));
+
             // TODO REPLACE WITH REAL COMPONENTS
             instance.put(ex::gui::test::NodeOne::get_node_id(), verify_(ex::gui::test::one::data_mappers));
             instance.put(ex::gui::test::NodeTwo::get_node_id(), verify_(ex::gui::test::two::data_mappers));

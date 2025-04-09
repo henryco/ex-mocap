@@ -9,11 +9,17 @@
 #include "../../../../headers/imgui/nodes/components/test_cmp.h"
 // TODO REPLACE WITH REAL COMPONENTS
 
+#include "../../../../headers/imgui/nodes/components/image.h"
+
 namespace ex::gui::mappers {
 
     namespace internal_ {
         inline const data::array_map<id_type, GuiNodeMapper> &instance_cmp_map_() {
             static data::array_map<id_type, GuiNodeMapper> instance;
+
+            namespace image_node_n = ex::gui::node::cmp::image;
+            instance.put(image_node_n::get_node_type_id(), image_node_n::gui_mappers);
+
             // TODO REPLACE WITH REAL COMPONENTS
             instance.put(0, ex::gui::test::one::gui_mappers);
             instance.put(1, ex::gui::test::tri::gui_mappers);
