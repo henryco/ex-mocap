@@ -17,6 +17,8 @@ namespace ex::logic::state {
 
     limbo::graph::BaseNode *get_node(const id_local &);
 
+    limbo::graph::Clock &get_clock();
+
     void store_node(const id_local &, limbo::graph::BaseNode *);
 
     void replace_node(const id_local &, limbo::graph::BaseNode *);

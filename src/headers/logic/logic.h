@@ -2,16 +2,12 @@
 // Created by xd on 17/12/24.
 //
 
-#ifndef LOGIC_H
-#define LOGIC_H
-
-#include "../../../extra/graph/graph.h"
-#include "../state.h"
+#ifndef EX_MO_LOGIC_H
+#define EX_MO_LOGIC_H
 
 namespace ex::main {
 
     struct Logic {
-        limbo::graph::Clock clock_;
 
         Logic() = default;
 
@@ -32,4 +28,4 @@ namespace ex::main {
 
 }
 
-#endif //LOGIC_H
+#endif //EX_MO_LOGIC_H

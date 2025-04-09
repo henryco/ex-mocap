@@ -103,13 +103,13 @@ namespace ex::main {
 
     void mark_node_deleted_(State &state, TreeNode *node, bool moved);
 
-    void process_(Logic &logic);
+    void process_();
 
     void synchronize_(Logic &logic);
 
-    void reset_internal_state_(Logic &logic);
+    void reset_internal_state_();
 
-    bool attach_to_clock_(Logic &logic, TreeNode *node);
+    bool attach_to_clock_(TreeNode *node);
 
     // == INTERNAL METHODS ==
 
@@ -117,7 +117,7 @@ namespace ex::main {
     void Logic::initialize() {
         log->info("main logic initialization started");
 
-        reset_internal_state_(*this);
+        reset_internal_state_();
 
         log->info("main logic initialization synchronization");
         synchronize_(*this);
@@ -143,12 +143,12 @@ namespace ex::main {
         if (state.project.should_open) {
             state.project.should_open = false;
             deserialize_();
-            process_(*this);
+            process_();
             return;
         }
 
         synchronize_(*this);
-        process_(*this);
+        process_();
 
         if (state.project.should_save) {
             state.project.should_save = false;
@@ -160,7 +160,7 @@ namespace ex::main {
         static State &state = ex::logic::globals::state();
 
         log->info("create new project: {}", state.project.project_path);
-        reset_internal_state_(*this);
+        reset_internal_state_();
         synchronize_(*this);
         serialize_();
 
@@ -233,10 +233,11 @@ namespace ex::main {
 
     void rewire_(Logic &logic) {
         static State &state = ex::logic::globals::state();
+        static limbo::graph::Clock &clock = ex::logic::state::get_clock();
 
         log->debug("rewire");
 
-        logic.clock_.reset();
+        clock.reset();
         for (const auto &node : ex::logic::state::node_storage())
             node.val->detach_all();
 
@@ -247,14 +248,15 @@ namespace ex::main {
 
         if (const simple_list *head = simple_list::get_head_(&current)) {
             if (state.logic.work_tree != head->node)
-                attach_to_clock_(logic, head->node);
+                attach_to_clock_(head->node);
         }
     }
 
-    void reset_internal_state_(Logic &logic) {
+    void reset_internal_state_() {
         static State &state = ex::logic::globals::state();
+        static limbo::graph::Clock &clock = ex::logic::state::get_clock();
 
-        logic.clock_.reset();
+        clock.reset();
 
         if (state.logic.work_tree != nullptr)
             delete state.logic.work_tree;
@@ -267,13 +269,15 @@ namespace ex::main {
         state.logic.work_tree->children_n = 0;
     }
 
-    void process_(Logic &logic) {
+    void process_() {
         static State &state = ex::logic::globals::state();
+        static limbo::graph::Clock &clock = ex::logic::state::get_clock();
+
         static ex::time::measure_avg timing = 1000;
         if (state.metrics.timing_enabled)
             timing.start();
 
-        logic.clock_.pull();
+        clock.pull();
 
         if (state.metrics.timing_enabled && timing.stop())
             state.metrics.logic_duration_ns = timing.result();
@@ -505,7 +509,9 @@ namespace ex::main {
         *v_ref     = std::min(*v_ref + 1, 10000000);
     }
 
-    bool attach_to_clock_(Logic &logic, TreeNode *node) {
+    bool attach_to_clock_(TreeNode *node) {
+        static limbo::graph::Clock &clock = ex::logic::state::get_clock();
+
         if (node == nullptr) {
             return false;
         }
@@ -524,7 +530,7 @@ namespace ex::main {
             if (output.aux)
                 continue;
 
-            if (logic.clock_.attach(base_node)) {
+            if (clock.attach(base_node)) {
                 log->debug("Node {} [{}][{}] (main) attached to clock",
                     base_node->get_node_name(), node->id_local, output.index);
                 return true;
@@ -536,7 +542,7 @@ namespace ex::main {
             if (!output.aux)
                 continue;
 
-            if (logic.clock_.attach(base_node)) {
+            if (clock.attach(base_node)) {
                 log->debug("Node {} [{}][{}] (aux) attached to clock",
                     base_node->get_node_name(), node->id_local, output.index);
                 return true;
@@ -548,6 +554,7 @@ namespace ex::main {
     }
 
     void build_tree_(Logic &logic, State &state, TreeNode *node, TreeNode *previous, simple_list *group_list) {
+        static limbo::graph::Clock &clock = ex::logic::state::get_clock();
 
         if (node == nullptr || group_list == nullptr || (node->state >>= node_state::deleted))
             return;
@@ -599,7 +606,7 @@ namespace ex::main {
             if (const auto base_node = ex::logic::state::get_node(node->id_local); base_node == nullptr) {
                 log->error("Node is nullptr: {}", node->id_local);
             } else {
-                if (logic.clock_.attach(base_node)) {
+                if (clock.attach(base_node)) {
                     log->debug("Node {} [{}] attached to clock",
                         base_node->get_node_name(), node->id_local);
                 }

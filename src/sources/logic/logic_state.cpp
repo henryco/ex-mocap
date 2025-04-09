@@ -11,6 +11,11 @@ namespace ex::logic::state {
         return instance;
     }
 
+    limbo::graph::Clock &get_clock() {
+        static limbo::graph::Clock clock_;
+        return clock_;
+    }
+
     const ex::data::rb_map<id_local, limbo::graph::BaseNode *> &node_storage() {
         return node_store_();
     }
