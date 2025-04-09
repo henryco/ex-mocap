@@ -3,6 +3,7 @@
 //
 
 #include "../../../extra/data/data_utils.h"
+#include "../../../headers/utils/err_utils.h"
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/gui_mappers.h"
@@ -240,7 +241,7 @@ namespace ex::gui::tree {
             while (root != nullptr) {
                 const auto f_node = s->logic.work_tree->find_node(root->selected->id_local);
                 if (f_node == nullptr)
-                    throw std::runtime_error("Cannot find original node");
+                    abort__("Cannot find original node");
                 f_node->state -= node_state::moved;
                 f_node->state |= (node_state::moved && move);
                 root = root->next;
@@ -294,7 +295,7 @@ namespace ex::gui::tree {
             TreeState::reset(tree::state());
             const auto p_node = s->logic.work_tree->find_node(parent_id);
             if (p_node == nullptr)
-                throw std::runtime_error("Cannot find original node");
+                abort__("Cannot find original node");
 
             if (p_node->children_n <= 0 || p_node->children == nullptr) {
                 TreeNode *group = TreeNode::create();
@@ -343,7 +344,7 @@ namespace ex::gui::tree {
             TreeState::reset(tree::state());
             const auto p_node = s->logic.work_tree->find_node(parent_id);
             if (p_node == nullptr)
-                throw std::runtime_error("Cannot find original node");
+                abort__("Cannot find original node");
 
             TreeNode *new_copy = TreeNode::deep_copy(copy);
             new_copy->state |= node_state::created;
@@ -409,7 +410,7 @@ namespace ex::gui::tree {
             TreeState::reset(tree::state());
             const auto f_node = s->logic.work_tree->find_node(id_local);
             if (f_node == nullptr)
-                throw std::runtime_error("Cannot find original node");
+                abort__("Cannot find original node");
             f_node->name = og_name;
 
             if (upd_fn != nullptr)
@@ -419,7 +420,7 @@ namespace ex::gui::tree {
             TreeState::reset(tree::state());
             const auto f_node = s->logic.work_tree->find_node(id_local);
             if (f_node == nullptr)
-                throw std::runtime_error("Cannot find original node");
+                abort__("Cannot find original node");
             f_node->name = new_name;
 
             if (upd_fn != nullptr)
@@ -463,7 +464,7 @@ namespace ex::gui::tree {
                 p_node->insert_node(child_index, new_copy);
                 s->logic.active_node = new_copy;
             } else
-                throw std::runtime_error("Cannot find original node");
+                abort__("Cannot find original node");
         }),
 
         new std::function([snapshot, snap] {
@@ -543,13 +544,13 @@ namespace ex::gui::tree {
             TreeState::reset(tree::state());
             const auto p_node = s->logic.work_tree->find_node(parent_id);
             if (p_node == nullptr)
-                throw std::runtime_error("Cannot find original node");
+                abort__("Cannot find original node");
 
             auto root = selection;
             while (root != nullptr) {
                 const auto f_node = s->logic.work_tree->find_node(root->selected->id_local);
                 if (f_node == nullptr)
-                    throw std::runtime_error("Cannot find original node");
+                    abort__("Cannot find original node");
                 f_node->state -= node_state::moved;
                 f_node->state |= (node_state::moved && move);
                 root = root->next;
@@ -648,13 +649,13 @@ namespace ex::gui::tree {
             TreeState::reset(tree::state());
             const auto p_node = s->logic.work_tree->find_node(parent_id);
             if (p_node == nullptr)
-                throw std::runtime_error("Cannot find original node");
+                abort__("Cannot find original node");
 
             auto root = selection;
             while (root != nullptr) {
                 const auto f_node = s->logic.work_tree->find_node(root->selected->id_local);
                 if (f_node == nullptr)
-                    throw std::runtime_error("Cannot find original node");
+                    abort__("Cannot find original node");
                 f_node->state -= node_state::moved;
                 f_node->state |= (node_state::moved && move);
                 root = root->next;
@@ -714,11 +715,11 @@ namespace ex::gui::tree {
             TreeState::reset(tree::state());
             const auto p_node = s->logic.work_tree->find_node(parent_id);
             if (p_node == nullptr)
-                throw std::runtime_error("Cannot find original node");
+                abort__("Cannot find original node");
 
             const auto f_node = s->logic.work_tree->find_node(copy->id_local);
             if (f_node == nullptr)
-                throw std::runtime_error("Cannot find original node");
+                abort__("Cannot find original node");
             f_node->state |= node_state::moved;
 
             TreeNode *new_copy = TreeNode::deep_copy(copy);
@@ -772,11 +773,11 @@ namespace ex::gui::tree {
             TreeState::reset(tree::state());
             const auto p_node = s->logic.work_tree->find_node(parent_id);
             if (p_node == nullptr)
-                throw std::runtime_error("Cannot find original node");
+                abort__("Cannot find original node");
 
             const auto f_node = s->logic.work_tree->find_node(copy->id_local);
             if (f_node == nullptr)
-                throw std::runtime_error("Cannot find original node");
+                abort__("Cannot find original node");
             f_node->state |= node_state::moved;
 
             if (p_node->children_n <= 0 || p_node->children == nullptr) {
@@ -845,20 +846,20 @@ namespace ex::gui::tree {
         new std::function([new_group, parent_id, index, sorted] (ex::State *s) {
             TreeState::reset(tree::state());
             if (index < 0)
-                throw std::runtime_error("Cannot find original node, index < 0");
+                abort__("Cannot find original node, index < 0");
 
             auto node = sorted;
             while (node != nullptr) {
                 const auto child = s->logic.work_tree->find_node(node->selected->id_local);
                 if (child == nullptr)
-                    throw std::runtime_error("Cannot find original child node");
+                    abort__("Cannot find original child node");
                 child->state |= node_state::moved;
                 node         = node->next;
             }
 
             const auto p_node = s->logic.work_tree->find_node(parent_id);
             if (p_node == nullptr)
-                throw std::runtime_error("Cannot find original parent node");
+                abort__("Cannot find original parent node");
 
             p_node->insert_node(index, new_group->deep_copy());
         }),
@@ -914,20 +915,20 @@ namespace ex::gui::tree {
         new std::function([index, parent_id, sorted, temp_group] (ex::State *s) {
             TreeState::reset(tree::state());
             if (index < 0)
-                throw std::runtime_error("Cannot find original node, index < 0");
+                abort__("Cannot find original node, index < 0");
 
             auto node = sorted;
             while (node != nullptr) {
                 const auto child = s->logic.work_tree->find_node(node->selected->id_local);
                 if (child == nullptr)
-                    throw std::runtime_error("Cannot find original child node");
+                    abort__("Cannot find original child node");
                 child->state |= node_state::moved;
                 node         = node->next;
             }
 
             const auto p_node = s->logic.work_tree->find_node(parent_id);
             if (p_node == nullptr)
-                throw std::runtime_error("Cannot find original parent node");
+                abort__("Cannot find original parent node");
 
             for (int c = 0, i = index; c < temp_group->children_n; c++) {
                 const auto child = temp_group->children[c]->deep_copy();
@@ -966,7 +967,7 @@ namespace ex::gui::tree {
             s->logic.rewire = true;
             const auto f_node = s->logic.work_tree->find_node(id_l);
             if (f_node == nullptr)
-                throw std::runtime_error("Cannot find original node");
+                abort__("Cannot find original node");
             f_node->state -= node_state::disabled;
             f_node->state |= (og_state & node_state::disabled);
 
@@ -978,7 +979,7 @@ namespace ex::gui::tree {
             s->logic.rewire = true;
             const auto f_node = s->logic.work_tree->find_node(id_l);
             if (f_node == nullptr)
-                throw std::runtime_error("Cannot find original node");
+                abort__("Cannot find original node");
             f_node->state -= node_state::disabled;
 
             if (upd_fn != nullptr)
@@ -1004,7 +1005,7 @@ namespace ex::gui::tree {
             s->logic.rewire = true;
             const auto f_node = s->logic.work_tree->find_node(id_l);
             if (f_node == nullptr)
-                throw std::runtime_error("Cannot find original node");
+                abort__("Cannot find original node");
             f_node->state -= node_state::disabled;
             f_node->state |= (og_state & node_state::disabled);
 
@@ -1016,7 +1017,7 @@ namespace ex::gui::tree {
             s->logic.rewire = true;
             const auto f_node = s->logic.work_tree->find_node(id_l);
             if (f_node == nullptr)
-                throw std::runtime_error("Cannot find original node");
+                abort__("Cannot find original node");
             f_node->state |= node_state::disabled;
 
             if (const auto &upd_fn = i_::mappers_[f_node->id_node].update_tree_node)
@@ -1054,7 +1055,7 @@ namespace ex::gui::tree {
 
                 const auto f_node = s->logic.work_tree->find_node(k);
                 if (f_node == nullptr)
-                    throw std::runtime_error("Cannot find original node");
+                    abort__("Cannot find original node");
                 f_node->state -= node_state::disabled;
                 f_node->state |= (v & node_state::disabled);
 
@@ -1069,7 +1070,7 @@ namespace ex::gui::tree {
                 const auto &k = og_state.key_entries[ik];
                 const auto f_node = s->logic.work_tree->find_node(k);
                 if (f_node == nullptr)
-                    throw std::runtime_error("Cannot find original node");
+                    abort__("Cannot find original node");
                 f_node->state -= node_state::disabled;
 
                 if (const auto &upd_fn = i_::mappers_[f_node->id_node].update_tree_node)
@@ -1108,7 +1109,7 @@ namespace ex::gui::tree {
 
                 const auto f_node = s->logic.work_tree->find_node(k);
                 if (f_node == nullptr)
-                    throw std::runtime_error("Cannot find original node");
+                    abort__("Cannot find original node");
                 f_node->state -= node_state::disabled;
                 f_node->state |= (v & node_state::disabled);
 
@@ -1123,7 +1124,7 @@ namespace ex::gui::tree {
                 const auto &k = og_state.key_entries[ik];
                 const auto f_node = s->logic.work_tree->find_node(k);
                 if (f_node == nullptr)
-                    throw std::runtime_error("Cannot find original node");
+                    abort__("Cannot find original node");
                 f_node->state |= node_state::disabled;
 
                 if (const auto &upd_fn = i_::mappers_[f_node->id_node].update_tree_node)
@@ -1202,7 +1203,7 @@ namespace ex::gui::tree {
 
             const auto f_node = s->logic.work_tree->find_node(node_id);
             if (f_node == nullptr)
-               throw std::runtime_error("Cannot find original node");
+               abort__("Cannot find original node");
             f_node->state |= node_state::deleted;
         }),
         new std::function([snapshot] {

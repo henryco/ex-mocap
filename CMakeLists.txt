@@ -175,6 +175,7 @@ set(HEADER_FILES
         src/headers/imgui/gui_mappers.h
         src/sources/logic/nodes/outputs/display.cpp
         src/headers/io/serializer.h
+        src/headers/utils/err_utils.h
 )
 
 set(SOURCE_FILES
@@ -227,6 +228,7 @@ set(SOURCE_FILES
         src/sources/imgui/gui_mappers.cpp
         src/sources/imgui/nodes/outputs/display.cpp
         src/sources/display/display.cpp
+        src/sources/utils/err_utils.cpp
 )
 
 # =================== OpenCL kernels generation =====================
@@ -294,6 +296,10 @@ if (UNIX AND NOT APPLE)
     list(APPEND LINK_TARGET ${V4L2_LIBRARIES})
     list(APPEND COMP_TARGET ${V4L2_CFLAGS_OTHER})
 endif ()
+
+IF (NOT ENABLE_TESTS)
+    list(APPEND COMP_TARGET "-fno-exceptions")
+endif()
 
 set(RESULT_SOURCES
         ${KERNEL_FILES}

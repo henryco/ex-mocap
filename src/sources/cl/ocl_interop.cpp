@@ -14,7 +14,7 @@ namespace xm::ocl::iop {
             return cv::ACCESS_READ;
         if (access == ACCESS::WO)
             return cv::ACCESS_WRITE;
-        throw std::invalid_argument("Unknown access modifier");
+        abort__("Unknown access modifier");
     }
 
     cl_mem_flags access_to_cl(ACCESS access) {
@@ -24,14 +24,14 @@ namespace xm::ocl::iop {
             return CL_MEM_READ_ONLY;
         if (access == ACCESS::WO)
             return CL_MEM_WRITE_ONLY;
-        throw std::invalid_argument("Unknown access modifier");
+        abort__("Unknown access modifier");
     }
 
     xm::ocl::Image2D from_cv_mat(const cv::Mat &mat, cl_context context, cl_device_id device, xm::ocl::ACCESS access) {
         cl_int err;
         cl_mem buffer = clCreateBuffer(context, access_to_cl(access), mat.total() * mat.elemSize(), mat.data, &err);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot create OpenCL buffer: " + std::to_string(err));
+            abort__("Cannot create OpenCL buffer: %d", err);
         return xm::ocl::Image2D(
                 mat.cols,
                 mat.rows,
@@ -66,13 +66,13 @@ namespace xm::ocl::iop {
         size_t size = mat.total() * mat.elemSize();
         cl_mem buffer = clCreateBuffer(context, access_to_cl(access), size, nullptr, &err);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot create cl buffer: " + std::to_string(err));
+            abort__("Cannot create cl buffer: %d", err);
 
         err = clEnqueueWriteBuffer(
                 queue, buffer, CL_FALSE, 0,
                 size, mat.data, 0, nullptr, nullptr);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot enqueue copy data to cl buffer: " + std::to_string(err));
+            abort__("Cannot enqueue copy data to cl buffer: %d", err);
 
         auto image = xm::ocl::Image2D(
                 mat.cols,
@@ -133,14 +133,14 @@ namespace xm::ocl::iop {
         cl_mem buffer = clCreateBuffer(image.context,
                                        access_to_cl(access), image.size(), nullptr, &err);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot create cl buffer: " + std::to_string(err));
+            abort__("Cannot create cl buffer: %d", err);
 
         err = clEnqueueCopyBuffer(queue,
                                   image.handle, buffer,
                                   0, 0, image.size(),
                                   0, nullptr, nullptr);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot enqueue copy data between cl buffers: " + std::to_string(err));
+            abort__("Cannot enqueue copy data between cl buffers: %d", err);
 
         return ClImagePromise(xm::ocl::Image2D(image, buffer, access), queue)
         .withCleanup(promise);
@@ -166,7 +166,7 @@ namespace xm::ocl::iop {
         cl_mem       buffer = clCreateBuffer(image.context, access_to_cl(access), size,
                                        nullptr, &err);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot create cl buffer: " + std::to_string(err));
+            abort__("Cannot create cl buffer: %d", err);
 
         for (size_t row = 0; row < height; row++) {
             const size_t src_offset = ((yo + row) * image.cols + xo) * c_size;
@@ -184,7 +184,7 @@ namespace xm::ocl::iop {
                                       nullptr);
             if (err != CL_SUCCESS) {
                 clReleaseMemObject(buffer);
-                throw std::runtime_error("Cannot enqueue buffer copy: " + std::to_string(err));
+                abort__("Cannot enqueue buffer copy: %d", err);
             }
         }
 
@@ -217,7 +217,7 @@ namespace xm::ocl::iop {
                                          nullptr,
                                          nullptr);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot enqueue read buffer: " + std::to_string(err));
+            abort__("Cannot enqueue read buffer: %d", err);
 
         return CLPromise(dst, queue)
         .withCleanup(
@@ -228,7 +228,7 @@ namespace xm::ocl::iop {
 
     CLPromise<cv::Mat> to_cv_mat(const ClImagePromise &promise, int cv_type) {
         if (promise.queue() == nullptr)
-            throw std::invalid_argument("CLPromise cl_command_queue is NULL");
+            abort__("CLPromise cl_command_queue is NULL");
         return to_cv_mat(promise, promise.queue(), cv_type);
     }
 
@@ -316,7 +316,7 @@ namespace xm::ocl::iop {
             else err             = CL_SUCCESS;
 
             if (err != CL_SUCCESS)
-                throw std::runtime_error("Cannot finish command queue: " + std::to_string(err));
+                abort__("Cannot finish command queue: %d", err);
             completed = true;
 
             if (cleanup_container) {
@@ -487,7 +487,7 @@ namespace xm::ocl::iop {
 
                 if (err != CL_SUCCESS) {
                     delete[] list;
-                    throw std::runtime_error("Cannot finish command queue: " + std::to_string(err));
+                    abort__("Cannot finish command queue: %d", err);
                 }
                 if (p.cleanup_container) {
                     (*p.cleanup_container)();
@@ -540,7 +540,7 @@ namespace xm::ocl::iop {
 
                 if (err != CL_SUCCESS) {
                     delete[] list;
-                    throw std::runtime_error("Cannot finish command queue: " + std::to_string(err));
+                    abort__("Cannot finish command queue: %d", err);
                 }
                 if (p.cleanup_container) {
                     (*p.cleanup_container)();

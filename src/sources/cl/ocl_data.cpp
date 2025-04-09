@@ -2,8 +2,8 @@
 // Created by henryco on 11/06/24.
 //
 
-#include <stdexcept>
 #include "../../headers/cl/ocl_data.h"
+#include "../../headers/utils/err_utils.h"
 
 namespace xm::ocl {
 
@@ -29,13 +29,13 @@ namespace xm::ocl {
 
     cl_mem Image2D::get_handle(ACCESS desired) const {
         if ((static_cast<int>(desired) & static_cast<int>(access)) != static_cast<int>(desired))
-            throw std::invalid_argument("CL mem access denied");
+            abort__("CL mem access denied");
         return handle;
     }
 
     cl_mem &Image2D::get_handle(ACCESS desired) {
         if ((static_cast<int>(desired) & static_cast<int>(access)) != static_cast<int>(desired))
-            throw std::invalid_argument("CL mem access denied");
+            abort__("CL mem access denied");
         return handle;
     }
 
@@ -154,12 +154,12 @@ namespace xm::ocl {
         if (access == ACCESS::RO) flags = CL_MEM_READ_ONLY;
         else if (access == ACCESS::WO) flags = CL_MEM_WRITE_ONLY;
         else if (access == ACCESS::RW) flags = CL_MEM_READ_WRITE;
-        else throw std::invalid_argument("Invalid access modifier: " + std::to_string((int) access));
+        else abort__("Invalid access modifier: %d", static_cast<int>(access));
 
         cl_int err;
         cl_mem buffer = clCreateBuffer(context, flags, cols * rows * channels * channel_size, nullptr, &err);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot create cl buffer: " + std::to_string(err));
+            abort__("Cannot create cl buffer: %d", err);
         return Image2D(cols, rows, channels, channel_size, buffer, context, device, access);
     }
 

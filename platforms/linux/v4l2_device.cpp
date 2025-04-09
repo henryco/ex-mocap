@@ -7,13 +7,29 @@
 
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <cstring>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <stdarg.h>
 
 namespace ex::platform::dev {
+
+    void abort__(const char* format, ...) noexcept(true) {
+        const char* prefix = "Error: ";
+        char buffer[256];
+
+        size_t prefix_len = strlen(prefix);
+        memcpy(buffer, prefix, prefix_len);
+
+        va_list args;
+        va_start(args, format);
+        vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
+        va_end(args);
+
+        fprintf(stderr, "%s\n", buffer);
+        ::abort();
+    }
 
     namespace v4l2 {
 
@@ -220,7 +236,8 @@ namespace ex::platform::dev {
 
             const auto split_idx = device_uuid.find(':');
             if (split_idx == std::string::npos) {
-                throw std::invalid_argument("invalid device uuid " + device_uuid);
+                abort__("invalid device uuid: %s", device_uuid.c_str());
+                return nullptr;
             }
 
             const auto index = device_uuid.substr(0, split_idx);
@@ -232,7 +249,8 @@ namespace ex::platform::dev {
                 }
             }
 
-            throw std::invalid_argument("invalid device uuid " + device_uuid);
+            abort__("invalid device uuid: %s", device_uuid.c_str());
+            return nullptr;
         }
     }
 

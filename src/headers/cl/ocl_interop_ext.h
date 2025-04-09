@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "ocl_container.h"
+#include "../../headers/utils/err_utils.h"
 
 namespace xm::ocl::iop {
 
@@ -144,7 +145,7 @@ namespace xm::ocl::iop {
                 else err             = CL_SUCCESS;
 
                 if (err != CL_SUCCESS)
-                    throw std::runtime_error("Cannot finish command queue: " + std::to_string(err));
+                    abort__("Cannot finish command queue: %d", err);
                 completed = true;
 
                 if (cleanup_container) {
@@ -201,7 +202,7 @@ namespace xm::ocl::iop {
 
                     if (err != CL_SUCCESS) {
                         delete[] list;
-                        throw std::runtime_error("Cannot finish command queue: " + std::to_string(err));
+                        abort__("Cannot finish command queue: %d", err);
                     }
                     if (p.cleanup_container) {
                         (*p.cleanup_container)();
@@ -262,7 +263,7 @@ namespace xm::ocl::iop {
 
                     if (err != CL_SUCCESS) {
                         delete[] list;
-                        throw std::runtime_error("Cannot finish command queue: " + std::to_string(err));
+                        abort__("Cannot finish command queue: %d", err);
                     }
                     if (p.cleanup_container) {
                         (*p.cleanup_container)();

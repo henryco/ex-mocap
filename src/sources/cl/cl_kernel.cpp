@@ -3,7 +3,7 @@
 //
 
 #include "../../headers/cl/cl_kernel.h"
-#include <stdexcept>
+#include "../../headers/utils/err_utils.h"
 #include <chrono>
 
 namespace xm::ocl {
@@ -12,7 +12,7 @@ namespace xm::ocl {
         cl_int err;
         cl_context context = clCreateContext(nullptr, 1, &device, nullptr, nullptr, &err);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot create cl_context: " + std::to_string(err));
+            abort__("Cannot create cl_context: %d", err);
         return context;
     }
 
@@ -22,25 +22,25 @@ namespace xm::ocl {
         cl_uint platform_count;
         err = clGetPlatformIDs(0, nullptr, &platform_count);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot query platforms count: " + std::to_string(err));
+            abort__("Cannot query platforms count: %d", err);
 
         cl_platform_id *platforms;
         platforms = new cl_platform_id[platform_count];
         err = clGetPlatformIDs(platform_count, platforms, nullptr);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot query platforms: " + std::to_string(err));
+            abort__("Cannot query platforms: %d", err);
 
         cl_uint device_count;
         cl_platform_id platform = platforms[0];
         err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, nullptr, &device_count);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot query gpu device count: " + std::to_string(err));
+            abort__("Cannot query gpu device count: %d", err);
 
         cl_device_id *devices;
         devices = new cl_device_id[device_count];
         err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, device_count, devices, nullptr);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot query gpu device id: " + std::to_string(err));
+            abort__("Cannot query gpu device id: %d", err);
 
         auto dev = devices[0];
         delete[] platforms;
@@ -65,7 +65,7 @@ namespace xm::ocl {
                 &max_workgroup_size,
                 nullptr);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Error querying device for max work-group size: " + std::to_string(err));
+            abort__("Error querying device for max work-group size: %d", err);
 
         size_t preferred_workgroup_size_multiple;
         err = clGetKernelWorkGroupInfo(
@@ -76,8 +76,7 @@ namespace xm::ocl {
                 &preferred_workgroup_size_multiple,
                 nullptr);
         if (err != CL_SUCCESS)
-            throw std::runtime_error(
-                    "Error querying kernel for preferred work-group size multiple: " + std::to_string(err));
+            abort__("Error querying kernel for preferred work-group size multiple: %d", err);
 
         return preferred_workgroup_size_multiple > max_workgroup_size
                ? max_workgroup_size
@@ -95,22 +94,22 @@ namespace xm::ocl {
         cl_int err;
         cl_program program = clCreateProgramWithSource(context, 1, &s, nullptr, &err);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot create cl_program from source [" + name + "]: "  + std::to_string(err));
+            abort__("Cannot create cl_program from source [%s]: %d", name.c_str(), err);
 
         err = clBuildProgram(program, 1, &device, o, nullptr, nullptr);
         if (err != CL_SUCCESS) {
             size_t log_size;
             err = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
             if (err != CL_SUCCESS)
-                throw std::runtime_error("Error getting build log size [" + name + "]");
+                abort__("Error getting build log size [%s]: %d", name.c_str(), err);
 
             auto log = new char[log_size];
             err = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, log_size, log, NULL);
             if (err != CL_SUCCESS) {
                 delete[] log;
-                throw std::runtime_error("Error getting error build log [" + name + "]");
+                abort__("Error getting error build log [%s]: %d", name.c_str(), err);
             }
-            throw std::runtime_error("Cannot build cl_program [" + name + "]: " + std::string(log, log_size));
+            abort__("Cannot build cl_program [%s]: %s%d", name.c_str(), log, log_size);
         }
 
         return program;
@@ -120,7 +119,7 @@ namespace xm::ocl {
         cl_int err;
         cl_kernel kernel = clCreateKernel(program, name.c_str(), &err);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot build cl_kernel [" + std::to_string(err) + "]: " + name);
+            abort__("Cannot build cl_kernel [%d]: %s", err, name.c_str());
         return kernel;
     }
 
@@ -130,7 +129,7 @@ namespace xm::ocl {
         cl_command_queue_properties properties[] = {CL_QUEUE_PROPERTIES, profiling, 0};
         cl_command_queue queue = clCreateCommandQueueWithProperties(context, device, properties, &err);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot create cl_command_queue: " + std::to_string(err));
+            abort__("Cannot create cl_command_queue: %d", err);
         return queue;
     }
 
@@ -144,7 +143,7 @@ namespace xm::ocl {
                               &device_queue_properties,
                               nullptr);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot query device for command queue properties: " + std::to_string(err));
+            abort__("Cannot query device for command queue properties: %d", err);
 
 //        cl_command_queue_properties dev_queue = (device_queue_properties & CL_QUEUE_ON_DEVICE) ? CL_QUEUE_ON_DEVICE : 0;
         cl_command_queue_properties dev_queue = 0; // TODO TEST LATER
@@ -155,7 +154,7 @@ namespace xm::ocl {
                 0};
         cl_command_queue queue = clCreateCommandQueueWithProperties(context, device, properties, &err);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot create cl_command_queue: " + std::to_string(err));
+            abort__("Cannot create cl_command_queue: %d", err);
         return queue;
     }
 
@@ -179,16 +178,14 @@ namespace xm::ocl {
     cl_uint set_kernel_arg(cl_kernel kernel, cl_uint arg_index, size_t arg_size, void *arg_value) {
         const auto err = clSetKernelArg(kernel, arg_index, arg_size, arg_value);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot set kernel argument "
-                                     + std::to_string(arg_index) + ": " + std::to_string(err));
+            abort__("Cannot set kernel argument %d:", arg_index, err);
         return arg_index + (cl_uint) 1;
     }
 
     cl_uint set_kernel_arg_ptr(cl_kernel kernel, cl_uint arg_index, void *svm_ptr) {
         const auto err = clSetKernelArgSVMPointer(kernel, arg_index, svm_ptr);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot set kernel argument ptr "
-                                     + std::to_string(arg_index) + ": " + std::to_string(err));
+            abort__("Cannot set kernel argument ptr %d:", arg_index, err);
         return arg_index + (cl_uint) 1;
     }
 
@@ -214,11 +211,11 @@ namespace xm::ocl {
                 nullptr,
                 &kernel_event);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot enqueue kernel: " + std::to_string(err));
+            abort__("Cannot enqueue kernel %d:", err);
 
         err = clFlush(command_queue);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot flush command queue: " + std::to_string(err));
+            abort__("Cannot flush command queue %d:", err);
 
         clWaitForEvents(1, &kernel_event);
         if (profile)
@@ -249,7 +246,7 @@ namespace xm::ocl {
                 nullptr,
                 profile ? &kernel_event : nullptr);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot enqueue kernel: " + std::to_string(err));
+            abort__("Cannot enqueue kernel %d:", err);
 
         return profile ? kernel_event : nullptr;
     }
@@ -258,14 +255,14 @@ namespace xm::ocl {
         cl_int err;
         err = clFinish(queue);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot finish command queue: " + std::to_string(err));
+            abort__("Cannot finish command queue %d:", err);
     }
 
     bool check_svm_cap(cl_device_id device) {
         cl_device_svm_capabilities svmCapabilities;
         cl_int err = clGetDeviceInfo(device, CL_DEVICE_SVM_CAPABILITIES, sizeof(svmCapabilities), &svmCapabilities, nullptr);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot query for device svm capabilities: " + std::to_string(err));
+            abort__("Cannot query for device svm capabilities %d:", err);
         return (svmCapabilities & CL_DEVICE_SVM_COARSE_GRAIN_BUFFER);
     }
 
@@ -280,13 +277,13 @@ namespace xm::ocl {
         cl_uint platform_count;
         err = clGetPlatformIDs(0, nullptr, &platform_count);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot query platforms count: " + std::to_string(err));
+            abort__("Cannot query platforms count %d:", err);
 
         cl_platform_id *platforms;
         platforms = new cl_platform_id[platform_count];
         err = clGetPlatformIDs(platform_count, platforms, nullptr);
         if (err != CL_SUCCESS)
-            throw std::runtime_error("Cannot query platforms: " + std::to_string(err));
+            abort__("Cannot query platforms %d:", err);
 
         cl_platform_id platform = platforms[0];
         delete[] platforms;
@@ -294,14 +291,14 @@ namespace xm::ocl {
         size_t platform_ext_size;
         err = clGetPlatformInfo(platform, CL_PLATFORM_EXTENSIONS, 0, NULL, &platform_ext_size);
         if (err != CL_SUCCESS) {
-            throw std::runtime_error("Cannot query gpu device platform extension size: " + std::to_string(err));
+            abort__("Cannot query gpu device platform extension size %d:", err);
         }
 
         auto platform_extensions = new char[platform_ext_size];
         err = clGetPlatformInfo(platform, CL_PLATFORM_EXTENSIONS, platform_ext_size, platform_extensions, NULL);
         if (err != CL_SUCCESS) {
             delete[] platform_extensions;
-            throw std::runtime_error("Cannot query gpu device platform extension size: " + std::to_string(err));
+            abort__("Cannot query gpu device platform extension size: %d", err);
         }
 
         cl_device_id device_id;
@@ -310,7 +307,7 @@ namespace xm::ocl {
             err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, nullptr, &device_count);
             if (err != CL_SUCCESS) {
                 delete[] platform_extensions;
-                throw std::runtime_error("Cannot query gpu device count: " + std::to_string(err));
+                abort__("Cannot query gpu device count: %d", err);
             }
 
             cl_device_id *devices;
@@ -319,7 +316,7 @@ namespace xm::ocl {
             if (err != CL_SUCCESS) {
                 delete[] platform_extensions;
                 delete[] devices;
-                throw std::runtime_error("Cannot query gpu device id: " + std::to_string(err));
+                abort__("Cannot query gpu device id: %d", err);
             }
             device_id = devices[0];
             delete[] devices;
@@ -331,7 +328,7 @@ namespace xm::ocl {
         err = clGetDeviceInfo(device_id, CL_DEVICE_EXTENSIONS, 0, NULL, &device_ext_size);
         if (err != CL_SUCCESS) {
             delete[] platform_extensions;
-            throw std::runtime_error("Cannot query gpu device extensions size");
+            abort__("Cannot query gpu device extensions size: %d", err);
         }
 
         auto device_extensions = new char[device_ext_size];
@@ -339,7 +336,7 @@ namespace xm::ocl {
         if (err != CL_SUCCESS) {
             delete[] platform_extensions;
             delete[] device_extensions;
-            throw std::runtime_error("Cannot query gpu device extensions");
+            abort__("Cannot query gpu device extensions: %d", err);
         }
 
         const std::string p(platform_extensions, platform_ext_size);
@@ -358,6 +355,6 @@ namespace xm::ocl {
         cl_int err = clGetMemObjectInfo(obj, CL_MEM_REFERENCE_COUNT, sizeof(count), &count, NULL);
         if (err == CL_SUCCESS)
             return count;
-        throw std::runtime_error("Cannot query reference count for cl_mem: " + std::to_string(err));
+        abort__("Cannot query reference count for cl_mem: %d", err);
     }
 }
