@@ -64,28 +64,33 @@ namespace ex::gui::node::cmp::image {
             img_node = ptr;
         }
 
+        const char *source_file = nullptr;
         if (img_node->state.selected) {
+            source_file = img_node->state.source;
             ImGui::SeparatorText(strings::node_component_image_source);
-            ImGui::TextWrapped("%s", img_node->state.source);
+            ImGui::TextWrapped("%s", source_file);
         } else {
+            source_file = state.project.project_path;
             ImGui::SeparatorText(strings::node_component_image_sourceless);
         }
 
         ImGui::NewLine();
 
-        ImVec2 textSize = ImGui::CalcTextSize(strings::node_component_image_select);
-        float posX = (ImGui::GetContentRegionAvail().x - textSize.x) * 0.5f;
-        ImGui::SetCursorPosX(posX);
+        const ImVec2 text_size = ImGui::CalcTextSize(strings::node_component_image_select);
+        const float pos_x = (ImGui::GetContentRegionAvail().x - text_size.x) * 0.5f;
+        ImGui::SetCursorPosX(pos_x);
 
         static bool open_ = false;
         if (ImGui::Button(strings::node_component_image_select)) {
             open_ = true;
         }
 
-        if (img_node->state.selected)
-            internal_::show_open_file_picker_(&open_, img_node->state.source, img_node);
-        else
-            internal_::show_open_file_picker_(&open_, state.project.project_path, img_node);
+        internal_::show_open_file_picker_(&open_, source_file, img_node);
+
+        if (!img_node->state.selected)
+            return true;
+
+        // TODO
 
         return true;
     }
