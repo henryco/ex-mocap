@@ -168,17 +168,17 @@ namespace ex::io::bytes {
             if (size <= this->size)
                 return;
             if (this->size <= 0) {
-                this->data = static_cast<unsigned char *>(malloc(size));
+                this->data = static_cast<unsigned char *>(::malloc(size));
                 this->size = size;
             } else {
-                this->data = static_cast<unsigned char *>(realloc(this->data, size));
+                this->data = static_cast<unsigned char *>(::realloc(this->data, size));
                 this->size = size;
             }
         }
 
         ~byte_buffer() {
             if (this->data != nullptr)
-                std::free(this->data);
+                ::free(this->data);
             this->data = nullptr;
             this->size = 0;
         }
