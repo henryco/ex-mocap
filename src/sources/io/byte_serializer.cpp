@@ -223,17 +223,13 @@ namespace ex::io::bytes {
             // write tree node data
             out::object(buffer, TYPE_NODE_OBJ, sizeof(tree_node_1), serial);
 
-            // TODO
-//            if (const auto serializable = dynamic_cast<limbo::graph::Serialization<ByteSerializer> *>(
-//                        ex::logic::state::get_node(node->id_local));
-//                serializable != nullptr)
-//            {
-//                if (const auto serialized = serializable->serialize(); !serialized.empty()) {
-//                    // write base node data
-//                    out::object(buffer, TYPE_NODE_DAT, serialized.size, serialized.data);
-//                    garbage_collector.tmp_2.push(serialized);
-//                }
-//            }
+            if (const auto serializable = dynamic_cast<ByteSerializer *>(ex::logic::state::get_node(node->id_local)))  {
+                if (const auto serialized = serializable->serialize(nullptr); !serialized.empty()) {
+                    // write base node data
+                    out::object(buffer, TYPE_NODE_DAT, serialized.size, serialized.data);
+                    garbage_collector.tmp_2.push(serialized);
+                }
+            }
 
             if (node->children_n <= 0 || node->children == nullptr) {
                 out::end_array(buffer);
@@ -339,10 +335,9 @@ namespace ex::io::bytes {
                     if (base_node == nullptr)
                         continue;
 
-                    // TODO
-//                    const auto serializable = dynamic_cast<limbo::graph::Serialization<ByteSerializer> *>(base_node);
-//                    if (serializable != nullptr)
-//                        serializable->deserialize(byte_array::from(data + i, obj_size_b));
+                    const auto serializable = dynamic_cast<ByteSerializer *>(base_node);
+                    if (serializable != nullptr)
+                        serializable->deserialize(byte_array::from(data + i, obj_size_b));
                 }
             }
 
