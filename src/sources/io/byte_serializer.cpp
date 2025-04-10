@@ -223,7 +223,7 @@ namespace ex::io::bytes {
             // write tree node data
             out::object(buffer, TYPE_NODE_OBJ, sizeof(tree_node_1), serial);
 
-            if (const auto serializable = dynamic_cast<ByteSerializer *>(ex::logic::state::get_node(node->id_local)))  {
+            if (const auto serializable = dynamic_cast<serializer<byte_array> *>(ex::logic::state::get_node(node->id_local)))  {
                 if (const auto serialized = serializable->serialize(nullptr); !serialized.empty()) {
                     // write base node data
                     out::object(buffer, TYPE_NODE_DAT, serialized.size, serialized.data);
@@ -335,7 +335,7 @@ namespace ex::io::bytes {
                     if (base_node == nullptr)
                         continue;
 
-                    const auto serializable = dynamic_cast<ByteSerializer *>(base_node);
+                    const auto serializable = dynamic_cast<serializer<byte_array> *>(base_node);
                     if (serializable != nullptr)
                         serializable->deserialize(byte_array::from(data + i, obj_size_b));
                 }
