@@ -6,14 +6,13 @@
 #include "../../../../headers/logic/nodes/components/image.h"
 #include "../../../../headers/imgui/strings/gui_strings.h"
 #include "../../../../headers/imgui/gui_globals.h"
-#include "../../../../headers/logic/logic_state.h"
 #include "../../../../headers/logic/logic_globals.h"
+#include "../../../../headers/logic/logic_state.h"
 #include "../../../../headers/utils/gui_utils.h"
 
 #include <IconsLucide.h>
 #include <simpfp.h>
 #include "imgui.h"
-
 
 namespace ex::gui::node::cmp::image {
 
@@ -38,7 +37,7 @@ namespace ex::gui::node::cmp::image {
             nullptr
         };
 
-        void show_open_file_picker_(bool *open, const char *def_path, imgn::image_state_ *state);
+        void show_open_file_picker_(bool *open, const char *def_path, imgn::ImageNode *img_node);
     }
 
     unsigned long int get_node_type_id() {
@@ -51,15 +50,11 @@ namespace ex::gui::node::cmp::image {
         return generic_node(out_name, false, selected, nested, expand, collapse);
     }
 
-    void update_tree_node(TreeNode *node) {
-        if (node == nullptr)
-            return;
-        // TODO
+    void update_tree_node(TreeNode *) {
     }
 
     bool draw_node_window(GuiNodeWindow *window) {
         static ex::State &state = ex::logic::globals::state();
-        static GuiState  &gui   = ex::gui::state();
 
         static imgn::ImageNode *img_node = nullptr;
         if (img_node == nullptr || img_node->get_id() != window->node->id_local) {
@@ -69,24 +64,28 @@ namespace ex::gui::node::cmp::image {
             img_node = ptr;
         }
 
-        imgn::image_state_ *state_ = &img_node->state;
+        if (img_node->state.selected) {
+            ImGui::SeparatorText(strings::node_component_image_source);
+            ImGui::TextWrapped("%s", img_node->state.source);
+        } else {
+            ImGui::SeparatorText(strings::node_component_image_sourceless);
+        }
 
-        ImGui::SeparatorText("Source not selected");
         ImGui::NewLine();
 
-        const char* text = " Select ";
-        ImVec2 textSize = ImGui::CalcTextSize(text);
+        ImVec2 textSize = ImGui::CalcTextSize(strings::node_component_image_select);
         float posX = (ImGui::GetContentRegionAvail().x - textSize.x) * 0.5f;
         ImGui::SetCursorPosX(posX);
 
         static bool open_ = false;
-        if (ImGui::Button(text)) {
+        if (ImGui::Button(strings::node_component_image_select)) {
             open_ = true;
         }
 
-        internal_::show_open_file_picker_(&open_, state.project.project_path, state_);
-
-        // TODO
+        if (img_node->state.selected)
+            internal_::show_open_file_picker_(&open_, img_node->state.source, img_node);
+        else
+            internal_::show_open_file_picker_(&open_, state.project.project_path, img_node);
 
         return true;
     }
@@ -105,7 +104,7 @@ namespace ex::gui::node::cmp::image {
         return strings::node_component_image_name;
     }
 
-    void internal_::show_open_file_picker_(bool *open, const char *def_path, imgn::image_state_ *state) {
+    void internal_::show_open_file_picker_(bool *open, const char *def_path, imgn::ImageNode *img_node) {
         if (open == nullptr || !*open)
             return;
 
@@ -121,11 +120,7 @@ namespace ex::gui::node::cmp::image {
             if (static char file[256]; simpfp::FileAccepted(file, sizeof(file))) {
                 const auto path = std::filesystem::path(file);
                 if (std::filesystem::exists(path) && std::filesystem::is_regular_file(path)) {
-
-                    ::strncpy(state->source, file, sizeof(state->source));
-                    state->source[sizeof(state->source) - 1] = '\0';
-                    state->selected = true;
-
+                    img_node->set_image(file);
                     *open = false;
                     simpfp::CloseFileDialog();
                 } else {

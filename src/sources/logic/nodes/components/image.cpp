@@ -23,6 +23,14 @@ namespace ex::logic::node::cmp::image {
         delete node;
     }
 
+    void ImageNode::set_image(const char *image_path) {
+        ::strncpy(state.source, image_path, sizeof(state.source));
+        state.source[sizeof(state.source) - 1] = '\0';
+        state.selected = true;
+
+        // TODO
+    }
+
     void ImageNode::on_input(int in_idx, int out_idx, int clock_i, const void *data) {
         // TODO
     }

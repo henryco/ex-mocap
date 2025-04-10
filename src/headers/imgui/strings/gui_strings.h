@@ -137,7 +137,10 @@ namespace ex::gui::strings {
 
     constexpr auto node_output_display_name = "Display";
 
-    constexpr auto node_component_image_name = "Image";
+    constexpr auto node_component_image_name       = "Image";
+    constexpr auto node_component_image_select     = " Select ";
+    constexpr auto node_component_image_source     = "Source";
+    constexpr auto node_component_image_sourceless = "Source not selected";
 }
 
 #endif //GUI_STRINGS_H

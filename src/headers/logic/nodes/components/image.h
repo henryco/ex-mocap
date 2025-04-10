@@ -10,7 +10,7 @@
 
 namespace ex::logic::node::cmp::image {
 
-    struct image_state_ {
+    struct image_state {
         char source[255];
         bool selected;
     };
@@ -19,11 +19,13 @@ namespace ex::logic::node::cmp::image {
                              limbo::graph::id::name<"image_source_node">,
                              limbo::graph::io::out<proto::image, 1, "Loaded image">
     {
-        image_state_ state;
+        image_state state;
 
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
         static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
+
+        void set_image(const char *image_path);
 
         void on_input(int in_idx, int out_idx, int clock_i, const void *data) override;
 
