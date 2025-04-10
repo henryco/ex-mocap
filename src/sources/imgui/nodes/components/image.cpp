@@ -90,7 +90,7 @@ namespace ex::gui::node::cmp::image {
         if (!img_node->state.selected)
             return true;
 
-        // TODO
+        // TODO image resize etc ?
 
         return true;
     }
