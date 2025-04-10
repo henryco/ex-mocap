@@ -8,8 +8,10 @@
 
 namespace ex::logic::node::cmp::image {
 
-    limbo::graph::BaseNode *ImageNode::instance(TreeNode *) {
-        return new ImageNode();
+    limbo::graph::BaseNode *ImageNode::instance(TreeNode *node) {
+        ImageNode *ptr = new ImageNode();
+        ptr->set_id(node->id_local);
+        return ptr;
     }
 
     limbo::graph::BaseNode *ImageNode::relocate(TreeNode *, limbo::graph::BaseNode *node) {
@@ -30,12 +32,10 @@ namespace ex::logic::node::cmp::image {
     }
 
     ImageNode::~ImageNode() {
-        ex::logic::globals::logger()->debug("~ImageNode()");
         // TODO
     }
 
-    ImageNode::ImageNode() {
-        ex::logic::globals::logger()->debug("ImageNode()");
+    ImageNode::ImageNode() : state({ .source = {}, .selected = false }) {
         // TODO
     }
 }

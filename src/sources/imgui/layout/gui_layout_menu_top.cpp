@@ -11,7 +11,6 @@
 #include "../../../headers/utils/gui_utils.h"
 
 #include <IconsLucide.h>
-#include <simpfp.h>
 
 namespace ex::gui {
 

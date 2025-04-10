@@ -10,10 +10,16 @@
 
 namespace ex::logic::node::cmp::image {
 
+    struct image_state_ {
+        char source[255];
+        bool selected;
+    };
+
     struct ImageNode final : limbo::graph::BaseNode,
-                                limbo::graph::id::name<"image_source_node">,
-                                limbo::graph::io::out<proto::image, 1, "Loaded image">
+                             limbo::graph::id::name<"image_source_node">,
+                             limbo::graph::io::out<proto::image, 1, "Loaded image">
     {
+        image_state_ state;
 
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);

@@ -43,7 +43,7 @@ namespace ex::gui {
             window = other.window;
             id     = other.id;
             if (other.window.uuid != nullptr) {
-                const auto buffer = new char[strlen(other.window.uuid) + 1];
+                const auto buffer = static_cast<char *>(::malloc(strlen(other.window.uuid) + 1));
                 strcpy(buffer, other.window.uuid);
                 window.uuid = buffer;
             }
@@ -67,7 +67,7 @@ namespace ex::gui {
             id     = other.id;
 
             if (other.window.uuid != nullptr) {
-                const auto buffer = new char[strlen(other.window.uuid) + 1];
+                const auto buffer = static_cast<char *>(::malloc(strlen(other.window.uuid) + 1));
                 strcpy(buffer, other.window.uuid);
                 window.uuid = buffer;
             }
@@ -78,6 +78,9 @@ namespace ex::gui {
         Box &operator = (Box &&other) noexcept {
             if (this == &other)
                 return *this;
+
+            if (window.uuid != nullptr)
+                ::free((void *) window.uuid);
 
             window = other.window;
             id     = other.id;
@@ -91,17 +94,16 @@ namespace ex::gui {
         }
 
         ~Box() {
-            if (window.uuid != nullptr) {
-                delete window.uuid;
-            }
+            if (window.uuid != nullptr)
+                ::free((void *) window.uuid);
         }
     };
 
     void gen_uuid(GuiNodeWindow &window) {
-        const auto buffer = new char[strlen(window.node->name) + 64];
+        const auto buffer = static_cast<char *>(::malloc(strlen(window.node->name) + 64));
         sprintf(buffer, "%s##window/%d/%lu", window.node->name, window.node->id_local, window.node->id_node);
         if (window.uuid != nullptr)
-            delete window.uuid;
+            ::free((void *) window.uuid);
         window.uuid = buffer;
     }
 
