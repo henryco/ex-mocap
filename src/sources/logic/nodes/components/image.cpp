@@ -6,6 +6,11 @@
 #include "../../../../headers/logic/nodes/logic_nodes.h"
 #include "../../../../headers/logic/logic_globals.h"
 
+// STB INCLUDES ---------------------------------
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+// STB INCLUDES ---------------------------------
+
 namespace ex::logic::node::cmp::image {
 
     limbo::graph::BaseNode *ImageNode::instance(TreeNode *node) {
@@ -28,6 +33,13 @@ namespace ex::logic::node::cmp::image {
         state.source[sizeof(state.source) - 1] = '\0';
         state.selected = true;
 
+        if (source.data_ptr != nullptr) {
+            stbi_image_free(source.data_ptr);
+            source.data_ptr = nullptr;
+        }
+
+        // RGBA
+        source.data_ptr = stbi_load(image_path, &source.width, &source.height, &source.channels, 0);
         // TODO
     }
 
@@ -50,11 +62,14 @@ namespace ex::logic::node::cmp::image {
     }
 
     ImageNode::~ImageNode() {
-        // TODO
+        if (source.data_ptr != nullptr) {
+            stbi_image_free(source.data_ptr);
+            source.data_ptr = nullptr;
+        }
     }
 
-    ImageNode::ImageNode() : state({ .source = {}, .selected = false }) {
-        // TODO
+    ImageNode::ImageNode() :
+        state({ .source = {}, .selected = false }) {
     }
 }
 

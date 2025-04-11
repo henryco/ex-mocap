@@ -60,6 +60,9 @@ target_include_directories(lucide INTERFACE external/lucide)
 add_library(simpfp INTERFACE)
 target_include_directories(simpfp INTERFACE external/simpfp/include)
 
+add_library(stb INTERFACE)
+target_include_directories(stb INTERFACE external/stb)
+
 add_library(imgui
         external/imgui/imgui.cpp
         external/imgui/imgui_draw.cpp
@@ -285,7 +288,8 @@ set(LINK_TARGET
         lucide
         ifcpph
         imgui
-        glm)
+        glm
+        stb)
 
 set(DEFN_TARGET
         CL_TARGET_OPENCL_VERSION=300

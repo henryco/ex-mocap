@@ -16,11 +16,19 @@ namespace ex::logic::node::cmp::image {
         bool selected;
     };
 
+    struct image_source {
+        unsigned char *data_ptr = nullptr;
+        int            channels = 0;
+        int            width    = 0;
+        int            height   = 0;
+    };
+
     struct ImageNode final : limbo::graph::BaseNode,
                              limbo::graph::id::name<"image_source_node">,
                              limbo::graph::io::out<proto::image, 1, "Loaded image">,
                              ex::io::bytes::serializable
     {
+        image_source source;
         image_state state;
 
         static limbo::graph::BaseNode *instance(TreeNode *from);
