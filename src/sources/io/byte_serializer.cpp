@@ -21,42 +21,14 @@ namespace ex::io::err {
     }
 }
 
-const std::uint8_t &ex::io::byte_array::operator [] (const std::size_t &index) const {
-    if (index >= size)
-        ex::io::err::abort("index out of bounds");
-    return data[index];
-}
+namespace ex::io::alc {
+    static unsigned char *create_byte_arr_(const ::size_t size) {
+        return static_cast<unsigned char *>(::malloc(size));
+    }
 
-const std::uint8_t *ex::io::byte_array::operator + (const std::size_t &index) const {
-    return data + index;
-}
-
-ex::io::byte_array ex::io::byte_array::operator >> (const std::size_t &offset) const {
-    return byte_array::from(data + offset, size - offset);
-}
-
-ex::io::byte_array ex::io::byte_array::operator << (const std::size_t &offset) const {
-    return byte_array::from(data - offset, size + offset);
-}
-
-bool ex::io::byte_array::empty() const {
-    return data != nullptr && size != 0;
-}
-
-ex::io::byte_array ex::io::byte_array::from(const std::uint8_t *data, const size_t &size) {
-    return ex::io::byte_array(data, static_cast<std::uint64_t>(size));
-}
-
-void ex::io::byte_array::free(byte_array *array) {
-    if (array == nullptr)
-        return;
-    delete[] array->data;
-    array->data = nullptr;
-}
-
-void ex::io::byte_array::free(byte_array &array) {
-    delete[] array.data;
-    array.data = nullptr;
+    static void release_byte_arr_(void *ptr) {
+        ::free(ptr);
+    }
 }
 
 namespace ex::io::bytes {
@@ -223,8 +195,8 @@ namespace ex::io::bytes {
             // write tree node data
             out::object(buffer, TYPE_NODE_OBJ, sizeof(tree_node_1), serial);
 
-            if (const auto serializable = dynamic_cast<serializer<byte_array> *>(ex::logic::state::get_node(node->id_local)))  {
-                if (const auto serialized = serializable->serialize(nullptr); !serialized.empty()) {
+            if (const auto s = dynamic_cast<serializable *>(ex::logic::state::get_node(node->id_local)))  {
+                if (const auto serialized = s->serialize(); !serialized.empty()) {
                     // write base node data
                     out::object(buffer, TYPE_NODE_DAT, serialized.size, serialized.data);
                     garbage_collector.tmp_2.push(serialized);
@@ -302,10 +274,10 @@ namespace ex::io::bytes {
 //                    std::cout << "   head: " << head->name << std::endl;
 
                     bb.allocate(obj_size_b);
-                    std::memcpy(bb.data, data + i, obj_size_b);
+                    ::memcpy(bb.data, data + i, obj_size_b);
 
-                    const auto new_name = new unsigned char[obj_size_b];
-                    std::memcpy(new_name, bb.data, obj_size_b);
+                    const auto new_name = alc::create_byte_arr_(obj_size_b);
+                    ::memcpy(new_name, bb.data, obj_size_b);
                     node->name = reinterpret_cast<const char *>(new_name);
 
 //                    std::cout << "   node: " << node->name << std::endl;
@@ -335,9 +307,9 @@ namespace ex::io::bytes {
                     if (base_node == nullptr)
                         continue;
 
-                    const auto serializable = dynamic_cast<serializer<byte_array> *>(base_node);
-                    if (serializable != nullptr)
-                        serializable->deserialize(byte_array::from(data + i, obj_size_b));
+                    if (const auto s = dynamic_cast<serializable *>(base_node)) {
+                        s->deserialize(byte_array::from(data + i, obj_size_b));
+                    }
                 }
             }
 
@@ -393,7 +365,7 @@ namespace ex::io::bytes {
         const std::size_t size      = out::buffer_size_b(buff_out);
         const std::size_t real_size = sizeof(project_metadata) + size;
 
-        const auto data = new unsigned char[real_size];
+        const auto data = alc::create_byte_arr_(real_size);
 
         constexpr project_metadata metadata = {
             .magic_number = MAGIC_NUMBER,
@@ -404,10 +376,10 @@ namespace ex::io::bytes {
             }
         };
 
-        std::memcpy(data, &metadata, sizeof(project_metadata));
+        ::memcpy(data, &metadata, sizeof(project_metadata));
         out::read_buffer_data(buff_out, data + sizeof(project_metadata));
 
-        return byte_array::from(data, real_size);
+        return byte_array::from(data, real_size, &alc::release_byte_arr_);
     }
 
     void *ByteSerializer::deserialize(const byte_array &data) const {
@@ -420,7 +392,7 @@ namespace ex::io::bytes {
         }
 
         project_metadata metadata;
-        std::memcpy(&metadata, data.data, sizeof(project_metadata));
+        ::memcpy(&metadata, data.data, sizeof(project_metadata));
 
         logic::globals::logger()->debug("File version: {}.{}.{}", metadata.version.major, metadata.version.minor,
                                             metadata.version.patch);

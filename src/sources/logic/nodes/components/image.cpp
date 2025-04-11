@@ -31,6 +31,16 @@ namespace ex::logic::node::cmp::image {
         // TODO
     }
 
+    io::byte_array ImageNode::serialize() const {
+        data::byte_array array = data::byte_array::from(nullptr, 0);
+        // TODO
+        return array;
+    }
+
+    void ImageNode::deserialize(const io::byte_array &array) const {
+        // TODO
+    }
+
     void ImageNode::on_input(int in_idx, int out_idx, int clock_i, const void *data) {
         // TODO
     }

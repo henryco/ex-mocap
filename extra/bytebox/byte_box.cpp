@@ -70,7 +70,7 @@ namespace limbo::bytebox::out {
         for (std::size_t i = 0, k = 0; i < head.header.size_n; ++i) {
 
             const auto &item = buff.items[i];
-            std::memcpy(data + k, &item.header, sizeof(header));
+            ::memcpy(data + k, &item.header, sizeof(header));
 
             if (item.header.size_n > 0) {
                 // this is header of an array
@@ -78,7 +78,7 @@ namespace limbo::bytebox::out {
                 continue;
             }
 
-            std::memcpy(data + k + sizeof(header), item.data, item.header.size_b - sizeof(header));
+            ::memcpy(data + k + sizeof(header), item.data, item.header.size_b - sizeof(header));
             k += item.header.size_b;
         }
     }
@@ -98,11 +98,11 @@ namespace limbo::bytebox::out {
         }
 
         const auto &item = buff.items[buff.iterator_i];
-        std::memcpy(data, &item.header, sizeof(header));
+        ::memcpy(data, &item.header, sizeof(header));
 
         if (item.header.size_n <= 0) {
             // object, not an array
-            std::memcpy(data + sizeof(header), item.data, item.header.size_b - sizeof(header));
+            ::memcpy(data + sizeof(header), item.data, item.header.size_b - sizeof(header));
         }
 
         buff.iterator_i += 1;
@@ -116,12 +116,6 @@ namespace limbo::bytebox::out {
 
     void reset_iterator(buffer &buff) {
         buff.iterator_i = -1;
-    }
-
-    void free_buffer_data(const std::uint8_t *data) {
-        if (data != nullptr)
-            return;
-        delete[] data;
     }
 
 }

@@ -35,12 +35,12 @@ namespace limbo::bytebox {
         ~array() {
             if (data == nullptr)
                 return;
-            free(data);
+            ::free(data);
         }
 
         array(const index_t capacity) {
             this->capacity = capacity;
-            this->data     = static_cast<element *>(malloc(capacity * sizeof(element)));
+            this->data     = static_cast<element *>(::malloc(capacity * sizeof(element)));
         }
 
         element &operator [] (const index_t index) {
@@ -54,7 +54,7 @@ namespace limbo::bytebox {
         void push(const element &value) {
             if (size >= capacity) {
                 capacity = capacity > 0 ? (2 * capacity) : 2;
-                data     = static_cast<element *>(realloc(data, capacity * sizeof(element)));
+                data     = static_cast<element *>(::realloc(data, capacity * sizeof(element)));
             }
             data[size++] = value;
         }

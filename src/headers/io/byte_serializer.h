@@ -5,24 +5,8 @@
 #ifndef BYTE_SERIALIZER_H
 #define BYTE_SERIALIZER_H
 
-#include "../../extra/graph/graph.h"
+#include "../../extra/data/struct/byte_array.h"
 #include "serializer.h"
-#include <cstdint>
-
-namespace ex::io {
-    struct byte_array {
-        const std::uint8_t *data;
-        std::uint64_t       size;
-        const std::uint8_t &operator [] (const std::size_t &) const;
-        const std::uint8_t *operator +  (const std::size_t &) const;
-        byte_array          operator >> (const std::size_t &) const;
-        byte_array          operator << (const std::size_t &) const;
-        bool                empty() const;
-        static byte_array   from(const std::uint8_t *, const std::size_t &);
-        static void         free(byte_array *);
-        static void         free(byte_array &);
-    };
-}
 
 namespace ex::io::bytes {
 
@@ -33,6 +17,14 @@ namespace ex::io::bytes {
         byte_array serialize(const void *) const override;
 
         void *deserialize(const byte_array &) const override;
+    };
+
+    struct serializable {
+        virtual ~serializable() = default;
+
+        virtual byte_array serialize() const = 0;
+
+        virtual void deserialize(const byte_array &) const = 0;
     };
 
 }

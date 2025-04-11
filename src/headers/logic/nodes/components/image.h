@@ -6,6 +6,7 @@
 #define EX_LOGIC_CMP_IMAGE_H
 
 #include "../../../core/image_protocol.h"
+#include "../../../io/byte_serializer.h"
 #include "../logic_nodes.h"
 
 namespace ex::logic::node::cmp::image {
@@ -17,7 +18,8 @@ namespace ex::logic::node::cmp::image {
 
     struct ImageNode final : limbo::graph::BaseNode,
                              limbo::graph::id::name<"image_source_node">,
-                             limbo::graph::io::out<proto::image, 1, "Loaded image">
+                             limbo::graph::io::out<proto::image, 1, "Loaded image">,
+                             ex::io::bytes::serializable
     {
         image_state state;
 
@@ -26,6 +28,10 @@ namespace ex::logic::node::cmp::image {
         static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
 
         void set_image(const char *image_path);
+
+        io::byte_array serialize() const override;
+
+        void deserialize(const io::byte_array &) const override;
 
         void on_input(int in_idx, int out_idx, int clock_i, const void *data) override;
 

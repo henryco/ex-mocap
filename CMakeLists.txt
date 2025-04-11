@@ -106,6 +106,7 @@ set(EXTRA_FILES
         extra/data/alloc/rbtalloc.h
         extra/data/alloc/provider.h
         extra/data/alloc/lalloc.h
+        extra/data/struct/byte_array.h
 )
 
 set(PLATFORM_FILES
