@@ -19,15 +19,14 @@ namespace xm::ocl::iop {
      * Not really thread safe!!!
      * (but who cares, it don't really have to)
      */
-    class ClImagePromise {
-    private:
+    struct ClImagePromise {
+
         Image2D image;
         std::shared_ptr<ResourceContainer> cleanup_container = nullptr;
         cl_command_queue                   ocl_queue         = nullptr;
         cl_event                           ocl_event         = nullptr;
         bool                               completed         = false;
 
-    public:
         ClImagePromise(const Image2D &out,
                        cl_command_queue ocl_queue,
                        bool completed);
@@ -150,6 +149,18 @@ namespace xm::ocl::iop {
             cl_device_id device,
             cl_command_queue queue,
             ACCESS access = ACCESS::RW);
+
+    ClImagePromise from_bytes(
+            const unsigned char *bytes,
+            unsigned int width,
+            unsigned int height,
+            unsigned int channel_n,
+            unsigned int channel_size,
+            cl_context context,
+            cl_device_id device,
+            cl_command_queue queue,
+            ACCESS access = ACCESS::RW
+    );
 
     Image2D from_cv_umat(
             const cv::UMat &mat,

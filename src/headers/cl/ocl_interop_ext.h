@@ -15,15 +15,14 @@
 namespace xm::ocl::iop {
 
     template <typename T>
-    class CLPromise {
-    protected:
-        std::shared_ptr<ResourceContainer> cleanup_container = nullptr;
-        cl_command_queue ocl_queue = nullptr;
-        cl_event ocl_event = nullptr;
-        bool completed = false;
-        T data;
+    struct CLPromise {
 
-    public:
+        std::shared_ptr<ResourceContainer> cleanup_container = nullptr;
+        cl_command_queue                   ocl_queue         = nullptr;
+        cl_event                           ocl_event         = nullptr;
+        bool                               completed         = false;
+        T                                  data;
+
         CLPromise(T obj, const cl_command_queue queue, const cl_event event = nullptr):
                 ocl_queue(queue), ocl_event(event), completed(false), data(obj) {
             if (queue != nullptr)

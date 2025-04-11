@@ -15,12 +15,13 @@ namespace ex::logic::node::out {
                                      limbo::graph::id::name<"display_output_node">,
                                      limbo::graph::io::in<proto::image *, 1, "Image to display">
     {
-        const char  *display_n = nullptr;
-        unsigned int display_i = 0;
-        unsigned int display_w = 0;
-        unsigned int display_h = 0;
-        unsigned int display_c = 3;
-        unsigned int display_d = 8;
+        proto::image *image_ptr = nullptr;
+        const char   *display_n = nullptr;
+        unsigned int  display_i = 0;
+        unsigned int  display_w = 0;
+        unsigned int  display_h = 0;
+        unsigned int  display_c = 3;
+        unsigned int  display_d = 8;
 
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);

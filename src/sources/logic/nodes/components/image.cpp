@@ -5,6 +5,7 @@
 #include "../../../../headers/logic/nodes/components/image.h"
 #include "../../../../headers/logic/nodes/logic_nodes.h"
 #include "../../../../headers/logic/logic_globals.h"
+#include "../../../../headers/cl/cl_kernel.h"
 
 // STB INCLUDES ---------------------------------
 #define STB_IMAGE_IMPLEMENTATION
@@ -28,7 +29,13 @@ namespace ex::logic::node::cmp::image {
         delete node;
     }
 
+    static bool noop_(void *) {
+        return true;
+    }
+
     void ImageNode::set_image(const char *image_path) {
+        const ex::State &state_ = ex::logic::globals::state();
+
         ::strncpy(state.source, image_path, sizeof(state.source));
         state.source[sizeof(state.source) - 1] = '\0';
         state.selected = true;
@@ -38,9 +45,35 @@ namespace ex::logic::node::cmp::image {
             source.data_ptr = nullptr;
         }
 
+        if (queue == nullptr) {
+            queue = xm::ocl::create_queue_device(state_.cl.context, state_.cl.device, true, false);
+        }
+
         // RGBA
         source.data_ptr = stbi_load(image_path, &source.width, &source.height, &source.channels, 0);
-        // TODO
+
+        if (source.channels > 1) {
+            for (int i = 0; i < source.width * source.height; ++i) {
+                unsigned char *pix = source.data_ptr + i * source.channels;
+                unsigned char  tmp = pix[0];
+                pix[0]             = pix[2];
+                pix[2]             = tmp;
+            }
+        }
+
+        image = {
+            .image_promise = xm::ocl::iop::from_bytes(
+                source.data_ptr,
+                source.width,
+                source.height,
+                source.channels,
+                1,
+                state_.cl.context,
+                state_.cl.device,
+                queue),
+            .sync_  = &noop_,
+            .ctx___ = nullptr
+        };
     }
 
     io::byte_array ImageNode::serialize() const {
@@ -53,12 +86,15 @@ namespace ex::logic::node::cmp::image {
         // TODO
     }
 
-    void ImageNode::on_input(int in_idx, int out_idx, int clock_i, const void *data) {
+    void ImageNode::on_input(const int in_idx, const int out_idx, const int clock_i, const void *data) {
         // TODO
     }
 
-    void ImageNode::on_output(int in_idx, int out_idx, int clock_i, void *data) {
+    void ImageNode::on_output(const int in_idx, const int out_idx, const int clock_i, void *data) {
+        if (data == GRAPH_SKIP)
+            return;
         // TODO
+        *(static_cast<proto::image **>(data)) = &image;
     }
 
     ImageNode::~ImageNode() {
@@ -66,9 +102,14 @@ namespace ex::logic::node::cmp::image {
             stbi_image_free(source.data_ptr);
             source.data_ptr = nullptr;
         }
+        if (queue != nullptr) {
+            clReleaseCommandQueue(queue);
+            queue = nullptr;
+        }
     }
 
     ImageNode::ImageNode() :
+        queue(nullptr),
         state({ .source = {}, .selected = false }) {
     }
 }

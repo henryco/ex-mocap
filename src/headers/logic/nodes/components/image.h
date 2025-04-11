@@ -28,9 +28,10 @@ namespace ex::logic::node::cmp::image {
                              limbo::graph::io::out<proto::image *, 1, "Loaded image">,
                              ex::io::bytes::serializable
     {
-        proto::image image;
-        image_source source;
-        image_state  state;
+        cl_command_queue queue;
+        proto::image     image;
+        image_source     source;
+        image_state      state;
 
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);

@@ -87,6 +87,42 @@ namespace xm::ocl::iop {
         return ClImagePromise(image, queue);
     }
 
+    ClImagePromise from_bytes(
+            const unsigned char *bytes,
+            const unsigned int width,
+            const unsigned int height,
+            const unsigned int channel_n,
+            const unsigned int channel_size,
+            const cl_context context,
+            const cl_device_id device,
+            const cl_command_queue queue,
+            const ACCESS access
+    ) {
+        cl_int err;
+        size_t size = width * height * channel_n * channel_size;
+        cl_mem buffer = clCreateBuffer(context, access_to_cl(access), size, nullptr, &err);
+        if (err != CL_SUCCESS)
+            abort__("Cannot create cl buffer: %d", err);
+
+        err = clEnqueueWriteBuffer(
+                queue, buffer, CL_FALSE, 0,
+                size, bytes, 0, nullptr, nullptr);
+        if (err != CL_SUCCESS)
+            abort__("Cannot enqueue copy data to cl buffer: %d", err);
+
+        auto image = xm::ocl::Image2D(
+                width,
+                height,
+                channel_n,
+                channel_size,
+                buffer,
+                context,
+                device,
+                access);
+
+        return ClImagePromise(image, queue);
+    }
+
     xm::ocl::Image2D from_cv_umat(const cv::UMat &source, const ACCESS modifier) {
         return from_cv_umat(
                 source,

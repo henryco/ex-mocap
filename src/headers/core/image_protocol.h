@@ -21,7 +21,7 @@ namespace ex::proto {
     };
 
     inline image from(const image &proto, const promise_i &promise) {
-        return {promise, proto.sync_, proto.ctx___};
+        return { promise, proto.sync_, proto.ctx___ };
     }
 
 }

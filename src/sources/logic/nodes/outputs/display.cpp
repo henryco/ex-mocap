@@ -45,11 +45,17 @@ namespace ex::logic::node::out {
         display_i = ex::display::io.add_output(display_n, display_w, display_h, display_c, display_d);
     }
 
-    void DisplayOutputNode::on_input(int in_idx, int out_idx, int clock_i, const void *data) {
-        // TODO
+    void DisplayOutputNode::on_input(const int in_idx, const int out_idx, const int clock_i, const void *data) {
+        proto::image *ptr = *(static_cast<proto::image *const *>(data));
+        if (ptr != image_ptr) {
+            image_ptr = ptr;
+            const xm::ocl::Image2D &img = ptr->image_promise.image;
+            register_image(display_n, img.cols, img.rows, img.channels, img.channel_size);
+            std::cout << "register" << std::endl;
+        }
     }
 
-    void DisplayOutputNode::on_output(int in_idx, int out_idx, int clock_i, void *data) {
+    void DisplayOutputNode::on_output(const int in_idx, const int out_idx, const int clock_i, void *data) {
         // TODO
     }
 

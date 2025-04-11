@@ -11,6 +11,8 @@
 
 namespace limbo::graph {
 
+#define GRAPH_SKIP ((void *) -1)
+
     struct memory {
         /* Default allocator */
         inline static ex::data::allocator allocator;
@@ -422,7 +424,7 @@ namespace limbo::graph {
             }
 
             // ReSharper disable once CppCStyleCast
-            on_output(-1, -1, clock_i, (void *) -1);
+            on_output(-1, -1, clock_i, GRAPH_SKIP);
 
             this->clock_i = clock_i;
         }
@@ -513,7 +515,8 @@ namespace limbo::graph {
         }
 
         void pull() {
-            clock_i = (clock_i > EX_INT16_MAX) ? 0 : (clock_i + 1);
+//            clock_i = (clock_i > EX_INT16_MAX) ? 0 : (clock_i + 1);
+            ++clock_i;
             for (int i = 0; i < connections.size; ++i)
                 connections[i]->pull(clock_i);
         }
