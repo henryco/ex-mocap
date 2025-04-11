@@ -9,7 +9,7 @@
 
 namespace xm::ocl {
 
-    enum class ACCESS {
+    enum class ACCESS: unsigned char {
 
         /** READ ONLY */
         RO = 1,
@@ -24,29 +24,29 @@ namespace xm::ocl {
     class Image2D {
 
     public:
+        cl_mem       handle  = nullptr;
+        cl_context   context = nullptr;
+        cl_device_id device  = nullptr;
+
         /**
          * Number of columns (width)
          */
-        std::size_t cols = 0;
+        short cols = 0;
 
         /**
          * Number of rows (height)
          */
-        std::size_t rows = 0;
+        short rows = 0;
 
         /**
          * Number of (color) channels, I.e.: 3 for BGR
          */
-        std::size_t channels = 0;
+        char channels = 0;
 
         /**
          * Size (in bytes) of singular color channel
          */
-        std::size_t channel_size = 0;
-
-        cl_mem handle = nullptr;
-        cl_context context = nullptr;
-        cl_device_id device = nullptr;
+        char channel_size = 0;
 
         ACCESS access = ACCESS::RW;
 

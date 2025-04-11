@@ -44,26 +44,26 @@ namespace xm::ocl {
     }
 
     void Image2D::copy_from(const Image2D &other) {
-        is_detached = false;
-        access = other.access;
-        cols = other.cols;
-        rows = other.rows;
-        channels = other.channels;
+        is_detached  = false;
+        access       = other.access;
+        cols         = other.cols;
+        rows         = other.rows;
+        channels     = other.channels;
         channel_size = other.channel_size;
-        context = other.context;
-        device = other.device;
-        handle = other.handle;
+        context      = other.context;
+        device       = other.device;
+        handle       = other.handle;
     }
 
     void Image2D::reset_state(Image2D &other) {
-        other.is_detached = true;
-        other.context = nullptr;
-        other.device = nullptr;
-        other.handle = nullptr;
+        other.is_detached  = true;
+        other.context      = nullptr;
+        other.device       = nullptr;
+        other.handle       = nullptr;
         other.channel_size = 0;
-        other.channels = 0;
-        other.cols = 0;
-        other.rows = 0;
+        other.channels     = 0;
+        other.cols         = 0;
+        other.rows         = 0;
     }
 
     Image2D::Image2D(const Image2D &other) {
@@ -71,12 +71,12 @@ namespace xm::ocl {
         clRetainMemObject(handle);
     }
 
-    Image2D::Image2D(const Image2D &other, cl_mem _handle) {
+    Image2D::Image2D(const Image2D &other, const cl_mem _handle) {
         copy_from(other);
         handle = _handle;
     }
 
-    Image2D::Image2D(const Image2D &other, cl_mem _handle, ACCESS modifier) {
+    Image2D::Image2D(const Image2D &other, const cl_mem _handle, const ACCESS modifier) {
         copy_from(other);
         handle = _handle;
         access = modifier;
@@ -87,19 +87,19 @@ namespace xm::ocl {
         reset_state(other);
     }
 
-    Image2D::Image2D(const Image2D &&other, cl_mem _handle) {
+    Image2D::Image2D(const Image2D &&other, const cl_mem _handle) {
         copy_from(other);
         handle = _handle;
     }
 
-    Image2D::Image2D(const Image2D &&other, cl_mem _handle, ACCESS modifier) {
+    Image2D::Image2D(const Image2D &&other, const cl_mem _handle, const ACCESS modifier) {
         copy_from(other);
         handle = _handle;
         access = modifier;
     }
 
-    Image2D &Image2D::detached(bool _) {
-        is_detached = _;
+    Image2D &Image2D::detached(const bool is) {
+        is_detached = is;
         return *this;
     }
 
@@ -126,21 +126,21 @@ namespace xm::ocl {
         return *this;
     }
 
-    Image2D::Image2D(size_t _cols,
-                     size_t _rows,
-                     size_t _channels,
-                     size_t _channel_size,
-                     cl_mem _handle,
-                     cl_context _context,
-                     cl_device_id _device,
-                     ACCESS _access)
-            : cols(_cols),
+    Image2D::Image2D(const size_t _cols,
+                     const size_t _rows,
+                     const size_t _channels,
+                     const size_t _channel_size,
+                     const cl_mem _handle,
+                     const cl_context _context,
+                     const cl_device_id _device,
+                     const ACCESS _access)
+            : handle(_handle),
+              context(_context),
+              device(_device),
+              cols(_cols),
               rows(_rows),
               channels(_channels),
               channel_size(_channel_size),
-              handle(_handle),
-              context(_context),
-              device(_device),
               access(_access),
               is_detached(false) {}
 
@@ -148,8 +148,8 @@ namespace xm::ocl {
         reset_state(*this);
     }
 
-    Image2D Image2D::allocate(size_t cols, size_t rows, size_t channels, size_t channel_size, cl_context context,
-                              cl_device_id device, ACCESS access) {
+    Image2D Image2D::allocate(const size_t cols, const size_t rows, const size_t channels, const size_t channel_size, const cl_context context,
+                              const cl_device_id device, const ACCESS access) {
         cl_mem_flags flags;
         if (access == ACCESS::RO) flags = CL_MEM_READ_ONLY;
         else if (access == ACCESS::WO) flags = CL_MEM_WRITE_ONLY;
@@ -163,7 +163,7 @@ namespace xm::ocl {
         return Image2D(cols, rows, channels, channel_size, buffer, context, device, access);
     }
 
-    Image2D Image2D::allocate_like(const Image2D &t, ACCESS access) {
+    Image2D Image2D::allocate_like(const Image2D &t, const ACCESS access) {
         return allocate(t.cols, t.rows, t.channels, t.channel_size, t.context, t.device, access);
     }
 }

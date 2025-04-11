@@ -13,7 +13,7 @@ namespace ex::logic::node::out {
 
     struct DisplayOutputNode final : limbo::graph::BaseNode,
                                      limbo::graph::id::name<"display_output_node">,
-                                     limbo::graph::io::in<proto::image, 1, "Image to display">
+                                     limbo::graph::io::in<proto::image *, 1, "Image to display">
     {
         const char  *display_n = nullptr;
         unsigned int display_i = 0;

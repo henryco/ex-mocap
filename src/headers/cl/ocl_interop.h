@@ -21,11 +21,11 @@ namespace xm::ocl::iop {
      */
     class ClImagePromise {
     private:
-        std::shared_ptr<ResourceContainer> cleanup_container = nullptr;
-        cl_command_queue ocl_queue = nullptr;
-        cl_event ocl_event = nullptr;
         Image2D image;
-        bool completed = false;
+        std::shared_ptr<ResourceContainer> cleanup_container = nullptr;
+        cl_command_queue                   ocl_queue         = nullptr;
+        cl_event                           ocl_event         = nullptr;
+        bool                               completed         = false;
 
     public:
         ClImagePromise(const Image2D &out,

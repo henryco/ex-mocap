@@ -7,7 +7,7 @@
 
 namespace xm::ocl::iop {
 
-    cv::AccessFlag access_to_cv(ACCESS access) {
+    cv::AccessFlag access_to_cv(const ACCESS access) {
         if (access == ACCESS::RW)
             return cv::ACCESS_RW;
         if (access == ACCESS::RO)
@@ -17,7 +17,7 @@ namespace xm::ocl::iop {
         abort__("Unknown access modifier");
     }
 
-    cl_mem_flags access_to_cl(ACCESS access) {
+    cl_mem_flags access_to_cl(const ACCESS access) {
         if (access == ACCESS::RW)
             return CL_MEM_READ_WRITE;
         if (access == ACCESS::RO)
@@ -27,7 +27,7 @@ namespace xm::ocl::iop {
         abort__("Unknown access modifier");
     }
 
-    xm::ocl::Image2D from_cv_mat(const cv::Mat &mat, cl_context context, cl_device_id device, xm::ocl::ACCESS access) {
+    xm::ocl::Image2D from_cv_mat(const cv::Mat &mat, const cl_context context, const cl_device_id device, const xm::ocl::ACCESS access) {
         cl_int err;
         cl_mem buffer = clCreateBuffer(context, access_to_cl(access), mat.total() * mat.elemSize(), mat.data, &err);
         if (err != CL_SUCCESS)
@@ -35,7 +35,7 @@ namespace xm::ocl::iop {
         return xm::ocl::Image2D(
                 mat.cols,
                 mat.rows,
-                (size_t) mat.channels(),
+                static_cast<size_t>(mat.channels()),
                 mat.elemSize1(),
                 buffer,
                 context,
@@ -43,25 +43,25 @@ namespace xm::ocl::iop {
                 access);
     }
 
-    xm::ocl::Image2D from_cv_mat(const cv::Mat &source, xm::ocl::ACCESS modifier) {
+    xm::ocl::Image2D from_cv_mat(const cv::Mat &source, const xm::ocl::ACCESS modifier) {
         return from_cv_mat(
                 source,
-                (cl_context) cv::ocl::Context::getDefault().ptr(),
-                (cl_device_id) cv::ocl::Device::getDefault().ptr(),
+                static_cast<cl_context>(cv::ocl::Context::getDefault().ptr()),
+                static_cast<cl_device_id>(cv::ocl::Device::getDefault().ptr()),
                 modifier);
     }
 
-    ClImagePromise from_cv_mat(const cv::Mat &source, cl_command_queue command_queue, ACCESS modifier) {
+    ClImagePromise from_cv_mat(const cv::Mat &source, const cl_command_queue command_queue, const ACCESS modifier) {
         return from_cv_mat(
                 source,
-                (cl_context) cv::ocl::Context::getDefault().ptr(),
-                (cl_device_id) cv::ocl::Device::getDefault().ptr(),
+                static_cast<cl_context>(cv::ocl::Context::getDefault().ptr()),
+                static_cast<cl_device_id>(cv::ocl::Device::getDefault().ptr()),
                 command_queue,
                 modifier);
     }
 
-    ClImagePromise from_cv_mat(const cv::Mat &mat, cl_context context,
-                               cl_device_id device, cl_command_queue queue, ACCESS access) {
+    ClImagePromise from_cv_mat(const cv::Mat &mat, const cl_context context,
+                               const cl_device_id device, const cl_command_queue queue, const ACCESS access) {
         cl_int err;
         size_t size = mat.total() * mat.elemSize();
         cl_mem buffer = clCreateBuffer(context, access_to_cl(access), size, nullptr, &err);
@@ -77,7 +77,7 @@ namespace xm::ocl::iop {
         auto image = xm::ocl::Image2D(
                 mat.cols,
                 mat.rows,
-                (size_t) mat.channels(),
+                static_cast<size_t>(mat.channels()),
                 mat.elemSize1(),
                 buffer,
                 context,
@@ -87,46 +87,46 @@ namespace xm::ocl::iop {
         return ClImagePromise(image, queue);
     }
 
-    xm::ocl::Image2D from_cv_umat(const cv::UMat &source, ACCESS modifier) {
+    xm::ocl::Image2D from_cv_umat(const cv::UMat &source, const ACCESS modifier) {
         return from_cv_umat(
                 source,
-                (cl_context) cv::ocl::Context::getDefault().ptr(),
-                (cl_device_id) cv::ocl::Device::getDefault().ptr(),
+                static_cast<cl_context>(cv::ocl::Context::getDefault().ptr()),
+                static_cast<cl_device_id>(cv::ocl::Device::getDefault().ptr()),
                 modifier);
     }
 
-    xm::ocl::Image2D from_cv_umat(const cv::UMat &mat, cl_context context, cl_device_id device, ACCESS access) {
+    xm::ocl::Image2D from_cv_umat(const cv::UMat &mat, const cl_context context, const cl_device_id device, const ACCESS access) {
         return xm::ocl::Image2D(
                 mat.cols,
                 mat.rows,
-                (size_t) mat.channels(),
+                static_cast<size_t>(mat.channels()),
                 mat.elemSize1(),
-                (cl_mem) mat.handle(access_to_cv(access)),
+                static_cast<cl_mem>(mat.handle(access_to_cv(access))),
                 context,
                 device,
                 access).retain();
     }
 
-    cv::UMat to_cv_umat(const Image2D &image, int cv_type) {
+    cv::UMat to_cv_umat(const Image2D &image, const int cv_type) {
         cv::UMat mat;
         to_cv_umat(image, mat, cv_type);
         return mat;
     }
 
-    void to_cv_umat(const Image2D &image, cv::UMat &out, int cv_type) {
+    void to_cv_umat(const Image2D &image, cv::UMat &out, const int cv_type) {
         cv::ocl::convertFromBuffer(image.handle,
-                                   image.channels * image.cols,
-                                   (int) image.rows,
-                                   (int) image.cols,
-                                   (cv_type < 0 ? (CV_8UC((int) image.channels)) : cv_type),
+                                   static_cast<int>(image.channels) * static_cast<int>(image.cols),
+                                   image.rows,
+                                   image.cols,
+                                   (cv_type < 0 ? (CV_8UC(static_cast<int>(image.channels))) : cv_type),
                                    out);
     }
 
-    ClImagePromise copy_ocl(const ClImagePromise &promise, xm::ocl::ACCESS access) {
+    ClImagePromise copy_ocl(const ClImagePromise &promise, const xm::ocl::ACCESS access) {
         return copy_ocl(promise, promise.queue(), access);
     }
 
-    ClImagePromise copy_ocl(const ClImagePromise &promise, cl_command_queue queue, xm::ocl::ACCESS access) {
+    ClImagePromise copy_ocl(const ClImagePromise &promise, const cl_command_queue queue, const xm::ocl::ACCESS access) {
         const auto &image = promise.getImage2D();
 
         cl_int err;
@@ -148,21 +148,21 @@ namespace xm::ocl::iop {
 
     ClImagePromise copy_ocl(
         const ClImagePromise &promise,
-        int xo, int yo,
-        int width, int height,
-        xm::ocl::ACCESS access
+        const int xo, const int yo,
+        const int width, const int height,
+        const xm::ocl::ACCESS access
     ) {
         return copy_ocl(promise, promise.queue(),
             xo, yo, width, height, access);
     }
 
-    ClImagePromise copy_ocl(const ClImagePromise &promise, cl_command_queue queue,
-                            int xo, int yo, int width, int height,
-                            ACCESS access) {
+    ClImagePromise copy_ocl(const ClImagePromise &promise, const cl_command_queue queue,
+                            const int xo, const int yo, const int width, const int height,
+                            const ACCESS access) {
         const auto &image = promise.getImage2D();
         cl_int err;
         const size_t c_size = image.channels * image.channel_size;
-        const size_t size   = (size_t) width * (size_t) height * c_size;
+        const size_t size   = static_cast<size_t>(width) * static_cast<size_t>(height) * c_size;
         cl_mem       buffer = clCreateBuffer(image.context, access_to_cl(access), size,
                                        nullptr, &err);
         if (err != CL_SUCCESS)
@@ -200,13 +200,13 @@ namespace xm::ocl::iop {
         .withCleanup(promise);
     }
 
-    void to_cv_mat(const Image2D &image, cv::Mat &out, cl_command_queue queue, int cv_type) {
+    void to_cv_mat(const Image2D &image, cv::Mat &out, const cl_command_queue queue, const int cv_type) {
         out = to_cv_mat(image, queue, cv_type).waitFor().get();
     }
 
-    CLPromise<cv::Mat> to_cv_mat(const ClImagePromise &p_im, cl_command_queue queue, int cv_type) {
+    CLPromise<cv::Mat> to_cv_mat(const ClImagePromise &p_im, const cl_command_queue queue, const int cv_type) {
         const auto &image = p_im.getImage2D();
-        cv::Mat     dst((int) image.rows, (int) image.cols, (cv_type < 0 ? (CV_8UC((int) image.channels)) : cv_type));
+        cv::Mat     dst(image.rows, image.cols, (cv_type < 0 ? (CV_8UC(static_cast<int>(image.channels))) : cv_type));
         cl_int      err = clEnqueueReadBuffer(queue,
                                           image.handle,
                                           CL_FALSE,
@@ -226,7 +226,7 @@ namespace xm::ocl::iop {
         }));
     }
 
-    CLPromise<cv::Mat> to_cv_mat(const ClImagePromise &promise, int cv_type) {
+    CLPromise<cv::Mat> to_cv_mat(const ClImagePromise &promise, const int cv_type) {
         if (promise.queue() == nullptr)
             abort__("CLPromise cl_command_queue is NULL");
         return to_cv_mat(promise, promise.queue(), cv_type);
@@ -234,11 +234,11 @@ namespace xm::ocl::iop {
 
     ClImagePromise::ClImagePromise(
         const xm::ocl::Image2D &out,
-        cl_command_queue        _queue,
-        bool                    _completed
-    ): ocl_queue(_queue),
+        const cl_command_queue        _queue,
+        const bool                    _completed
+    ): image(out),
+       ocl_queue(_queue),
        ocl_event(nullptr),
-       image(out),
        completed(_completed) {
         if (_queue != nullptr)
             clRetainCommandQueue(_queue);
@@ -246,11 +246,11 @@ namespace xm::ocl::iop {
 
     ClImagePromise::ClImagePromise(
         const Image2D &  out,
-        cl_command_queue _queue,
-        cl_event         _event
-    ): ocl_queue(_queue),
+        const cl_command_queue _queue,
+        const cl_event         _event
+    ): image(out),
+       ocl_queue(_queue),
        ocl_event(_event),
-       image(out),
        completed(false) {
         if (_queue != nullptr)
             clRetainCommandQueue(_queue);
@@ -260,10 +260,10 @@ namespace xm::ocl::iop {
 
     ClImagePromise::ClImagePromise(
         const Image2D &out,
-        cl_event       ocl_event
-    ): ocl_queue(nullptr),
+        const cl_event       ocl_event
+    ): image(out),
+       ocl_queue(nullptr),
        ocl_event(ocl_event),
-       image(out),
        completed(true) {
         if (ocl_event != nullptr)
             clRetainEvent(ocl_event);
@@ -297,7 +297,7 @@ namespace xm::ocl::iop {
         img = image;
     }
 
-    void ClImagePromise::cleanup(bool force) {
+    void ClImagePromise::cleanup(const bool force) {
         if (!completed && !force)
             return;
         if (cleanup_container) {
@@ -347,8 +347,8 @@ namespace xm::ocl::iop {
 
         auto current = cleanup_container;
         auto another = std::make_shared<ResourceContainer>(cb_ptr);
-        cleanup_container = std::make_shared<ResourceContainer>(new std::function<void()>(
-                [current, another]() {
+        cleanup_container = std::make_shared<ResourceContainer>(new std::function(
+                [current, another] {
                     (*current)();
                     (*another)();
                 }));
@@ -369,8 +369,8 @@ namespace xm::ocl::iop {
         }
 
         auto current = cleanup_container;
-        cleanup_container = std::make_shared<ResourceContainer>(new std::function<void()>(
-                [current, another = other.cleanup_container]() {
+        cleanup_container = std::make_shared<ResourceContainer>(new std::function(
+                [current, another = other.cleanup_container] {
                     (*current)();
                     (*another)();
                 }));
@@ -446,9 +446,9 @@ namespace xm::ocl::iop {
         return ocl_queue;
     }
 
-    void ClImagePromise::finalizeAll(std::vector<ClImagePromise> &promises, bool force) {
+    void ClImagePromise::finalizeAll(std::vector<ClImagePromise> &promises, const bool force) {
+        static thread_local cl_command_queue list[256];
         int n = 0;
-        auto list = new cl_command_queue[promises.size()];
         // this is narrow/naive map implementation, but for reasonably small input size
         // this would be much faster then proper nlog(n) map/set due to much smaller overhead,
         // which is exactly the case here
@@ -486,7 +486,6 @@ namespace xm::ocl::iop {
                 else err             = CL_SUCCESS;
 
                 if (err != CL_SUCCESS) {
-                    delete[] list;
                     abort__("Cannot finish command queue: %d", err);
                 }
                 if (p.cleanup_container) {
@@ -495,13 +494,11 @@ namespace xm::ocl::iop {
                 }
             }
         }
-
-        delete[] list;
     }
 
-    void ClImagePromise::finalizeAll(ClImagePromise *promises, size_t size, bool force) {
+    void ClImagePromise::finalizeAll(ClImagePromise *promises, const size_t size, const bool force) {
+        static thread_local cl_command_queue list[256];
         int n = 0;
-        auto list = new cl_command_queue[size];
 
         for (int g = 0; g < size; g++) {
             auto &p = promises[g];
@@ -539,7 +536,6 @@ namespace xm::ocl::iop {
                 else err             = CL_SUCCESS;
 
                 if (err != CL_SUCCESS) {
-                    delete[] list;
                     abort__("Cannot finish command queue: %d", err);
                 }
                 if (p.cleanup_container) {
@@ -548,7 +544,5 @@ namespace xm::ocl::iop {
                 }
             }
         }
-
-        delete[] list;
     }
 }

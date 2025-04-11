@@ -21,10 +21,10 @@ namespace ex::cmp {
     #define CAM_          0
     #define CAM_OUT_FRAME 1
 
-    struct CameraNode final: limbo::graph::BaseNode,
-                        limbo::graph::State<camera::Camera>,
-                        limbo::graph::id::name<"camera_node">,
-                        limbo::graph::io::out<proto::image, CAM_OUT_FRAME, "Captured frame">
+    struct CameraNode final : limbo::graph::BaseNode,
+                              limbo::graph::State<camera::Camera>,
+                              limbo::graph::id::name<"camera_node">,
+                              limbo::graph::io::out<proto::image *, CAM_OUT_FRAME, "Captured frame">
     {
         static inline const auto log = logs::get_logger("camera_node");
 

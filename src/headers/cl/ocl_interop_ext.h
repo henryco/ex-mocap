@@ -24,7 +24,7 @@ namespace xm::ocl::iop {
         T data;
 
     public:
-        CLPromise<T>(T obj, cl_command_queue queue, cl_event event = nullptr):
+        CLPromise(T obj, const cl_command_queue queue, const cl_event event = nullptr):
                 ocl_queue(queue), ocl_event(event), completed(false), data(obj) {
             if (queue != nullptr)
                 clRetainCommandQueue(queue);
@@ -32,19 +32,19 @@ namespace xm::ocl::iop {
                 clRetainEvent(event);
         }
 
-        CLPromise<T>(T obj, cl_event event = nullptr): // NOLINT(*-explicit-constructor)
+        CLPromise(T obj, const cl_event event = nullptr): // NOLINT(*-explicit-constructor)
                 ocl_queue(nullptr), ocl_event(event), completed(true), data(obj) {
             if (event != nullptr)
                 clRetainEvent(event);
         }
 
-        CLPromise<T>() = default;
+        CLPromise() = default;
 
         ~CLPromise() {
             release();
         }
 
-        CLPromise<T>(CLPromise<T> &&other) noexcept {
+        CLPromise(CLPromise &&other) noexcept {
             cleanup_container = std::move(other.cleanup_container);
             completed = other.completed;
             ocl_queue = other.ocl_queue;
@@ -55,7 +55,7 @@ namespace xm::ocl::iop {
             other.completed = true;
         }
 
-        CLPromise<T>(const CLPromise<T> &other) {
+        CLPromise(const CLPromise &other) {
             cleanup_container = other.cleanup_container;
             completed = other.completed;
             ocl_queue = other.ocl_queue;
@@ -65,7 +65,7 @@ namespace xm::ocl::iop {
             clRetainCommandQueue(ocl_queue);
         }
 
-        CLPromise<T> &operator=(CLPromise<T> &&other) noexcept {
+        CLPromise &operator=(CLPromise &&other) noexcept {
             if (this != &other) {
                 if (ocl_event != nullptr)
                     clReleaseEvent(ocl_event);
@@ -83,7 +83,7 @@ namespace xm::ocl::iop {
             return *this;
         }
 
-        CLPromise<T> &operator=(const CLPromise<T> &other) {
+        CLPromise &operator=(const CLPromise &other) {
             if (this == &other)
                 *this;
             if (ocl_event != nullptr)
@@ -123,7 +123,7 @@ namespace xm::ocl::iop {
          * Cleanup resources (dependencies)
          * @param force cleanup even if not completed
          */
-        void cleanup(bool force = false) {
+        void cleanup(const bool force = false) {
             if (!completed && !force)
                 return;
             if (cleanup_container) {
@@ -135,7 +135,7 @@ namespace xm::ocl::iop {
         /**
          * Waits for data to be ready
          */
-        CLPromise<T> &waitFor() {
+        CLPromise &waitFor() {
             if (completed)
                 return *this;
             {
@@ -161,9 +161,9 @@ namespace xm::ocl::iop {
          * @param promises list of unique promises
          * @param force wait for completed promises too
          */
-        static void finalizeAll(std::vector<CLPromise<T>> &promises, bool force = false) {
+        static void finalizeAll(std::vector<CLPromise> &promises, const bool force = false) {
+            static thread_local cl_command_queue list[256];
             int n = 0;
-            auto list = new cl_command_queue[promises.size()];
             // this is narrow/naive map implementation, but for reasonably small input size
             // this would be much faster then proper nlog(n) map/set due to much smaller overhead,
             // which is exactly the case here
@@ -201,7 +201,6 @@ namespace xm::ocl::iop {
                     else err             = CL_SUCCESS;
 
                     if (err != CL_SUCCESS) {
-                        delete[] list;
                         abort__("Cannot finish command queue: %d", err);
                     }
                     if (p.cleanup_container) {
@@ -210,8 +209,6 @@ namespace xm::ocl::iop {
                     }
                 }
             }
-
-            delete[] list;
         }
 
         /**
@@ -220,9 +217,9 @@ namespace xm::ocl::iop {
          * @param size size of the array
          * @param force wait for completed promises too
          */
-        static void finalizeAll(CLPromise<T> *promises, size_t size, bool force = false) {
+        static void finalizeAll(CLPromise *promises, const size_t size, const bool force = false) {
+            static thread_local cl_command_queue list[256];
             int n = 0;
-            auto list = new cl_command_queue[size];
             // this is narrow/naive map implementation, but for reasonably small input size
             // this would be much faster then proper nlog(n) map/set due to much smaller overhead,
             // which is exactly the case here
@@ -262,7 +259,6 @@ namespace xm::ocl::iop {
                     else err             = CL_SUCCESS;
 
                     if (err != CL_SUCCESS) {
-                        delete[] list;
                         abort__("Cannot finish command queue: %d", err);
                     }
                     if (p.cleanup_container) {
@@ -271,11 +267,9 @@ namespace xm::ocl::iop {
                     }
                 }
             }
-
-            delete[] list;
         }
 
-        CLPromise<T> &withCleanup(std::function<void()> *cb_ptr) {
+        CLPromise &withCleanup(std::function<void()> *cb_ptr) {
             if (!cb_ptr)
                 return *this;
 
@@ -287,7 +281,7 @@ namespace xm::ocl::iop {
             auto current = cleanup_container;
             auto another = std::make_shared<ResourceContainer>(cb_ptr);
             cleanup_container = std::make_shared<ResourceContainer>(new std::function<void()>(
-                    [current, another]() {
+                    [current, another] {
                         (*current)();
                         (*another)();
                     }));
@@ -295,7 +289,7 @@ namespace xm::ocl::iop {
             return *this;
         }
 
-        CLPromise<T> &withCleanup(const CLPromise<T> &other) {
+        CLPromise &withCleanup(const CLPromise &other) {
             if (this == &other)
                 return *this;
 
@@ -309,7 +303,7 @@ namespace xm::ocl::iop {
 
             auto current = cleanup_container;
             cleanup_container = std::make_shared<ResourceContainer>(new std::function<void()>(
-                    [current, another = other.cleanup_container]() {
+                    [current, another = other.cleanup_container] {
                         (*current)();
                         (*another)();
                     }));
