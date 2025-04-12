@@ -15,9 +15,15 @@ namespace ex::logic::node::out {
                                      limbo::graph::id::name<"display_output_node">,
                                      limbo::graph::io::in<proto::image *, 1, "Image to display">
     {
-        proto::image *image_ptr = nullptr;
         const char   *display_n = nullptr;
         unsigned int  display_i = 0;
+
+        // GL/CL/ETC interop internal
+        unsigned char *data_ = nullptr;
+        unsigned long  size_ = 0;
+        unsigned int   i_w   = 0;
+        unsigned int   i_h   = 0;
+        // GL/CL/ETC interop internal
 
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);

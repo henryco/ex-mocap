@@ -3,7 +3,9 @@
 //
 
 #include "../../../../headers/logic/nodes/outputs/display.h"
+#include "../../../../headers/logic/logic_globals.h"
 #include "../../../../headers/display/display.h"
+#include "../../../../headers/cl/ocl_interop.h"
 
 #include <iostream>
 
@@ -41,20 +43,50 @@ namespace ex::logic::node::out {
 
     void DisplayOutputNode::on_input(const int in_idx, const int out_idx, const int clock_i, const void *data) {
         proto::image *ptr = *(static_cast<proto::image *const *>(data));
-        if (ptr != image_ptr) {
-            image_ptr = ptr;
-            // TODO
+
+        if (ptr == nullptr) {
+            ex::display::io.clear(display_i);
+            return;
         }
+
+        const static ex::State &state = ex::logic::globals::state();
+        if (state.gl.sharing) {
+            ex::display::io.clear(display_i);
+            // TODO
+            return;
+        }
+
+        auto &promise = ptr->image_promise;
+        if (promise.image.empty()) {
+            ex::display::io.clear(display_i);
+            return;
+        }
+
+        const auto &img = promise.image;
+        if (size_ != promise.image.size() || data_ == nullptr || i_w != img.cols || i_h != img.rows) {
+            if (data_ != nullptr)
+                ::free(data_);
+            size_ = promise.image.size();
+            data_ = static_cast<unsigned char *>(::malloc(size_));
+            i_w   = img.cols;
+            i_h   = img.rows;
+            ex::display::io.clear(display_i);
+        }
+
+        promise.waitFor().toBytes(data_);
+
+        ex::display::io.draw_bytes_bgra_8(display_i, data_, img.cols, img.rows, img.channels);
     }
 
     void DisplayOutputNode::on_output(const int in_idx, const int out_idx, const int clock_i, void *data) {
-        // TODO
     }
 
     DisplayOutputNode::~DisplayOutputNode() {
         std::cout << "DSTR DisplayOutputNode::DisplayOutputNode()\n";
         if (display_i != 0)
             ex::display::io.remove_output(display_i);
+        if (data_ != nullptr)
+            ::free(data_);
     }
 
     DisplayOutputNode::DisplayOutputNode() {

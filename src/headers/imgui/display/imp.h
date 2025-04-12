@@ -11,7 +11,9 @@ namespace ex::display::imp::imgui {
 
     void remove_output(unsigned int id);
 
-    void draw_output(unsigned int id, unsigned long long tex_id, int w, int h);
+    void clear(unsigned int id);
+
+    void draw_bytes_bgra_8(unsigned int id, unsigned char *data, int w, int h, int cn);
 
     // TODO
 }

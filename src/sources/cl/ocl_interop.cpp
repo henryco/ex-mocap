@@ -240,6 +240,20 @@ namespace xm::ocl::iop {
         out = to_cv_mat(image, queue, cv_type).waitFor().get();
     }
 
+    void to_bytes(const Image2D &image, unsigned char *out, const cl_command_queue queue) {
+        cl_int err = clEnqueueReadBuffer(queue,
+                                        image.handle,
+                                        CL_FALSE,
+                                        0,
+                                        image.size(),
+                                        out,
+                                        0,
+                                        nullptr,
+                                        nullptr);
+        if (err != CL_SUCCESS)
+            abort__("Cannot enqueue read buffer: %d", err);
+    }
+
     CLPromise<cv::Mat> to_cv_mat(const ClImagePromise &p_im, const cl_command_queue queue, const int cv_type) {
         const auto &image = p_im.getImage2D();
         cv::Mat     dst(image.rows, image.cols, (cv_type < 0 ? (CV_8UC(static_cast<int>(image.channels))) : cv_type));
@@ -319,6 +333,19 @@ namespace xm::ocl::iop {
 
     cv::Mat ClImagePromise::getMat() const {
         return xm::ocl::iop::to_cv_mat(*this).waitFor().get();
+    }
+
+    void ClImagePromise::toBytes(unsigned char *bytes) const {
+        xm::ocl::iop::to_bytes(image, bytes, ocl_queue);
+
+        cl_int err;
+        if (ocl_queue)
+            err = clFinish(ocl_queue);
+        else
+            err = CL_SUCCESS;
+
+        if (err != CL_SUCCESS)
+            abort__("Cannot finish command queue: %d", err);
     }
 
     void ClImagePromise::toMat(cv::Mat &mat) const {

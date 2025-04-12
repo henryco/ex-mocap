@@ -93,7 +93,10 @@ namespace ex::logic::node::cmp::image {
     void ImageNode::on_output(const int in_idx, const int out_idx, const int clock_i, void *data) {
         if (data == GRAPH_SKIP)
             return;
-        // TODO
+        if (source.data_ptr == nullptr) {
+            *(static_cast<proto::image **>(data)) = nullptr;
+            return;
+        }
         *(static_cast<proto::image **>(data)) = &image;
     }
 

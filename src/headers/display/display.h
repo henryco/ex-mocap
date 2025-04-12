@@ -7,10 +7,13 @@
 
 namespace ex::display {
 
+    using disp_id_t = unsigned int;
+
     struct IO {
-        unsigned int (*add_output)(const char *) = nullptr;
-        void (*remove_output)(unsigned int)      = nullptr;
-        void (*draw_output)(unsigned int id, unsigned long long tex_id, int w, int h);
+        disp_id_t (*add_output)(const char *)                                              = nullptr;
+        void (*remove_output)(disp_id_t)                                                   = nullptr;
+        void (*clear)(disp_id_t)                                                           = nullptr;
+        void (*draw_bytes_bgra_8)(disp_id_t id, unsigned char *data, int w, int h, int cn) = nullptr;
         // TODO
     };
 

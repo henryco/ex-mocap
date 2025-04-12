@@ -102,6 +102,11 @@ namespace xm::ocl::iop {
          */
         cv::Mat getMat() const;
 
+        /**
+         * Blocking operation
+         */
+        void toBytes(unsigned char *) const;
+
         bool resolved() const;
 
         const cl_event &event() const;
@@ -232,6 +237,8 @@ namespace xm::ocl::iop {
     void to_cv_umat(const Image2D &image, cv::UMat &out, int cv_type = -1);
 
     void to_cv_mat(const Image2D &image, cv::Mat &out, cl_command_queue queue, int cv_type = -1);
+
+    void to_bytes(const Image2D &image, unsigned char *out, cl_command_queue queue);
 
     CLPromise<cv::Mat> to_cv_mat(const ClImagePromise &image_promise, cl_command_queue queue, int cv_type = -1);
 

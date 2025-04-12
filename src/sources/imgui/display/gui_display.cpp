@@ -12,14 +12,65 @@
 
 namespace ex::display::imp::imgui {
 
+    int format_c(const int c) {
+        if (c == 3)
+            return GL_BGR;
+        if (c == 4)
+            return GL_BGRA;
+        if (c == 1)
+            return GL_SINGLE_COLOR;
+        abort_("channels number invalid: " << c);
+    }
+
+    GLuint create_texture_bgra(const int width, const int height, const int channels) {
+        GLuint texture_id;
+        glGenTextures(1, &texture_id);
+        glBindTexture(GL_TEXTURE_2D, texture_id);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // or GL_NEAREST
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // or GL_NEAREST
+
+        GLint format_e, format_i;
+        if (channels == 1) {
+            format_e = GL_SINGLE_COLOR;
+            format_i = GL_SINGLE_COLOR;
+        } else if (channels == 3) {
+            format_e = GL_BGR;
+            format_i = GL_RGB;
+        } else if (channels == 4) {
+            format_e = GL_BGRA;
+            format_i = GL_RGBA;
+        } else {
+            abort_("channels number invalid: " << channels);
+        }
+
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     format_i,
+                     width,
+                     height,
+                     0,
+                     format_e,
+                     GL_UNSIGNED_BYTE,
+                     nullptr);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        return texture_id;
+    }
+
     static unsigned int id_counter = 0;
 
     struct display_window_t {
-        const char *name;
-        const char *uuid;
-        ImTextureID txid;
-        float       w;
-        float       h;
+        const char    *name;
+        const char    *uuid;
+        unsigned char *data;
+        // todo cl_mem handle
+        GLuint         txid;
+        int            w;
+        int            h;
+        int            c;
+        bool           u;
     };
 
     static ex::data::array_map<unsigned int, display_window_t> display_map_(10);
@@ -32,7 +83,7 @@ namespace ex::display::imp::imgui {
         sprintf(uuid, "%s##display/%d", name, new_id);
         strcpy(label, name);
 
-        display_map_.put(new_id, { label, uuid, 0, 0, 0 });
+        display_map_.put(new_id, { label, uuid, nullptr, 0, 0, 0, 0, true });
         return new_id;
     }
 
@@ -44,16 +95,32 @@ namespace ex::display::imp::imgui {
             delete[] d_ref.uuid;
         if (d_ref.name != nullptr)
             delete[] d_ref.name;
+        if (d_ref.txid != 0)
+            glDeleteTextures(1, &d_ref.txid);
         display_map_.remove(id);
     }
 
-    void draw_output(const unsigned int id, const unsigned long long tex_id, const int w, const int h) {
+    void clear(const unsigned int id) {
         display_window_t &ref = display_map_.at(id);
-        ref.txid = static_cast<ImTextureID>(tex_id);
-        ref.w = w;
-        ref.h = h;
+        if (ref.txid != 0)
+            glDeleteTextures(1, &ref.txid);
+        ref.txid = 0;
+        ref.data = nullptr;
+        ref.u    = false;
     }
-} // namespace ex::display::imp::imgui
+
+    void draw_bytes_bgra_8(const unsigned int id, unsigned char *data, const int w, const int h, const int cn) {
+        display_window_t &ref = display_map_.at(id);
+        ref.data              = data;
+        ref.c                 = cn;
+        ref.w                 = w;
+        ref.h                 = h;
+        ref.u                 = true;
+
+        if (w <= 0 || h <= 0)
+            abort_("w <= 0 || h <= 0");
+    }
+}
 
 namespace ex::gui::display {
 
@@ -82,14 +149,37 @@ namespace ex::gui::display {
 
     static const ImGuiWindowClass display_dock_host_class_ = create_display_dock_host_class_();
 
-    bool draw_display(const ImGuiWindow *host_window, const ex::display::imp::imgui::display_window_t &disp) {
+    bool draw_display(const ImGuiWindow *host_window, ex::display::imp::imgui::display_window_t &disp) {
         static const GuiState &gui = ex::gui::state();
         ImGui::SetNextWindowClass(&display_dock_host_class_);
         ImGui::SetNextWindowDockID(gui.docking.dock_main_id, gui.view.reset ? ImGuiCond_Always : ImGuiCond_Once);
 
         if (ImGui::Begin(disp.uuid, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
-            if (disp.txid != 0 && disp.w > 0 && disp.h > 0) {
-                ImGui::Image(disp.txid, { disp.w, disp.h });
+
+            if (disp.u == true) {
+
+                if (disp.txid == 0 && disp.data != nullptr) {
+                    disp.txid = ex::display::imp::imgui::create_texture_bgra(disp.w, disp.h, disp.c);
+                }
+
+                if (disp.txid != 0 && disp.data != nullptr) {
+                    glBindTexture(GL_TEXTURE_2D, disp.txid);
+                    glTexSubImage2D(GL_TEXTURE_2D,
+                                    0,
+                                    0,
+                                    0,
+                                    disp.w,
+                                    disp.h,
+                                    ex::display::imp::imgui::format_c(disp.c),
+                                    GL_UNSIGNED_BYTE,
+                                    disp.data);
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                }
+            }
+
+            if (disp.txid != 0) {
+                ImGui::Image(disp.txid, { static_cast<float>(disp.w), static_cast<float>(disp.h) });
+                disp.u = false;
             }
         }
 

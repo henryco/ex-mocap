@@ -97,9 +97,10 @@ namespace ex::boot {
     }
 
     void init_gui_display() {
-        ex::display::io.add_output    = &ex::display::imp::imgui::add_output;
-        ex::display::io.remove_output = &ex::display::imp::imgui::remove_output;
-        ex::display::io.draw_output   = &ex::display::imp::imgui::draw_output;
+        ex::display::io.add_output        = &ex::display::imp::imgui::add_output;
+        ex::display::io.remove_output     = &ex::display::imp::imgui::remove_output;
+        ex::display::io.clear             = &ex::display::imp::imgui::clear;
+        ex::display::io.draw_bytes_bgra_8 = &ex::display::imp::imgui::draw_bytes_bgra_8;
     }
 
     inline void update_title(const State &state) {
