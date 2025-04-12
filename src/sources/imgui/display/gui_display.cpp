@@ -17,6 +17,9 @@ namespace ex::display::imp::imgui {
     struct display_window_t {
         const char *name;
         const char *uuid;
+        ImTextureID txid;
+        float       w;
+        float       h;
     };
 
     static ex::data::array_map<unsigned int, display_window_t> display_map_(10);
@@ -29,7 +32,7 @@ namespace ex::display::imp::imgui {
         sprintf(uuid, "%s##display/%d", name, new_id);
         strcpy(label, name);
 
-        display_map_.put(new_id, { label, uuid });
+        display_map_.put(new_id, { label, uuid, 0, 0, 0 });
         return new_id;
     }
 
@@ -44,7 +47,13 @@ namespace ex::display::imp::imgui {
         display_map_.remove(id);
     }
 
-}
+    void draw_output(const unsigned int id, const unsigned long long tex_id, const int w, const int h) {
+        display_window_t &ref = display_map_.at(id);
+        ref.txid = static_cast<ImTextureID>(tex_id);
+        ref.w = w;
+        ref.h = h;
+    }
+} // namespace ex::display::imp::imgui
 
 namespace ex::gui::display {
 
@@ -79,8 +88,9 @@ namespace ex::gui::display {
         ImGui::SetNextWindowDockID(gui.docking.dock_main_id, gui.view.reset ? ImGuiCond_Always : ImGuiCond_Once);
 
         if (ImGui::Begin(disp.uuid, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
-            ImGui::Text("%s", disp.name);
-            // TODO
+            if (disp.txid != 0 && disp.w > 0 && disp.h > 0) {
+                ImGui::Image(disp.txid, { disp.w, disp.h });
+            }
         }
 
         if (const ImGuiWindow *curr = ImGui::GetCurrentWindow()) {

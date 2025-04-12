@@ -7,9 +7,11 @@
 
 namespace ex::display::imp::imgui {
 
-    unsigned int add_output(const char *);
+    unsigned int add_output(const char *name);
 
-    void remove_output(unsigned int);
+    void remove_output(unsigned int id);
+
+    void draw_output(unsigned int id, const unsigned long long tex_id, int w, int h);
 
     // TODO
 }
