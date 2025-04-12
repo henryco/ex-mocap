@@ -11,7 +11,7 @@ namespace ex::display::imp::imgui {
 
     void remove_output(unsigned int id);
 
-    void draw_output(unsigned int id, const unsigned long long tex_id, int w, int h);
+    void draw_output(unsigned int id, unsigned long long tex_id, int w, int h);
 
     // TODO
 }
