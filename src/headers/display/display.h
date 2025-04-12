@@ -10,7 +10,7 @@ namespace ex::display {
     struct IO {
         unsigned int (*add_output)(const char *) = nullptr;
         void (*remove_output)(unsigned int)      = nullptr;
-        void (*draw_output)(unsigned int id, const unsigned long long tex_id, int w, int h);
+        void (*draw_output)(unsigned int id, unsigned long long tex_id, int w, int h);
         // TODO
     };
 
