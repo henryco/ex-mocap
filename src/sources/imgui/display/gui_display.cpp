@@ -9,7 +9,6 @@
 #include "../../../headers/utils/gui_utils.h"
 
 #include <imgui_internal.h>
-#include <iostream>
 
 namespace ex::display::imp::imgui {
 
@@ -18,15 +17,11 @@ namespace ex::display::imp::imgui {
     struct display_window_t {
         const char *name;
         const char *uuid;
-        int         width;
-        int         height;
-        int         channels;
-        int         depth;
     };
 
     static ex::data::array_map<unsigned int, display_window_t> display_map_(10);
 
-    unsigned int add_output(const char *name, const int width, const int height, const int channels, const int depth) {
+    unsigned int add_output(const char *name) {
         const auto new_id = ++id_counter;
         const auto uuid   = new char[strlen(name) + 24];
         const auto label  = new char[strlen(name) + 1];
@@ -34,7 +29,7 @@ namespace ex::display::imp::imgui {
         sprintf(uuid, "%s##display/%d", name, new_id);
         strcpy(label, name);
 
-        display_map_.put(new_id, { label, uuid, width, height, channels, depth });
+        display_map_.put(new_id, { label, uuid });
         return new_id;
     }
 

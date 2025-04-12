@@ -7,7 +7,7 @@
 
 namespace ex::display::imp::imgui {
 
-    unsigned int add_output(const char *, int w, int h, int channels, int depth);
+    unsigned int add_output(const char *);
 
     void remove_output(unsigned int);
 

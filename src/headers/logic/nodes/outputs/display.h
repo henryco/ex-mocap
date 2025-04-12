@@ -18,16 +18,12 @@ namespace ex::logic::node::out {
         proto::image *image_ptr = nullptr;
         const char   *display_n = nullptr;
         unsigned int  display_i = 0;
-        unsigned int  display_w = 0;
-        unsigned int  display_h = 0;
-        unsigned int  display_c = 3;
-        unsigned int  display_d = 8;
 
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
         static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
 
-        void register_image(const char *name, uint w, uint h, uint channels = 3, uint bit_depth = 8);
+        void register_image(const char *name);
 
         void rename_image(const char *name);
 

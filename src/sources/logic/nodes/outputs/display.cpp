@@ -11,7 +11,7 @@ namespace ex::logic::node::out {
 
     ln::BaseNode *DisplayOutputNode::instance(TreeNode *n) {
         const auto node = new DisplayOutputNode();
-        node->register_image(n->name, 0, 0);
+        node->register_image(n->name);
         return node;
     }
 
@@ -24,34 +24,26 @@ namespace ex::logic::node::out {
         delete node;
     }
 
-    void DisplayOutputNode::register_image(const char *name, const uint w, const uint h, const uint channels,
-                                           const uint bit_depth) {
+    void DisplayOutputNode::register_image(const char *name) {
         if (display_i != 0)
             ex::display::io.remove_output(display_i);
 
         display_n = name;
-        display_w = w;
-        display_h = h;
-        display_c = channels;
-        display_d = bit_depth;
-
-        display_i = ex::display::io.add_output(display_n, display_w, display_h, display_c, display_d);
+        display_i = ex::display::io.add_output(display_n);
     }
 
     void DisplayOutputNode::rename_image(const char *name) {
         if (display_i != 0)
             ex::display::io.remove_output(display_i);
         display_n = name;
-        display_i = ex::display::io.add_output(display_n, display_w, display_h, display_c, display_d);
+        display_i = ex::display::io.add_output(display_n);
     }
 
     void DisplayOutputNode::on_input(const int in_idx, const int out_idx, const int clock_i, const void *data) {
         proto::image *ptr = *(static_cast<proto::image *const *>(data));
         if (ptr != image_ptr) {
             image_ptr = ptr;
-            const xm::ocl::Image2D &img = ptr->image_promise.image;
-            register_image(display_n, img.cols, img.rows, img.channels, img.channel_size);
-            std::cout << "register" << std::endl;
+            // TODO
         }
     }
 

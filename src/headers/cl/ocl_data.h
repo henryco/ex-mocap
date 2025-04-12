@@ -21,9 +21,7 @@ namespace xm::ocl {
         RW = RO | WO
     };
 
-    class Image2D {
-
-    public:
+    struct Image2D {
         cl_mem       handle  = nullptr;
         cl_context   context = nullptr;
         cl_device_id device  = nullptr;
