@@ -154,6 +154,10 @@ namespace ex::gui::display {
         ImGui::SetNextWindowClass(&display_dock_host_class_);
         ImGui::SetNextWindowDockID(gui.docking.dock_main_id, gui.view.reset ? ImGuiCond_Always : ImGuiCond_Once);
 
+        // CUSTOM BG COLOR, TODO: MOVE TO SETTINGS
+        ImVec4 custom_bg = ImVec4(0.f, 0.f, 0.f, 1.0f);
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, custom_bg);
+
         if (ImGui::Begin(disp.uuid, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
 
             if (disp.u == true) {
@@ -178,6 +182,19 @@ namespace ex::gui::display {
             }
 
             if (disp.txid != 0) {
+
+                {
+                    // CENTERING, TODO: MOVE TO SETTINGS
+                    const float window_width  = ImGui::GetContentRegionAvail().x;
+                    const float window_height = ImGui::GetContentRegionAvail().y;
+                    const float x_offset      = (window_width - disp.w) * 0.5f;
+                    const float y_offset      = (window_height - disp.h) * 0.5f;
+                    if (x_offset > 0.0f)
+                        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + x_offset);
+                    if (y_offset > 0.0f)
+                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + y_offset);
+                }
+
                 ImGui::Image(disp.txid, { static_cast<float>(disp.w), static_cast<float>(disp.h) });
                 disp.u = false;
             }
@@ -186,11 +203,14 @@ namespace ex::gui::display {
         if (const ImGuiWindow *curr = ImGui::GetCurrentWindow()) {
             if (curr->ParentWindow == host_window) {
                 ImGui::End();
+                ImGui::PopStyleColor();
                 return true;
             }
         }
 
         ImGui::End();
+        ImGui::PopStyleColor();
+
         return false;
     }
 
