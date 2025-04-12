@@ -187,7 +187,7 @@ namespace ex::gui::display {
                     // CENTERING, TODO: MOVE TO SETTINGS
                     const float window_width  = ImGui::GetContentRegionAvail().x;
                     const float window_height = ImGui::GetContentRegionAvail().y;
-                    const float x_offset      = (window_width - disp.w) * 0.5f;
+                    const float x_offset      = (window_width - disp.w)  * 0.5f;
                     const float y_offset      = (window_height - disp.h) * 0.5f;
                     if (x_offset > 0.0f)
                         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + x_offset);
