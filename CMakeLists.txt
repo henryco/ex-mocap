@@ -182,6 +182,7 @@ set(HEADER_FILES
         src/headers/utils/err_utils.h
         src/headers/imgui/nodes/components/image.h
         src/headers/logic/nodes/components/image.h
+        src/headers/cl/cl_image.h
 )
 
 set(SOURCE_FILES
@@ -237,6 +238,7 @@ set(SOURCE_FILES
         src/sources/utils/err_utils.cpp
         src/sources/imgui/nodes/components/image.cpp
         src/sources/logic/nodes/components/image.cpp
+        src/sources/cl/cl_image.cpp
 )
 
 # =================== OpenCL kernels generation =====================
