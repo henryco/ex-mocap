@@ -212,13 +212,29 @@ namespace ex::ocl {
             if (err != CL_SUCCESS)
                 abort__("Cannot create cl buffer: %d", err);
 
-            err = clEnqueueWriteBuffer(queue, image.handle,
-                CL_FALSE, 0, size, bytes,
-                0, nullptr, nullptr);
+            err = clEnqueueWriteBuffer(queue, image.handle, CL_FALSE, 0,
+                size, bytes, 0, nullptr, nullptr);
             if (err != CL_SUCCESS)
                 abort__("Cannot enqueue copy data to cl buffer: %d", err);
 
             return { image, queue };
+        }
+
+        ImagePromise from_bytes(const unsigned char *bytes, Image2D image, const cl_command_queue queue) {
+            if (image.handle == nullptr)
+                abort__("Image cl_mem ptr is null");
+
+            cl_int err =
+                    clEnqueueWriteBuffer(queue, image.handle, CL_FALSE, 0, image.size(),
+                        bytes, 0, nullptr, nullptr);
+            if (err != CL_SUCCESS)
+                abort__("Cannot enqueue copy data to cl buffer: %d", err);
+
+            return { image, queue };
+        }
+
+        ImagePromise from_bytes(const unsigned char *bytes, const ImagePromise &promise) {
+            return from_bytes(bytes, promise.image, promise.queue);
         }
 
         Promise to_bytes(const Image2D &image, unsigned char *out, const cl_command_queue queue) {

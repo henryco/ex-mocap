@@ -131,6 +131,19 @@ namespace ex::ocl {
         );
 
         // non blocking op
+        ImagePromise from_bytes(
+            const unsigned char *bytes,
+            Image2D image,
+            cl_command_queue queue
+        );
+
+        // non blocking op
+        ImagePromise from_bytes(
+            const unsigned char *bytes,
+            const ImagePromise &image
+        );
+
+        // non blocking op
         Promise to_bytes(const Image2D &image, unsigned char *out, cl_command_queue queue);
 
         // non blocking op
