@@ -203,16 +203,18 @@ namespace ex::ocl {
         ImagePromise from_bytes(const unsigned char *bytes, const ::size_t width, const ::size_t height,
                                 const ::size_t channel_n, const ::size_t channel_size, const cl_context context,
                                 const cl_command_queue queue, const Image2D::ACCESS access) {
-            Image2D  image = Image2D::allocate(width, height, channel_n, channel_size, context, access);
+            Image2D        image = Image2D::allocate(width, height, channel_n, channel_size, context, access);
             const ::size_t size  = image.size();
 
             cl_int err;
 
-            cl_mem buffer = clCreateBuffer(context, access_to_cl(access), size, nullptr, &err);
+            image.handle = clCreateBuffer(context, access_to_cl(access), size, nullptr, &err);
             if (err != CL_SUCCESS)
                 abort__("Cannot create cl buffer: %d", err);
 
-            err = clEnqueueWriteBuffer(queue, buffer, CL_FALSE, 0, size, bytes, 0, nullptr, nullptr);
+            err = clEnqueueWriteBuffer(queue, image.handle,
+                CL_FALSE, 0, size, bytes,
+                0, nullptr, nullptr);
             if (err != CL_SUCCESS)
                 abort__("Cannot enqueue copy data to cl buffer: %d", err);
 
