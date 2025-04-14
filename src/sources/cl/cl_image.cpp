@@ -74,6 +74,76 @@ namespace ex::ocl {
         img.handle = nullptr;
     }
 
+    Promise::Promise(const cl_command_queue queue):
+        queue(queue), ready(false) {
+    }
+
+    Promise::Promise(const cl_command_queue queue, const bool ready):
+        queue(queue), ready(ready) {
+    }
+
+    Promise::Promise(const ImagePromise &promise) {
+        this->queue = promise.queue;
+        this->ready = promise.image.____;
+    }
+
+    bool Promise::completed() const {
+        return ready;
+    }
+
+    void Promise::finalize(const bool force) {
+        if ((ready && !force) || !queue)
+            return;
+        if (cl_int err = clFinish(queue); err != CL_SUCCESS)
+            abort__("Cannot finish command queue: %d", err);
+        ready = true;
+    }
+
+    void Promise::finalize_all(Promise *const promises, const int size, const bool force) {
+        thread_local cl_command_queue list[256];
+        int                           n = 0;
+
+        for (int g = 0; g < size; g++) {
+            auto &p = promises[g];
+
+            if (p.ready && !force)
+                continue;
+
+            p.ready = true;
+
+            bool found = false;
+            for (int i = 0; i < n; i++) {
+                if (list[i] != p.queue) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                list[n++] = p.queue;
+
+                if (cl_int err = clFinish(p.queue); err != CL_SUCCESS)
+                    abort__("Cannot finish command queue: %d", err);
+            }
+        }
+    }
+
+    ImagePromise::ImagePromise(const Image2D &image, const cl_command_queue queue, const bool ready):
+        queue(queue), image(image) {
+        this->image.____ = ready;
+    }
+
+    ImagePromise::ImagePromise(const Image2D &image, const cl_command_queue queue):
+        queue(queue), image(image) {
+        this->image.____ = false;
+    }
+
+    ImagePromise::ImagePromise(const Image2D &image) {
+        this->queue      = nullptr;
+        this->image      = image;
+        this->image.____ = true;
+    }
+
     void ImagePromise::set_completed(const bool completed) {
         image.____ = completed;
     }
@@ -87,11 +157,12 @@ namespace ex::ocl {
             return;
         if (cl_int err = clFinish(queue); err != CL_SUCCESS)
             abort__("Cannot finish command queue: %d", err);
+        image.____ = true;
     }
 
     void ImagePromise::finalize_all(ImagePromise *const promises, const int size, const bool force) {
         thread_local cl_command_queue list[256];
-        int n = 0;
+        int                           n = 0;
 
         for (int g = 0; g < size; g++) {
             auto &p = promises[g];
@@ -118,4 +189,57 @@ namespace ex::ocl {
         }
     }
 
-} // namespace ex::ocl
+    namespace ops {
+        cl_mem_flags access_to_cl(const Image2D::ACCESS access) {
+            if (access == Image2D::ACCESS::RW)
+                return CL_MEM_READ_WRITE;
+            if (access == Image2D::ACCESS::RO)
+                return CL_MEM_READ_ONLY;
+            if (access == Image2D::ACCESS::WO)
+                return CL_MEM_WRITE_ONLY;
+            abort__("Unknown access modifier");
+        }
+
+        ImagePromise from_bytes(const unsigned char *bytes, const ::size_t width, const ::size_t height,
+                                const ::size_t channel_n, const ::size_t channel_size, const cl_context context,
+                                const cl_command_queue queue, const Image2D::ACCESS access) {
+            Image2D  image = Image2D::allocate(width, height, channel_n, channel_size, context, access);
+            const ::size_t size  = image.size();
+
+            cl_int err;
+
+            cl_mem buffer = clCreateBuffer(context, access_to_cl(access), size, nullptr, &err);
+            if (err != CL_SUCCESS)
+                abort__("Cannot create cl buffer: %d", err);
+
+            err = clEnqueueWriteBuffer(queue, buffer, CL_FALSE, 0, size, bytes, 0, nullptr, nullptr);
+            if (err != CL_SUCCESS)
+                abort__("Cannot enqueue copy data to cl buffer: %d", err);
+
+            return { image, queue };
+        }
+
+        Promise to_bytes(const Image2D &image, unsigned char *out, const cl_command_queue queue) {
+            if (image.handle == nullptr)
+                abort__("Image cl_mem ptr is null");
+            cl_int err = clEnqueueReadBuffer(queue,
+                                        image.handle,
+                                        CL_FALSE,
+                                        0,
+                                        image.size(),
+                                        out,
+                                        0,
+                                        nullptr,
+                                        nullptr);
+            if (err != CL_SUCCESS)
+                abort__("Cannot enqueue read buffer: %d", err);
+            return queue;
+        }
+
+        Promise to_bytes(ImagePromise &promise, unsigned char *out) {
+            return to_bytes(promise.image, out, promise.queue);
+        }
+
+    }
+
+}
