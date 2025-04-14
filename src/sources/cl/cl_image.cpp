@@ -6,6 +6,7 @@
 #include "../../headers/utils/err_utils.h"
 
 namespace ex::ocl {
+
     uint32 Image2D::size() const {
         return cols * rows * header.channels * header.cn_depth;
     }
