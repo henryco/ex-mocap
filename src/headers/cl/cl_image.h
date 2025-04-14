@@ -39,6 +39,8 @@ namespace ex::ocl {
         uint16 rows;
         header header;
 
+        uchar8 ____; // reserved for internal usage
+
         uint32 size() const;
 
         bool empty() const;
@@ -68,6 +70,20 @@ namespace ex::ocl {
                                      ACCESS access = ACCESS::RW);
 
         static void release(Image2D &img);
+    };
+
+    struct ImagePromise {
+
+        cl_command_queue queue;
+        Image2D          image;
+
+        void set_completed(bool completed);
+
+        bool completed() const;
+
+        void finalize(bool force = false);
+
+        static void finalize_all(ImagePromise *arr, int n, bool force = false);
     };
 
 }

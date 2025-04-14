@@ -74,4 +74,48 @@ namespace ex::ocl {
         img.handle = nullptr;
     }
 
-}
+    void ImagePromise::set_completed(const bool completed) {
+        image.____ = completed;
+    }
+
+    bool ImagePromise::completed() const {
+        return image.____ == true;
+    }
+
+    void ImagePromise::finalize(const bool force) {
+        if ((image.____ == true && !force) || !queue)
+            return;
+        if (cl_int err = clFinish(queue); err != CL_SUCCESS)
+            abort__("Cannot finish command queue: %d", err);
+    }
+
+    void ImagePromise::finalize_all(ImagePromise *const promises, const int size, const bool force) {
+        thread_local cl_command_queue list[256];
+        int n = 0;
+
+        for (int g = 0; g < size; g++) {
+            auto &p = promises[g];
+
+            if (p.image.____ == true && !force)
+                continue;
+
+            p.image.____ = true;
+
+            bool found = false;
+            for (int i = 0; i < n; i++) {
+                if (list[i] != p.queue) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                list[n++] = p.queue;
+
+                if (cl_int err = clFinish(p.queue); err != CL_SUCCESS)
+                    abort__("Cannot finish command queue: %d", err);
+            }
+        }
+    }
+
+} // namespace ex::ocl
