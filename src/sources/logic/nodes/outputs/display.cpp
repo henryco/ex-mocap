@@ -6,6 +6,7 @@
 #include "../../../../headers/logic/logic_globals.h"
 #include "../../../../headers/display/display.h"
 #include "../../../../headers/cl/ocl_interop.h"
+#include "../../../../headers/cl/cl_kernel.h"
 
 #include <iostream>
 
@@ -74,6 +75,14 @@ namespace ex::logic::node::out {
 
         promise->finalize();
 
+
+        const ex::State &state_ = ex::logic::globals::state();
+        if (queue_ == nullptr) {
+            queue_ = xm::ocl::create_queue_device(state_.cl.context, state_.cl.device, true, false);
+        }
+
+        // TODO
+
         auto out_promise = ex::ocl::ops::to_bytes(*promise, data_);
         out_promise.finalize();
 
@@ -91,7 +100,9 @@ namespace ex::logic::node::out {
             ::free(data_);
     }
 
-    DisplayOutputNode::DisplayOutputNode() {
+    DisplayOutputNode::DisplayOutputNode():
+        image_(ocl::Image2D::blank()),
+        queue_(nullptr) {
         std::cout << "CNST DisplayOutputNode::DisplayOutputNode()\n";
     }
 

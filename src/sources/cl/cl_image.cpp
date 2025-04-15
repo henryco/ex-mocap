@@ -437,6 +437,27 @@ namespace ex::ocl {
         ImagePromise copy_data(const ImagePromise &promise, const cl_context context) {
             return copy_data(promise.image, context, promise.queue);
         }
+
+        Promise copy_data(const Image2D &image_src, Image2D &image_dst, const cl_command_queue queue) {
+            if (image_src.handle == nullptr || image_dst.handle == nullptr)
+                abort__("Image cl_mem ptr is null");
+
+            if (image_src.size() != image_dst.size())
+                abort__("image_src.size() != image_dst.size()");
+
+            cl_int err = clEnqueueCopyBuffer(queue,
+                                  image_src.handle, image_dst.handle,
+                                  0, 0, image_src.size(),
+                                  0, nullptr, nullptr);
+            if (err != CL_SUCCESS)
+                abort__("Cannot enqueue copy data between cl buffers: %d", err);
+
+            return queue;
+        }
+
+        Promise copy_data(const ImagePromise &promise_src, Image2D &image_dst) {
+            return copy_data(promise_src.image, image_dst, promise_src.queue);
+        }
     }
 
 }

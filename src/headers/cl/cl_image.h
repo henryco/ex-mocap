@@ -210,6 +210,12 @@ namespace ex::ocl {
         // non blocking op
         ImagePromise copy_data(const ImagePromise &promise, cl_context context);
 
+        // non blocking op
+        Promise copy_data(const ImagePromise &promise_src, Image2D &image_dst);
+
+        // non blocking op
+        Promise copy_data(const Image2D &image_src, Image2D &image_dst, cl_command_queue queue);
+
     }
 
 }
