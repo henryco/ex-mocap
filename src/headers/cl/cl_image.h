@@ -136,6 +136,31 @@ namespace ex::ocl {
         static void finalize_all(Promise *arr, int n, bool force = false);
     };
 
+    // 16 bytes
+    struct NBPromise {
+
+        cl_command_queue queue;
+        cl_event         marker;
+
+        NBPromise(const ImagePromise &promise);
+
+        NBPromise(const Promise &promise);
+
+        NBPromise();
+
+        ~NBPromise();
+
+        bool completed();
+
+        bool empty() const;
+
+        // blocking op
+        void finalize(bool force = false);
+
+        // blocking op
+        static void finalize_all(NBPromise *arr, int n, bool force = false);
+    };
+
     namespace ops {
 
         // non blocking op
