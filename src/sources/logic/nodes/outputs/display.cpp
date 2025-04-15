@@ -43,17 +43,12 @@ namespace ex::logic::node::out {
     }
 
     void DisplayOutputNode::on_input(const int in_idx, const int out_idx, const int clock_i, const void *data) {
+        const static ex::State &state = ex::logic::globals::state();
+
         const ocl::img_promise promise = *(static_cast<const ocl::img_promise *>(data));
 
         if (promise == nullptr) {
             ex::display::io.clear(display_i);
-            return;
-        }
-
-        const static ex::State &state = ex::logic::globals::state();
-        if (state.gl.sharing) {
-            ex::display::io.clear(display_i);
-            // TODO
             return;
         }
 
@@ -62,31 +57,51 @@ namespace ex::logic::node::out {
             return;
         }
 
-        const auto &img = promise->image;
-        if (size_ != promise->image.size() || data_ == nullptr || i_w_ != img.cols || i_h_ != img.rows) {
-            if (data_ != nullptr)
-                ::free(data_);
-            size_ = promise->image.size();
-            data_ = static_cast<unsigned char *>(::malloc(size_));
-            i_w_  = img.cols;
-            i_h_  = img.rows;
-            ex::display::io.clear(display_i);
+        if (!promise_.completed())
+            return;
+
+        const ocl::Image2D &img = promise->image;
+
+        if (!state.gl.sharing) {
+            if (!image_.empty() && data_ != nullptr) {
+                ex::display::io.draw_bytes_bgra_8(display_i, data_, image_.cols, image_.rows, image_.header.channels);
+            }
         }
 
-        promise->finalize();
+        else {
+            // TODO Cl / GL INTEROP
+        }
 
-
-        const ex::State &state_ = ex::logic::globals::state();
         if (queue_ == nullptr) {
-            queue_ = xm::ocl::create_queue_device(state_.cl.context, state_.cl.device, true, false);
+            queue_ = xm::ocl::create_queue_device(state.cl.context, state.cl.device, true, false);
         }
 
-        // TODO
+        if (img.size() != image_.size()) {
+            image_.release();
+            image_ = ex::ocl::Image2D::allocate_like(img, state.cl.context);
+        }
 
-        auto out_promise = ex::ocl::ops::to_bytes(*promise, data_);
-        out_promise.finalize();
+        // copy to internal cl_mem buffer
+        ex::ocl::ops::copy_data(*promise, image_)
+            .finalize();
 
-        ex::display::io.draw_bytes_bgra_8(display_i, data_, img.cols, img.rows, img.header.channels);
+        if (!state.gl.sharing) {
+            if (size_ != img.size() || data_ == nullptr || i_w_ != img.cols || i_h_ != img.rows) {
+                if (data_ != nullptr)
+                    ::free(data_);
+                size_ = img.size();
+                data_ = static_cast<unsigned char *>(::malloc(size_));
+                i_w_  = img.cols;
+                i_h_  = img.rows;
+                ex::display::io.clear(display_i);
+            }
+
+            promise_.release();
+            promise_ = ex::ocl::ops::to_bytes(image_, data_, queue_).non_blocking();
+            return;
+        }
+
+        // TODO Cl / GL INTEROP
     }
 
     void DisplayOutputNode::on_output(const int in_idx, const int out_idx, const int clock_i, void *data) {
@@ -94,10 +109,16 @@ namespace ex::logic::node::out {
 
     DisplayOutputNode::~DisplayOutputNode() {
         std::cout << "DSTR DisplayOutputNode::DisplayOutputNode()\n";
+        image_.release();
+        promise_.release();
         if (display_i != 0)
             ex::display::io.remove_output(display_i);
         if (data_ != nullptr)
             ::free(data_);
+        if (queue_ != nullptr) {
+            clReleaseCommandQueue(queue_);
+            queue_ = nullptr;
+        }
     }
 
     DisplayOutputNode::DisplayOutputNode():

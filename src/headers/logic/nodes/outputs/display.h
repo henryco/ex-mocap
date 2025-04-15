@@ -18,17 +18,15 @@ namespace ex::logic::node::out {
         const char   *display_n = nullptr;
         unsigned int  display_i = 0;
 
-
         // GL/CL/ETC interop internal
-        unsigned char    *data_ = nullptr;
-        unsigned long     size_ = 0;
-        unsigned int      i_w_  = 0;
-        unsigned int      i_h_  = 0;
+        unsigned char   *data_ = nullptr;
+        unsigned long    size_ = 0;
+        unsigned int     i_w_  = 0;
+        unsigned int     i_h_  = 0;
 
-        ocl::Image2D      image_;
-        cl_command_queue  queue_;
-        ocl::ImagePromise copy_promise_;
-        ocl::NBPromise    pase_promise_;
+        ocl::Image2D     image_;
+        ocl::NBPromise   promise_;
+        cl_command_queue queue_;
         // GL/CL/ETC interop internal
 
         static limbo::graph::BaseNode *instance(TreeNode *from);
