@@ -29,10 +29,6 @@ namespace ex::logic::node::cmp::image {
         delete node;
     }
 
-    static bool noop_(void *) {
-        return true;
-    }
-
     void ImageNode::set_image(const char *image_path) {
         const ex::State &state_ = ex::logic::globals::state();
 
@@ -40,40 +36,36 @@ namespace ex::logic::node::cmp::image {
         state.source[sizeof(state.source) - 1] = '\0';
         state.selected = true;
 
-        if (source.data_ptr != nullptr) {
-            stbi_image_free(source.data_ptr);
-            source.data_ptr = nullptr;
+        if (source_.data_ptr != nullptr) {
+            stbi_image_free(source_.data_ptr);
+            source_.data_ptr = nullptr;
         }
 
-        if (queue == nullptr) {
-            queue = xm::ocl::create_queue_device(state_.cl.context, state_.cl.device, true, false);
+        if (queue_ == nullptr) {
+            queue_ = xm::ocl::create_queue_device(state_.cl.context, state_.cl.device, true, false);
         }
 
         // RGBA
-        source.data_ptr = stbi_load(image_path, &source.width, &source.height, &source.channels, 0);
+        source_.data_ptr = stbi_load(image_path, &source_.width, &source_.height, &source_.channels, 0);
 
-        if (source.channels > 1) {
-            for (int i = 0; i < source.width * source.height; ++i) {
-                unsigned char *pix = source.data_ptr + i * source.channels;
+        if (source_.channels > 1) {
+            for (int i = 0; i < source_.width * source_.height; ++i) {
+                unsigned char *pix = source_.data_ptr + i * source_.channels;
                 unsigned char  tmp = pix[0];
                 pix[0]             = pix[2];
                 pix[2]             = tmp;
             }
         }
 
-        image = {
-            .image_promise = xm::ocl::iop::from_bytes(
-                source.data_ptr,
-                source.width,
-                source.height,
-                source.channels,
-                1,
-                state_.cl.context,
-                state_.cl.device,
-                queue),
-            .sync_  = &noop_,
-            .ctx___ = nullptr
-        };
+        image_.release();
+
+        ocl::ImagePromise promise = ex::ocl::ops::from_bytes(
+            source_.data_ptr, source_.width, source_.height,
+            source_.channels, 1, state_.cl.context, queue_);
+        promise.finalize();
+
+        promise_ = promise;
+        image_ = promise.image;
     }
 
     io::byte_array ImageNode::serialize() const {
@@ -93,26 +85,30 @@ namespace ex::logic::node::cmp::image {
     void ImageNode::on_output(const int in_idx, const int out_idx, const int clock_i, void *data) {
         if (data == GRAPH_SKIP)
             return;
-        if (source.data_ptr == nullptr) {
-            *(static_cast<proto::image **>(data)) = nullptr;
+        if (source_.data_ptr == nullptr) {
+            *(static_cast<ocl::img_promise *>(data)) = nullptr;
             return;
         }
-        *(static_cast<proto::image **>(data)) = &image;
+        *(static_cast<ocl::img_promise *>(data)) = &promise_;
     }
 
     ImageNode::~ImageNode() {
-        if (source.data_ptr != nullptr) {
-            stbi_image_free(source.data_ptr);
-            source.data_ptr = nullptr;
+        image_.release();
+
+        if (source_.data_ptr != nullptr) {
+            stbi_image_free(source_.data_ptr);
+            source_.data_ptr = nullptr;
         }
-        if (queue != nullptr) {
-            clReleaseCommandQueue(queue);
-            queue = nullptr;
+
+        if (queue_ != nullptr) {
+            clReleaseCommandQueue(queue_);
+            queue_ = nullptr;
         }
     }
 
     ImageNode::ImageNode() :
-        queue(nullptr),
+        queue_(nullptr),
+        image_(ocl::Image2D::blank()),
         state({ .source = {}, .selected = false }) {
     }
 }

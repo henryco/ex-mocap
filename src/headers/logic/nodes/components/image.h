@@ -5,8 +5,8 @@
 #ifndef EX_LOGIC_CMP_IMAGE_H
 #define EX_LOGIC_CMP_IMAGE_H
 
-#include "../../../core/image_protocol.h"
 #include "../../../io/byte_serializer.h"
+#include "../../../cl/cl_image.h"
 #include "../logic_nodes.h"
 
 namespace ex::logic::node::cmp::image {
@@ -25,13 +25,15 @@ namespace ex::logic::node::cmp::image {
 
     struct ImageNode final : limbo::graph::BaseNode,
                              limbo::graph::id::name<"image_source_node">,
-                             limbo::graph::io::out<proto::image *, 1, "Loaded image">,
+                             limbo::graph::io::out<ocl::img_promise, 1, "Loaded image">,
                              ex::io::bytes::serializable
     {
-        cl_command_queue queue;
-        proto::image     image;
-        image_source     source;
-        image_state      state;
+        cl_command_queue  queue_;
+        ocl::ImagePromise promise_;
+        ocl::Image2D      image_;
+        image_source      source_;
+
+        image_state       state;
 
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);

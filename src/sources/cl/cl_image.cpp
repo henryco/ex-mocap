@@ -19,6 +19,23 @@ namespace ex::ocl {
         return handle == nullptr;
     }
 
+    void Image2D::release() {
+        if (handle == nullptr)
+            return;
+        clReleaseMemObject(handle);
+        handle = nullptr;
+    }
+
+    Image2D Image2D::blank() {
+        return { .handle = nullptr,
+                 .id     = 0,
+                 .cols   = static_cast<uint16>(0),
+                 .rows   = static_cast<uint16>(0),
+                 .header = { .cn_depth = static_cast<uchar8>(0),
+                             .channels = static_cast<uchar8>(0),
+                             .access   = ACCESS::RW } };
+    }
+
     Image2D Image2D::copy(const Image2D &source) {
         Image2D another_one = source;
         return another_one;
@@ -26,12 +43,14 @@ namespace ex::ocl {
 
     Image2D Image2D::detached(const ::size_t cols, const ::size_t rows, const ::size_t channels,
                               const ::size_t channel_size, const ACCESS access) {
+        const uchar8 cs = static_cast<uchar8>(channel_size);
+        const uchar8 cn = static_cast<uchar8>(channels);
         return { .handle = nullptr,
                  .id     = 0,
                  .cols   = static_cast<uint16>(cols),
                  .rows   = static_cast<uint16>(rows),
-                 .header = { .cn_depth = static_cast<uchar8>(channel_size),
-                             .channels = static_cast<uchar8>(channels),
+                 .header = { .cn_depth = cs,
+                             .channels = cn,
                              .access   = access } };
     }
 
@@ -88,8 +107,16 @@ namespace ex::ocl {
         this->ready = promise.image.____;
     }
 
+    Promise::Promise():
+        queue(nullptr), ready(false) {
+    }
+
     bool Promise::completed() const {
         return ready;
+    }
+
+    bool Promise::empty() const {
+        return queue == nullptr;
     }
 
     void Promise::finalize(const bool force) {
@@ -145,12 +172,22 @@ namespace ex::ocl {
         this->image.____ = true;
     }
 
+    ImagePromise::ImagePromise() {
+        this->queue      = nullptr;
+        this->image      = Image2D::blank();
+        this->image.____ = false;
+    }
+
     void ImagePromise::set_completed(const bool completed) {
         image.____ = completed;
     }
 
     bool ImagePromise::completed() const {
         return image.____ == true;
+    }
+
+    bool ImagePromise::empty() const {
+        return queue == nullptr && image.empty();
     }
 
     void ImagePromise::finalize(const bool force) {

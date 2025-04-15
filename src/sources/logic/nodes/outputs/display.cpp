@@ -42,9 +42,9 @@ namespace ex::logic::node::out {
     }
 
     void DisplayOutputNode::on_input(const int in_idx, const int out_idx, const int clock_i, const void *data) {
-        proto::image *ptr = *(static_cast<proto::image *const *>(data));
+        const ocl::img_promise promise = *(static_cast<const ocl::img_promise *>(data));
 
-        if (ptr == nullptr) {
+        if (promise == nullptr) {
             ex::display::io.clear(display_i);
             return;
         }
@@ -56,26 +56,28 @@ namespace ex::logic::node::out {
             return;
         }
 
-        auto &promise = ptr->image_promise;
-        if (promise.image.empty()) {
+        if (promise->image.empty()) {
             ex::display::io.clear(display_i);
             return;
         }
 
-        const auto &img = promise.image;
-        if (size_ != promise.image.size() || data_ == nullptr || i_w != img.cols || i_h != img.rows) {
+        const auto &img = promise->image;
+        if (size_ != promise->image.size() || data_ == nullptr || i_w_ != img.cols || i_h_ != img.rows) {
             if (data_ != nullptr)
                 ::free(data_);
-            size_ = promise.image.size();
+            size_ = promise->image.size();
             data_ = static_cast<unsigned char *>(::malloc(size_));
-            i_w   = img.cols;
-            i_h   = img.rows;
+            i_w_  = img.cols;
+            i_h_  = img.rows;
             ex::display::io.clear(display_i);
         }
 
-        promise.waitFor().toBytes(data_);
+        promise->finalize();
 
-        ex::display::io.draw_bytes_bgra_8(display_i, data_, img.cols, img.rows, img.channels);
+        auto out_promise = ex::ocl::ops::to_bytes(*promise, data_);
+        out_promise.finalize();
+
+        ex::display::io.draw_bytes_bgra_8(display_i, data_, img.cols, img.rows, img.header.channels);
     }
 
     void DisplayOutputNode::on_output(const int in_idx, const int out_idx, const int clock_i, void *data) {

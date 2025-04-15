@@ -5,7 +5,7 @@
 #ifndef EX_LOGIC_OUTPUT_DISPLAY_H
 #define EX_LOGIC_OUTPUT_DISPLAY_H
 
-#include "../../../core/image_protocol.h"
+#include "../../../cl/cl_image.h"
 #include "../logic_nodes.h"
 
 namespace ex::logic::node::out {
@@ -13,7 +13,7 @@ namespace ex::logic::node::out {
 
     struct DisplayOutputNode final : limbo::graph::BaseNode,
                                      limbo::graph::id::name<"display_output_node">,
-                                     limbo::graph::io::in<proto::image *, 1, "Image to display">
+                                     limbo::graph::io::in<ocl::img_promise, 1, "Image to display">
     {
         const char   *display_n = nullptr;
         unsigned int  display_i = 0;
@@ -21,8 +21,8 @@ namespace ex::logic::node::out {
         // GL/CL/ETC interop internal
         unsigned char *data_ = nullptr;
         unsigned long  size_ = 0;
-        unsigned int   i_w   = 0;
-        unsigned int   i_h   = 0;
+        unsigned int   i_w_  = 0;
+        unsigned int   i_h_  = 0;
         // GL/CL/ETC interop internal
 
         static limbo::graph::BaseNode *instance(TreeNode *from);

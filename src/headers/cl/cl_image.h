@@ -9,6 +9,14 @@
 
 namespace ex::ocl {
 
+    struct Image2D;
+    struct Promise;
+    struct ImagePromise;
+
+    using image2d_ptr = Image2D *;
+    using promise_ptr = Promise *;
+    using img_promise = ImagePromise *;
+
     using uint32 = u_int32_t;
     using uint16 = u_int16_t;
     using uchar8 = u_int8_t;
@@ -29,7 +37,7 @@ namespace ex::ocl {
 
         struct header {
             uchar8 cn_depth : 3;
-            uchar8 channels : 2;
+            uchar8 channels : 3;
             ACCESS access   : 2;
         };
 
@@ -46,6 +54,10 @@ namespace ex::ocl {
         bool empty() const;
 
         bool detached() const;
+
+        void release();
+
+        static Image2D blank();
 
         static Image2D copy(const Image2D &source);
 
@@ -84,9 +96,13 @@ namespace ex::ocl {
 
         ImagePromise(const Image2D &image);
 
+        ImagePromise();
+
         void set_completed(bool completed);
 
         bool completed() const;
+
+        bool empty() const;
 
         // blocking op
         void finalize(bool force = false);
@@ -107,7 +123,11 @@ namespace ex::ocl {
 
         Promise(const ImagePromise &promise);
 
+        Promise();
+
         bool completed() const;
+
+        bool empty() const;
 
         // blocking op
         void finalize(bool force = false);
