@@ -65,7 +65,7 @@ namespace ex::logic::node::cmp::image {
         promise.finalize();
 
         promise_ = promise;
-        image_ = promise.image;
+        image_   = promise.image;
     }
 
     io::byte_array ImageNode::serialize() const {

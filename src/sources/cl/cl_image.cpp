@@ -33,7 +33,8 @@ namespace ex::ocl {
                  .rows   = static_cast<uint16>(0),
                  .header = { .cn_depth = static_cast<uchar8>(0),
                              .channels = static_cast<uchar8>(0),
-                             .access   = ACCESS::RW } };
+                             .access   = ACCESS::RW ,
+                             .dirty    = static_cast<uchar8>(1) } };
     }
 
     Image2D Image2D::copy(const Image2D &source) {
@@ -51,7 +52,8 @@ namespace ex::ocl {
                  .rows   = static_cast<uint16>(rows),
                  .header = { .cn_depth = cs,
                              .channels = cn,
-                             .access   = access } };
+                             .access   = access,
+                             .dirty    = static_cast<uchar8>(1) } };
     }
 
     void Image2D::allocate(Image2D &img, const cl_context context) {
@@ -69,7 +71,8 @@ namespace ex::ocl {
         if (err != CL_SUCCESS)
             abort__("Cannot create cl buffer: %d", err);
 
-        img.handle = buffer;
+        img.handle       = buffer;
+        img.header.dirty = static_cast<uchar8>(1);
     }
 
     Image2D Image2D::allocate(const ::size_t cols, const ::size_t rows, const ::size_t channels,
@@ -91,7 +94,8 @@ namespace ex::ocl {
         if (img.handle == nullptr)
             return;
         clReleaseMemObject(img.handle);
-        img.handle = nullptr;
+        img.handle       = nullptr;
+        img.header.dirty = static_cast<uchar8>(1);
     }
 
     Promise::Promise(const cl_command_queue queue):
@@ -104,7 +108,7 @@ namespace ex::ocl {
 
     Promise::Promise(const ImagePromise &promise) {
         this->queue = promise.queue;
-        this->ready = promise.image.____;
+        this->ready = promise.image.header.____;
     }
 
     Promise::Promise():
@@ -275,32 +279,32 @@ namespace ex::ocl {
 
     ImagePromise::ImagePromise(const Image2D &image, const cl_command_queue queue, const bool ready):
         queue(queue), image(image) {
-        this->image.____ = ready;
+        this->image.header.____ = ready;
     }
 
     ImagePromise::ImagePromise(const Image2D &image, const cl_command_queue queue):
         queue(queue), image(image) {
-        this->image.____ = false;
+        this->image.header.____ = false;
     }
 
     ImagePromise::ImagePromise(const Image2D &image) {
-        this->queue      = nullptr;
-        this->image      = image;
-        this->image.____ = true;
+        this->queue             = nullptr;
+        this->image             = image;
+        this->image.header.____ = true;
     }
 
     ImagePromise::ImagePromise() {
-        this->queue      = nullptr;
-        this->image      = Image2D::blank();
-        this->image.____ = false;
+        this->queue             = nullptr;
+        this->image             = Image2D::blank();
+        this->image.header.____ = false;
     }
 
     void ImagePromise::set_completed(const bool completed) {
-        image.____ = completed;
+        image.header.____  = completed;
     }
 
     bool ImagePromise::completed() const {
-        return image.____ == true;
+        return image.header.____ == true;
     }
 
     bool ImagePromise::empty() const {
@@ -316,11 +320,11 @@ namespace ex::ocl {
     }
 
     void ImagePromise::finalize(const bool force) {
-        if ((image.____ == true && !force) || !queue)
+        if ((image.header.____ == true && !force) || !queue)
             return;
         if (cl_int err = clFinish(queue); err != CL_SUCCESS)
             abort__("Cannot finish command queue: %d", err);
-        image.____ = true;
+        image.header.____ = true;
     }
 
     void ImagePromise::finalize_all(ImagePromise *const promises, const int size, const bool force) {
@@ -330,10 +334,10 @@ namespace ex::ocl {
         for (int g = 0; g < size; g++) {
             auto &p = promises[g];
 
-            if (p.image.____ == true && !force)
+            if (p.image.header.____ == true && !force)
                 continue;
 
-            p.image.____ = true;
+            p.image.header.____ = true;
 
             bool found = false;
             for (int i = 0; i < n; i++) {
@@ -383,21 +387,17 @@ namespace ex::ocl {
             return { image, queue };
         }
 
-        ImagePromise from_bytes(const unsigned char *bytes, const Image2D &image, const cl_command_queue queue) {
-            if (image.handle == nullptr)
-                abort__("Image cl_mem ptr is null");
+        ImagePromise from_bytes(const unsigned char *bytes, const Image2D &image, const cl_context context,
+                                const cl_command_queue queue, const Image2D::ACCESS access) {
+            Image2D copy = Image2D::allocate_like(image, context, access);
 
             cl_int err =
-                    clEnqueueWriteBuffer(queue, image.handle, CL_FALSE, 0, image.size(),
+                    clEnqueueWriteBuffer(queue, copy.handle, CL_FALSE, 0, copy.size(),
                         bytes, 0, nullptr, nullptr);
             if (err != CL_SUCCESS)
                 abort__("Cannot enqueue copy data to cl buffer: %d", err);
 
-            return { image, queue };
-        }
-
-        ImagePromise from_bytes(const unsigned char *bytes, const ImagePromise &promise) {
-            return from_bytes(bytes, promise.image, promise.queue);
+            return { copy, queue };
         }
 
         Promise to_bytes(const Image2D &image, unsigned char *out, const cl_command_queue queue) {
@@ -452,6 +452,7 @@ namespace ex::ocl {
             if (err != CL_SUCCESS)
                 abort__("Cannot enqueue copy data between cl buffers: %d", err);
 
+            image_dst.header.dirty = static_cast<uchar8>(1);
             return queue;
         }
 

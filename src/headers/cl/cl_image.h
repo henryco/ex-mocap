@@ -40,6 +40,10 @@ namespace ex::ocl {
             uchar8 cn_depth : 3; // 0-8
             uchar8 channels : 3; // 0/1/3/4
             ACCESS access   : 2; // 00/RO/WO/RW
+            // -------------
+            uchar8 dirty    : 1; // 0/1
+            uchar8 ____     : 7; // reserved for internal usage
+            // -------------
         };
 
         cl_mem handle;
@@ -47,8 +51,6 @@ namespace ex::ocl {
         uint16 cols;
         uint16 rows;
         header header;
-
-        uchar8 ____; // reserved for internal usage
 
         uint32 size() const;
 
@@ -189,13 +191,9 @@ namespace ex::ocl {
         ImagePromise from_bytes(
             const unsigned char *bytes,
             const Image2D &image,
-            cl_command_queue queue
-        );
-
-        // non blocking op
-        ImagePromise from_bytes(
-            const unsigned char *bytes,
-            const ImagePromise &image
+            cl_context context,
+            cl_command_queue queue,
+            Image2D::ACCESS access = Image2D::ACCESS::RW
         );
 
         // non blocking op
