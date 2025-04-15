@@ -197,7 +197,7 @@ namespace ex::ocl {
         marker(nullptr) {
     }
 
-    NBPromise::~NBPromise() {
+    void NBPromise::release() {
         if (marker == nullptr)
             return;
         clReleaseEvent(marker);
@@ -307,6 +307,10 @@ namespace ex::ocl {
         return queue == nullptr && image.empty();
     }
 
+    Promise ImagePromise::raw_promise() const {
+        return *this;
+    }
+
     NBPromise ImagePromise::non_blocking() const {
         return *this;
     }
@@ -379,7 +383,7 @@ namespace ex::ocl {
             return { image, queue };
         }
 
-        ImagePromise from_bytes(const unsigned char *bytes, Image2D image, const cl_command_queue queue) {
+        ImagePromise from_bytes(const unsigned char *bytes, const Image2D &image, const cl_command_queue queue) {
             if (image.handle == nullptr)
                 abort__("Image cl_mem ptr is null");
 
@@ -413,10 +417,26 @@ namespace ex::ocl {
             return queue;
         }
 
-        Promise to_bytes(ImagePromise &promise, unsigned char *out) {
+        Promise to_bytes(const ImagePromise &promise, unsigned char *out) {
             return to_bytes(promise.image, out, promise.queue);
         }
 
+        ImagePromise copy_data(const Image2D &image, const cl_context context, const cl_command_queue queue) {
+            Image2D copy = Image2D::allocate_like(image, context);
+
+            cl_int err = clEnqueueCopyBuffer(queue,
+                                  image.handle, copy.handle,
+                                  0, 0, image.size(),
+                                  0, nullptr, nullptr);
+            if (err != CL_SUCCESS)
+                abort__("Cannot enqueue copy data between cl buffers: %d", err);
+
+            return { image, queue };
+        }
+
+        ImagePromise copy_data(const ImagePromise &promise, const cl_context context) {
+            return copy_data(promise.image, context, promise.queue);
+        }
     }
 
 }

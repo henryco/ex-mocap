@@ -37,9 +37,9 @@ namespace ex::ocl {
         };
 
         struct header {
-            uchar8 cn_depth : 3;
-            uchar8 channels : 3;
-            ACCESS access   : 2;
+            uchar8 cn_depth : 3; // 0-8
+            uchar8 channels : 3; // 0/1/3/4
+            ACCESS access   : 2; // 00/RO/WO/RW
         };
 
         cl_mem handle;
@@ -60,6 +60,9 @@ namespace ex::ocl {
 
         static Image2D blank();
 
+        /**
+         * <b> THIS WILL NOT COPY DATA UNDER CL_MEM HANDLE! </b>
+         */
         static Image2D copy(const Image2D &source);
 
         static Image2D detached(::size_t cols,
@@ -104,6 +107,8 @@ namespace ex::ocl {
         bool completed() const;
 
         bool empty() const;
+
+        Promise raw_promise() const;
 
         NBPromise non_blocking() const;
 
@@ -153,7 +158,7 @@ namespace ex::ocl {
 
         NBPromise();
 
-        ~NBPromise();
+        void release();
 
         bool completed();
 
@@ -183,7 +188,7 @@ namespace ex::ocl {
         // non blocking op
         ImagePromise from_bytes(
             const unsigned char *bytes,
-            Image2D image,
+            const Image2D &image,
             cl_command_queue queue
         );
 
@@ -197,7 +202,13 @@ namespace ex::ocl {
         Promise to_bytes(const Image2D &image, unsigned char *out, cl_command_queue queue);
 
         // non blocking op
-        Promise to_bytes(ImagePromise &promise, unsigned char *out);
+        Promise to_bytes(const ImagePromise &promise, unsigned char *out);
+
+        // non blocking op
+        ImagePromise copy_data(const Image2D &image, cl_context context, cl_command_queue queue);
+
+        // non blocking op
+        ImagePromise copy_data(const ImagePromise &promise, cl_context context);
 
     }
 
