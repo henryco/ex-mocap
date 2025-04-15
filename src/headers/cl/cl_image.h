@@ -11,6 +11,7 @@ namespace ex::ocl {
 
     struct Image2D;
     struct Promise;
+    struct NBPromise;
     struct ImagePromise;
 
     using image2d_ptr = Image2D *;
@@ -104,6 +105,8 @@ namespace ex::ocl {
 
         bool empty() const;
 
+        NBPromise non_blocking() const;
+
         // blocking op
         void finalize(bool force = false);
 
@@ -128,6 +131,8 @@ namespace ex::ocl {
         bool completed() const;
 
         bool empty() const;
+
+        NBPromise non_blocking() const;
 
         // blocking op
         void finalize(bool force = false);

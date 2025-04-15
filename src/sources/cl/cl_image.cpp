@@ -119,6 +119,10 @@ namespace ex::ocl {
         return queue == nullptr;
     }
 
+    NBPromise Promise::non_blocking() const {
+        return *this;
+    }
+
     void Promise::finalize(const bool force) {
         if ((ready && !force) || !queue)
             return;
@@ -301,6 +305,10 @@ namespace ex::ocl {
 
     bool ImagePromise::empty() const {
         return queue == nullptr && image.empty();
+    }
+
+    NBPromise ImagePromise::non_blocking() const {
+        return *this;
     }
 
     void ImagePromise::finalize(const bool force) {
