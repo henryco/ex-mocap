@@ -51,7 +51,6 @@ namespace limbo::graph {
         struct Description {
             const char  *name;
             std::size_t  type_id;
-            unsigned int size;
             unsigned int index;
             bool         aux;
         };
@@ -60,7 +59,6 @@ namespace limbo::graph {
         Description describe_io(const int index, const char *name, const bool aux = false) {
             return { .name    = name,
                      .type_id = typeid(T).hash_code(),
-                     .size    = sizeof(T),
                      .index   = static_cast<unsigned int>(index),
                      .aux     = aux };
         }

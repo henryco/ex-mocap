@@ -45,7 +45,7 @@ namespace ex::logic::node::out {
     void DisplayOutputNode::on_input(const int in_idx, const int out_idx, const int clock_i, const void *data) {
         const static ex::State &state = ex::logic::globals::state();
 
-        const ocl::img_promise promise = *(static_cast<const ocl::img_promise *>(data));
+        const ocl::img_promise *promise = static_cast<const ocl::img_promise *>(data);
 
         if (promise == nullptr) {
             ex::display::io.clear(display_i);

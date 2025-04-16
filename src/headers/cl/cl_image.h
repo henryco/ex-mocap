@@ -14,9 +14,9 @@ namespace ex::ocl {
     struct NBPromise;
     struct ImagePromise;
 
-    using image2d_ptr = Image2D *;
-    using promise_ptr = Promise *;
-    using img_promise = ImagePromise *;
+    using image2d_t = Image2D;
+    using promise_t = Promise;
+    using img_promise = ImagePromise;
 
     using uint32 = u_int32_t;
     using uint16 = u_int16_t;
