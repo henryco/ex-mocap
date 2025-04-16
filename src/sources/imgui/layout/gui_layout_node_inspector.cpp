@@ -85,7 +85,7 @@ namespace ex::gui::tree {
             return;
         }
 
-        const auto connections = inspected_base->connections;
+        const auto connections = inspected_base->connections_;
         for (int i = 0; i < connections.size; ++i) {
             auto &head = connections[i];
             const auto io = dynamic_cast<limbo::graph::IO *>(head.node_ptr);
