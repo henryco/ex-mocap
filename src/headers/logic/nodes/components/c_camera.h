@@ -22,7 +22,6 @@ namespace ex::cmp {
     #define CAM_OUT_FRAME 1
 
     struct CameraNode final : limbo::graph::BaseNode,
-                              limbo::graph::State<camera::Camera>,
                               limbo::graph::id::name<"camera_node">,
                               limbo::graph::io::out<proto::image *, CAM_OUT_FRAME, "Captured frame">
     {
@@ -39,11 +38,11 @@ namespace ex::cmp {
 
         ~CameraNode() override;
 
-        camera::Camera *get() override;
-
         void on_input(int in_idx, int out_idx, int clock_i, const void *data) override;
 
-        void on_output(int in_idx, int out_idx, int clock_i, void *data) override;
+        void *on_output(int in_idx, int out_idx, int clock_i) override;
+
+        void on_update(int clock_i) override;
 
         void capture_frame(int clock_i);
 

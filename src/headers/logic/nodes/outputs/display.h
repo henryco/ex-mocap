@@ -39,7 +39,9 @@ namespace ex::logic::node::out {
 
         void on_input(int in_idx, int out_idx, int clock_i, const void *data) override;
 
-        void on_output(int in_idx, int out_idx, int clock_i, void *data) override;
+        void *on_output(int in_idx, int out_idx, int clock_i) override;
+
+        void on_update(int clock_i) override;
 
         ~DisplayOutputNode() override;
 

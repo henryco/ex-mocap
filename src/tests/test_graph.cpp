@@ -22,18 +22,20 @@ struct node_test_one final : limbo::graph::BaseNode,
     short out_short = 0;
     float out_float = 0;
 
+    void on_update(int clock_i) override {
+
+    }
+
     void on_input(int in_idx, int out_idx, int clock_i, const void *data) override {
 
     }
 
-    void on_output(const int in_idx, const int out_idx, const int clock_i, void *data) override {
-        // ReSharper disable once CppCStyleCast
-        if (in_idx < 0 || out_idx < 0 || data == ((void *) -1))
-            return;
+    void *on_output(const int in_idx, const int out_idx, const int clock_i) override {
+        if (in_idx < 0 || out_idx < 0)
+            return nullptr;
         if (out_idx == 3)
-            *(static_cast<float *>(data)) = out_float;
-        else
-            *(static_cast<short *>(data)) = out_short;
+            return &out_float;
+        return &out_short;
     }
 };
 
@@ -55,14 +57,16 @@ struct node_test_two final : limbo::graph::BaseNode,
 
     }
 
-    void on_output(const int in_idx, const int out_idx, const int clock_i, void *data) override {
-        // ReSharper disable once CppCStyleCast
-        if (in_idx < 0 || out_idx < 0 || data == ((void *) -1))
-            return;
+    void *on_output(const int in_idx, const int out_idx, const int clock_i) override {
+        if (in_idx < 0 || out_idx < 0)
+            return nullptr;
         if (out_idx == 3)
-            *(static_cast<float *>(data)) = out_float;
-        else
-            *(static_cast<short *>(data)) = out_short;
+            return &out_float;
+        return &out_short;
+    }
+
+    void on_update(int clock_i) override {
+
     }
 };
 
@@ -84,14 +88,16 @@ struct node_test_tri final : limbo::graph::BaseNode,
 
     }
 
-    void on_output(const int in_idx, const int out_idx, const int clock_i, void *data) override {
-        // ReSharper disable once CppCStyleCast
-        if (in_idx < 0 || out_idx < 0 || data == ((void *) -1))
-            return;
+    void *on_output(const int in_idx, const int out_idx, const int clock_i) override {
+        if (in_idx < 0 || out_idx < 0)
+            return nullptr;
         if (out_idx == 3)
-            *(static_cast<float *>(data)) = out_float;
-        else
-            *(static_cast<short *>(data)) = out_short;
+            return &out_float;
+        return &out_short;
+    }
+
+    void on_update(int clock_i) override {
+
     }
 };
 

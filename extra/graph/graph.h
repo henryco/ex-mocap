@@ -5,13 +5,12 @@
 #ifndef EX_MOTION_GRAPH_H
 #define EX_MOTION_GRAPH_H
 
-#include "../data/struct/array_map.h"
 #include "../data/struct/array.h"
 #include <typeinfo>
 
 namespace limbo::graph {
 
-#define GRAPH_SKIP ((void *) -1)
+#define GRAPH_SKIP ((void **) -1)
 
     struct memory {
         /* Default allocator */
@@ -31,28 +30,7 @@ namespace limbo::graph {
 
         virtual const char *get_node_name() const = 0;
 
-        virtual void out(int in_idx, int out_idx, int clock_i, void *data) = 0;
-    };
-
-    struct GenericDataPtr {
-
-        virtual ~GenericDataPtr() = default;
-
-        virtual void *get_generic_data_ptr() {
-            return nullptr;
-        }
-    };
-
-    template<typename T>
-    struct State : virtual GenericDataPtr {
-
-        ~State() override = default;
-
-        virtual T *get() = 0;
-
-        void *get_generic_data_ptr() override {
-            return static_cast<void *>(this->get());
-        }
+        virtual void out(int in_idx, int out_idx, int clock_i, void **data) = 0;
     };
 
     template<std::size_t N>
@@ -74,7 +52,6 @@ namespace limbo::graph {
             const char  *name;
             std::size_t  type_id;
             unsigned int size;
-            unsigned int align;
             unsigned int index;
             bool         aux;
         };
@@ -84,7 +61,6 @@ namespace limbo::graph {
             return { .name    = name,
                      .type_id = typeid(T).hash_code(),
                      .size    = sizeof(T),
-                     .align   = alignof(T),
                      .index   = static_cast<unsigned int>(index),
                      .aux     = aux };
         }
@@ -131,7 +107,7 @@ namespace limbo::graph {
 
             ~port_dispatcher() override = default;
 
-            const Description *const describe_input(const int index) const override {
+            const Description *const describe_input(const int index) const final {
                 for (int i = 0; i < in_descriptions_.size; ++i) {
                     if (in_descriptions_[i].index == index)
                         return &in_descriptions_[i];
@@ -139,7 +115,7 @@ namespace limbo::graph {
                 return nullptr;
             }
 
-            const Description *const describe_output(const int index) const override {
+            const Description *const describe_output(const int index) const final {
                 for (int i = 0; i < out_descriptions_.size; ++i) {
                     if (out_descriptions_[i].index == index)
                         return &out_descriptions_[i];
@@ -181,12 +157,12 @@ namespace limbo::graph {
                 out_descriptions_.insert(0, descriptor);
             }
 
-            const Description *const describe_inputs(int *o_inputs_number) const override {
+            const Description *const describe_inputs(int *o_inputs_number) const final {
                 *o_inputs_number = in_descriptions_.size;
                 return in_descriptions_.data;
             }
 
-            const Description *const describe_outputs(int *o_outputs_number) const override {
+            const Description *const describe_outputs(int *o_outputs_number) const final {
                 *o_outputs_number = out_descriptions_.size;
                 return out_descriptions_.data;
             }
@@ -250,11 +226,11 @@ namespace limbo::graph {
                 return id_;
             }
 
-            const std::size_t get_type_id() const override {
+            const std::size_t get_type_id() const final {
                 return get_node_id();
             }
 
-            const char *get_node_name() const override {
+            const char *get_node_name() const final {
                 constexpr auto name__ = name_.value;
                 static auto    str    = static_cast<const char *>(name__);
                 return str;
@@ -274,199 +250,121 @@ namespace limbo::graph {
         unsigned int data_size;
     };
 
-    struct BaseNode : virtual IO, virtual io::IODescriptor, virtual GenericDataPtr {
+    struct BaseNode : virtual IO, virtual io::IODescriptor {
 
 #define NODE_INIT_CAP 8
 
-        using assignment_fn_t = void (*)(int output_idx, const void *src_ptr, void *dst_ptr);
-
         virtual void on_input(int in_idx,int out_idx, int clock_i, const void *data) = 0;
 
-        virtual void on_output(int in_idx, int out_idx, int clock_i, void *data) = 0;
+        virtual void on_update(int clock_i) = 0;
 
-        virtual void on_init() { /*NOP*/ }
+        virtual void *on_output(int in_idx, int out_idx, int clock_i) = 0;
 
-        assignment_fn_t                      assignment_fn_ = nullptr;
-        ex::data::array_map<ushort, io_data> cache_map      = { NODE_INIT_CAP, memory::allocator };
-        ex::data::array_map<ushort, void *>  stack_map      = { NODE_INIT_CAP, memory::allocator };
-        ex::data::array<io_node>             connections    = { NODE_INIT_CAP, memory::allocator };
-        std::size_t                          id_            = 0;
-        unsigned int                         clock_i        = 0;
-        bool                                 initialized_   = false;
+        virtual void *data_ptr() { return nullptr; }
+
+        ex::data::array<io_node> connections_ = { NODE_INIT_CAP, memory::allocator };
+        std::size_t              id_          = 0;
+        unsigned int             clock_i_     = 0;
 
         ~BaseNode() override = default;
 
         BaseNode() = default;
 
-        void initialize() {
-            if (initialized_)
-                return;
-            reallocate(false);
-            on_init();
-            initialized_ = true;
-        }
-
-        void reallocate(const bool cleanup = true) {
-            if (cleanup) {
-
-//                for (int i = 0; i < cache_map.size; ++i)
-//                    ::free(cache_map.val_entries[i].data_ptr);
-//                for (int i = 0; i < stack_map.size; ++i)
-//                    ::free(stack_map.val_entries[i]);
-
-                for (int i = 0; i < cache_map.size; ++i) {
-                    memory::allocator.free(&memory::allocator, cache_map.val_entries[i].data_ptr);
-                }
-                for (int i = 0; i < stack_map.size; ++i) {
-                    memory::allocator.free(&memory::allocator, stack_map.val_entries[i]);
-                }
-
-                cache_map.clean();
-                stack_map.clean();
-                connections.clean();
-                cache_map.reserve(NODE_INIT_CAP);
-                stack_map.reserve(NODE_INIT_CAP);
-                connections.reserve(NODE_INIT_CAP);
-            }
-
-            int size = 0;
-
-            const auto outputs = describe_outputs(&size);
-            for (int i = 0; i < size; ++i) {
-                const auto &output = outputs[i];
-//                cache_map.put(output.index, { ::malloc(output.size), output.size });
-                cache_map.put(output.index,
-                              { memory::allocator.malloc(&memory::allocator.malloc, output.size, output.size) });
-            }
-
-            const auto inputs = describe_inputs(&size);
-            for (int i = 0; i < size; ++i) {
-                const auto &input = inputs[i];
-//                stack_map.put(input.index, ::malloc(input.size));
-                stack_map.put(input.index,
-                              { memory::allocator.malloc(&memory::allocator.malloc, input.size, input.size) });
-            }
-        }
-
-        void set_assignment_function(const assignment_fn_t fn) {
-            this->assignment_fn_ = fn;
-        }
-
-        void set_id(const std::size_t id) {
-            id_ = id;
-        }
-
         bool attach(BaseNode *node, const int this_index_in, const int other_index_out) {
             if (node == nullptr)
                 return false;
-            node->initialize();
             const auto input = this->describe_input(this_index_in);
             if (input == nullptr)
                 return false;
 
             const io_node input_node = { node, static_cast<unsigned short>(other_index_out),
                                          static_cast<unsigned short>(this_index_in) };
-            connections.push(input_node);
+            connections_.push(input_node);
             return true;
         }
 
         void detach(const BaseNode *node, const int index_in, const int index_out) {
-            for (int i = 0; i < connections.size; ++i) {
-                if (const io_node &ref = connections[i];
+            for (int i = 0; i < connections_.size; ++i) {
+                if (const io_node &ref = connections_[i];
                     ref.node_ptr == node && ref.index_in == index_in && ref.index_out == index_out)
-                    connections.swap_remove(i--);
+                    connections_.swap_remove(i--);
             }
         }
 
         void detach_node(const BaseNode *node) {
-            for (int i = 0; i < connections.size; ++i) {
-                if (const io_node &ref = connections[i]; ref.node_ptr == node)
-                    connections.swap_remove(i--);
+            for (int i = 0; i < connections_.size; ++i) {
+                if (const io_node &ref = connections_[i]; ref.node_ptr == node)
+                    connections_.swap_remove(i--);
             }
         }
 
         void detach_inputs(const int index_in) {
-            for (int i = 0; i < connections.size; ++i) {
-                if (const io_node &ref = connections[i]; ref.index_in == index_in)
-                    connections.swap_remove(i--);
+            for (int i = 0; i < connections_.size; ++i) {
+                if (const io_node &ref = connections_[i]; ref.index_in == index_in)
+                    connections_.swap_remove(i--);
             }
         }
 
         void detach_outputs(const int index_out) {
-            for (int i = 0; i < connections.size; ++i) {
-                if (const io_node &ref = connections[i]; ref.index_out == index_out)
-                    connections.swap_remove(i--);
+            for (int i = 0; i < connections_.size; ++i) {
+                if (const io_node &ref = connections_[i]; ref.index_out == index_out)
+                    connections_.swap_remove(i--);
             }
+        }
+
+        void detach_rec() {
+            for (int i = 0; i < connections_.size; ++i) {
+                const io_node &ref = connections_[i];
+                ref.node_ptr->detach_rec();
+                connections_.swap_remove(i--);
+            }
+            connections_.clean();
+            connections_.reserve(NODE_INIT_CAP);
         }
 
         void detach_all() {
-            for (int i = 0; i < connections.size; ++i) {
-                const io_node &ref = connections[i];
-                ref.node_ptr->detach_all();
-                connections.swap_remove(i--);
-            }
+            connections_.clean();
+            connections_.reserve(NODE_INIT_CAP);
         }
 
-        const std::size_t get_id() const override {
+        void set_id(const std::size_t id) {
+            id_ = id;
+        }
+
+        const std::size_t get_id() const final {
             return id_;
         }
 
-        void pull(const int clock_i) {
-
-            if (this->clock_i == clock_i)
+        void out(const int in_idx, const int out_idx, const int clock_i, void **data) final {
+            if (this->clock_i_ == clock_i) {
+                if (data == GRAPH_SKIP)
+                    return;
+                *data = on_output(in_idx, out_idx, clock_i);
                 return;
+            }
 
-            for (int i = 0; i < connections.size; ++i) {
-                const io_node &connection = connections[i];
-                void *const    stack_ptr  = stack_map.at(connection.index_in);
-                connection.node_ptr->out(connection.index_in, connection.index_out, clock_i, stack_ptr);
+            for (int i = 0; i < connections_.size; ++i) {
+                void          *stack_ptr  = nullptr;
+                const io_node &connection = connections_[i];
+                connection.node_ptr->out(connection.index_in, connection.index_out, clock_i, &stack_ptr);
                 on_input(connection.index_in, connection.index_out, clock_i, stack_ptr);
             }
 
-            // ReSharper disable once CppCStyleCast
-            on_output(-1, -1, clock_i, GRAPH_SKIP);
+            on_update(clock_i);
 
-            this->clock_i = clock_i;
-        }
-
-        void out(const int in_idx, const int out_idx, const int clock_i, void *data) final {
-
-            const io_data &cache_ptr = cache_map.at(out_idx);
-
-            if (this->clock_i == clock_i) {
-                assign_(out_idx, cache_ptr.data_ptr, data, cache_ptr.data_size);
-                return;
+            if (data != GRAPH_SKIP) {
+                *data = on_output(in_idx, out_idx, clock_i);
             }
 
-            for (int i = 0; i < connections.size; ++i) {
-                const io_node &connection = connections[i];
-                void *const stack_ptr = stack_map.at(connection.index_in);
-                connection.node_ptr->out(connection.index_in, connection.index_out, clock_i, stack_ptr);
-                on_input(connection.index_in, connection.index_out, clock_i, stack_ptr);
-            }
-
-            on_output(in_idx, out_idx, clock_i, data);
-            assign_(out_idx, data, cache_ptr.data_ptr, cache_ptr.data_size);
-
-            this->clock_i = clock_i;
-        }
-
-        void assign_(const int out_idx, const void *src_ptr, void *dst_ptr, const std::size_t size) const {
-            if (assignment_fn_ != nullptr) {
-                assignment_fn_(out_idx, src_ptr, dst_ptr);
-                return;
-            }
-            memcpy(dst_ptr, src_ptr, size);
+            this->clock_i_ = clock_i;
         }
     };
 
-    struct Clock final: virtual IO {
-
-#define EX_INT16_MAX 32767
+    struct Clock final : virtual IO {
 #define CLOCK_INIT_CAP 2
 
-        ex::data::array<BaseNode *> connections = { CLOCK_INIT_CAP, memory::allocator };
-        unsigned int                clock_i     = 0;
+        ex::data::array<BaseNode *> connections_ = { CLOCK_INIT_CAP, memory::allocator };
+        unsigned int                clock_i_     = 0;
 
         ~Clock() override = default;
 
@@ -482,23 +380,22 @@ namespace limbo::graph {
             return "clock";
         }
 
-        void out(int, int, const int clock_i, void *) override {
-            this->clock_i = clock_i;
+        void out(int, int, const int clock_i, void **) override {
+            this->clock_i_ = clock_i;
             pull();
         }
 
         void reset() {
             detach_all();
-            clock_i = 0;
+            clock_i_ = 0;
         }
 
         bool attach(BaseNode *node) {
             if (node == nullptr)
                 return false;
 
-            node->initialize();
-            if (!connections.contains(node)) {
-                connections.push(node);
+            if (!connections_.contains(node)) {
+                connections_.push(node);
                 return true;
             }
 
@@ -506,19 +403,27 @@ namespace limbo::graph {
         }
 
         void detach(BaseNode *node) {
-            connections.remove_element(node);
+            connections_.remove_element(node);
+        }
+
+        void detach_rec() {
+            for (int i = 0; i < connections_.size; ++i) {
+                connections_[i]->detach_rec();
+                connections_.swap_remove(i--);
+            }
+            connections_.clean();
+            connections_.reserve(CLOCK_INIT_CAP);
         }
 
         void detach_all() {
-            connections.clean();
-            connections.reserve(CLOCK_INIT_CAP);
+            connections_.clean();
+            connections_.reserve(CLOCK_INIT_CAP);
         }
 
         void pull() {
-//            clock_i = (clock_i > EX_INT16_MAX) ? 0 : (clock_i + 1);
-            ++clock_i;
-            for (int i = 0; i < connections.size; ++i)
-                connections[i]->pull(clock_i);
+            for (int i = 0; i < connections_.size; ++i)
+                connections_[i]->out(-1, -1, clock_i_, GRAPH_SKIP);
+            ++clock_i_;
         }
     };
 

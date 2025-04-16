@@ -104,7 +104,12 @@ namespace ex::logic::node::out {
         // TODO Cl / GL INTEROP
     }
 
-    void DisplayOutputNode::on_output(const int in_idx, const int out_idx, const int clock_i, void *data) {
+    void *DisplayOutputNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
+        return nullptr;
+    }
+
+    void DisplayOutputNode::on_update(int clock_i) {
+        // TODO
     }
 
     DisplayOutputNode::~DisplayOutputNode() {

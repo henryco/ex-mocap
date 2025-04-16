@@ -18,15 +18,16 @@ namespace ex::cmp {
         camera_.close();
     }
 
-    camera::Camera *CameraNode::get() {
-        return &camera_;
-    }
-
     void CameraNode::on_input(int in_idx, int out_idx, int clock_i, const void *data) {
         // TODO
     }
 
-    void CameraNode::on_output(int in_idx, int out_idx, int clock_i, void *data) {
+    void *CameraNode::on_output(int in_idx, int out_idx, int clock_i) {
+        // TODO
+        return nullptr;
+    }
+
+    void CameraNode::on_update(int clock_i) {
         // TODO
     }
 

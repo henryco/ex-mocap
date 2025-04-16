@@ -41,8 +41,13 @@ namespace ex::gui::test {
 //            std::cout << "in1: " << id_ << std::endl;
         }
 
-        void on_output(int in_idx, int out_idx, int clock_i, void *data) override {
-//            std::cout << "out1: " << id_ << std::endl;
+        void *on_output(int in_idx, int out_idx, int clock_i) override {
+            //            std::cout << "out1: " << id_ << std::endl;
+            return nullptr;
+        }
+
+        void on_update(int clock_i) override {
+
         }
     };
 
@@ -74,8 +79,13 @@ namespace ex::gui::test {
 //            std::cout << "in2: " << id_ << std::endl;
         }
 
-        void on_output(int in_idx, int out_idx, int clock_i, void *data) override {
+        void *on_output(int in_idx, int out_idx, int clock_i) override {
 //            std::cout << "in2: " << id_ << std::endl;
+            return nullptr;
+        }
+
+        void on_update(int clock_i) override {
+
         }
     };
 
@@ -107,10 +117,14 @@ namespace ex::gui::test {
 //            std::cout << "in3: " << id_ << std::endl;
         }
 
-        void on_output(int in_idx, int out_idx, int clock_i, void *data) override {
+        void *on_output(int in_idx, int out_idx, int clock_i) override {
 //            std::cout << "in3: " << id_ << std::endl;
+            return nullptr;
         }
 
+        void on_update(int clock_i) override {
+
+        }
     };
 
     namespace one {

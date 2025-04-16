@@ -82,14 +82,14 @@ namespace ex::logic::node::cmp::image {
         // TODO
     }
 
-    void ImageNode::on_output(const int in_idx, const int out_idx, const int clock_i, void *data) {
-        if (data == GRAPH_SKIP)
-            return;
-        if (source_.data_ptr == nullptr) {
-            *(static_cast<ocl::img_promise *>(data)) = nullptr;
-            return;
-        }
-        *(static_cast<ocl::img_promise *>(data)) = &promise_;
+    void *ImageNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
+        if (source_.data_ptr == nullptr)
+            return nullptr;
+        return &promise_;
+    }
+
+    void ImageNode::on_update(int clock_i) {
+        // TODO
     }
 
     ImageNode::~ImageNode() {
