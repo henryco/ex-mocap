@@ -57,7 +57,7 @@ namespace ex::logic::node::out {
             return;
         }
 
-        if (!promise_.completed())
+        if (!promise_unload_.completed())
             return;
 
         const ocl::Image2D &img = promise->image;
@@ -96,8 +96,8 @@ namespace ex::logic::node::out {
                 ex::display::io.clear(display_i);
             }
 
-            promise_.release();
-            promise_ = ex::ocl::ops::to_bytes(image_, data_, queue_).non_blocking();
+            promise_unload_.release();
+            promise_unload_ = ex::ocl::ops::to_bytes(image_, data_, queue_).non_blocking();
             return;
         }
 
@@ -115,7 +115,7 @@ namespace ex::logic::node::out {
     DisplayOutputNode::~DisplayOutputNode() {
         std::cout << "DSTR DisplayOutputNode::DisplayOutputNode()\n";
         image_.release();
-        promise_.release();
+        promise_unload_.release();
         if (display_i != 0)
             ex::display::io.remove_output(display_i);
         if (data_ != nullptr)

@@ -25,7 +25,7 @@ namespace ex::logic::node::out {
         unsigned int     i_h_  = 0;
 
         ocl::Image2D     image_;
-        ocl::NBPromise   promise_;
+        ocl::NBPromise   promise_unload_;
         cl_command_queue queue_;
         // GL/CL/ETC interop internal
 
