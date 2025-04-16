@@ -202,6 +202,7 @@ namespace ex::ocl {
     }
 
     void NBPromise::release() {
+        queue = nullptr;
         if (marker == nullptr)
             return;
         clReleaseEvent(marker);

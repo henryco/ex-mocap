@@ -92,6 +92,8 @@ namespace ex::logic::node::out {
         if (promise_unload_.empty() || !promise_unload_.completed())
             return;
 
+        promise_unload_.release();
+
         if (!state.gl.sharing) {
             if (!image_.empty() && data_ != nullptr) {
                 ex::display::io.draw_bytes_bgra_8(display_i, data_, image_.cols, image_.rows, image_.header.channels);

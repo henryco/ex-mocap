@@ -66,6 +66,8 @@ namespace ex::logic::node::cmp::image {
 
         promise_ = promise;
         image_   = promise.image;
+
+        change_ = 0;
     }
 
     io::byte_array ImageNode::serialize() const {
@@ -79,17 +81,18 @@ namespace ex::logic::node::cmp::image {
     }
 
     void ImageNode::on_input(const int in_idx, const int out_idx, const int clock_i, const void *data) {
-        // TODO
     }
 
     void *ImageNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
         if (source_.data_ptr == nullptr)
             return nullptr;
+        if (change_ > 1)
+            return nullptr;
         return &promise_;
     }
 
     void ImageNode::on_update(int clock_i) {
-        // TODO
+        change_ += 1;
     }
 
     ImageNode::~ImageNode() {
