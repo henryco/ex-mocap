@@ -46,35 +46,18 @@ namespace ex::logic::node::out {
         const static ex::State &state = ex::logic::globals::state();
 
         const ocl::img_promise *promise = static_cast<const ocl::img_promise *>(data);
-
         if (promise == nullptr) {
-            ex::display::io.clear(display_i);
             return;
         }
 
-        if (promise->image.empty()) {
+        const ocl::Image2D &img = promise->image;
+        if (img.empty()) {
             ex::display::io.clear(display_i);
             return;
         }
 
         if (!promise_unload_.completed())
             return;
-
-        const ocl::Image2D &img = promise->image;
-
-        if (!state.gl.sharing) {
-            if (!image_.empty() && data_ != nullptr) {
-                ex::display::io.draw_bytes_bgra_8(display_i, data_, image_.cols, image_.rows, image_.header.channels);
-            }
-        }
-
-        else {
-            // TODO Cl / GL INTEROP
-        }
-
-        if (queue_ == nullptr) {
-            queue_ = xm::ocl::create_queue_device(state.cl.context, state.cl.device, true, false);
-        }
 
         if (img.size() != image_.size()) {
             image_.release();
@@ -104,12 +87,24 @@ namespace ex::logic::node::out {
         // TODO Cl / GL INTEROP
     }
 
-    void *DisplayOutputNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
-        return nullptr;
+    void DisplayOutputNode::on_update(int clock_i) {
+        const static ex::State &state = ex::logic::globals::state();
+        if (promise_unload_.empty() || !promise_unload_.completed())
+            return;
+
+        if (!state.gl.sharing) {
+            if (!image_.empty() && data_ != nullptr) {
+                ex::display::io.draw_bytes_bgra_8(display_i, data_, image_.cols, image_.rows, image_.header.channels);
+            }
+        }
+
+        else {
+            // TODO Cl / GL INTEROP
+        }
     }
 
-    void DisplayOutputNode::on_update(int clock_i) {
-        // TODO
+    void *DisplayOutputNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
+        return nullptr;
     }
 
     DisplayOutputNode::~DisplayOutputNode() {
@@ -127,8 +122,9 @@ namespace ex::logic::node::out {
     }
 
     DisplayOutputNode::DisplayOutputNode():
-        image_(ocl::Image2D::blank()),
-        queue_(nullptr) {
+        image_(ocl::Image2D::blank()) {
+        const static ex::State &state = ex::logic::globals::state();
+        queue_ = xm::ocl::create_queue_device(state.cl.context, state.cl.device, true, false);
         std::cout << "CNST DisplayOutputNode::DisplayOutputNode()\n";
     }
 
