@@ -39,6 +39,7 @@ namespace ex::logic::node::out {
 
     ln::BaseNode *DisplayOutputNode::instance(TreeNode *n) {
         const auto node = new DisplayOutputNode();
+        node->set_id(n->id_local);
         node->register_image(n->name);
         return node;
     }

@@ -59,8 +59,6 @@ namespace ex::display::imp::imgui {
         return texture_id;
     }
 
-    static unsigned int id_counter = 0;
-
     struct display_window_t {
         const char    *name;
         const char    *uuid;
@@ -76,6 +74,8 @@ namespace ex::display::imp::imgui {
     static ex::data::array_map<unsigned int, display_window_t> display_map_(10);
 
     unsigned int add_output(const char *name) {
+        static unsigned int id_counter = 0;
+
         const auto new_id = ++id_counter;
         const auto uuid   = new char[strlen(name) + 24];
         const auto label  = new char[strlen(name) + 1];
