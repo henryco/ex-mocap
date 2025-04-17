@@ -90,7 +90,7 @@ namespace ex::logic::node::out {
         if (!promise_worker_.completed())
             return;
 
-        if (img.header.fresh)
+        if (img.header.fresh || image_.detached())
             updates_.refresh();
 
         if (!updates_.fresh())

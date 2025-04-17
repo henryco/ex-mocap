@@ -432,8 +432,10 @@ namespace limbo::graph {
             return state;
         }
 
-        void refresh() {
-            state = true;
+        bool refresh() {
+            bool init = state;
+            state     = true;
+            return init;
         }
 
         bool update() {

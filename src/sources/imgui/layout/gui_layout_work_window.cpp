@@ -247,7 +247,9 @@ namespace ex::gui {
             }
 
             if (!contains) {
-                windows_.push(create_new_box(state, active_node));
+                if (!(active_node->state >>= node_state::deleted)) {
+                    windows_.push(create_new_box(state, active_node));
+                }
                 active_one = &(windows_[windows_.size - 1]);
             }
         }
