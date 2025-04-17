@@ -35,7 +35,7 @@ namespace ex::logic::node::cmp::image {
 
         image_state       state;
 
-        int change_ = 0;
+        limbo::graph::UpdateState updates_;
 
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);

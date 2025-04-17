@@ -25,8 +25,11 @@ namespace ex::logic::node::out {
         unsigned int     i_h_  = 0;
 
         ocl::Image2D     image_;
-        ocl::NBPromise   promise_unload_;
+        ocl::NBPromise   promise_worker_;
         cl_command_queue queue_;
+
+        limbo::graph::UpdateState updates_;
+        limbo::graph::UpdateState supplies_;
         // GL/CL/ETC interop internal
 
         static limbo::graph::BaseNode *instance(TreeNode *from);

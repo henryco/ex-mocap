@@ -41,8 +41,14 @@ namespace ex::ocl {
             uchar8 channels : 3; // 0/1/3/4
             ACCESS access   : 2; // 00/RO/WO/RW
             // -------------
-            uchar8 dirty    : 1; // 0/1
-            uchar8 ____     : 7; // reserved for internal usage
+            uchar8 fresh    : 1; // 0/1
+            uchar8 ready    : 1; // 0/1
+            uchar8 ____2    : 1; // reserved for internal usage
+            uchar8 ____3    : 1; // reserved for internal usage
+            uchar8 ____4    : 1; // reserved for internal usage
+            uchar8 ____5    : 1; // reserved for internal usage
+            uchar8 ____6    : 1; // reserved for internal usage
+            uchar8 ____7    : 1; // reserved for internal usage
             // -------------
         };
 

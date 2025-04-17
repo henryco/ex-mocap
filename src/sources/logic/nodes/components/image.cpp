@@ -66,33 +66,20 @@ namespace ex::logic::node::cmp::image {
 
         promise_ = promise;
         image_   = promise.image;
-
-        change_ = 0;
+        updates_.refresh();
     }
 
-    io::byte_array ImageNode::serialize() const {
-        data::byte_array array = data::byte_array::from(nullptr, 0);
-        // TODO
-        return array;
-    }
-
-    void ImageNode::deserialize(const io::byte_array &array) const {
-        // TODO
-    }
-
-    void ImageNode::on_input(const int in_idx, const int out_idx, const int clock_i, const void *data) {
+    void ImageNode::on_input(int, int, int, const void *) {
     }
 
     void *ImageNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
         if (source_.data_ptr == nullptr)
             return nullptr;
-        if (change_ > 1)
-            return nullptr;
         return &promise_;
     }
 
     void ImageNode::on_update(int clock_i) {
-        change_ += 1;
+        promise_.image.header.fresh = updates_.update();
     }
 
     ImageNode::~ImageNode() {
@@ -113,6 +100,16 @@ namespace ex::logic::node::cmp::image {
         queue_(nullptr),
         image_(ocl::Image2D::blank()),
         state({ .source = {}, .selected = false }) {
+    }
+
+    io::byte_array ImageNode::serialize() const {
+        data::byte_array array = data::byte_array::from(nullptr, 0);
+        // TODO
+        return array;
+    }
+
+    void ImageNode::deserialize(const io::byte_array &) const {
+        // TODO
     }
 }
 

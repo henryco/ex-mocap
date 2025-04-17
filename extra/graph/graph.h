@@ -425,6 +425,24 @@ namespace limbo::graph {
         }
     };
 
+    struct UpdateState {
+        bool state = true;
+
+        bool fresh() {
+            return state;
+        }
+
+        void refresh() {
+            state = true;
+        }
+
+        bool update() {
+            bool init = state;
+            state     = false;
+            return init;
+        }
+    };
+
 }// namespace limbo::graph
 
 #endif //EX_MOTION_GRAPH_H
