@@ -87,6 +87,28 @@ namespace ex::display::imp::imgui {
         return new_id;
     }
 
+    void rename_output(const unsigned int id, const char *name) {
+        if (!display_map_.contains(id))
+            return;
+
+        const auto &d_ref = display_map_[id];
+        const auto  d_cpy = d_ref;
+
+        const auto uuid  = new char[strlen(name) + 24];
+        const auto label = new char[strlen(name) +  1];
+
+        sprintf(uuid, "%s##display/%d", name, id);
+        strcpy(label, name);
+
+        if (d_ref.uuid != nullptr)
+            delete[] d_ref.uuid;
+        if (d_ref.name != nullptr)
+            delete[] d_ref.name;
+
+        display_map_.remove(id);
+        display_map_.put(id, { label, uuid, d_cpy.data, d_cpy.txid, d_cpy.w, d_cpy.h, d_cpy.c, d_cpy.u });
+    }
+
     void remove_output(const unsigned int id) {
         if (!display_map_.contains(id))
             return;

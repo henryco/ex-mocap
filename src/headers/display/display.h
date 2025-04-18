@@ -11,6 +11,7 @@ namespace ex::display {
 
     struct IO {
         disp_id_t (*add_output)(const char *)                                              = nullptr;
+        void (*rename_output)(disp_id_t, const char *)                                     = nullptr;
         void (*remove_output)(disp_id_t)                                                   = nullptr;
         void (*clear)(disp_id_t)                                                           = nullptr;
         void (*draw_bytes_bgra_8)(disp_id_t id, unsigned char *data, int w, int h, int cn) = nullptr;

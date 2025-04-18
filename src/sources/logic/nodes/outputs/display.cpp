@@ -56,16 +56,13 @@ namespace ex::logic::node::out {
     void DisplayOutputNode::register_image(const char *name) {
         if (display_i != 0)
             ex::display::io.remove_output(display_i);
-
         display_n = name;
         display_i = ex::display::io.add_output(display_n);
+        updates_.refresh();
     }
 
     void DisplayOutputNode::rename_image(const char *name) {
-        if (display_i != 0)
-            ex::display::io.remove_output(display_i);
-        display_n = name;
-        display_i = ex::display::io.add_output(display_n);
+        ex::display::io.rename_output(display_i, name);
     }
 
     void DisplayOutputNode::on_input(const int in_idx, const int out_idx, const int clock_i, const void *data) {

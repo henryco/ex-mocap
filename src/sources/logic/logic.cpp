@@ -340,7 +340,7 @@ namespace ex::main {
 
             ex::logic::state::remove_node(node->id_local);
             internal_::ptr_counter_map.remove(node->id_local);
-            }
+        }
 
         if (moved && !(node->state >>= node_state::is_link) && !(node->state >>= node_state::is_group)) {
             const logic::NodeMapper &mappers = ex::logic::node_mappers()[node->id_node];

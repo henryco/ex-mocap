@@ -9,6 +9,8 @@ namespace ex::display::imp::imgui {
 
     unsigned int add_output(const char *name);
 
+    void rename_output(unsigned int id, const char *name);
+
     void remove_output(unsigned int id);
 
     void clear(unsigned int id);
