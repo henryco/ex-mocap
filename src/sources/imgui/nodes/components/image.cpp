@@ -56,13 +56,9 @@ namespace ex::gui::node::cmp::image {
     bool draw_node_window(GuiNodeWindow *window) {
         static ex::State &state = ex::logic::globals::state();
 
-        static imgn::ImageNode *img_node = nullptr;
-        if (img_node == nullptr || img_node->get_id() != window->node->id_local) {
-            imgn::ImageNode *ptr = dynamic_cast<imgn::ImageNode *>(ex::logic::state::get_node(window->node->id_local));
-            if (ptr == nullptr || ptr->get_id() != window->node->id_local)
-                return true;
-            img_node = ptr;
-        }
+        imgn::ImageNode *img_node = dynamic_cast<imgn::ImageNode *>(ex::logic::state::get_node(window->node->id_local));
+        if (img_node == nullptr || img_node->get_id() != window->node->id_local)
+            return true;
 
         const char *source_file = nullptr;
         if (img_node->state.selected) {
