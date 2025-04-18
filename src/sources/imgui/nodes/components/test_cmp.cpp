@@ -55,6 +55,12 @@ namespace ex::gui::test::one {
         node->detach_all();
         delete node;
     }
+
+    void disable(TreeNode *, limbo::graph::BaseNode *) {
+    }
+
+    void enable(TreeNode *, limbo::graph::BaseNode *) {
+    }
 } // namespace ex::gui::test::one
 
 namespace ex::gui::test::two {
@@ -101,6 +107,12 @@ namespace ex::gui::test::two {
     void destroy(ex::TreeNode *, limbo::graph::BaseNode *node) {
         node->detach_all();
         delete node;
+    }
+
+    void disable(TreeNode *, limbo::graph::BaseNode *) {
+    }
+
+    void enable(TreeNode *, limbo::graph::BaseNode *) {
     }
 }
 
@@ -150,5 +162,11 @@ namespace ex::gui::test::tri {
     void destroy(ex::TreeNode *, limbo::graph::BaseNode *node) {
         node->detach_all();
         delete node;
+    }
+
+    void disable(TreeNode *, limbo::graph::BaseNode *) {
+    }
+
+    void enable(TreeNode *, limbo::graph::BaseNode *) {
     }
 }

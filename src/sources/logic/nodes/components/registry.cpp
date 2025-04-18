@@ -14,6 +14,15 @@ namespace ex::logic::mappers {
 
     namespace internal_ {
 
+        template<typename T>
+        NodeMapper from_struct_() {
+            return {
+                .instance = &T::instance,
+                .relocate = &T::relocate,
+                .destroy  = &T::destroy
+            };
+        }
+
         inline NodeMapper verify_(const NodeMapper &mapper) {
             if (mapper.instance == nullptr)
                 abort_("mapper.instance == nullptr");
@@ -28,8 +37,7 @@ namespace ex::logic::mappers {
             static data::array_map<id_type, NodeMapper> instance;
 
             using image_node_t = ex::logic::node::cmp::image::ImageNode;
-            instance.put(image_node_t::get_node_id(), verify_({
-                &image_node_t::instance, &image_node_t::relocate, &image_node_t::destroy }));
+            instance.put(image_node_t::get_node_id(), from_struct_<image_node_t>());
 
             // TODO REPLACE WITH REAL COMPONENTS
             instance.put(ex::gui::test::NodeOne::get_node_id(), verify_(ex::gui::test::one::data_mappers));
