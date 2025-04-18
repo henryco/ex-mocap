@@ -362,6 +362,8 @@ namespace ex::main {
     }
 
     bool connect_nodes_(TreeNode *from, TreeNode *to) {
+        static const State &state = ex::logic::globals::state();
+
         if (from == nullptr || to == nullptr || (to->state >>= node_state::is_link))
             return false;
 
@@ -370,10 +372,21 @@ namespace ex::main {
         const std::size_t from_id_local = (from->state >>= node_state::is_link) ? from->id_link : from->id_local;
         const auto node_src = ex::logic::state::get_node(from_id_local);
 
-        if ((from->state >>= node_state::is_link) && node_src == nullptr) {
-            log->warn("Cannot connect shared node, reference deleted: {}", from_id_local);
-            from->state -= node_state::connected;
-            return false;
+        if (from->state >>= node_state::is_link) {
+            if (node_src == nullptr) {
+                log->warn("Cannot connect shared node, reference deleted: {}", from_id_local);
+                from->state -= node_state::connected;
+                return false;
+            }
+
+            TreeNode *real_node = TreeNode::find_node(state.logic.work_tree, from->id_link);
+            if (real_node == nullptr ||
+                (real_node->state >>= node_state::disabled) ||
+                (real_node->state >>= node_state::deleted)) {
+                log->warn("Cannot connect shared node, reference disabled or deleted: {}", from_id_local);
+                from->state -= node_state::connected;
+                return false;
+            }
         }
 
         const auto node_dst = ex::logic::state::get_node(to->id_local);
