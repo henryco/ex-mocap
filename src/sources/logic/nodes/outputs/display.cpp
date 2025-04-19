@@ -67,7 +67,6 @@ namespace ex::logic::node::out {
 
     void DisplayOutputNode::disable() {
         enabled = false;
-        reset();
     }
 
     void DisplayOutputNode::enable() {
