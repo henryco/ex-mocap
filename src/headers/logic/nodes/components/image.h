@@ -18,9 +18,9 @@ namespace ex::logic::node::cmp::image {
 
     struct image_source {
         unsigned char *data_ptr = nullptr;
-        int            channels = 0;
-        int            width    = 0;
-        int            height   = 0;
+        unsigned int   channels = 0;
+        unsigned int   width    = 0;
+        unsigned int   height   = 0;
     };
 
     struct ImageNode final : limbo::graph::BaseNode,
@@ -45,7 +45,7 @@ namespace ex::logic::node::cmp::image {
 
         io::byte_array serialize() const override;
 
-        void deserialize(const io::byte_array &) const override;
+        void deserialize(const io::byte_array &) override;
 
         void on_input(int in_idx, int out_idx, int clock_i, const void *data) override;
 

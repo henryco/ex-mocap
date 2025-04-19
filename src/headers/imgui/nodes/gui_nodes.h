@@ -19,6 +19,12 @@ namespace ex::gui {
         bool pinned = false;
     };
 
+    struct GuiNodeParcel {
+        unsigned long  size           = 0;
+        unsigned char *data           = nullptr;
+        void (*free)(GuiNodeParcel *) = nullptr;
+    };
+
     struct GuiNodeMapper {
 
         /**
@@ -55,6 +61,16 @@ namespace ex::gui {
          * Default dock id
          */
         const uint32_t (*get_dock_id)()                                                                = nullptr;
+
+        /**
+         * Serialize data (copy/duplicate/etc)
+         */
+        GuiNodeParcel *(*store)(TreeNode *node)                                                        = nullptr;
+
+        /**
+         * Deserialize data (paste/duplicate/etc)
+         */
+        void (*restore)(TreeNode *node, GuiNodeParcel *parcel)                                         = nullptr;
     };
 }
 

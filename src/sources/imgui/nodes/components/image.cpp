@@ -38,6 +38,14 @@ namespace ex::gui::node::cmp::image {
         };
 
         void show_open_file_picker_(bool *open, const char *def_path, imgn::ImageNode *img_node);
+
+        void parcel_free_(GuiNodeParcel *parcel) {
+            if (parcel == nullptr)
+                return;
+            if (parcel->data != nullptr)
+                ::free(parcel->data);
+            ::free(parcel);
+        }
     }
 
     unsigned long int get_node_type_id() {
@@ -51,6 +59,36 @@ namespace ex::gui::node::cmp::image {
     }
 
     void update_tree_node(const TreeNode *, TreeNode *) {
+    }
+
+    GuiNodeParcel *store(TreeNode *node) {
+        imgn::ImageNode *img_node = dynamic_cast<imgn::ImageNode *>(ex::logic::state::get_node(node->id_local));
+        if (img_node == nullptr)
+            return nullptr;
+
+        io::byte_array data = img_node->serialize();
+
+        GuiNodeParcel *parcel = static_cast<GuiNodeParcel *>(::malloc(sizeof(GuiNodeParcel)));
+        parcel->free          = &internal_::parcel_free_;
+        parcel->size          = data.size;
+        parcel->data          = nullptr;
+
+        if (!data.empty()) {
+            parcel->data = static_cast<unsigned char *>(::malloc(data.size));
+            ::memcpy(parcel->data, data.data, data.size);
+        }
+
+        io::byte_array::free(data);
+        return parcel;
+    }
+
+    void restore(TreeNode *node, GuiNodeParcel *parcel) {
+        if (parcel == nullptr)
+            return;
+        if (imgn::ImageNode *img_node = dynamic_cast<imgn::ImageNode *>(ex::logic::state::get_node(node->id_local))) {
+            auto byte_data = io::byte_array::from(parcel->data, parcel->size);
+            img_node->deserialize(byte_data);
+        }
     }
 
     bool draw_node_window(GuiNodeWindow *window) {

@@ -5,8 +5,8 @@
 #ifndef EX_LIMBO_DATA_BYTE_ARRAY_H
 #define EX_LIMBO_DATA_BYTE_ARRAY_H
 
-#include <iostream>
 #include <cstdlib>
+#include <iostream>
 
 #define abort_(msg) do { std::cerr << msg << std::endl; ::abort(); } while(false)
 
@@ -52,7 +52,7 @@ namespace ex::data {
     }
 
     inline bool byte_array::empty() const {
-        return data != nullptr && size != 0;
+        return data == nullptr || size == 0;
     }
 
     inline byte_array byte_array::from(::u_int8_t *data, const ::size_t &size, const free_fn free_) {
@@ -60,7 +60,9 @@ namespace ex::data {
     }
 
     inline void byte_array::free(byte_array *array) {
-        if (array == nullptr || array->del_ == nullptr) {
+        if (array == nullptr)
+            return;
+        if (array->del_ == nullptr) {
             array->data = nullptr;
             array->size = 0;
             return;

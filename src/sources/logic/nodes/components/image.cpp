@@ -29,6 +29,71 @@ namespace ex::logic::node::cmp::image {
         delete node;
     }
 
+    struct serial_parcel {
+        image_state  state;
+        unsigned int w, h, c, s;
+    };
+
+    io::byte_array ImageNode::serialize() const {
+        unsigned int  image_size = source_.channels * source_.width * source_.height;
+        unsigned long total_size = sizeof(serial_parcel) + image_size;
+
+        serial_parcel parcel;
+        parcel.state = state;
+        parcel.w = source_.width;
+        parcel.h = source_.height;
+        parcel.c = source_.channels;
+        parcel.s = image_size;
+
+        unsigned char *bytes = static_cast<unsigned char *>(::malloc(total_size));
+        if (source_.data_ptr != nullptr) {
+            ::memcpy(bytes, &parcel, sizeof(serial_parcel));
+            ::memcpy(bytes + sizeof(serial_parcel), source_.data_ptr, image_size);
+        }
+
+        return io::byte_array::from(bytes, total_size, &::free);
+    }
+
+    void ImageNode::deserialize(const io::byte_array &array) {
+        const ex::State &state_ = ex::logic::globals::state();
+
+        if (array.empty())
+            return;
+
+        if (source_.data_ptr != nullptr) {
+            stbi_image_free(source_.data_ptr);
+            source_.data_ptr = nullptr;
+        }
+
+        if (queue_ == nullptr) {
+            queue_ = xm::ocl::create_queue_device(state_.cl.context, state_.cl.device, true, false);
+        }
+
+        serial_parcel *parcel = reinterpret_cast<serial_parcel *>(array.data);
+        state = parcel->state;
+
+        if (parcel->s <= 0)
+            return;
+
+        source_.data_ptr = static_cast<unsigned char *>(stbi__malloc(parcel->s));
+        source_.channels = parcel->c;
+        source_.height   = parcel->h;
+        source_.width    = parcel->w;
+
+        ::memcpy(source_.data_ptr, array.data + sizeof(serial_parcel), parcel->s);
+
+        image_.release();
+
+        ocl::ImagePromise promise = ex::ocl::ops::from_bytes(
+            source_.data_ptr, source_.width, source_.height,
+            source_.channels, 1, state_.cl.context, queue_);
+        promise.finalize();
+
+        promise_ = promise;
+        image_   = promise.image;
+        updates_.refresh();
+    }
+
     void ImageNode::set_image(const char *image_path) {
         const ex::State &state_ = ex::logic::globals::state();
 
@@ -46,7 +111,11 @@ namespace ex::logic::node::cmp::image {
         }
 
         // RGBA
-        source_.data_ptr = stbi_load(image_path, &source_.width, &source_.height, &source_.channels, 0);
+        int w_, h_, c_;
+        source_.data_ptr = stbi_load(image_path, &w_, &h_, &c_, 0);
+        source_.width    = w_;
+        source_.height   = h_;
+        source_.channels = c_;
 
         if (source_.channels > 1) {
             for (int i = 0; i < source_.width * source_.height; ++i) {
@@ -100,16 +169,6 @@ namespace ex::logic::node::cmp::image {
         queue_(nullptr),
         image_(ocl::Image2D::blank()),
         state({ .source = {}, .selected = false }) {
-    }
-
-    io::byte_array ImageNode::serialize() const {
-        data::byte_array array = data::byte_array::from(nullptr, 0);
-        // TODO
-        return array;
-    }
-
-    void ImageNode::deserialize(const io::byte_array &) const {
-        // TODO
     }
 }
 

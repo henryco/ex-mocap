@@ -308,7 +308,8 @@ namespace ex::io::bytes {
                         continue;
 
                     if (const auto s = dynamic_cast<serializable *>(base_node)) {
-                        s->deserialize(byte_array::from(data + i, obj_size_b));
+                        auto byte_data = byte_array::from(data + i, obj_size_b);
+                        s->deserialize(byte_data);
                     }
                 }
             }

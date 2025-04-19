@@ -24,7 +24,7 @@ namespace ex::io::bytes {
 
         virtual byte_array serialize() const = 0;
 
-        virtual void deserialize(const byte_array &) const = 0;
+        virtual void deserialize(const byte_array &) = 0;
     };
 
 }
