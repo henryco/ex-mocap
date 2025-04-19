@@ -30,6 +30,21 @@ namespace ex::gui::node::out::display {
             return;
 
         namespace elno = ex::logic::node::out;
+
+        if (!(before->state >>= node_state::disabled) &&
+            (after->state >>= node_state::disabled)) {
+            if (const auto base = dynamic_cast<elno::DisplayOutputNode *>(ex::logic::state::get_node(after->id_local)))
+                base->disable();
+            return;
+        }
+
+        if ((before->state >>= node_state::disabled) &&
+            !(after->state >>= node_state::disabled)) {
+            if (const auto base = dynamic_cast<elno::DisplayOutputNode *>(ex::logic::state::get_node(after->id_local)))
+                base->enable();
+            return;
+        }
+
         if (const auto base = dynamic_cast<elno::DisplayOutputNode *>(ex::logic::state::get_node(after->id_local))) {
             base->rename_image(after->name);
         }

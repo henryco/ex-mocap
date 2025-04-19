@@ -32,6 +32,8 @@ namespace ex::logic::node::out {
         limbo::graph::UpdateState supplies_;
         // GL/CL/ETC interop internal
 
+        bool enabled = true;
+
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
         static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
@@ -39,6 +41,12 @@ namespace ex::logic::node::out {
         void register_image(const char *name);
 
         void rename_image(const char *name);
+
+        void reset();
+
+        void disable();
+
+        void enable();
 
         void on_input(int in_idx, int out_idx, int clock_i, const void *data) override;
 

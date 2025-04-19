@@ -31,12 +31,6 @@ namespace ex::logic::node::out {
         this_.promise_worker_ = ex::ocl::ops::to_bytes(this_.image_, this_.data_, this_.queue_).non_blocking();
     }
 
-    void reset_(DisplayOutputNode &this_) {
-        ex::display::io.clear(this_.display_i);
-        this_.promise_worker_.release();
-        this_.image_.release();
-    }
-
     ln::BaseNode *DisplayOutputNode::instance(TreeNode *n) {
         const auto node = new DisplayOutputNode();
         node->set_id(n->id_local);
@@ -65,19 +59,38 @@ namespace ex::logic::node::out {
         ex::display::io.rename_output(display_i, name);
     }
 
+    void DisplayOutputNode::reset() {
+        ex::display::io.clear(display_i);
+        promise_worker_.release();
+        image_.release();
+    }
+
+    void DisplayOutputNode::disable() {
+        enabled = false;
+        reset();
+    }
+
+    void DisplayOutputNode::enable() {
+        enabled = true;
+        updates_.refresh();
+    }
+
     void DisplayOutputNode::on_input(const int in_idx, const int out_idx, const int clock_i, const void *data) {
         const static ex::State &state = ex::logic::globals::state();
 
+        if (!enabled)
+            return;
+
         const ocl::img_promise *promise = static_cast<const ocl::img_promise *>(data);
         if (promise == nullptr) {
-            reset_(*this);
+            reset();
             updates_.refresh();
             return;
         }
 
         const ocl::Image2D &img = promise->image;
         if (img.empty()) {
-            reset_(*this);
+            reset();
             updates_.refresh();
             return;
         }
@@ -109,10 +122,15 @@ namespace ex::logic::node::out {
 
     void DisplayOutputNode::on_update(const int clock_i) {
 
+        if (!enabled) {
+            reset();
+            return;
+        }
+
         updates_.update();
 
         if (!supplies_.update()) {
-            reset_(*this);
+            reset();
             return;
         }
 
