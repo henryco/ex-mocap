@@ -50,7 +50,7 @@ namespace ex::gui::node::cmp::image {
         return generic_node(out_name, false, selected, nested, expand, collapse);
     }
 
-    void update_tree_node(TreeNode *) {
+    void update_tree_node(const TreeNode *, TreeNode *) {
     }
 
     bool draw_node_window(GuiNodeWindow *window) {

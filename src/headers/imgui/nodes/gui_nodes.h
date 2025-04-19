@@ -49,7 +49,7 @@ namespace ex::gui {
         /**
          * Callback when TreeNode is updated
          */
-        void (*update_tree_node)(TreeNode *node)                                                       = nullptr;
+        void (*update_tree_node)(const TreeNode *before, TreeNode *after)                              = nullptr;
 
         /**
          * Default dock id

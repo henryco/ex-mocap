@@ -25,13 +25,13 @@ namespace ex::gui::node::out::display {
         return generic_node(out_name, false, selected, nested, expand, collapse);
     }
 
-    void update_tree_node(TreeNode *node) {
-        if (node == nullptr)
+    void update_tree_node(const TreeNode *before, TreeNode *after) {
+        if (before == nullptr && after == nullptr)
             return;
 
         namespace elno = ex::logic::node::out;
-        if (const auto base = dynamic_cast<elno::DisplayOutputNode *>(ex::logic::state::get_node(node->id_local))) {
-            base->rename_image(node->name);
+        if (const auto base = dynamic_cast<elno::DisplayOutputNode *>(ex::logic::state::get_node(after->id_local))) {
+            base->rename_image(after->name);
         }
     }
 

@@ -392,6 +392,8 @@ namespace ex::gui::tree {
     }
 
     void rename_node(TreeNode *node, const char *name) {
+        const TreeNode before = *node;
+
         const auto id_local = node->id_local;
         const auto og_name = node->name;
         const auto new_name = new char[64]{ "" };
@@ -403,7 +405,7 @@ namespace ex::gui::tree {
 
         const auto &upd_fn = i_::mappers_[node->id_node].update_tree_node;
         if (upd_fn != nullptr)
-            upd_fn(node);
+            upd_fn(&before, node);
 
         undo_history().push(strings::gui_tree_ops_history_node_renamed,
         new std::function([id_local, og_name, upd_fn] (State *s) {
@@ -411,20 +413,24 @@ namespace ex::gui::tree {
             const auto f_node = s->logic.work_tree->find_node(id_local);
             if (f_node == nullptr)
                 abort__("Cannot find original node");
+
+            const TreeNode before_ = *f_node;
             f_node->name = og_name;
 
             if (upd_fn != nullptr)
-                upd_fn(f_node);
+                upd_fn(&before_, f_node);
         }),
         new std::function([id_local, new_name, upd_fn] (State *s) {
             TreeState::reset(tree::state());
             const auto f_node = s->logic.work_tree->find_node(id_local);
             if (f_node == nullptr)
                 abort__("Cannot find original node");
+
+            const TreeNode before_ = *f_node;
             f_node->name = new_name;
 
             if (upd_fn != nullptr)
-                upd_fn(f_node);
+                upd_fn(&before_, f_node);
         }));
     }
 
@@ -948,6 +954,8 @@ namespace ex::gui::tree {
     }
 
     void enable_node(TreeNode *node) {
+        const TreeNode before = *node;
+
         const auto og_state = node->state;
         node->state -= node_state::disabled;
 
@@ -957,7 +965,7 @@ namespace ex::gui::tree {
 
         const auto &upd_fn = i_::mappers_[node->id_node].update_tree_node;
         if (upd_fn != nullptr)
-            upd_fn(node);
+            upd_fn(&before, node);
 
         state.logic.rewire = true;
 
@@ -968,11 +976,14 @@ namespace ex::gui::tree {
             const auto f_node = s->logic.work_tree->find_node(id_l);
             if (f_node == nullptr)
                 abort__("Cannot find original node");
+
+            const TreeNode before_ = *f_node;
+
             f_node->state -= node_state::disabled;
             f_node->state |= (og_state & node_state::disabled);
 
             if (upd_fn != nullptr)
-                upd_fn(f_node);
+                upd_fn(&before_, f_node);
         }),
         new std::function([id_l = node->id_local, upd_fn] (ex::State *s) {
             TreeState::reset(tree::state());
@@ -980,19 +991,24 @@ namespace ex::gui::tree {
             const auto f_node = s->logic.work_tree->find_node(id_l);
             if (f_node == nullptr)
                 abort__("Cannot find original node");
+
+            const TreeNode before_ = *f_node;
+
             f_node->state -= node_state::disabled;
 
             if (upd_fn != nullptr)
-                upd_fn(f_node);
+                upd_fn(&before_, f_node);
         }));
     }
 
     void disable_node(TreeNode *node) {
+        const TreeNode before = *node;
+
         const auto og_state = node->state;
         node->state |= node_state::disabled;
 
         if (const auto &upd_fn = i_::mappers_[node->id_node].update_tree_node)
-            upd_fn(node);
+            upd_fn(&before, node);
 
         State &state = ex::logic::globals::state();
 
@@ -1006,11 +1022,14 @@ namespace ex::gui::tree {
             const auto f_node = s->logic.work_tree->find_node(id_l);
             if (f_node == nullptr)
                 abort__("Cannot find original node");
+
+            const TreeNode before_ = *f_node;
+
             f_node->state -= node_state::disabled;
             f_node->state |= (og_state & node_state::disabled);
 
             if (const auto &upd_fn = i_::mappers_[f_node->id_node].update_tree_node)
-                upd_fn(f_node);
+                upd_fn(&before_, f_node);
         }),
         new std::function([id_l = node->id_local] (ex::State *s) {
             TreeState::reset(tree::state());
@@ -1018,10 +1037,13 @@ namespace ex::gui::tree {
             const auto f_node = s->logic.work_tree->find_node(id_l);
             if (f_node == nullptr)
                 abort__("Cannot find original node");
+
+            const TreeNode before_ = *f_node;
+
             f_node->state |= node_state::disabled;
 
             if (const auto &upd_fn = i_::mappers_[f_node->id_node].update_tree_node)
-                upd_fn(f_node);
+                upd_fn(&before_, f_node);
         }));
     }
 
@@ -1032,11 +1054,13 @@ namespace ex::gui::tree {
         ex::data::array_map<std::size_t, node_state> og_map;
         auto head = selection->root;
         while (head != nullptr) {
+            const TreeNode before_ = *head->selected;
+
             og_map.put(head->selected->id_local, head->selected->state);
             head->selected->state -= node_state::disabled;
 
             if (const auto &upd_fn = i_::mappers_[head->selected->id_node].update_tree_node)
-                upd_fn(head->selected);
+                upd_fn(&before_, head->selected);
             head = head->next;
         }
 
@@ -1056,11 +1080,14 @@ namespace ex::gui::tree {
                 const auto f_node = s->logic.work_tree->find_node(k);
                 if (f_node == nullptr)
                     abort__("Cannot find original node");
+
+                const TreeNode before_ = *f_node;
+
                 f_node->state -= node_state::disabled;
                 f_node->state |= (v & node_state::disabled);
 
                 if (const auto &upd_fn = i_::mappers_[f_node->id_node].update_tree_node)
-                    upd_fn(f_node);
+                    upd_fn(&before_, f_node);
             }
         }),
         new std::function([og_state = og_map](ex::State *s) {
@@ -1071,10 +1098,13 @@ namespace ex::gui::tree {
                 const auto f_node = s->logic.work_tree->find_node(k);
                 if (f_node == nullptr)
                     abort__("Cannot find original node");
+
+                const TreeNode before_ = *f_node;
+
                 f_node->state -= node_state::disabled;
 
                 if (const auto &upd_fn = i_::mappers_[f_node->id_node].update_tree_node)
-                    upd_fn(f_node);
+                    upd_fn(&before_, f_node);
             }
         }));
     }
@@ -1086,11 +1116,13 @@ namespace ex::gui::tree {
         ex::data::array_map<std::size_t, node_state> og_map;
         auto head = selection->root;
         while (head != nullptr) {
+            const TreeNode before_ = *head->selected;
+
             og_map.put(head->selected->id_local, head->selected->state);
             head->selected->state |= node_state::disabled;
 
             if (const auto &upd_fn = i_::mappers_[head->selected->id_node].update_tree_node)
-                upd_fn(head->selected);
+                upd_fn(&before_, head->selected);
 
             head = head->next;
         }
@@ -1110,11 +1142,14 @@ namespace ex::gui::tree {
                 const auto f_node = s->logic.work_tree->find_node(k);
                 if (f_node == nullptr)
                     abort__("Cannot find original node");
+
+                const TreeNode before_ = *f_node;
+
                 f_node->state -= node_state::disabled;
                 f_node->state |= (v & node_state::disabled);
 
                 if (const auto &upd_fn = i_::mappers_[f_node->id_node].update_tree_node)
-                    upd_fn(f_node);
+                    upd_fn(&before_, f_node);
             }
             TreeState::reset(tree::state());
         }),
@@ -1125,10 +1160,13 @@ namespace ex::gui::tree {
                 const auto f_node = s->logic.work_tree->find_node(k);
                 if (f_node == nullptr)
                     abort__("Cannot find original node");
+
+                const TreeNode before_ = *f_node;
+
                 f_node->state |= node_state::disabled;
 
                 if (const auto &upd_fn = i_::mappers_[f_node->id_node].update_tree_node)
-                    upd_fn(f_node);
+                    upd_fn(&before_, f_node);
             }
             TreeState::reset(tree::state());
         }));

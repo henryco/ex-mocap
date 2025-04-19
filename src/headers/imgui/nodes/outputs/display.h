@@ -13,7 +13,7 @@ namespace ex::gui::node::out::display {
 
     bool draw_tree_node(TreeNode *node, bool nested, bool selected, bool collapse, bool expand);
     bool draw_node_window(GuiNodeWindow *window);
-    void update_tree_node(TreeNode *node);
+    void update_tree_node(const TreeNode *before, TreeNode *after);
     const char *get_node_preview();
     const char *get_node_name();
 
