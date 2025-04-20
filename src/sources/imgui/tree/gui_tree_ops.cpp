@@ -23,7 +23,7 @@ namespace ex::gui::tree {
         void rollback(State *s) const {
             if (s->logic.work_tree != nullptr && s->logic.work_tree != this->work_tree)
                 delete s->logic.work_tree;
-            s->logic.work_tree            = this->work_tree->deep_copy();
+            s->logic.work_tree = this->work_tree->deep_copy();
             s->logic.work_tree->state -= node_state::connected;
             s->logic.work_tree->state |= node_state::created;
 
@@ -31,6 +31,9 @@ namespace ex::gui::tree {
                 s->logic.active_node = nullptr;
             else
                 s->logic.active_node = s->logic.work_tree->find_node(active_node->id_local);
+
+            s->logic.dirty  = true;
+            s->logic.rewire = true;
         }
 
         static Snapshot *create(State &state) {
@@ -162,6 +165,7 @@ namespace ex::gui::tree {
 
         state.logic.work_tree->add_node(add);
         state.logic.active_node = add;
+        state.logic.dirty       = true;
 
         undo_history().push(strings::gui_tree_ops_history_add,
         new std::function([snapshot](State *s) {
@@ -174,11 +178,11 @@ namespace ex::gui::tree {
             new_copy->state |= node_state::created;
             s->logic.work_tree->add_node(new_copy);
             s->logic.active_node = new_copy;
+            s->logic.dirty       = true;
         }),
         new std::function([snapshot, copy] {
             Snapshot::free(snapshot);
-            if (copy != nullptr)
-                delete copy;
+            TreeNode::free(copy);
         }));
     }
 
@@ -1231,6 +1235,8 @@ namespace ex::gui::tree {
         const auto snapshot = Snapshot::create(state);
         node->state |= node_state::deleted;
 
+        state.logic.dirty = true;
+
         undo_history().push(strings::gui_tree_ops_history_node_deleted,
         new std::function([snapshot] (ex::State *s) {
             TreeState::reset(tree::state());
@@ -1243,6 +1249,7 @@ namespace ex::gui::tree {
             if (f_node == nullptr)
                abort__("Cannot find original node");
             f_node->state |= node_state::deleted;
+            s->logic.dirty = true;
         }),
         new std::function([snapshot] {
             Snapshot::free(snapshot);
