@@ -244,6 +244,12 @@ namespace ex {
         return node->deep_copy(generated_id);
     }
 
+    void TreeNode::free(TreeNode *node) {
+        if (node == nullptr)
+            return;
+        delete node;
+    }
+
     TreeNode TreeNode::dummy() {
         return TreeNode();
     }

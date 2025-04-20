@@ -7,6 +7,7 @@
 #include "../../../../headers/imgui/strings/gui_strings.h"
 #include "../../../../headers/imgui/gui_globals.h"
 #include "../../../../headers/logic/logic_globals.h"
+#include "../../../../headers/logic/logic_mappers.h"
 #include "../../../../headers/logic/logic_state.h"
 #include "../../../../headers/utils/gui_utils.h"
 
@@ -88,7 +89,19 @@ namespace ex::gui::node::cmp::image {
         if (imgn::ImageNode *img_node = dynamic_cast<imgn::ImageNode *>(ex::logic::state::get_node(node->id_local))) {
             auto byte_data = io::byte_array::from(parcel->data, parcel->size);
             img_node->deserialize(byte_data);
+            return;
         }
+
+        auto instance = ex::logic::node_mappers()[node->id_node].instance(node);
+        if (imgn::ImageNode *img_node = dynamic_cast<imgn::ImageNode *>(instance)) {
+            ex::logic::state::store_node(node->id_local, instance);
+
+            auto byte_data = io::byte_array::from(parcel->data, parcel->size);
+            img_node->deserialize(byte_data);
+            return;
+        }
+
+        abort_("Invalid node mapper type");
     }
 
     bool draw_node_window(GuiNodeWindow *window) {

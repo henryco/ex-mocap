@@ -63,6 +63,7 @@ namespace ex {
         static TreeNode *find_node(TreeNode *tree, std::uint32_t id);
         static TreeNode *shallow_copy(TreeNode *node);
         static TreeNode *deep_copy(TreeNode *node, bool generated_id = false);
+        static void      free(TreeNode *node);
 
         static TreeNode *create(std::uint32_t id = 0);
         static TreeNode *link(TreeNode *node);
