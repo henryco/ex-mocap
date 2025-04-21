@@ -7,13 +7,49 @@
 
 #include <cstdlib>
 
+#ifndef ex_e_malloc_fn_(size_b)
+#define ex_e_malloc_fn_(size_b) (::malloc(size_b))
+#endif
+
+#ifndef ex_e_realloc_fn_(ptr, size_b)
+#define ex_e_realloc_fn_(ptr, size_b) (::realloc(ptr, size_b))
+#endif
+
+#ifndef ex_e_free_fn_(ptr)
+#define ex_e_free_fn_(ptr) (::free(ptr))
+#endif
+
 namespace ex {
 
     namespace internal_state {
+
+        void *malloc_(const ::size_t size) {
+            void *ptr = ex_e_malloc_fn_(size);
+            if (ptr == nullptr)
+                abort_("Cannot allocate enough memory");
+            return ptr;
+        }
+
+        void *realloc_(void *ptr, const ::size_t size) {
+            void *ptr_2 = ex_e_realloc_fn_(ptr, size);
+            if (ptr_2 == nullptr)
+                abort_("Cannot allocate enough memory");
+            return ptr_2;
+        }
+
+        void free_(void *ptr) {
+            ex_e_free_fn_(ptr);
+        }
+
+        struct ArrayInt {
+            id_type_32 *data = nullptr;
+            id_type_32  size = 0;
+            id_type_32  cap  = 0;
+        };
+
         struct TreeNodeCT {
-            TreeNode    node;
-            id_type_32 *children_d = nullptr;
-            id_type_32  children_n = 0;
+            TreeNode node;
+            ArrayInt children;
         };
 
         static data::array<TreeNodeCT> entities   = 1;
@@ -66,7 +102,7 @@ namespace ex {
             return { nullptr, 0 };
         using container_t     = internal_state::TreeNodeCT;
         const container_t &ct = internal_state::entities[node_id];
-        return { .data = ct.children_d, .size = ct.children_n };
+        return { .data = ct.children.data, .size = ct.children.size };
     }
 
     TreeNode *entity::parent(const id_type_32 node_id) {
@@ -91,33 +127,115 @@ namespace ex {
         }
     }
 
-    int entity::add_child(const id_type_32 id_parent, const id_type_32 id_child) {
+    int entity::add_child(const id_type_32 id_parent, const id_type_32 id_child, const int index) {
         internal_state::dirty = true;
 
-        return 0; // TODO
+        if (!internal_state::check_contains(id_parent))
+            return -1;
+
+        if (!internal_state::check_contains(id_child))
+            return -1;
+
+        using container_t = internal_state::TreeNodeCT;
+        container_t &pc   = internal_state::entities[id_parent];
+        container_t &tc   = internal_state::entities[id_child];
+
+        if (tc.node.id_parent == id_parent)
+            return -1;
+
+        if (tc.node.id_parent != ID32_UNSET)
+            del_child(tc.node.id_parent, id_child);
+
+        if (pc.children.data == nullptr) {
+            pc.children.data = static_cast<id_type_32 *>(internal_state::malloc_(sizeof(id_type_32) * 8));
+            pc.children.size = 0;
+            pc.children.cap  = 8;
+        }
+
+        if (pc.children.size >= pc.children.cap) {
+            const id_type_32 new_size = pc.children.size * 2;
+            pc.children.cap           = new_size;
+            pc.children.data          = static_cast<id_type_32 *>(
+                    internal_state::realloc_(pc.children.data, sizeof(id_type_32) * new_size));
+        }
+
+        const int idx = index < 0 ? pc.children.size : index;
+        ::memmove(pc.children.data + idx + 1,
+            pc.children.data + idx, (pc.children.size - idx) * sizeof(id_type_32));
+
+        tc.node.id_parent     = id_parent;
+        pc.children.data[idx] = id_child;
+        pc.children.size++;
+
+        return idx;
     }
 
     void entity::del_child(const id_type_32 id_parent, const id_type_32 id_child) {
         internal_state::dirty = true;
 
-        // TODO
-    }
-
-    void entity::remove(const id_type_32 id_node) {
-        TreeNode *node = find(id_node);
-        if (node == nullptr)
+        if (!internal_state::check_contains(id_parent))
             return;
 
-        node->name      = nullptr; // potential mem leak (not big tho)
-        node->state     = node_state::deleted;
-        node->id_type   = ID64_UNSET;
-        node->id_node   = ID32_UNSET;
-        node->id_link   = ID32_UNSET;
-        node->id_parent = ID32_UNSET;
+        if (!internal_state::check_contains(id_child))
+            return;
 
-        // TODO UPDATE PARENT/CHILDREN
+        using container_t = internal_state::TreeNodeCT;
+        container_t &pc   = internal_state::entities[id_parent];
+        container_t &tc   = internal_state::entities[id_child];
 
-        internal_state::free_stack.sort_insert_once(id_node);
+        if (tc.node.id_parent != id_parent)
+            return;
+
+        tc.node.id_parent = ID32_UNSET;
+
+        if (pc.node.state >>= node_state::deleted)
+            return;
+
+        if (pc.children.size == 0 || pc.children.data == nullptr)
+            return;
+
+        for (int i = 0; i < pc.children.size; ++i) {
+            if (pc.children.data[i] == id_child) {
+                ::memmove(pc.children.data + i, pc.children.data + i + 1,
+                          (pc.children.size - i - 1) * sizeof(id_type_32));
+                pc.children.size--;
+                return;
+            }
+        }
+    }
+
+    void entity::remove(const id_type_32 node_id) {
+        if (!internal_state::check_contains(node_id))
+            return;
+
+        using container_t = internal_state::TreeNodeCT;
+        container_t &ct   = internal_state::entities[node_id];
+
+        TreeNode &node = ct.node;
+        if (node.state >>= node_state::deleted)
+            return;
+
+        if (node.id_parent != ID32_UNSET)
+            del_child(node.id_parent, node_id);
+
+        node.name      = nullptr; // potential mem leak (not big tho)
+        node.state     = node_state::deleted;
+        node.id_type   = ID64_UNSET;
+        node.id_node   = ID32_UNSET;
+        node.id_link   = ID32_UNSET;
+        node.id_parent = ID32_UNSET;
+
+        for (int i = 0; i < ct.children.size; ++i)
+            remove(ct.children.data[i]);
+
+        if (ct.children.data != nullptr)
+            internal_state::free_(ct.children.data);
+
+        ct.children.data = nullptr;
+        ct.children.size = 0;
+        ct.children.cap  = 0;
+
+        internal_state::free_stack.sort_insert_once(node_id);
         internal_state::dirty = true;
     }
 

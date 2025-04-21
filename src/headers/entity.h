@@ -61,7 +61,7 @@ namespace ex::entity {
     TreeNode *parent(id_type_32 id_node);
     TreeNode *root(id_type_32 id_node);
     IdArray   children(id_type_32 id_node);
-    int       add_child(id_type_32 id_parent, id_type_32 id_child);
+    int       add_child(id_type_32 id_parent, id_type_32 id_child, int index = -1);
     void      del_child(id_type_32 id_parent, id_type_32 id_child);
     void      remove(id_type_32 id_node);
 
