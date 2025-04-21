@@ -173,7 +173,7 @@ namespace ex::data {
             return i;
         }
 
-        void insert(const int index, const val_t &value) {
+        void insert(const int index, const val_t &value = val_t()) {
             if (size >= capacity) {
                 capacity = capacity > 0 ? (2 * capacity) : 2;
 
@@ -187,7 +187,7 @@ namespace ex::data {
             size++;
         }
 
-        void push(const val_t &value) {
+        int push(const val_t &value = val_t()) {
             if (size >= capacity) {
                 capacity = capacity > 0 ? (2 * capacity) : 2;
 
@@ -197,6 +197,7 @@ namespace ex::data {
                     data = realloc_<val_t>(this, allocator_, data, capacity);
             }
             data[size++] = value;
+            return size - 1;
         }
 
         void collapse(const int index) {
