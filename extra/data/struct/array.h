@@ -309,7 +309,7 @@ namespace ex::data {
                 return *this;
             }
 
-            data = malloc_<val_t>(this, other.allocator_, other.capacity);
+            data = malloc_<val_t>(this, allocator_, capacity);
 
             if (other.size <= 0)
                 return *this;

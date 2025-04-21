@@ -23,21 +23,23 @@ namespace ex {
 
     namespace internal_state {
 
-        void *malloc_(const ::size_t size) {
+        void *malloc__(const ::size_t size) {
             void *ptr = ex_e_malloc_fn_(size);
             if (ptr == nullptr)
                 abort_("Cannot allocate enough memory");
             return ptr;
         }
 
-        void *realloc_(void *ptr, const ::size_t size) {
+        void *realloc__(void *ptr, const ::size_t size) {
             void *ptr_2 = ex_e_realloc_fn_(ptr, size);
             if (ptr_2 == nullptr)
                 abort_("Cannot allocate enough memory");
             return ptr_2;
         }
 
-        void free_(void *ptr) {
+        void free__(void *ptr) {
+            if (ptr == nullptr)
+                return;
             ex_e_free_fn_(ptr);
         }
 
@@ -52,14 +54,34 @@ namespace ex {
             ArrayInt children;
         };
 
-        static data::array<TreeNodeCT> entities   = 1;
-        static data::array<id_type_32> free_stack = 1;
-        static bool                    dirty      = true;
+        struct EntityState {
+            data::array<TreeNodeCT> entities   = 1;
+            data::array<id_type_32> free_stack = 1;
+            bool                    dirty      = true;
+
+            void reset() {
+                entities.clean();
+                free_stack.clean();
+                entities.reserve(1);
+                free_stack.reserve(1);
+                dirty = true;
+            }
+        };
+
+        static EntityState state;
+
+        static data::array<TreeNodeCT> &entities   = state.entities;
+        static data::array<id_type_32> &free_stack = state.free_stack;
+        static bool                    &dirty      = state.dirty;
 
         bool check_contains(const id_type_32 node_id) {
             return node_id > internal_state::entities.size || node_id == ID32_UNSET;
         }
     }
+
+    struct entity::_snapshot {
+        internal_state::EntityState state;
+    };
 
     TreeNode *entity::create() {
         using container_t     = internal_state::TreeNodeCT;
@@ -73,6 +95,7 @@ namespace ex {
             ct.node.id_node = new_id;
             return &ct.node;
         }
+
         const id_type_32 new_id = internal_state::entities.push();
         container_t     &ct     = internal_state::entities[new_id];
         ct.node.state           = node_state::blank;
@@ -100,9 +123,33 @@ namespace ex {
     entity::IdArray entity::children(const id_type_32 node_id) {
         if (!internal_state::check_contains(node_id))
             return { nullptr, 0 };
+
         using container_t     = internal_state::TreeNodeCT;
         const container_t &ct = internal_state::entities[node_id];
         return { .data = ct.children.data, .size = ct.children.size };
+    }
+
+    int entity::index_of(const id_type_32 node_id) {
+        if (!internal_state::check_contains(node_id))
+            return -1;
+
+        using container_t     = internal_state::TreeNodeCT;
+        const container_t &tc = internal_state::entities[node_id];
+
+        if (!internal_state::check_contains(tc.node.id_parent))
+            return -1;
+
+        const container_t &pc = internal_state::entities[tc.node.id_parent];
+
+        if (pc.children.data == nullptr)
+            return -1;
+
+        for (int i = 0; i < pc.children.size; ++i) {
+            if (pc.children.data[i] == node_id)
+                return i;
+        }
+
+        return -1;
     }
 
     TreeNode *entity::parent(const id_type_32 node_id) {
@@ -115,6 +162,7 @@ namespace ex {
         TreeNode *head = find(node_id);
         if (head == nullptr)
             return nullptr;
+
         if (!internal_state::check_contains(head->id_parent))
             return nullptr;
 
@@ -147,7 +195,7 @@ namespace ex {
             del_child(tc.node.id_parent, id_child);
 
         if (pc.children.data == nullptr) {
-            pc.children.data = static_cast<id_type_32 *>(internal_state::malloc_(sizeof(id_type_32) * 8));
+            pc.children.data = static_cast<id_type_32 *>(internal_state::malloc__(sizeof(id_type_32) * 8));
             pc.children.size = 0;
             pc.children.cap  = 8;
         }
@@ -156,7 +204,7 @@ namespace ex {
             const id_type_32 new_size = pc.children.size * 2;
             pc.children.cap           = new_size;
             pc.children.data          = static_cast<id_type_32 *>(
-                    internal_state::realloc_(pc.children.data, sizeof(id_type_32) * new_size));
+                    internal_state::realloc__(pc.children.data, sizeof(id_type_32) * new_size));
         }
 
         const int idx = index < 0 ? pc.children.size : index;
@@ -229,7 +277,7 @@ namespace ex {
             remove(ct.children.data[i]);
 
         if (ct.children.data != nullptr)
-            internal_state::free_(ct.children.data);
+            internal_state::free__(ct.children.data);
 
         ct.children.data = nullptr;
         ct.children.size = 0;
@@ -245,6 +293,24 @@ namespace ex {
 
     bool entity::is_dirty() {
         return internal_state::dirty;
+    }
+
+    void entity::reset_entities() {
+        internal_state::state.reset();
+    }
+
+    entity::snapshot entity::store_entities() {
+        snapshot s = static_cast<_snapshot *>(internal_state::malloc__(sizeof(_snapshot)));
+        s->state   = internal_state::state;
+        return s;
+    }
+
+    void entity::restore_entities(const entity::snapshot s) {
+        internal_state::state = s->state;
+    }
+
+    void entity::remove_snapshot(const entity::snapshot s) {
+        internal_state::free__(s);
     }
 
 }
