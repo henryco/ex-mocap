@@ -115,6 +115,8 @@ namespace ex {
         node->id_link   = ID32_UNSET;
         node->id_parent = ID32_UNSET;
 
+        // TODO UPDATE PARENT/CHILDREN
+
         internal_state::free_stack.sort_insert_once(id_node);
         internal_state::dirty = true;
     }
