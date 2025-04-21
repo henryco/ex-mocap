@@ -7,15 +7,15 @@
 
 #include <cstdlib>
 
-#ifndef ex_e_malloc_fn_(size_b)
+#ifndef ex_e_malloc_fn_
 #define ex_e_malloc_fn_(size_b) (::malloc(size_b))
 #endif
 
-#ifndef ex_e_realloc_fn_(ptr, size_b)
+#ifndef ex_e_realloc_fn_
 #define ex_e_realloc_fn_(ptr, size_b) (::realloc(ptr, size_b))
 #endif
 
-#ifndef ex_e_free_fn_(ptr)
+#ifndef ex_e_free_fn_
 #define ex_e_free_fn_(ptr) (::free(ptr))
 #endif
 
