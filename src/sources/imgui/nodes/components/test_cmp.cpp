@@ -42,12 +42,12 @@ namespace ex::gui::test::one {
 
     limbo::graph::BaseNode *instance(TreeNode *from) {
         const auto node = new NodeOne();
-        node->set_id(from->id_local);
+        node->set_id(from->id_node);
         return node;
     }
 
     limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node) {
-        std::cout << "relocate: " << tree->id_local << '\n';
+        std::cout << "relocate: " << tree->id_node << '\n';
         return node;
     }
 
@@ -95,12 +95,12 @@ namespace ex::gui::test::two {
 
     limbo::graph::BaseNode *instance(TreeNode *from) {
         const auto node = new NodeTwo();
-        node->set_id(from->id_local);
+        node->set_id(from->id_node);
         return node;
     }
 
     limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node) {
-        std::cout << "relocate: " << tree->id_local << '\n';
+        std::cout << "relocate: " << tree->id_node << '\n';
         return node;
     }
 
@@ -150,12 +150,12 @@ namespace ex::gui::test::tri {
 
     limbo::graph::BaseNode *instance(TreeNode *from) {
         const auto node = new NodeTri();
-        node->set_id(from->id_local);
+        node->set_id(from->id_node);
         return node;
     }
 
     limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node) {
-        std::cout << "relocate: " << tree->id_local << '\n';
+        std::cout << "relocate: " << tree->id_node << '\n';
         return node;
     }
 

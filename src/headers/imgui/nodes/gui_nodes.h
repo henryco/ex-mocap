@@ -5,7 +5,7 @@
 #ifndef EX_IMGUI_NODE_COMPONENTS_H
 #define EX_IMGUI_NODE_COMPONENTS_H
 
-#include "../../state.h"
+#include "../../entity.h"
 
 namespace ex::gui {
 
@@ -60,7 +60,7 @@ namespace ex::gui {
         /**
          * Default dock id
          */
-        const uint32_t (*get_dock_id)()                                                                = nullptr;
+        const unsigned int (*get_dock_id)()                                                                = nullptr;
 
         /**
          * Serialize data (copy/duplicate/etc)

@@ -33,19 +33,19 @@ namespace ex::gui::node::out::display {
 
         if (!(before->state >>= node_state::disabled) &&
             (after->state >>= node_state::disabled)) {
-            if (const auto base = dynamic_cast<elno::DisplayOutputNode *>(ex::logic::state::get_node(after->id_local)))
+            if (const auto base = dynamic_cast<elno::DisplayOutputNode *>(ex::logic::state::get_node(after->id_node)))
                 base->disable();
             return;
         }
 
         if ((before->state >>= node_state::disabled) &&
             !(after->state >>= node_state::disabled)) {
-            if (const auto base = dynamic_cast<elno::DisplayOutputNode *>(ex::logic::state::get_node(after->id_local)))
+            if (const auto base = dynamic_cast<elno::DisplayOutputNode *>(ex::logic::state::get_node(after->id_node)))
                 base->enable();
             return;
         }
 
-        if (const auto base = dynamic_cast<elno::DisplayOutputNode *>(ex::logic::state::get_node(after->id_local))) {
+        if (const auto base = dynamic_cast<elno::DisplayOutputNode *>(ex::logic::state::get_node(after->id_node))) {
             base->rename_image(after->name);
         }
     }

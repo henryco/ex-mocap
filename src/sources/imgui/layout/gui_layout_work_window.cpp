@@ -101,7 +101,7 @@ namespace ex::gui {
 
     void gen_uuid(GuiNodeWindow &window) {
         const auto buffer = static_cast<char *>(::malloc(strlen(window.node->name) + 64));
-        sprintf(buffer, "%s##window/%d/%lu", window.node->name, window.node->id_local, window.node->id_node);
+        sprintf(buffer, "%s##window/%lu/%u", window.node->name, window.node->id_type, window.node->id_node);
         if (window.uuid != nullptr)
             ::free((void *) window.uuid);
         window.uuid = buffer;
@@ -118,18 +118,18 @@ namespace ex::gui {
         return win;
     }
 
-    Box create_new_box(const State &state, TreeNode *node) {
+    Box create_new_box(TreeNode *node) {
         if (node == nullptr) {
             err_abort("Tree node cannot be null");
             return {};
         }
 
-        if (node->state >>= node_state::is_link) {
-            const auto source = TreeNode::find_node(state.logic.work_tree, node->id_link);
+        if (node->state >>= node_state::link) {
+            const auto source = ex::entity::find(node->id_link);
             const auto tr_src = (source == nullptr) ? node : source;
-            return { win_from_node(tr_src), tr_src->id_local };
+            return { win_from_node(tr_src), tr_src->id_node };
         }
-        return { win_from_node(node), node->id_local };
+        return { win_from_node(node), node->id_node };
     }
 
     bool draw_window(Box &box) {
@@ -180,21 +180,21 @@ namespace ex::gui {
 
         static ex::data::array<Box> windows_(5);
 
-        const bool dirty_state = state.logic.dirty;
-        TreeNode  *active_node = state.logic.active_node;
+        const bool dirty_state = ex::entity::is_dirty();
+        TreeNode  *active_node = ex::entity::find(state.logic.active_node);
 
         const Box *active_one = nullptr;
         for (int i = 0; i < windows_.size; ++i) {
             Box &box = windows_[i];
 
-            if (active_node != nullptr && (box.window.node == active_node || box.id == active_node->id_local)) {
+            if (active_node != nullptr && (box.window.node == active_node || box.id == active_node->id_node)) {
                 active_one = &box;
             }
 
             if (dirty_state) {
-                box.window.node = TreeNode::find_node(state.logic.work_tree, box.id);
+                box.window.node = ex::entity::find(box.id);
                 if (&box == active_one) {
-                    state.logic.active_node = box.window.node;
+                    state.logic.active_node = box.window.node->id_node;
                     active_node             = box.window.node;
                 }
                 if (box.window.node != nullptr)
@@ -203,7 +203,7 @@ namespace ex::gui {
 
             if (box.window.node == nullptr) {
                 if (&box == active_one) {
-                    state.logic.active_node = nullptr;
+                    state.logic.active_node = -1;
                     active_node             = nullptr;
                     active_one              = nullptr;
                 }
@@ -213,7 +213,7 @@ namespace ex::gui {
 
             if (box.window.node->state >>= node_state::deleted) {
                 if (&box == active_one) {
-                    state.logic.active_node = nullptr;
+                    state.logic.active_node = -1;
                     active_node             = nullptr;
                     active_one              = nullptr;
                 }
@@ -228,7 +228,7 @@ namespace ex::gui {
 
             if (!node_mappers_.contains(box.window.node->id_node)) {
                 if (&box == active_one) {
-                    state.logic.active_node = nullptr;
+                    state.logic.active_node = -1;
                     active_node             = nullptr;
                     active_one              = nullptr;
                 }
@@ -240,7 +240,7 @@ namespace ex::gui {
             bool contains = false;
             for (int i = 0; i < windows_.size; ++i) {
                 const Box &box = windows_[i];
-                if (box.window.node == active_node || box.id == active_node->id_local) {
+                if (box.window.node == active_node || box.id == active_node->id_node) {
                     contains = true;
                     break;
                 }
@@ -248,7 +248,7 @@ namespace ex::gui {
 
             if (!contains) {
                 if (!(active_node->state >>= node_state::deleted)) {
-                    windows_.push(create_new_box(state, active_node));
+                    windows_.push(create_new_box(active_node));
                 }
                 active_one = &(windows_[windows_.size - 1]);
             }
@@ -261,7 +261,7 @@ namespace ex::gui {
                 continue;
 
             if (&box == active_one) {
-                state.logic.active_node = nullptr;
+                state.logic.active_node = -1;
                 active_one              = nullptr;
             }
 

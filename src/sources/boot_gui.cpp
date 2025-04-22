@@ -134,7 +134,6 @@ namespace ex::boot {
             timing.start();
 
         gui.build(state);
-        state.logic.dirty = false;
 
         glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT);

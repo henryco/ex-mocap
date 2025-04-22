@@ -10,8 +10,8 @@
 
 namespace ex::logic::state {
 
-    using id_type  = std::uint64_t;
-    using id_local = std::uint32_t;
+    using id_type  = unsigned long int;
+    using id_local = unsigned int;
 
     const ex::data::rb_map<id_local, limbo::graph::BaseNode *> &node_storage();
 

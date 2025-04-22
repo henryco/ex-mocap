@@ -5,7 +5,6 @@
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/imgui/layout/gui_layout.h"
 #include "../../../headers/imgui/tree/gui_tree_ops.h"
-#include "../../../headers/logic/logic_globals.h"
 #include "../../../headers/logic/logic_state.h"
 
 namespace ex::gui::tree {
@@ -16,11 +15,9 @@ namespace ex::gui::tree {
     static long                    inspection_id   = -1;
 
     void show_inspected_node() {
-        static const State &state = ex::logic::globals::state();
         static const GuiState &gui = ex::gui::state();
 
         if (inspected_node == nullptr ||
-            (inspected_node->state >>= node_state::created) ||
             (inspected_node->state >>= node_state::deleted) ||
             !inspection_open)
         {
@@ -31,8 +28,8 @@ namespace ex::gui::tree {
             return;
         }
 
-        if (state.logic.dirty && inspection_id >= 0) {
-            TreeNode *new_node = state.logic.work_tree->find_node(inspection_id);
+        if (ex::entity::is_dirty() && inspection_id >= 0) {
+            TreeNode *new_node = ex::entity::find(inspection_id);
             if (new_node == nullptr) {
                 inspection_open = false;
                 inspected_node  = nullptr;
@@ -45,7 +42,7 @@ namespace ex::gui::tree {
         }
 
         if (inspected_base == nullptr) {
-            inspected_base = ex::logic::state::get_node(inspected_node->id_local);
+            inspected_base = ex::logic::state::get_node(inspected_node->id_node);
             if (inspected_base == nullptr) {
                 inspection_open = false;
                 inspected_node  = nullptr;
@@ -56,7 +53,7 @@ namespace ex::gui::tree {
 
         const auto rf = ex::gui::window_reset_flags(gui.view.reset, true);
         ImGui::Begin("Node inspector", &inspection_open, rf);
-        ImGui::Text("%s: [%u] [%s]", inspected_node->name, inspected_node->id_local, inspected_base->get_node_name());
+        ImGui::Text("%s: [%u] [%s]", inspected_node->name, inspected_node->id_node, inspected_base->get_node_name());
 
         ImGui::TextDisabled("");
 
@@ -100,7 +97,7 @@ namespace ex::gui::tree {
     }
 
     void pick_inspected_node(TreeNode *node) {
-        inspection_id   = node->id_local;
+        inspection_id   = node->id_node;
         inspected_node  = node;
         inspected_base  = nullptr;
         inspection_open = true;

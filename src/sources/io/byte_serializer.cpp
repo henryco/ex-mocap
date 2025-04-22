@@ -58,20 +58,21 @@ namespace ex::io::bytes {
         project_version version;
     };
 
-    struct alignas(32) tree_node_1 {
-        std::uint64_t id_node    = 0;
-        std::uint32_t children_n = 0;
-        std::uint32_t data_size  = 0;
-        std::uint32_t id_local   = 0;
-        std::uint32_t id_link    = 0;
-        std::uint32_t index      = 0;
-        std::uint16_t flags      = 0;
-        std::uint16_t _____      = 0;
+    // 32 bytes
+    struct tree_node_1 {
+        std::uint64_t id_type   = 0;
+        std::uint32_t id_node   = 0;
+        std::uint32_t id_link   = 0;
+        std::uint32_t id_parent = 0;
+        std::uint32_t index     = 0;
+        std::uint16_t flags     = 0;
+        std::uint16_t ___       = 0;
+        std::uint16_t __        = 0;
+        std::uint16_t _         = 0;
     };
 
     std::uint16_t flags_node(const TreeNode *node) {
         node_state state = node->state;
-        state -= node_state::created;   // ignore created
         state -= node_state::dimmed;    // ignore dimmed
         state -= node_state::selected;  // ignore selected
         state -= node_state::connected; // ignore connected
@@ -80,12 +81,11 @@ namespace ex::io::bytes {
 
     tree_node_1 *from_node(const TreeNode *node) {
         return new tree_node_1(
+            node->id_type,
             node->id_node,
-            node->children_n,
-            node->data_size,
-            node->id_local,
             node->id_link,
-            node->index,
+            node->id_parent,
+            ex::entity::index_of(node->id_node),
             flags_node(node)
         );
     }
@@ -96,27 +96,24 @@ namespace ex::io::bytes {
             return;
         }
 
+        to->id_type    = from->id_type;
         to->id_node    = from->id_node;
-        to->children_n = from->children_n;
-        to->data_size  = from->data_size;
-        to->id_local   = from->id_local;
         to->id_link    = from->id_link;
-        to->index      = from->index;
+        to->id_parent  = from->id_parent;
         to->state      = static_cast<node_state>(from->flags);
-        to->children   = new TreeNode *[to->children_n];
 
-        if (to->state >>= node_state::is_link)
+        if (to->state >>= node_state::link)
             return;
 
-        if (to->state >>= node_state::is_group)
+        if (to->state >>= node_state::group)
             return;
 
-        if (!ex::logic::node_mappers().contains(to->id_node))
+        if (!ex::logic::node_mappers().contains(to->id_type))
             return;
 
-        const auto mappers = ex::logic::node_mappers()[to->id_node];
+        const auto mappers = ex::logic::node_mappers()[to->id_type];
         const auto instance = mappers.instance(to);
-        ex::logic::state::store_node(to->id_local, instance);
+        ex::logic::state::store_node(to->id_node, instance);
     }
 
     struct gc {
@@ -195,7 +192,7 @@ namespace ex::io::bytes {
             // write tree node data
             out::object(buffer, TYPE_NODE_OBJ, sizeof(tree_node_1), serial);
 
-            if (const auto s = dynamic_cast<serializable *>(ex::logic::state::get_node(node->id_local)))  {
+            if (const auto s = dynamic_cast<serializable *>(ex::logic::state::get_node(node->id_node)))  {
                 if (const auto serialized = s->serialize(); !serialized.empty()) {
                     // write base node data
                     out::object(buffer, TYPE_NODE_DAT, serialized.size, serialized.data);
@@ -203,15 +200,16 @@ namespace ex::io::bytes {
                 }
             }
 
-            if (node->children_n <= 0 || node->children == nullptr) {
+            const auto children = ex::entity::children(node->id_node);
+            if (children.size <= 0 || children.data == nullptr) {
                 out::end_array(buffer);
                 return;
             }
 
             out::begin_array(buffer, TYPE_NODE_ARR);
             {
-                for (auto i = 0; i < node->children_n; i++)
-                    write_tree(buffer, node->children[i], garbage_collector);
+                for (auto i = 0; i < children.size; i++)
+                    write_tree(buffer, ex::entity::find(children.data[i]), garbage_collector);
             }
             out::end_array(buffer);
 
@@ -224,7 +222,9 @@ namespace ex::io::bytes {
         bool prev_arr_end = false;
 
         std::int64_t i = in::offset(buffer);
-        TreeNode    *node = nullptr;
+
+        TreeNode  root;
+        TreeNode *node = nullptr;
 
         while ((i = in::next(buffer, data + i)) != -1) {
 
@@ -236,7 +236,7 @@ namespace ex::io::bytes {
 //                    std::cout << ">> TYPE_NODE_BGN\n";
 //                    std::cout << "   head: " << head->name << std::endl;
 
-                    node = TreeNode::create();
+                    node = &root;
                 }
 
                 else if (in::array_type(buffer) == TYPE_NODE_ARR) {
@@ -291,7 +291,14 @@ namespace ex::io::bytes {
 //                    std::cout << "   node: " << node->name << std::endl;
 
                     to_node(reinterpret_cast<const tree_node_1 *>(data + i), node);
-                    ex::state::uuid::set_last_id(node->id_local);
+                    TreeNode *new_node = ex::entity::create(node->id_node);
+//                    new_node->id_link   = node->id_link;
+//                    new_node->id_type   = node->id_type;
+//                    new_node->id_parent = node->id_type;
+//                    new_node->state     = node->state;
+//                    new_node->name      = node->name;
+                    *new_node           = *node;
+                    node                = new_node;
                 }
 
                 else if (in::item_type(buffer) == TYPE_NODE_DAT) {
@@ -300,10 +307,10 @@ namespace ex::io::bytes {
 //                    std::cout << "   head: " << head->name << std::endl;
 //                    std::cout << "   node: " << node->name << std::endl;
 
-                    if (node->state >>= node_state::is_link)
+                    if (node->state >>= node_state::link)
                         continue;
 
-                    const auto base_node = ex::logic::state::get_node(node->id_local);
+                    const auto base_node = ex::logic::state::get_node(node->id_node);
                     if (base_node == nullptr)
                         continue;
 
@@ -330,8 +337,8 @@ namespace ex::io::bytes {
 
 //                    std::cout << "   node: " << node->name << std::endl;
 
-                    head->children[node->index] = node;
-                    node->parent                = head;
+                    node->id_parent = -1;
+                    ex::entity::add_child(head->id_node, node->id_node);
                     node = nullptr;
                 }
 
@@ -356,7 +363,7 @@ namespace ex::io::bytes {
 
     byte_array ByteSerializer::serialize(const void *in) const {
         const auto state = static_cast<const ex::State *>(in);
-        const auto root  = state->logic.work_tree;
+        const auto root  = ex::entity::find(state->logic.root_node);
 
         auto buff_out = out::create_buffer(10);
 
@@ -414,13 +421,8 @@ namespace ex::io::bytes {
         byte_buffer bb;
         bb.allocate(64);
 
-        TreeNode base   = TreeNode::dummy();
-        base.name       = "base";
-        base.id_local   = 141006542;
-        base.children   = new TreeNode *[1];
-        base.children_n = 1;
-
-        state::uuid::reset_last_id();
+        TreeNode base;
+        ex::entity::reset_entities();
 
         const auto t0 = std::chrono::high_resolution_clock::now();
 
@@ -428,11 +430,7 @@ namespace ex::io::bytes {
 
         const auto t1 = std::chrono::high_resolution_clock::now();
 
-        state->logic.work_tree         = base.children[0];
-        state->logic.work_tree->parent = nullptr;
-
-        base.children[0] = nullptr;
-        base.children_n  = 0;
+        state->logic.root_node = base.id_node;
 
         logic::globals::logger()->debug("deserialization time: {} ns", (t1 - t0).count());
 

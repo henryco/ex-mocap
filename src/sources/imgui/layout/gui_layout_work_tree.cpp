@@ -40,6 +40,10 @@ namespace ex::gui {
 
     static constexpr auto dnd_type = "node";
 
+    bool is_parent(TreeNode *node1, TreeNode *node2) {
+        return node1->id_node == node2->id_parent;
+    }
+
     void highlight_border() {
         constexpr auto off       = 3.f;
         const auto     p_min     = ImGui::GetItemRectMin();
@@ -81,7 +85,7 @@ namespace ex::gui {
         if (ImGui::BeginDragDropTarget()) {
             if (const auto payload = ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptPeekOnly)) {
                 const auto data_node = static_cast<TreeNode **>(payload->Data);
-                if (data_node == nullptr || *data_node == node || TreeNode::is_parent(node, *data_node)) {
+                if (data_node == nullptr || *data_node == node || is_parent(node, *data_node)) {
                     ImGui::EndDragDropTarget();
                     ImGui::PopID();
                     ImGui::PopStyleVar();
@@ -109,7 +113,7 @@ namespace ex::gui {
         if (ImGui::BeginDragDropTarget()) {
             if (const auto payload = ImGui::AcceptDragDropPayload(dnd_type, ImGuiDragDropFlags_AcceptPeekOnly)) {
                 const auto data_node = static_cast<TreeNode **>(payload->Data);
-                if (data_node == nullptr || *data_node == node || TreeNode::is_parent(node, *data_node)) {
+                if (data_node == nullptr || *data_node == node || is_parent(node, *data_node)) {
                     ImGui::EndDragDropTarget();
                     return;
                 }
@@ -129,7 +133,7 @@ namespace ex::gui {
         if (start == nullptr || stop == nullptr || node == nullptr || selection == nullptr)
             return false;
 
-        if (node == start || node->id_local == start->id_local) {
+        if (node == start || node->id_node == start->id_node) {
             if (*selection != nullptr)
                 tree::selection_node::free(*selection);
 
@@ -152,18 +156,20 @@ namespace ex::gui {
             (*selection)->next = next;
             *selection         = next;
 
-            if (node == stop || node->id_local == stop->id_local)
+            if (node == stop || node->id_node == stop->id_node)
                 return true;
         }
 
     find_more:
 
-        if (node->children_n <= 0 || node->children == nullptr) {
+        const ex::entity::IdArray children = ex::entity::children(node->id_node);
+        if (children.size <= 0 || children.data == nullptr) {
             return false;
         }
 
-        for (int i = 0; i < node->children_n; i++) {
-            if (select_many(selection, node->children[i], start, stop))
+
+        for (int i = 0; i < children.size; i++) {
+            if (select_many(selection, ex::entity::find(children.data[i]), start, stop))
                 return true;
         }
 
@@ -293,10 +299,7 @@ namespace ex::gui {
                 return false;
             }
 
-            auto *root = node->parent;
-            while (root->parent != nullptr) {
-                root = root->parent;
-            }
+            TreeNode *root = ex::entity::root(node->id_node);
 
             tree::selection_node *new_selected = nullptr;
             tree::selection_node::free(*selection, true);
@@ -347,29 +350,35 @@ namespace ex::gui {
 
         int counter_i = counter;
 
-        if (!(node->state >>= node_state::is_group)) {
-            if (node->children_n > 0 && node->children != nullptr) {
-                const auto next = node->children[0];
-                for (int i = 0; i < next->children_n; i++)
-                    counter_i = count_children(next->children[i], counter_i + 1);
+        const ex::entity::IdArray children = ex::entity::children(node->id_node);
+
+        if (!(node->state >>= node_state::group)) {
+            if (children.size > 0 && children.data != nullptr) {
+                if (const auto next = ex::entity::find(children.data[0])) {
+                    const auto cc = ex::entity::children(next->id_node);
+                    for (int i = 0; i < cc.size; i++)
+                        counter_i = count_children(ex::entity::find(cc.data[i]), counter_i + 1);
+                }
+
             }
             return counter_i;
         }
 
-        if (node->children_n <= 0 || node->children == nullptr)
+        if (children.size <= 0 || children.data == nullptr)
             return counter_i;
 
-        const auto first = node->children[0];
-        if (first->children_n <= 0) {
-            if (node->children_n > 1) {
-                for (int i = 1; i < node->children_n; i++)
-                    counter_i = count_children(node->children[i], counter_i + 1);
+        const auto first = ex::entity::find(children.data[0]);
+        const auto cc = ex::entity::children(first->id_node);
+        if (cc.size <= 0) {
+            if (children.size > 1) {
+                for (int i = 1; i < children.size; i++)
+                    counter_i = count_children(ex::entity::find(cc.data[i]), counter_i + 1);
             }
             return counter_i;
         }
 
-        for (int i = 0; i < node->children_n; i++)
-            counter_i = count_children(node->children[i], counter_i + 1);
+        for (int i = 0; i < children.size; i++)
+            counter_i = count_children(ex::entity::find(children.data[i]), counter_i + 1);
 
         return counter_i;
     }
@@ -383,28 +392,29 @@ namespace ex::gui {
 
         int counter_i = counter;
 
-        if (!(node->state >>= node_state::is_group)) {
+        const auto children = ex::entity::children(node->id_node);
+        if (!(node->state >>= node_state::group)) {
             // Not a group just regular element
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
 
-            const bool reference = node->state >>= node_state::is_link;
+            const bool reference = node->state >>= node_state::link;
             const bool connected = (node->state >>= node_state::connected) || reference || n <= 0;
-            const bool symlinked = *ref_node > 0 && *ref_node == node->id_local;
-            const bool observer  = node->state >>= node_state::is_output;
+            const bool symlinked = *ref_node > 0 && *ref_node == node->id_node;
+            const bool observer  = node->state >>= node_state::output;
             const bool disabled  = node->state >>= node_state::disabled;
             const bool dimmed    = node->state >>= node_state::dimmed;
 
             if (disabled || disabled_ || dimmed)
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
-            ImGui::PushID(node->id_local);
+            ImGui::PushID(node->id_node);
 
-//            const auto &mapper       = work_tree::internals_::mappers_[node->id_node];
-            const auto &mapper       = *work_tree::internals_::cache(node->id_node);
+//            const auto &mapper       = work_tree::internals_::mappers_[node->id_type];
+            const auto &mapper       = *work_tree::internals_::cache(node->id_type);
 
-            const bool is_nested_   = node->children_n > 0;
+            const bool is_nested_   = children.size > 0;
             const bool is_selected_ = node->state >>= node_state::selected;
 
             const tree::TreeState &node_state = ex::gui::tree::state();
@@ -412,7 +422,7 @@ namespace ex::gui {
                                                     node_state.force_expand);
 
             if (ImGui::IsItemHovered())
-                *ref_node = (node->state >>= node_state::is_link) ? node->id_link : (-1);
+                *ref_node = (node->state >>= node_state::link) ? node->id_link : (-1);
             else if (node->id_link != -1 && node->id_link == *ref_node)
                 *ref_node = (-1);
 
@@ -426,18 +436,18 @@ namespace ex::gui {
 
             bool menu_element = false;
             if (tree::selection_node::single(*selected)) {
-                menu_element = tree::show_context_menu_element(node, *menu_node == node->id_local,
-                                                         node->children_n > 0, (node->state >>= node_state::selected));
+                menu_element = tree::show_context_menu_element(node, *menu_node == node->id_node,
+                                                         children.size > 0, (node->state >>= node_state::selected));
                 drag_space(node, mapper);
             } else {
                 tree::show_context_menu_group();
             }
 
             if (menu_element) {
-                *menu_node = node->id_local;
+                *menu_node = node->id_node;
             }
 
-            if (open && node->children_n > 0)
+            if (open && children.size > 0)
                 ImGui::Indent();
 
             if ((ImGui::IsItemClicked() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) || menu_element) {
@@ -476,23 +486,26 @@ namespace ex::gui {
                 ImGui::TableNextColumn();
                 if (!connected)
                     ImGui::PushStyleColor(ImGuiCol_TextDisabled, col_orange);
-                ImGui::TextDisabled(connected ? (node->children_n > 0 ? ICON_LC_ARROW_DOWN_RIGHT : "")
+                ImGui::TextDisabled(connected ? (children.size > 0 ? ICON_LC_ARROW_DOWN_RIGHT : "")
                                               : ICON_LC_UNPLUG);
                 if (!connected)
                     ImGui::PopStyleColor();
             }
 
-            if (open && node->children_n > 0 && !(node->children[0]->state >>= node_state::created)) {
+            if (open && children.size > 0) {// && !(node->children[0]->state >>= node_state::created)) {
                 if (disabled || disabled_ || dimmed)
                     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
                 // Regular element but it has children
-                const auto next = node->children[0];
-                for (int i = 0, u = 0; i < next->children_n; i++) {
-                    counter_i = show_tree_node(state, gui, next->children[i],
+                const auto next = ex::entity::find(children.data[0]);
+                const auto n_children = ex::entity::children(next->id_node);
+
+                for (int i = 0, u = 0; i < n_children.size; i++) {
+                    auto i_c = ex::entity::find(n_children.data[i]);
+                    counter_i = show_tree_node(state, gui, i_c,
                         selected, active, menu_node, ref_node,
                                                disabled || disabled_ || dimmed, counter_i + 1, u);
-                    u += !(next->children[i]->state >>= node_state::disabled);
+                    u += !(i_c->state >>= node_state::disabled);
                 }
                 ImGui::TreePop();
 
@@ -503,7 +516,7 @@ namespace ex::gui {
                 brackets_end_half(pos, 0, (disabled || disabled_ || dimmed) ? 0.5f : 1.f);
             }
 
-            else if (node->children_n > 0)
+            else if (children.size > 0)
                 counter_i = count_children(node, counter_i);
 
             ImGui::PopID();
@@ -514,7 +527,7 @@ namespace ex::gui {
         }
 
         // It's a group
-        if (node->children_n <= 0 || node->children == nullptr) {
+        if (children.size <= 0 || children.data == nullptr) {
             // ignore such case
             return counter_i;
         }
@@ -523,31 +536,33 @@ namespace ex::gui {
         ImGui::TableNextColumn();
 
         // It's a group, and it has children (not an empty)
-        const auto first = node->children[0];
+//        const auto first = node->children[0];
+        const auto first = ex::entity::find(children.data[0]);
+        const auto f_children = ex::entity::children(first->id_node);
 
-        const bool symlinked = *ref_node > 0 && *ref_node == first->id_local;
-        const bool reference = first->state >>= node_state::is_link;
+        const bool symlinked = *ref_node > 0 && *ref_node == first->id_node;
+        const bool reference = first->state >>= node_state::link;
         const bool disabled  = first->state >>= node_state::disabled;
-        const bool observer  = first->state >>= node_state::is_output;
+        const bool observer  = first->state >>= node_state::output;
         const bool dimmed    = first->state >>= node_state::dimmed;
 
-        if (first->children_n <= 0) {
+        if (f_children.size <= 0) {
             // Group with children, where the first element _HAS NO_ its own children
             const ImVec2 outer_start = brackets_start();
             {
                 if (disabled || disabled_ || dimmed)
                     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
-                ImGui::PushID(first->id_local);
+                ImGui::PushID(first->id_node);
 
-//                const auto &mapper       = work_tree::internals_::mappers_[first->id_node];
-                const auto &mapper = *work_tree::internals_::cache(first->id_node);
+//                const auto &mapper       = work_tree::internals_::mappers_[first->id_type];
+                const auto &mapper = *work_tree::internals_::cache(first->id_type);
 
                 const bool is_selected_ = first->state >>= node_state::selected;
                 mapper.draw_tree_node(first, false, is_selected_, false, false);
 
                 if (ImGui::IsItemHovered())
-                    *ref_node = (first->state >>= node_state::is_link) ? first->id_link : (-1);
+                    *ref_node = (first->state >>= node_state::link) ? first->id_link : (-1);
                 else if (first->id_link != -1 && first->id_link == *ref_node)
                     *ref_node = (-1);
 
@@ -561,7 +576,7 @@ namespace ex::gui {
 
                 bool menu_element = false;
                 if (tree::selection_node::single(*selected)) {
-                    menu_element = tree::show_context_menu_element(first, *menu_node == first->id_local, false,
+                    menu_element = tree::show_context_menu_element(first, *menu_node == first->id_node, false,
                                                              first->state >>= node_state::selected);
                     drag_space(first, mapper);
                 } else {
@@ -569,7 +584,7 @@ namespace ex::gui {
                 }
 
                 if (menu_element) {
-                    *menu_node = first->id_local;
+                    *menu_node = first->id_node;
                 }
 
                 if ((ImGui::IsItemClicked() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) || menu_element) {
@@ -607,34 +622,36 @@ namespace ex::gui {
                 ImGui::PopID();
 
                 int u = disabled ? 0 : 1;
-                if (node->children_n > 1) {
-                    for (int i = 1; i < node->children_n; i++) {
-                        counter_i = show_tree_node(state, gui, node->children[i],
+                if (children.size > 1) {
+                    for (int i = 1; i < children.size; i++) {
+                        auto i_c = ex::entity::find(children.data[i]);
+                        counter_i = show_tree_node(state, gui, i_c,
                             selected, active, menu_node, ref_node,
                                                    disabled_, counter_i + 1, u);
-                        u += !(node->children[i]->state >>= node_state::disabled);
+                        u += !(i_c->state >>= node_state::disabled);
                     }
                 }
             }
 
             brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
 
-            insertion_space(node->parent, counter);
+            insertion_space(ex::entity::parent(node->id_node), counter);
             return counter_i;
         }
 
         // Group with children, where the first element _HAS_ its own children
         const ImVec2 outer_start = brackets_start();
-        for (int i = 0, u = 0; i < node->children_n; i++) {
-            counter_i = show_tree_node(state, gui, node->children[i],
+        for (int i = 0, u = 0; i < children.size; i++) {
+            auto i_c = ex::entity::find(children.data[i]);
+            counter_i = show_tree_node(state, gui, i_c,
                 selected, active, menu_node, ref_node, disabled_,
                                        counter_i + 1, u);
-            u += !(node->children[i]->state >>= node_state::disabled);
+            u += !(i_c->state >>= node_state::disabled);
         }
 
         brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
 
-        insertion_space(node->parent, counter);
+        insertion_space(ex::entity::parent(node->id_node), counter);
         return counter_i;
     }
 
@@ -643,7 +660,8 @@ namespace ex::gui {
         State &state = ex::logic::globals::state();
         GuiState &gui = ex::gui::state();
 
-        if (state.logic.work_tree == nullptr)
+        TreeNode *root_node = ex::entity::find(state.logic.root_node);
+        if (root_node == nullptr)
             return;
 
         ImGui::BeginChild(
@@ -666,22 +684,25 @@ namespace ex::gui {
             const std::size_t  prev_menu   = last_menu;
             TreeNode          *active_node = nullptr;
 
+            const auto root_children = ex::entity::children(root_node->id_node);
+
             ImGui::Indent(10.f);
             work_tree::internals_::cache.begin();
-            for (int i = 0, p = 0; i < state.logic.work_tree->children_n; i++) {
-                p = show_tree_node(state, gui, state.logic.work_tree->children[i], &tree_state.selection,
+            for (int i = 0, p = 0; i < root_children.size; i++) {
+                p = show_tree_node(state, gui, ex::entity::find(root_children.data[i]), &tree_state.selection,
                     &active_node, &last_menu, &last_ref, false, p + 1, i);
             }
             work_tree::internals_::cache.end();
             ImGui::Unindent(10.f);
 
             if (active_node != nullptr) {
-                if (state.logic.active_node != nullptr && state.logic.active_node != active_node) {
-                    state.logic.active_node = active_node;
+                TreeNode *active_active = ex::entity::find(state.logic.active_node);
+                if (active_active != nullptr && active_active != active_node) {
+                    state.logic.active_node = active_node->id_node;
                 }
 
-                if (state.logic.active_node == nullptr) {
-                    state.logic.active_node = active_node;
+                if (active_active == nullptr) {
+                    state.logic.active_node = active_node->id_node;
                 }
             }
 

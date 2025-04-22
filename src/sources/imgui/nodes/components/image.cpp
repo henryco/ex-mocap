@@ -5,7 +5,6 @@
 #include "../../../../headers/imgui/nodes/components/image.h"
 #include "../../../../headers/logic/nodes/components/image.h"
 #include "../../../../headers/imgui/strings/gui_strings.h"
-#include "../../../../headers/imgui/gui_globals.h"
 #include "../../../../headers/logic/logic_globals.h"
 #include "../../../../headers/logic/logic_mappers.h"
 #include "../../../../headers/logic/logic_state.h"
@@ -63,7 +62,7 @@ namespace ex::gui::node::cmp::image {
     }
 
     GuiNodeParcel *store(TreeNode *node) {
-        imgn::ImageNode *img_node = dynamic_cast<imgn::ImageNode *>(ex::logic::state::get_node(node->id_local));
+        imgn::ImageNode *img_node = dynamic_cast<imgn::ImageNode *>(ex::logic::state::get_node(node->id_node));
         if (img_node == nullptr)
             return nullptr;
 
@@ -86,7 +85,7 @@ namespace ex::gui::node::cmp::image {
     void restore(TreeNode *node, GuiNodeParcel *parcel) {
         if (parcel == nullptr)
             return;
-        if (imgn::ImageNode *img_node = dynamic_cast<imgn::ImageNode *>(ex::logic::state::get_node(node->id_local))) {
+        if (imgn::ImageNode *img_node = dynamic_cast<imgn::ImageNode *>(ex::logic::state::get_node(node->id_node))) {
             auto byte_data = io::byte_array::from(parcel->data, parcel->size);
             img_node->deserialize(byte_data);
             return;
@@ -94,7 +93,7 @@ namespace ex::gui::node::cmp::image {
 
         auto instance = ex::logic::node_mappers()[node->id_node].instance(node);
         if (imgn::ImageNode *img_node = dynamic_cast<imgn::ImageNode *>(instance)) {
-            ex::logic::state::store_node(node->id_local, instance);
+            ex::logic::state::store_node(node->id_node, instance);
 
             auto byte_data = io::byte_array::from(parcel->data, parcel->size);
             img_node->deserialize(byte_data);
@@ -107,8 +106,8 @@ namespace ex::gui::node::cmp::image {
     bool draw_node_window(GuiNodeWindow *window) {
         static ex::State &state = ex::logic::globals::state();
 
-        imgn::ImageNode *img_node = dynamic_cast<imgn::ImageNode *>(ex::logic::state::get_node(window->node->id_local));
-        if (img_node == nullptr || img_node->get_id() != window->node->id_local)
+        imgn::ImageNode *img_node = dynamic_cast<imgn::ImageNode *>(ex::logic::state::get_node(window->node->id_node));
+        if (img_node == nullptr || img_node->get_id() != window->node->id_node)
             return true;
 
         const char *source_file = nullptr;

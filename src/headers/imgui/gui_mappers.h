@@ -9,7 +9,7 @@
 #include "../../extra/data/struct/array_map.h"
 
 namespace ex::gui {
-    using id_type  = std::uint64_t;
+    using id_type  = unsigned long int;
 
     /**
     * Sum of node_outputs and node_components

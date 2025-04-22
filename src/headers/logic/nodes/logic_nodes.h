@@ -6,7 +6,7 @@
 #define EX_LOGIC_NODE_COMPONENT_H
 
 #include "../../../../extra/graph/graph.h"
-#include "../../state.h"
+#include "../../entity.h"
 
 namespace ex::logic {
     namespace ln = limbo::graph;

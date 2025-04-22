@@ -123,7 +123,7 @@ namespace ex::gui::tree {
         const auto &mappings = key_mappings();
         remove_actions_();
 
-        if (node->state >>= node_state::is_link) {
+        if (node->state >>= node_state::link) {
             actions::registry::set_action(mappings.work_tree.deletion.key, action_delete_node_);
             return;
         }
@@ -149,7 +149,7 @@ namespace ex::gui::tree {
         auto head = selection->root;
         bool same_root = true;
         while (head != nullptr) {
-            if (head->selected->parent != selection->root->selected->parent)
+            if (head->selected->id_parent != selection->root->selected->id_parent)
                 same_root = false;
             head = head->next;
         }
@@ -161,7 +161,7 @@ namespace ex::gui::tree {
         }
     }
 
-    TreeNode *create_node_from_menu() {
+    bool create_node_from_menu(TreeNode *new_node) {
         int offset = 0;
         for (; offset < tm::node_outputs_.key_entries.size; offset++) {
             const auto &type_id = tm::node_outputs_.key_entries[offset];
@@ -170,12 +170,10 @@ namespace ex::gui::tree {
             ImGui::PushID(type_id);
             if (ImGui::MenuItem(label)) {
                 ImGui::PopID();
-                TreeNode *new_node   = TreeNode::create();
-                new_node->state      = node_state::created | node_state::is_output;
-                new_node->name       = mapper.get_node_name();
-                new_node->id_node    = type_id;
-                new_node->children_n = 0;
-                return new_node;
+                new_node->state   = node_state::output;
+                new_node->name    = mapper.get_node_name();
+                new_node->id_node = type_id;
+                return true;
             }
             ImGui::PopID();
         }
@@ -190,16 +188,15 @@ namespace ex::gui::tree {
             ImGui::PushID(type_id);
             if (ImGui::MenuItem(label)) {
                 ImGui::PopID();
-                TreeNode *new_node   = TreeNode::create();
-                new_node->name       = mapper.get_node_name();
-                new_node->state      = node_state::created;
-                new_node->id_node    = type_id;
-                new_node->children_n = 0;
-                return new_node;
+                new_node->name    = mapper.get_node_name();
+                new_node->state   = node_state::blank;
+                new_node->id_node = type_id;
+                return true;
             }
             ImGui::PopID();
         }
-        return nullptr;
+
+        return false;
     }
 
     bool show_context_menu_group() {
@@ -224,14 +221,16 @@ namespace ex::gui::tree {
         while (head != nullptr) {
             enabled |= !(head->selected->state >>= node_state::disabled);
             disabled |= (head->selected->state >>= node_state::disabled);
-            if (head->selected->parent != selection->root->selected->parent)
+            if (head->selected->id_parent != selection->root->selected->id_parent)
                 same_root = false;
             head = head->next;
         }
 
-        const bool is_grouped = selection->selected->parent != nullptr &&
-                                selection->selected->parent->parent != nullptr &&
-                                (selection->selected->parent->parent->state >>= node_state::is_group);
+        bool is_grouped = false;
+        if (const auto parent = ex::entity::parent(selection->selected->id_node)) {
+            if (const auto parent_parent = ex::entity::parent(parent->id_node))
+                is_grouped = parent_parent->state >>= node_state::group;
+        }
 
         if (ImGui::BeginPopup(menu_id)) {
 
@@ -300,23 +299,25 @@ namespace ex::gui::tree {
             ImGui::OpenPopup(menu_id);
         }
 
-        const auto parent = node->parent;
-        // ReSharper disable once CppDFANullDereference
-        const bool is_grouped =
-                (parent != nullptr) && (parent->parent != nullptr) && (parent->parent->state >>= node_state::is_group);
-
+        bool is_grouped = false;
+        if (const auto parent = ex::entity::parent(node->id_node)) {
+            if (const auto parent_parent = ex::entity::parent(parent->id_node))
+                is_grouped = parent_parent->state >>= node_state::group;
+        }
 
         if (ImGui::BeginPopup(menu_id)) {
 
             if (ImGui::BeginMenu(strings::gui_tree_menu_node_new)) {
                 if (ImGui::BeginMenu(strings::gui_tree_menu_node_add_into)) {
-                    if (const auto new_node = create_node_from_menu())
-                        tree::add_into_node(node, new_node);
+                    TreeNode new_node;
+                    if (create_node_from_menu(&new_node))
+                        tree::add_into_node(node, &new_node);
                     ImGui::EndMenu();
                 }
                 if (ImGui::BeginMenu(strings::gui_tree_menu_node_add_after)) {
-                    if (const auto new_node = create_node_from_menu())
-                        tree::add_after_node(node, new_node);
+                    TreeNode new_node;
+                    if (create_node_from_menu(&new_node))
+                        tree::add_after_node(node, &new_node);
                     ImGui::EndMenu();
                 }
                 ImGui::EndMenu();
@@ -356,7 +357,7 @@ namespace ex::gui::tree {
                 }
             }
 
-            if (!(node->state >>= node_state::is_link)) {
+            if (!(node->state >>= node_state::link)) {
                 if (ImGui::MenuItem(strings::gui_tree_menu_node_inspect)) {
                     tree::pick_inspected_node(node);
                 }
@@ -449,8 +450,9 @@ namespace ex::gui::tree {
         if (ImGui::BeginPopup(menu_id)) {
 
             if (ImGui::BeginMenu(strings::gui_tree_menu_general_add)) {
-                if (const auto new_node = create_node_from_menu())
-                    tree::add_node(new_node);
+                TreeNode new_node;
+                if (create_node_from_menu(&new_node))
+                    tree::add_node(&new_node);
                 ImGui::EndMenu();
             }
 

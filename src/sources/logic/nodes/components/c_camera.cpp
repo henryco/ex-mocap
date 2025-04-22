@@ -53,7 +53,7 @@ namespace ex::map::camera {
     limbo::graph::BaseNode *instance(TreeNode *from) {
         const State            &state = ex::logic::globals::state();
         limbo::graph::BaseNode *node = new cmp::CameraNode(state.cl.context, state.cl.device);
-        node->set_id(from->id_local);
+        node->set_id(from->id_node);
         return node;
     }
 

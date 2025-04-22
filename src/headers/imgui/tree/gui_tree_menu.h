@@ -5,7 +5,7 @@
 #ifndef GUI_TREE_MENU_H
 #define GUI_TREE_MENU_H
 
-#include "../../state.h"
+#include "../../entity.h"
 
 namespace ex::gui::tree {
 

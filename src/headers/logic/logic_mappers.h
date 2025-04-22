@@ -9,7 +9,7 @@
 #include "nodes/logic_nodes.h"
 
 namespace ex::logic {
-    using id_type  = std::uint64_t;
+    using id_type  = unsigned long int;
 
     /**
      * Sum of node_outputs and node_components

@@ -16,7 +16,7 @@ namespace ex::logic::node::cmp::image {
 
     limbo::graph::BaseNode *ImageNode::instance(TreeNode *node) {
         ImageNode *ptr = new ImageNode();
-        ptr->set_id(node->id_local);
+        ptr->set_id(node->id_node);
         return ptr;
     }
 
