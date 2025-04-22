@@ -307,6 +307,7 @@ namespace ex {
 
     void entity::restore_entities(const entity::snapshot s) {
         internal_state::state = s->state;
+        internal_state::dirty = true;
     }
 
     void entity::remove_snapshot(const entity::snapshot s) {
