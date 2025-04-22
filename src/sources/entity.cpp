@@ -91,15 +91,23 @@ namespace ex {
             const id_type_32 new_id = internal_state::free_stack.back();
             internal_state::free_stack.pop();
             container_t &ct = internal_state::entities[new_id];
-            ct.node.state   = node_state::blank;
-            ct.node.id_node = new_id;
+            ct.node.state     = node_state::blank;
+            ct.node.name      = nullptr;
+            ct.node.id_node   = new_id;
+            ct.node.id_type   = ID64_UNSET;
+            ct.node.id_link   = ID32_UNSET;
+            ct.node.id_parent = ID32_UNSET;
             return &ct.node;
         }
 
         const id_type_32 new_id = internal_state::entities.push();
         container_t     &ct     = internal_state::entities[new_id];
-        ct.node.state           = node_state::blank;
-        ct.node.id_node         = new_id;
+        ct.node.state     = node_state::blank;
+        ct.node.name      = nullptr;
+        ct.node.id_node   = new_id;
+        ct.node.id_type   = ID64_UNSET;
+        ct.node.id_link   = ID32_UNSET;
+        ct.node.id_parent = ID32_UNSET;
         return &ct.node;
     }
 
@@ -107,10 +115,22 @@ namespace ex {
         using container_t     = internal_state::TreeNodeCT;
         internal_state::dirty = true;
 
+        const int idx_1 = internal_state::entities.size;
+
         internal_state::entities.insert(new_id);
         container_t &ct = internal_state::entities[new_id];
-        ct.node.state   = node_state::blank;
-        ct.node.id_node = new_id;
+        ct.node.state     = node_state::blank;
+        ct.node.name      = nullptr;
+        ct.node.id_node   = new_id;
+        ct.node.id_type   = ID64_UNSET;
+        ct.node.id_link   = ID32_UNSET;
+        ct.node.id_parent = ID32_UNSET;
+
+        const int idx_2 = internal_state::entities.size;
+
+        for (int i = idx_1; i < idx_2 - 1; ++i)
+            internal_state::free_stack.sort_insert_once(i);
+
         return &ct.node;
     }
 
@@ -142,14 +162,14 @@ namespace ex {
         const container_t &pc = internal_state::entities[tc.node.id_parent];
 
         if (pc.children.data == nullptr)
-            return -1;
+            return -1; // probably should abort
 
         for (int i = 0; i < pc.children.size; ++i) {
             if (pc.children.data[i] == node_id)
                 return i;
         }
 
-        return -1;
+        return -1; // probably should abort
     }
 
     TreeNode *entity::parent(const id_type_32 node_id) {

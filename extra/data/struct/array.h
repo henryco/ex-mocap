@@ -174,6 +174,7 @@ namespace ex::data {
         }
 
         void insert(const int index, const val_t &value = val_t()) {
+        we_ball:
             if (size >= capacity) {
                 capacity = capacity > 0 ? (2 * capacity) : 2;
 
@@ -182,9 +183,22 @@ namespace ex::data {
                 else
                     data = realloc_<val_t>(this, allocator_, data, capacity);
             }
-            ::memmove(data + index + 1, data + index, (size - index) * sizeof(val_t));
-            data[index] = value;
-            size++;
+
+            if (index < size) {
+                ::memmove(data + index + 1, data + index, (size - index) * sizeof(val_t));
+                data[index] = value;
+                size++;
+                return;
+            }
+
+            if (index == size) {
+                data[index] = value;
+                size++;
+                return;
+            }
+
+            size = index;
+            goto we_ball;
         }
 
         int push(const val_t &value = val_t()) {
