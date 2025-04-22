@@ -105,7 +105,7 @@ namespace ex::data::lalloc {
         #endif
     }
 
-    static constexpr u_int32_t power_range_r_s64(const u_int64_t size_b) {
+    static constexpr u_int32_t power_range_r_u64(const u_int64_t size_b) {
         #ifdef __clang__
         return (sizeof(size_b) * 8 - __builtin_clzll(size_b) - 1);
         #elif defined(__GNUC__)
@@ -536,8 +536,8 @@ namespace ex::data::lalloc {
             if (max_size_ == 0 || grow_mem_ == 0)
                 abort_("max_size_ == 0 || grow_mem_ == 0");
 
-            const float fac = power_range_r_s64(max_size_);
-            const float pow = power_range_r_s64(grow_mem_);
+            const float fac = power_range_r_u64(max_size_);
+            const float pow = power_range_r_u64(grow_mem_);
             const float diff = 2.f * (1.f - (pow / fac));
 
             const std::size_t size_required = min_((diff * grow_mem_) + min_size_b, BLOCK_MAX_SIZE_B) + sizeof(memory_block);
