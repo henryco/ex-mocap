@@ -75,7 +75,7 @@ namespace ex {
         static bool                    &dirty      = state.dirty;
 
         bool check_contains(const id_type_32 node_id) {
-            return node_id > internal_state::entities.size || node_id == ID32_UNSET;
+            return !(node_id > internal_state::entities.size || node_id == ID32_UNSET);
         }
     }
 
@@ -320,8 +320,9 @@ namespace ex {
     }
 
     entity::snapshot entity::store_entities() {
-        snapshot s = static_cast<_snapshot *>(internal_state::malloc__(sizeof(_snapshot)));
-        s->state   = internal_state::state;
+        void    *mem = internal_state::malloc__(sizeof(_snapshot));
+        snapshot s   = new (mem) _snapshot;
+        s->state     = internal_state::state;
         return s;
     }
 
@@ -331,6 +332,7 @@ namespace ex {
     }
 
     void entity::remove_snapshot(const entity::snapshot s) {
+        if (s) s->~_snapshot();
         internal_state::free__(s);
     }
 

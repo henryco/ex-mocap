@@ -43,12 +43,6 @@ namespace internal_ {
         }
         ex::main::log->debug("complete node gc");
     }
-
-    inline int *fetch_(const std::uint32_t &id) {
-        return &ptr_counter_map[id];
-    }
-
-    static ex::data::cache_line cache = fetch_;
 }
 
 namespace ex::main {
@@ -90,18 +84,15 @@ namespace ex::main {
     };
 
 
-
     // == INTERNAL METHODS ==
 
     void rewire_(Logic &logic);
 
-    void traverse_(State &state, TreeNode *node, bool *rewire, bool fresh);
+    void traverse_(TreeNode *node);
 
-    void build_tree_(Logic &logic, State &state, TreeNode *node, TreeNode *previous, simple_list *group_list);
+    void build_tree_(Logic &logic, TreeNode *node, TreeNode *previous, simple_list *group_list);
 
     bool connect_nodes_(TreeNode *from, TreeNode *to);
-
-    void mark_node_deleted_(State &state, TreeNode *node, bool moved);
 
     void process_();
 
@@ -127,7 +118,7 @@ namespace ex::main {
     void Logic::run() {
         static State &state = ex::logic::globals::state();
 
-        if (state.logic.work_tree == nullptr)
+        if (state.logic.root_node == ((uint32_t) (-1)))
             abort__("Logic::run: work tree is null");
 
         if (state.project.brand_new) {
@@ -147,7 +138,11 @@ namespace ex::main {
             return;
         }
 
-        synchronize_(*this);
+        if (ex::entity::is_dirty()) {
+            ex::entity::set_dirty(false);
+            synchronize_(*this);
+        }
+
         process_();
 
         if (state.project.should_save) {
@@ -211,12 +206,6 @@ namespace ex::main {
             return;
         }
 
-        if (state.logic.work_tree != nullptr)
-            delete state.logic.work_tree;
-
-        state.logic.work_tree     = new_state->logic.work_tree;
-        state.logic.rewire        = true;
-
         delete new_state;
         delete[] data;
 
@@ -241,32 +230,29 @@ namespace ex::main {
         for (const auto &node : ex::logic::state::node_storage())
             node.val->detach_all();
 
-        simple_list current = { state.logic.work_tree };
-        build_tree_(logic, state, state.logic.work_tree, nullptr, &current);
-
-        internal_::cleanup_nodes();
+        TreeNode *root_node = ex::entity::find(state.logic.root_node);
+        simple_list current = { root_node };
+        build_tree_(logic, root_node, nullptr, &current);
 
         if (const simple_list *head = simple_list::get_head_(&current)) {
-            if (state.logic.work_tree != head->node)
+            if (root_node != head->node)
                 attach_to_clock_(head->node);
         }
     }
 
     void reset_internal_state_() {
-        static State &state = ex::logic::globals::state();
-        static limbo::graph::Clock &clock = ex::logic::state::get_clock();
-
+        static State        &state = ex::logic::globals::state();
+        limbo::graph::Clock &clock = ex::logic::state::get_clock();
         clock.reset();
 
-        if (state.logic.work_tree != nullptr)
-            delete state.logic.work_tree;
+        ex::entity::reset_entities();
+        TreeNode *root = ex::entity::create(0);
+        root->state    = node_state::group;
+        root->name     = "root";
+        root->id_type  = 0;
 
-        state::uuid::reset_last_id();
-
-        state.logic.work_tree             = TreeNode::create();
-        state.logic.work_tree->state      = node_state::is_group;
-        state.logic.work_tree->name       = "root";
-        state.logic.work_tree->children_n = 0;
+        state.logic.root_node   = root->id_node;
+        state.logic.active_node = ID32_UNSET;
     }
 
     void process_() {
@@ -285,101 +271,30 @@ namespace ex::main {
 
     void synchronize_(Logic &logic) {
         static State &state = ex::logic::globals::state();
+        TreeNode *root_node = ex::entity::find(state.logic.root_node);
 
-        static auto prev_target_fps = state.gl.target_fps;
-        static auto fps_guard = ex::time::fps_guard::from_fps(state.gl.target_fps);
-        if (prev_target_fps != state.gl.target_fps) {
-            prev_target_fps = state.gl.target_fps;
-            fps_guard.set_fps(state.gl.target_fps);
-        }
-        if (!fps_guard.step())
-            return;
-
-        bool rewire = state.logic.rewire;
-
-        internal_::cache.begin();
-        traverse_(state, state.logic.work_tree, &rewire, false);
-        internal_::cache.end();
-
-        static bool gc_run = false;
-
-        if (gc_run && !rewire) {
-            internal_::cleanup_nodes();
-            gc_run = false;
-        }
-
-        if (rewire) {
-            rewire_(logic);
-            gc_run = true;
-
-            state.project.has_changes = true;
-            state.logic.dirty         = true;
-        }
-
-        state.logic.rewire = false;
-    }
-
-    void mark_node_deleted_(State &state, TreeNode *node, const bool moved) {
-        if (node == nullptr)
-            return;
-
-        node->state -= node_state::deleted;
-        node->state -= node_state::moved;
-
-        node->state |= (node_state::deleted && !moved);
-        node->state |= (node_state::moved && moved);
-
-        if (!moved &&
-            !(node->state >>= node_state::is_link) &&
-            !(node->state >>= node_state::is_group)) {
-
-            if (const auto base = ex::logic::state::get_node(node->id_local)) {
-                if (const auto d_func = ex::logic::node_mappers()[node->id_node].destroy)
-                    d_func(node, base);
-            }
-
-            ex::logic::state::remove_node(node->id_local);
-            internal_::ptr_counter_map.remove(node->id_local);
-        }
-
-        if (moved && !(node->state >>= node_state::is_link) && !(node->state >>= node_state::is_group)) {
-            const logic::NodeMapper &mappers = ex::logic::node_mappers()[node->id_node];
-            const auto               base    = ex::logic::state::get_node(node->id_local);
-
-            if (const auto new_one = mappers.relocate(node, base); base != new_one) {
-                mappers.destroy(node, base);
-                ex::logic::state::replace_node(node->id_local, new_one);
-            }
-        }
-
-        if (node->children_n <= 0 || node->children == nullptr) {
-            return;
-        }
-
-        for (int i = 0; i < node->children_n; i++) {
-            mark_node_deleted_(state, node->children[i], moved);
-        }
+        traverse_(root_node);
+        rewire_(logic);
+        internal_::cleanup_nodes();
     }
 
     bool connect_nodes_(TreeNode *from, TreeNode *to) {
-        static const State &state = ex::logic::globals::state();
-
-        if (from == nullptr || to == nullptr || (to->state >>= node_state::is_link))
+        if (from == nullptr || to == nullptr || (to->state >>= node_state::link))
             return false;
 
         to->state -= node_state::connected;
 
-        const std::size_t from_id_local = (from->state >>= node_state::is_link) ? from->id_link : from->id_local;
+        const std::size_t from_id_local = (from->state >>= node_state::link) ? from->id_link : from->id_node;
         const auto node_src = ex::logic::state::get_node(from_id_local);
 
-        if (from->state >>= node_state::is_link) {
+        if (from->state >>= node_state::link) {
             if (node_src == nullptr) {
                 log->warn("Cannot connect shared node, reference deleted: {}", from_id_local);
                 from->state -= node_state::connected;
                 return false;
             }
 
-            TreeNode *real_node = TreeNode::find_node(state.logic.work_tree, from->id_link);
+            TreeNode *real_node = ex::entity::find(from->id_link);
             if (real_node == nullptr ||
                 (real_node->state >>= node_state::disabled) ||
                 (real_node->state >>= node_state::deleted)) {
@@ -389,9 +304,9 @@ namespace ex::main {
             }
         }
 
-        const auto node_dst = ex::logic::state::get_node(to->id_local);
+        const auto node_dst = ex::logic::state::get_node(to->id_node);
         if (node_dst == nullptr || node_src == nullptr) {
-            log->error("One of nodes does not exist: {}, {}", to->id_local, from_id_local);
+            log->error("One of nodes does not exist: {}, {}", to->id_node, from_id_local);
             return false;
         }
 
@@ -442,84 +357,46 @@ namespace ex::main {
 
         to->state -= node_state::connected;
         to->state |= (node_state::connected && (connects_num > 0));
-        log->debug("CONNECTION STATUS: {} -> {} [{}]", from_id_local, to->id_local, to->state >>= node_state::connected);
+        log->debug("CONNECTION STATUS: {} -> {} [{}]", from_id_local, to->id_node, to->state >>= node_state::connected);
 
         return to->state >>= node_state::connected;
     }
 
-    void traverse_(State &state, TreeNode *node, bool *rewire, const bool fresh) {
+    void traverse_(TreeNode *node) {
         if (node == nullptr)
             return;
 
-
-        if ((node->state >>= node_state::deleted) || (node->state >>= node_state::moved)) {
-            *rewire = true;
-            return;
-        }
-
-        for (std::size_t i = 0; i < node->children_n; i++) {
-            const auto child = node->children[i];
-
-            if ((child->state >>= node_state::deleted) || (child->state >>= node_state::moved)) {
-                *rewire = true;
-            }
-
-            else {
-                traverse_(state, child, rewire, fresh || (node->state >>= node_state::created));
-                if ((child->state >>= node_state::is_group) && (child->children_n <= 0 || child->children == nullptr)) {
-                    child->state |= node_state::deleted;
-                    *rewire = true;
-                }
-            }
-        }
-
-        int o = 0;
-        while (true) {
-            if (o >= node->children_n)
-                break;
-            const auto child = node->children[o];
-            if (!(child->state >>= node_state::deleted) && !(child->state >>= node_state::moved)) {
-                o += 1;
-                continue;
-            }
-            mark_node_deleted_(state, child, child->state >>= node_state::moved);
-            node->remove_node(child);
-            delete child;
-            o = 0;
-        }
-
-        if ((node->state >>= node_state::created) || fresh) {
-
-            if (!(node->state >>= node_state::is_group) && !(node->state >>= node_state::is_link)) {
-
-                const logic::NodeMapper &mappers = ex::logic::node_mappers()[node->id_node];
-
-                if (const auto node_ptr = ex::logic::state::get_node(node->id_local); node_ptr != nullptr) {
-
-                    if (node_ptr->get_id() != node->id_local) {
-                        mappers.destroy(node, node_ptr);
-                        ex::logic::state::replace_node(node->id_local, mappers.instance(node));
-                    }
-
-                } else {
-                    ex::logic::state::store_node(node->id_local, mappers.instance(node));
-                }
-
-                internal_::ptr_counter_map[node->id_local]++;
-            }
-
-            node->state -= node_state::created;
-            *rewire = true;
-        }
-
-        if ((node->state >>= node_state::is_group) || (node->state >>= node_state::is_link))
+        if (node->state >>= node_state::deleted)
             return;
 
-//        int &v_ref = internal_::ptr_counter_map[node->id_local];    // 1
-//        v_ref      = std::min(v_ref + 1, 10000000);
+        bool should_skip = false;
 
-        int *v_ref = internal_::cache(node->id_local);              // 2
-        *v_ref     = std::min(*v_ref + 1, 10000000);
+        if (node->state >>= node_state::link) {
+            should_skip = true;
+        }
+
+        if (node->state >>= node_state::group) {
+            should_skip = true;
+        }
+
+        if (!should_skip) {
+            const logic::NodeMapper &mappers = ex::logic::node_mappers()[node->id_type];
+            if (const auto node_ptr = ex::logic::state::get_node(node->id_node)) {
+                if (node_ptr->get_id() != node->id_node) {
+                    mappers.destroy(node, node_ptr);
+                    ex::logic::state::replace_node(node->id_node, mappers.instance(node));
+                }
+            } else {
+                ex::logic::state::store_node(node->id_node, mappers.instance(node));
+            }
+
+            internal_::ptr_counter_map[node->id_node]++;
+        }
+
+        const auto children = ex::entity::children(node->id_node);
+        for (int i = 0; i < children.size; ++i) {
+            traverse_(ex::entity::find(children.data[i]));
+        }
     }
 
     bool attach_to_clock_(TreeNode *node) {
@@ -529,9 +406,9 @@ namespace ex::main {
             return false;
         }
 
-        const auto base_node = ex::logic::state::get_node(node->id_local);
+        const auto base_node = ex::logic::state::get_node(node->id_node);
         if (base_node == nullptr) {
-            log->error("Node is nullptr: {}", node->id_local);
+            log->error("Node is nullptr: {}", node->id_node);
             return false;
         }
 
@@ -545,7 +422,7 @@ namespace ex::main {
 
             if (clock.attach(base_node)) {
                 log->debug("Node {} [{}][{}] (main) attached to clock",
-                    base_node->get_node_name(), node->id_local, output.index);
+                    base_node->get_node_name(), node->id_node, output.index);
                 return true;
             }
         }
@@ -557,7 +434,7 @@ namespace ex::main {
 
             if (clock.attach(base_node)) {
                 log->debug("Node {} [{}][{}] (aux) attached to clock",
-                    base_node->get_node_name(), node->id_local, output.index);
+                    base_node->get_node_name(), node->id_node, output.index);
                 return true;
             }
         }
@@ -566,45 +443,46 @@ namespace ex::main {
         return false;
     }
 
-    void build_tree_(Logic &logic, State &state, TreeNode *node, TreeNode *previous, simple_list *group_list) {
+    void build_tree_(Logic &logic, TreeNode *node, TreeNode *previous, simple_list *group_list) {
         static limbo::graph::Clock &clock = ex::logic::state::get_clock();
 
         if (node == nullptr || group_list == nullptr || (node->state >>= node_state::deleted))
             return;
 
-        if (!(node->state >>= node_state::is_link) && !(node->state >>= node_state::is_group)) {
+        if (!(node->state >>= node_state::link) && !(node->state >>= node_state::group)) {
             node->state -= node_state::connected;
         }
 
-        if (node->state >>= node_state::is_group) {
+        if (node->state >>= node_state::group) {
             TreeNode *prev_node = previous;
             TreeNode *curr_node = nullptr;
             TreeNode *last_node = nullptr;
 
-            for (std::size_t i = 0; i < node->children_n; i++) {
-                const auto child_node = node->children[i];
+            const auto children = ex::entity::children(node->id_node);
+            for (std::size_t i = 0; i < children.size; i++) {
+                const auto child_node = ex::entity::find(children.data[i]);
 
                 if (child_node->state >>= node_state::disabled)
                     continue;
 
                 curr_node = child_node;
 
-                build_tree_(logic, state, curr_node, prev_node, group_list);
+                build_tree_(logic, curr_node, prev_node, group_list);
 
-                if (!(curr_node->state >>= node_state::is_group) &&
-                    !(curr_node->state >>= node_state::is_output))
+                if (!(curr_node->state >>= node_state::group) &&
+                    !(curr_node->state >>= node_state::output))
                 {
                     prev_node = curr_node;
                 }
 
-                if (!(curr_node->state >>= node_state::is_output)) {
+                if (!(curr_node->state >>= node_state::output)) {
                     last_node = curr_node;
                 }
             }
 
             if (last_node != nullptr &&
-                !(last_node->state >>= node_state::is_group) &&
-                !(last_node->state >>= node_state::is_output))
+                !(last_node->state >>= node_state::group) &&
+                !(last_node->state >>= node_state::group))
             {
                 // add last non-group element within group to list
                 simple_list::get_head_(group_list)->next = new simple_list(last_node);
@@ -614,27 +492,28 @@ namespace ex::main {
 
         connect_nodes_(previous, node);
 
-        if (node->state >>= node_state::is_output) {
+        if (node->state >>= node_state::output) {
 
-            if (const auto base_node = ex::logic::state::get_node(node->id_local); base_node == nullptr) {
-                log->error("Node is nullptr: {}", node->id_local);
+            if (const auto base_node = ex::logic::state::get_node(node->id_node); base_node == nullptr) {
+                log->error("Node is nullptr: {}", node->id_node);
             } else {
                 if (clock.attach(base_node)) {
                     log->debug("Node {} [{}] attached to clock",
-                        base_node->get_node_name(), node->id_local);
+                        base_node->get_node_name(), node->id_node);
                 }
             }
         }
 
-        for (std::size_t i = 0; i < node->children_n; i++) {
-            TreeNode *curr_node = node->children[i];
+        const auto children = ex::entity::children(node->id_node);
+        for (std::size_t i = 0; i < children.size; i++) {
+            TreeNode *curr_node = ex::entity::find(children.data[i]);
 
             // non-group element can contain only groups as children
-            if (!(curr_node->state >>= node_state::is_group) || (curr_node->state >>= node_state::disabled))
+            if (!(curr_node->state >>= node_state::group) || (curr_node->state >>= node_state::disabled))
                 continue;
 
             simple_list list = {};
-            build_tree_(logic, state, curr_node, nullptr, &list);
+            build_tree_(logic, curr_node, nullptr, &list);
 
             const simple_list *head = list.next;
             while (head != nullptr) {

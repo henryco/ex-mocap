@@ -170,9 +170,9 @@ namespace ex::gui::tree {
             ImGui::PushID(type_id);
             if (ImGui::MenuItem(label)) {
                 ImGui::PopID();
-                new_node->state   = node_state::output;
+                new_node->state   = node_state::blank | node_state::output;
                 new_node->name    = mapper.get_node_name();
-                new_node->id_node = type_id;
+                new_node->id_type = type_id;
                 return true;
             }
             ImGui::PopID();
@@ -190,7 +190,7 @@ namespace ex::gui::tree {
                 ImGui::PopID();
                 new_node->name    = mapper.get_node_name();
                 new_node->state   = node_state::blank;
-                new_node->id_node = type_id;
+                new_node->id_type = type_id;
                 return true;
             }
             ImGui::PopID();

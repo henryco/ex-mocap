@@ -384,7 +384,7 @@ namespace limbo::graph {
         }
 
         void reset() {
-            detach_all();
+            detach_rec();
             clock_i_ = 0;
         }
 
