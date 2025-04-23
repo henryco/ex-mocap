@@ -91,7 +91,7 @@ namespace ex::gui::node::cmp::image {
             return;
         }
 
-        auto instance = ex::logic::node_mappers()[node->id_node].instance(node);
+        auto instance = ex::logic::node_mappers()[node->id_type].instance(node);
         if (imgn::ImageNode *img_node = dynamic_cast<imgn::ImageNode *>(instance)) {
             ex::logic::state::store_node(node->id_node, instance);
 

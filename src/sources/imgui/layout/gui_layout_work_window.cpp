@@ -136,7 +136,7 @@ namespace ex::gui {
         static auto     &node_mappers_ = node_mappers();
         static GuiState &gui           = ex::gui::state();
 
-        const auto &mapper    = node_mappers_[box.window.node->id_node];
+        const auto &mapper    = node_mappers_[box.window.node->id_type];
         const auto  render_fn  = mapper.draw_node_window;
         const auto  dock_id_fn = mapper.get_dock_id;
 
@@ -226,7 +226,7 @@ namespace ex::gui {
                 continue;
             }
 
-            if (!node_mappers_.contains(box.window.node->id_node)) {
+            if (!node_mappers_.contains(box.window.node->id_type)) {
                 if (&box == active_one) {
                     state.logic.active_node = -1;
                     active_node             = nullptr;
