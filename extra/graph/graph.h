@@ -269,6 +269,9 @@ namespace limbo::graph {
         BaseNode() = default;
 
         bool attach(BaseNode *node, const int this_index_in, const int other_index_out) {
+            if (node == this)
+                abort_("Self reference attachment");
+
             if (node == nullptr)
                 return false;
             const auto input = this->describe_input(this_index_in);

@@ -1225,10 +1225,12 @@ namespace ex::gui::tree {
         const auto node_id  = node->id_node;
         const auto snapshot = Snapshot::create();
 
+        ex::entity::remove(node_id);
+
         undo_history().push(strings::gui_tree_ops_history_node_deleted,
-        new std::function([snapshot] (ex::State *) {
+        new std::function([snapshot] (ex::State *s) {
             TreeState::reset(tree::state());
-            snapshot->rollback();
+            snapshot->rollback(s);
         }),
         new std::function([node_id] (ex::State *) {
             TreeState::reset(tree::state());

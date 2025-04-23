@@ -44,6 +44,7 @@ namespace ex {
         }
 
         struct ArrayInt {
+            // TODO FIXME DEEP COPY
             id_type_32 *data = nullptr;
             id_type_32  size = 0;
             id_type_32  cap  = 0;
