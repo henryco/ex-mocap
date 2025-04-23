@@ -113,13 +113,15 @@ namespace ex::main {
         log->info("main logic initialization synchronization");
         synchronize_(*this);
         log->info("main logic initialization complete");
+
+        ex::entity::set_dirty(false);
     }
 
     void Logic::run() {
         static State &state = ex::logic::globals::state();
 
-        if (state.logic.root_node == ((uint32_t) (-1)))
-            abort__("Logic::run: work tree is null");
+        if (state.logic.root_node != 0)
+            abort__("Logic::run: Work tree root node id != 0");
 
         if (state.project.brand_new) {
             state.project.brand_new = false;
@@ -141,6 +143,7 @@ namespace ex::main {
         if (ex::entity::is_dirty()) {
             ex::entity::set_dirty(false);
             synchronize_(*this);
+            state.project.has_changes = true;
         }
 
         process_();
