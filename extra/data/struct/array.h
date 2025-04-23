@@ -286,6 +286,29 @@ namespace ex::data {
             size                = (size > 0) ? (size - 1) : 0;
         }
 
+        static void free(array *this_) {
+            free_(this_, this_->allocator_, this_->data);
+            this_->data     = nullptr;
+            this_->size     = 0;
+            this_->capacity = 0;
+        }
+
+        static void deep_copy_set(array *to, const array *src) {
+            to->size       = src->size;
+            to->capacity   = src->capacity;
+            to->allocator_ = src->allocator_;
+
+            if (to->capacity > 0)
+                to->data = malloc_<val_t>(to, to->allocator_, to->capacity);
+            else
+                to->data = nullptr;
+
+            if (to->size <= 0)
+                return;
+
+            ::memcpy(to->data, src->data, to->size * sizeof(val_t));
+        }
+
         array(const array &other) : size(other.size), capacity(other.capacity) {
             if (other.capacity <= 0) {
                 data = nullptr;
@@ -404,12 +427,12 @@ namespace ex::data {
         }
 
         template <typename T>
-        T *malloc_(void *, allocator &allocator, const std::size_t size_n) {
+        static T *malloc_(void *, allocator &allocator, const std::size_t size_n) {
             return static_cast<T *>(allocator.malloc(&allocator, size_n * sizeof(T), sizeof(T)));
         }
 
         template <typename T>
-        T *realloc_(void *, allocator &allocator, T *const ptr, const std::size_t size_n) {
+        static T *realloc_(void *, allocator &allocator, T *const ptr, const std::size_t size_n) {
             return static_cast<T *>(allocator.realloc(&allocator, ptr, size_n * sizeof(T)));
         }
 

@@ -44,10 +44,38 @@ namespace ex {
         }
 
         struct ArrayInt {
-            // TODO FIXME DEEP COPY
             id_type_32 *data = nullptr;
             id_type_32  size = 0;
             id_type_32  cap  = 0;
+
+            static void deep_copy_array(ArrayInt *to, const ArrayInt *from) {
+                if (to == nullptr || from == nullptr)
+                    return;
+
+                if (from->data == nullptr) {
+                    *to = *from;
+                    return;
+                }
+
+                id_type_32 *data = static_cast<id_type_32 *>(malloc__(from->size * sizeof(id_type_32)));
+                ::memcpy(data, from->data, from->size * sizeof(id_type_32));
+
+                to->size = from->size;
+                to->cap  = from->cap;
+                to->data = data;
+            }
+
+            static void free(ArrayInt *ptr) {
+                if (ptr == nullptr)
+                    return;
+
+                if (ptr->data != nullptr)
+                    free__(ptr->data);
+
+                ptr->data = nullptr;
+                ptr->size = 0;
+                ptr->cap  = 0;
+            }
         };
 
         struct TreeNodeCT {
@@ -56,15 +84,15 @@ namespace ex {
         };
 
         struct EntityState {
-            data::array<TreeNodeCT> entities   = 1;
-            data::array<id_type_32> free_stack = 1;
-            bool                    dirty      = true;
+            data::array<TreeNodeCT> entities;
+            data::array<id_type_32> free_stack;
+            bool                    dirty = true;
 
             void reset() {
-                entities.clean();
+                for (int i = 0; i < entities.size; ++i)
+                    ArrayInt::free(&entities[i].children);
                 free_stack.clean();
-                entities.reserve(1);
-                free_stack.reserve(1);
+                entities.clean();
                 dirty = true;
             }
         };
@@ -297,12 +325,7 @@ namespace ex {
         for (int i = 0; i < ct.children.size; ++i)
             remove(ct.children.data[i]);
 
-        if (ct.children.data != nullptr)
-            internal_state::free__(ct.children.data);
-
-        ct.children.data = nullptr;
-        ct.children.size = 0;
-        ct.children.cap  = 0;
+        internal_state::ArrayInt::free(&ct.children);
 
         internal_state::free_stack.sort_insert_once(node_id);
         internal_state::dirty = true;
@@ -321,19 +344,38 @@ namespace ex {
     }
 
     entity::snapshot entity::store_entities() {
-        void    *mem = internal_state::malloc__(sizeof(_snapshot));
-        snapshot s   = new (mem) _snapshot;
-        s->state     = internal_state::state;
+        snapshot s = static_cast<_snapshot *> (internal_state::malloc__(sizeof(_snapshot)));
+
+        using arr_t_1 = data::array<internal_state::TreeNodeCT>;
+        using arr_t_2 = data::array<id_type_32>;
+
+        arr_t_1::deep_copy_set(&s->state.entities, &internal_state::state.entities);
+        arr_t_2::deep_copy_set(&s->state.free_stack, &internal_state::state.free_stack);
+        s->state.dirty = internal_state::state.dirty;
+
+        for (int i = 0; i < s->state.entities.size; ++i) {
+            auto *ptr = &s->state.entities[i].children;
+            internal_state::ArrayInt::deep_copy_array(ptr, ptr);
+        }
+
         return s;
     }
 
     void entity::restore_entities(const entity::snapshot s) {
+        internal_state::state.reset();
+
         internal_state::state = s->state;
         internal_state::dirty = true;
+
+        for (int i = 0; i < s->state.entities.size; ++i) {
+            auto       *ptr_to   = &internal_state::state.entities[i].children;
+            const auto *ptr_from = &s->state.entities[i].children;
+            internal_state::ArrayInt::deep_copy_array(ptr_to, ptr_from);
+        }
     }
 
     void entity::remove_snapshot(const entity::snapshot s) {
-        if (s) s->~_snapshot();
+        if (s) s->state.reset();
         internal_state::free__(s);
     }
 
