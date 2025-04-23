@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.30)
-project(ex_motion VERSION 0.2.1 LANGUAGES CXX)
+project(ex_motion VERSION 0.2.2 LANGUAGES CXX)
 
 #set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto -funroll-loops -DNDEBUG" CACHE STRING "Release flags" FORCE)
 #set(CMAKE_C_FLAGS_RELEASE   "-O3 -flto -funroll-loops -DNDEBUG" CACHE STRING "Release flags" FORCE)

@@ -58,17 +58,13 @@ namespace ex::io::bytes {
         project_version version;
     };
 
-    // 32 bytes
+    // 24 bytes
     struct tree_node_1 {
         std::uint64_t id_type   = 0;
         std::uint32_t id_node   = 0;
         std::uint32_t id_link   = 0;
         std::uint32_t id_parent = 0;
-        std::uint32_t index     = 0;
         std::uint16_t flags     = 0;
-        std::uint16_t ___       = 0;
-        std::uint16_t __        = 0;
-        std::uint16_t _         = 0;
     };
 
     std::uint16_t flags_node(const TreeNode *node) {
@@ -85,7 +81,6 @@ namespace ex::io::bytes {
             node->id_node,
             node->id_link,
             node->id_parent,
-            ex::entity::index_of(node->id_node),
             flags_node(node)
         );
     }
