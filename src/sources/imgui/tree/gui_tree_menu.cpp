@@ -362,7 +362,7 @@ namespace ex::gui::tree {
                     tree::pick_inspected_node(node);
                 }
 
-                const auto &menu_fn = tm::mappers_[node->id_node].draw_tree_menu;
+                const auto &menu_fn = tm::mappers_[node->id_type].draw_tree_menu;
                 if (menu_fn != nullptr)
                     menu_fn(node, nested, selected);
 
