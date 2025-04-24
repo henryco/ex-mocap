@@ -32,7 +32,7 @@ namespace ex::gui::tree {
         void rollback(State *s) const {
             ex::entity::restore_entities(snap);
             s->logic.root_node   = root;
-            s->logic.active_node = active;
+            s->logic.active_node = ID32_UNSET;
         }
 
         static Snapshot *create() {
@@ -192,6 +192,9 @@ namespace ex::gui::tree {
         if (head->name != nullptr)
             node->name = (new std::string(head->name))->append(" (copy)").c_str();
 
+        if (id_array != nullptr)
+            id_array->push({ head->id_node, node->id_node });
+
         const auto children = ex::entity::children(head->id_node);
         for (int i = 0; i < children.size; ++i) {
             const id_type_32 parent = node->id_node;
@@ -206,8 +209,6 @@ namespace ex::gui::tree {
         const auto restore_fn = mapper.restore;
         if (store_fn && restore_fn)
             restore_fn(node, store_fn(head));
-
-        id_array->push({ head->id_node, node->id_node });
     }
 
     void move_(TreeNode *node, const id_type_32 id_target, ex::data::array<id_mapping> *id_array) {
@@ -223,7 +224,8 @@ namespace ex::gui::tree {
         if (const auto &upd_fn = mapper.update_tree_node)
             upd_fn(&node_0, node);
 
-        id_array->push({node->id_node, node->id_node});
+        if (id_array != nullptr)
+            id_array->push({node->id_node, node->id_node});
     }
 
     void link_(const TreeNode *head, const id_type_32 id_target, ex::data::array<id_mapping> *id_array) {
@@ -239,7 +241,9 @@ namespace ex::gui::tree {
             node->name = (new std::string(head->name))->c_str();
 
         ex::entity::add_child(id_target, node->id_node);
-        id_array->push({node->id_node, node->id_node});
+
+        if (id_array != nullptr)
+            id_array->push({node->id_node, node->id_node});
     }
 
     void copy_selected(selection_node *selection) {
@@ -279,44 +283,46 @@ namespace ex::gui::tree {
         State &state = ex::logic::globals::state();
 
         TreeState::reset(tree::state());
-        Snapshot *snapshot = Snapshot::create(state);
+        Snapshot *before = Snapshot::create(state);
 
-        TreeNode *created  = ex::entity::create();
-        created->id_type   = add->id_type;
-        created->id_link   = add->id_link;
-        created->state     = add->state;
-        created->name      = add->name;
+        TreeNode *created = ex::entity::create();
+        created->id_type  = add->id_type;
+        created->id_link  = add->id_link;
+        created->state    = add->state;
 
-        TreeNode copy           = *created;
-        state.logic.active_node = created->id_node;
-        ex::entity::add_child(state.logic.root_node, created->id_node);
+        if (add->name != nullptr)
+            created->name = (new std::string(add->name))->c_str();
 
+        const id_type_32 id_node = created->id_node;
+        state.logic.active_node  = id_node;
+        ex::entity::add_child(state.logic.root_node, id_node);
+
+        const auto after = Snapshot::create();
         ParcelBox box = ParcelBox::create();
 
         undo_history().push(strings::gui_tree_ops_history_add,
-        new std::function([snapshot, copy, box] (State *s) mutable {
+        new std::function([before, id_node, box] (State *) mutable {
             TreeState::reset(tree::state());
 
-            const TreeNode *node   = ex::entity::find(copy.id_node);
+            const TreeNode *node   = ex::entity::find(id_node);
             if (const auto store_fn = i_::mappers_.at_or_default(node->id_type).store)
                 box.reset(store_fn(node));
 
-            snapshot->rollback(s);
+            before->rollback();
         }),
-        new std::function([copy, box] (State *s) {
+        new std::function([after, id_node, box] (State *) {
             TreeState::reset(tree::state());
-            TreeNode *new_node   = ex::entity::create(copy.id_node);
-            s->logic.active_node = new_node->id_node;
-            *new_node            = copy;
-            ex::entity::add_child(s->logic.root_node, new_node->id_node);
+            after->rollback();
 
+            TreeNode *new_node = ex::entity::find(id_node);
             if (box.present()) {
                 if (const auto restore_fn = i_::mappers_.at_or_default(new_node->id_type).restore)
                     restore_fn(new_node, box.parcel());
             }
         }),
-        new std::function([snapshot, box] () mutable {
-            Snapshot::free(snapshot);
+        new std::function([before, after, box] () mutable {
+            Snapshot::free(before);
+            Snapshot::free(after);
             ParcelBox::free(box);
         }));
     }
@@ -351,6 +357,8 @@ namespace ex::gui::tree {
             for (selection_node *head = selection; head != nullptr; head = head->next)
                 copy_(ex::entity::find(head->selected->id_node), state.logic.root_node, &id_array);
         }
+
+        state.logic.active_node = id_array[0].now;
 
         selection_node::free(selection);
         const auto after = Snapshot::create(state);
@@ -426,7 +434,9 @@ namespace ex::gui::tree {
         created->id_type   = add->id_type;
         created->id_link   = add->id_link;
         created->state     = add->state;
-        created->name      = add->name;
+
+        if (add->name != nullptr)
+            created->name = (new std::string(add->name))->c_str();
 
         state.logic.active_node = created->id_node;
 
@@ -483,7 +493,9 @@ namespace ex::gui::tree {
         created->id_type   = add->id_type;
         created->id_link   = add->id_link;
         created->state     = add->state;
-        created->name      = add->name;
+
+        if (add->name != nullptr)
+            created->name = (new std::string(add->name))->c_str();
 
         state.logic.active_node = created->id_node;
 
@@ -598,50 +610,61 @@ namespace ex::gui::tree {
     }
 
     void duplicate_node(TreeNode *node) {
-        // TODO
-//        if (node->state >>= node_state::link)
-//            return;
-//        TreeState::reset(tree::state());
-//
-//        State &state = ex::logic::globals::state();
-//
-//        const auto snapshot = Snapshot::create(state);
-//
-//        TreeNode *copy = TreeNode::deep_copy(node, true);
-//        copy->name     = (new std::string(node->name))->append(" (copy)").c_str();
-//        copy->parent   = nullptr;
-//        copy->index    = 0;
-//
-//        const auto parent_id   = node->parent->id_local;
-//        const auto child_index = node->index + 1;
-//
-//        TreeNode *snap = TreeNode::deep_copy(copy);
-//        node->parent->insert_node(child_index, copy);
-//
-//        state.logic.active_node = copy;
-//
-//        undo_history().push(strings::gui_tree_ops_history_node_duplicated,
-//        new std::function([snapshot] (ex::State *s) -> void {
-//            TreeState::reset(tree::state());
-//            snapshot->rollback(s);
-//        }),
-//
-//        new std::function([parent_id, child_index, snap] (ex::State *s) -> void {
-//            TreeState::reset(tree::state());
-//            if (const auto p_node = s->logic.work_tree->find_node(parent_id); p_node != nullptr) {
-//                const auto new_copy = snap->deep_copy();
-//                new_copy->state |= node_state::created;
-//                p_node->insert_node(child_index, new_copy);
-//                s->logic.active_node = new_copy;
-//            } else
-//                abort__("Cannot find original node");
-//        }),
-//
-//        new std::function([snapshot, snap] {
-//            Snapshot::free(snapshot);
-//            if (snap != nullptr)
-//                delete snap;
-//        }));
+        if (node->state >>= node_state::link)
+            return;
+
+        TreeState::reset(tree::state());
+
+        State &state = ex::logic::globals::state();
+        const auto before = Snapshot::create(state);
+
+        ex::data::array<id_mapping> id_array;
+        ex::data::array<ParcelBox>  parcels;
+
+        copy_(node, node->id_parent, &id_array);
+        for (int i = 0; i < id_array.size; ++i)
+            parcels.push(ParcelBox::create());
+
+        state.logic.active_node = id_array[0].now;
+
+        const auto after = Snapshot::create();
+
+        undo_history().push(strings::gui_tree_ops_history_node_duplicated,
+        new std::function([before, id_array, parcels] (ex::State *) mutable {
+            TreeState::reset(tree::state());
+
+            for (int i = 0; i < id_array.size; ++i) {
+                TreeNode *node_1 = ex::entity::find(id_array[i].now);
+                ParcelBox box = parcels[i];
+
+                const auto mapper = i_::mappers_.at_or_default(node_1->id_type);
+                if (const auto store_fn = mapper.store)
+                    box.reset(store_fn(node_1));
+            }
+
+            before->rollback();
+        }),
+
+        new std::function([after, id_array, parcels] (ex::State *) mutable {
+            TreeState::reset(tree::state());
+            after->rollback();
+
+            for (int i = 0; i < id_array.size; ++i) {
+                TreeNode *node_1 = ex::entity::find(id_array[i].now);
+                ParcelBox box = parcels[i];
+                const auto mapper = i_::mappers_.at_or_default(node_1->id_type);
+                const auto restore_fn = mapper.restore;
+                if (box.present() && restore_fn)
+                    restore_fn(node_1, box.parcel());
+            }
+        }),
+
+        new std::function([after, before, parcels] () mutable {
+            Snapshot::free(before);
+            Snapshot::free(after);
+            for (int i = 0; i < parcels.size; ++i)
+                ParcelBox::free(parcels[i]);
+        }));
     }
 
     void paste_after_node(TreeNode *node) {

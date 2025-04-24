@@ -36,20 +36,26 @@ namespace ex::data {
             data = nullptr;
         }
 
-        array(const int &capacity) : capacity(capacity) {
+        array(const int capacity) : capacity(capacity) {
             data = malloc_<val_t>(this, allocator_, capacity);
         }
 
-        array(const int &capacity, const allocator &allocator_) : capacity(capacity) {
+        array(const int capacity, const allocator &allocator_) : capacity(capacity) {
             this->allocator_ = allocator_;
             data = malloc_<val_t>(this, this->allocator_, capacity);
         }
 
-        val_t &operator[](const int &index) {
+        val_t &at_or_default(const int index, const val_t &default_value = val_t()) const {
+            if (index >= size)
+                insert(index, default_value);
             return data[index];
         }
 
-        const val_t &operator[](const int &index) const {
+        val_t &operator[](const int index) {
+            return data[index];
+        }
+
+        const val_t &operator[](const int index) const {
             return data[index];
         }
 
