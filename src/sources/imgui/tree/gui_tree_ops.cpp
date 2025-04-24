@@ -477,7 +477,7 @@ namespace ex::gui::tree {
         State &state = ex::logic::globals::state();
 
         TreeState::reset(tree::state());
-        const auto snapshot = Snapshot::create(state);
+        const auto before = Snapshot::create(state);
 
         TreeNode *created  = ex::entity::create();
         created->id_type   = add->id_type;
@@ -485,32 +485,40 @@ namespace ex::gui::tree {
         created->state     = add->state;
         created->name      = add->name;
 
-        TreeNode copy           = *created;
         state.logic.active_node = created->id_node;
 
-        const int        index     = ex::entity::index_of(node->id_node);
-        const id_type_32 parent_id = node->id_parent;
+        const int        index   = ex::entity::index_of(node->id_node);
+        const id_type_32 id_node = created->id_node;
 
-        ex::entity::add_child(parent_id, created->id_node, index + 1);
+        ex::entity::add_child(node->id_parent, created->id_node, index + 1);
 
-        // TODO PARCEL
+        ParcelBox box = ParcelBox::create();
+        const auto after = Snapshot::create();
 
         undo_history().push(strings::gui_tree_ops_history_add_after,
-        new std::function([snapshot] (ex::State *s) {
-            TreeState::reset(tree::state());
-            snapshot->rollback(s);
-        }),
-        new std::function([parent_id, index, copy] (ex::State *s) {
+        new std::function([before, id_node, box] (ex::State *) mutable {
             TreeState::reset(tree::state());
 
-            TreeNode       *new_node = ex::entity::create(copy.id_node);
-            s->logic.active_node     = new_node->id_node;
-            *new_node                = copy;
+            const TreeNode *new_node   = ex::entity::find(id_node);
+            if (const auto store_fn = i_::mappers_.at_or_default(new_node->id_type).store)
+                box.reset(store_fn(new_node));
 
-            ex::entity::add_child(parent_id, new_node->id_node, index + 1);
+            before->rollback();
         }),
-        new std::function([snapshot] {
-            Snapshot::free(snapshot);
+        new std::function([after, id_node, box] (ex::State *) {
+            TreeState::reset(tree::state());
+            after->rollback();
+
+            TreeNode *new_node = ex::entity::find(id_node);
+            if (box.present()) {
+                if (const auto restore_fn = i_::mappers_.at_or_default(new_node->id_type).restore)
+                    restore_fn(new_node, box.parcel());
+            }
+        }),
+        new std::function([before, after, box] () mutable {
+            Snapshot::free(before);
+            Snapshot::free(after);
+            ParcelBox::free(box);
         }));
     }
 
