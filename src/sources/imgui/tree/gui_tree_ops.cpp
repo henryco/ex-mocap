@@ -70,7 +70,7 @@ namespace ex::gui::tree {
         }
 
         void reset() {
-            if (*parcel_ptr) {
+            if (parcel_ptr && *parcel_ptr) {
                 (*parcel_ptr)->free(*parcel_ptr);
                 *parcel_ptr = nullptr;
             }
@@ -291,20 +291,33 @@ namespace ex::gui::tree {
         state.logic.active_node = created->id_node;
         ex::entity::add_child(state.logic.root_node, created->id_node);
 
+        ParcelBox box = ParcelBox::create();
+
         undo_history().push(strings::gui_tree_ops_history_add,
-        new std::function([snapshot] (State *s) {
+        new std::function([snapshot, copy, box] (State *s) mutable {
             TreeState::reset(tree::state());
+
+            const TreeNode *node   = ex::entity::find(copy.id_node);
+            if (const auto store_fn = i_::mappers_.at_or_default(node->id_type).store)
+                box.reset(store_fn(node));
+
             snapshot->rollback(s);
         }),
-        new std::function([copy] (State *s) {
+        new std::function([copy, box] (State *s) {
             TreeState::reset(tree::state());
             TreeNode *new_node   = ex::entity::create(copy.id_node);
             s->logic.active_node = new_node->id_node;
             *new_node            = copy;
             ex::entity::add_child(s->logic.root_node, new_node->id_node);
+
+            if (box.present()) {
+                if (const auto restore_fn = i_::mappers_.at_or_default(new_node->id_type).restore)
+                    restore_fn(new_node, box.parcel());
+            }
         }),
-        new std::function([snapshot] {
+        new std::function([snapshot, box] () mutable {
             Snapshot::free(snapshot);
+            ParcelBox::free(box);
         }));
     }
 
