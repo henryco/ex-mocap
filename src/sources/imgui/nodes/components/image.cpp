@@ -61,7 +61,7 @@ namespace ex::gui::node::cmp::image {
     void update_tree_node(const TreeNode *, TreeNode *) {
     }
 
-    GuiNodeParcel *store(TreeNode *node) {
+    GuiNodeParcel *store(const TreeNode *node) {
         imgn::ImageNode *img_node = dynamic_cast<imgn::ImageNode *>(ex::logic::state::get_node(node->id_node));
         if (img_node == nullptr)
             return nullptr;

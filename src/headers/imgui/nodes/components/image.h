@@ -16,7 +16,7 @@ namespace ex::gui::node::cmp::image {
     void update_tree_node(const TreeNode *before, TreeNode *after);
     const char *get_node_preview();
     const char *get_node_name();
-    GuiNodeParcel *store(TreeNode *node);
+    GuiNodeParcel *store(const TreeNode *node);
     void restore(TreeNode *node, GuiNodeParcel *parcel);
 
     static constexpr GuiNodeMapper gui_mappers = {

@@ -60,12 +60,12 @@ namespace ex::gui {
         /**
          * Default dock id
          */
-        const unsigned int (*get_dock_id)()                                                                = nullptr;
+        const unsigned int (*get_dock_id)()                                                            = nullptr;
 
         /**
          * Serialize data (copy/duplicate/etc)
          */
-        GuiNodeParcel *(*store)(TreeNode *node)                                                        = nullptr;
+        GuiNodeParcel *(*store)(const TreeNode *node)                                                  = nullptr;
 
         /**
          * Deserialize data (paste/duplicate/etc)
