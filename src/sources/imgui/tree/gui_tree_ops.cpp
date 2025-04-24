@@ -58,6 +58,54 @@ namespace ex::gui::tree {
         }
     };
 
+    struct ParcelBox {
+        GuiNodeParcel **parcel_ptr;
+
+        GuiNodeParcel *parcel() const {
+            return *parcel_ptr;
+        }
+
+        bool present() const {
+            return parcel_ptr != nullptr && *parcel_ptr != nullptr;
+        }
+
+        void reset() {
+            if (*parcel_ptr) {
+                (*parcel_ptr)->free(*parcel_ptr);
+                *parcel_ptr = nullptr;
+            }
+        }
+
+        void reset(GuiNodeParcel *ptr) {
+            reset();
+            set(ptr);
+        }
+
+        void set(GuiNodeParcel *ptr) {
+            *parcel_ptr = ptr;
+        }
+
+        static ParcelBox create() {
+            ParcelBox box = { static_cast<GuiNodeParcel **>(::malloc(sizeof(void *))) };
+            *box.parcel_ptr = nullptr;
+            return box;
+        }
+
+        static void free(ParcelBox *box) {
+            if (!box) return;
+            free(*box);
+        }
+
+        static void free(ParcelBox &box) {
+            if (!box.parcel_ptr)
+                return;
+            if (*box.parcel_ptr)
+                (*box.parcel_ptr)->free(*box.parcel_ptr);
+            ::free(box.parcel_ptr);
+            box.parcel_ptr = nullptr;
+        }
+    };
+
     selection_node *bubble_sort_selection_(selection_node *selection) {
         if (selection == nullptr)
             return nullptr;
@@ -1321,44 +1369,28 @@ namespace ex::gui::tree {
         const auto store_fn   = mapper.store;
         const auto restore_fn = mapper.restore;
 
-        GuiNodeParcel **parcel_ptr = static_cast<GuiNodeParcel **>(::malloc(sizeof(void *)));
-        *parcel_ptr                = nullptr;
-        if (store_fn && restore_fn) {
-            *parcel_ptr = store_fn(node);
-        }
+        ParcelBox box = ParcelBox::create();
+        if (store_fn && restore_fn)
+            box.set(store_fn(node));
 
         ex::entity::remove(node_id);
 
         undo_history().push(strings::gui_tree_ops_history_node_deleted,
-        new std::function([snapshot, node_id, parcel_ptr, restore_fn] (ex::State *s) {
+        new std::function([snapshot, node_id, box, restore_fn] (ex::State *) {
             TreeState::reset(tree::state());
-            snapshot->rollback(s);
-
-            if (restore_fn && parcel_ptr && *parcel_ptr)
-                restore_fn(ex::entity::find(node_id), *parcel_ptr);
+            snapshot->rollback();
+            if (box.present() && restore_fn)
+                restore_fn(ex::entity::find(node_id), box.parcel());
         }),
-        new std::function([node_id, store_fn, parcel_ptr] (ex::State *) {
+        new std::function([node_id, store_fn, box] (ex::State *) mutable {
             TreeState::reset(tree::state());
-
-            if (!parcel_ptr)
-                return;
-
-            if (*parcel_ptr) {
-                (*parcel_ptr)->free(*parcel_ptr);
-                *parcel_ptr = nullptr;
-            }
-
-            if (store_fn) {
-                *parcel_ptr = store_fn(ex::entity::find(node_id));
-            }
-
+            if (box.present() && store_fn)
+                box.reset(store_fn(ex::entity::find(node_id)));
             ex::entity::remove(node_id);
         }),
-        new std::function([snapshot, parcel_ptr] {
+        new std::function([snapshot, box] () mutable {
             Snapshot::free(snapshot);
-            if (!parcel_ptr) return;
-            if (*parcel_ptr) (*parcel_ptr)->free(*parcel_ptr);
-            ::free(parcel_ptr);
+            ParcelBox::free(box);
         }));
     }
 
