@@ -1350,21 +1350,54 @@ namespace ex::gui::tree {
         const auto snapshot = Snapshot::create();
         selection_node::free(copy_selection);
 
-        for (int i = 0; i < selections.size; ++i)
+        ex::data::array<ParcelBox> parcels;
+        for (int i = 0; i < selections.size; ++i) {
+            TreeNode *node = ex::entity::find(selections[i]);
+            ParcelBox box = ParcelBox::create();
+
+            const auto mapper = i_::mappers_.at_or_default(node->id_type);
+            const auto store_fn   = mapper.store;
+            const auto restore_fn = mapper.restore;
+
+            if (store_fn && restore_fn)
+                box.set(store_fn(node));
+
             ex::entity::remove(selections[i]);
+            parcels.push(box);
+        }
 
         undo_history().push(strings::gui_tree_ops_history_select_deleted,
-        new std::function([snapshot] (ex::State *) {
+        new std::function([snapshot, selections, parcels] (ex::State *) {
             TreeState::reset(tree::state());
             snapshot->rollback();
+
+            for (int i = 0; i < selections.size; ++i) {
+                TreeNode *node = ex::entity::find(selections[i]);
+                ParcelBox box = parcels[i];
+                const auto mapper = i_::mappers_.at_or_default(node->id_type);
+                const auto restore_fn = mapper.restore;
+                if (box.present() && restore_fn)
+                    restore_fn(ex::entity::find(node->id_node), box.parcel());
+            }
         }),
-        new std::function([selections] (ex::State *) {
+        new std::function([selections, parcels] (ex::State *) {
             TreeState::reset(tree::state());
-            for (int i = 0; i < selections.size; ++i)
+            for (int i = 0; i < selections.size; ++i) {
+                TreeNode *node = ex::entity::find(selections[i]);
+                ParcelBox box = parcels[i];
+                const auto mapper = i_::mappers_.at_or_default(node->id_type);
+                const auto store_fn = mapper.store;
+
+                if (box.present() && store_fn)
+                    box.reset(store_fn(ex::entity::find(node->id_node)));
+
                 ex::entity::remove(selections[i]);
+            }
         }),
-        new std::function([snapshot] {
+        new std::function([snapshot, parcels] () mutable {
             Snapshot::free(snapshot);
+            for (int i = 0; i < parcels.size; ++i)
+                ParcelBox::free(parcels[i]);
         }));
     }
 
