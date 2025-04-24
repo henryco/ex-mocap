@@ -444,6 +444,8 @@ namespace ex::gui::tree {
         const id_type_32 parent_id  = node->id_node;
         ex::entity::add_child(group_id, created->id_node);
 
+        // TODO PARCEL
+
         undo_history().push(strings::gui_tree_ops_history_add_into,
         new std::function([snapshot] (ex::State *s) {
             TreeState::reset(tree::state());
@@ -494,6 +496,8 @@ namespace ex::gui::tree {
         const id_type_32 parent_id = node->id_parent;
 
         ex::entity::add_child(parent_id, created->id_node, index + 1);
+
+        // TODO PARCEL
 
         undo_history().push(strings::gui_tree_ops_history_add_after,
         new std::function([snapshot] (ex::State *s) {

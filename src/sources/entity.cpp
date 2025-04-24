@@ -318,7 +318,11 @@ namespace ex {
         if (node.id_parent != ID32_UNSET)
             del_child(node.id_parent, node_id);
 
-        node.name      = nullptr; // potential mem leak (not big tho)
+        // TODO preventing mem leak
+//        if (node.name != nullptr)
+//            internal_state::free__((void *) node.name);
+
+        node.name      = nullptr;
         node.state     = node_state::deleted;
         node.id_type   = ID64_UNSET;
         node.id_node   = ID32_UNSET;
@@ -332,6 +336,25 @@ namespace ex {
 
         internal_state::free_stack.sort_insert_once(node_id);
         internal_state::dirty = true;
+    }
+
+    void entity::rename(const id_type_32 id_node, const char *name) {
+        // TODO preventing mem leak
+//        if (name == nullptr)
+//            return;
+//
+//        TreeNode *node = find(id_node);
+//        if (node == nullptr)
+//            return;
+//
+//        const int len = ::strlen(name) + 1;
+//        char *buff = static_cast<char *>(internal_state::malloc__(len));
+//        ::strcpy(buff, name);
+//        buff[len - 1] = '\0';
+//
+//        if (node->name != nullptr)
+//            internal_state::free__((void *) node->name);
+//        node->name = buff;
     }
 
     void entity::set_dirty(const bool dirty) {

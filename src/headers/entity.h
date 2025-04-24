@@ -67,6 +67,7 @@ namespace ex::entity {
     int       add_child(id_type_32 id_parent, id_type_32 id_child, int index = -1);
     void      del_child(id_type_32 id_parent, id_type_32 id_child);
     void      remove(id_type_32 id_node);
+    void      rename(id_type_32 id_node, const char *name);
 
     void set_dirty(bool dirty);
     bool is_dirty();
