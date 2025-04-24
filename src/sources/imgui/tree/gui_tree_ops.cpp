@@ -420,7 +420,7 @@ namespace ex::gui::tree {
         State &state = ex::logic::globals::state();
 
         TreeState::reset(tree::state());
-        const auto snapshot = Snapshot::create(state);
+        const auto before = Snapshot::create(state);
 
         TreeNode *created  = ex::entity::create();
         created->id_type   = add->id_type;
@@ -428,7 +428,6 @@ namespace ex::gui::tree {
         created->state     = add->state;
         created->name      = add->name;
 
-        TreeNode copy           = *created;
         state.logic.active_node = created->id_node;
 
         entity::IdArray children_1 = ex::entity::children(node->id_node);
@@ -440,40 +439,37 @@ namespace ex::gui::tree {
 
         entity::IdArray  children_2 = ex::entity::children(node->id_node);
         TreeNode        *parent     = ex::entity::find(children_2.data[0]);
-        const id_type_32 group_id   = parent->id_node;
-        const id_type_32 parent_id  = node->id_node;
-        ex::entity::add_child(group_id, created->id_node);
+        const id_type_32 id_node    = created->id_node;
+        ex::entity::add_child(parent->id_node, id_node);
 
-        // TODO PARCEL
+        ParcelBox box = ParcelBox::create();
+
+        const auto after = Snapshot::create(state);
 
         undo_history().push(strings::gui_tree_ops_history_add_into,
-        new std::function([snapshot] (ex::State *s) {
+        new std::function([before, id_node, box] (ex::State *s) mutable {
             TreeState::reset(tree::state());
-            snapshot->rollback(s);
-        }),
-        new std::function([parent_id, group_id, copy] (ex::State *s) {
-            TreeState::reset(tree::state());
-            const TreeNode *p_node = ex::entity::find(parent_id);
-            if (p_node == nullptr)
-                abort__("Cannot find original node");
 
-            entity::IdArray children_3 = ex::entity::children(parent_id);
-            if (children_3.data == nullptr || children_3.size <= 0) {
-                TreeNode *group = ex::entity::create(group_id);
-                group->state |= node_state::group;
-                ex::entity::add_child(parent_id, group->id_node);
+            const TreeNode *new_node   = ex::entity::find(id_node);
+            if (const auto store_fn = i_::mappers_.at_or_default(new_node->id_type).store)
+                box.reset(store_fn(new_node));
+
+            before->rollback(s);
+        }),
+        new std::function([after, id_node, box] (ex::State *s) {
+            TreeState::reset(tree::state());
+            after->rollback(s);
+
+            TreeNode *new_node = ex::entity::find(id_node);
+            if (box.present()) {
+                if (const auto restore_fn = i_::mappers_.at_or_default(new_node->id_type).restore)
+                    restore_fn(new_node, box.parcel());
             }
-
-            entity::IdArray children_4 = ex::entity::children(parent_id);
-            TreeNode       *parent_dst = ex::entity::find(children_4.data[0]);
-            TreeNode       *new_node   = ex::entity::create(copy.id_node);
-            s->logic.active_node       = new_node->id_node;
-            *new_node                  = copy;
-
-            ex::entity::add_child(parent_dst->id_node, new_node->id_node);
         }),
-        new std::function([snapshot] {
-            Snapshot::free(snapshot);
+        new std::function([before, after, box] () mutable {
+            Snapshot::free(before);
+            Snapshot::free(after);
+            ParcelBox::free(box);
         }));
     }
 
