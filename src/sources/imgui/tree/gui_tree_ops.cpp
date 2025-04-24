@@ -25,7 +25,7 @@ namespace ex::gui::tree {
         ex::id_type_32   active = ID32_UNSET;
 
         void rollback() {
-            auto state = ex::logic::globals::state();
+            auto &state = ex::logic::globals::state();
             rollback(&state);
         }
 
@@ -343,6 +343,8 @@ namespace ex::gui::tree {
 
         TreeState::reset(tree::state());
         ex::data::array<id_mapping> id_array;
+        ex::data::array<ParcelBox>  parcels;
+
         const auto before = Snapshot::create(state);
 
         if (ref) {
@@ -356,6 +358,9 @@ namespace ex::gui::tree {
         else {
             for (selection_node *head = selection; head != nullptr; head = head->next)
                 copy_(ex::entity::find(head->selected->id_node), state.logic.root_node, &id_array);
+
+            for (int i = 0; i < id_array.size; ++i)
+                parcels.push(ParcelBox::create());
         }
 
         state.logic.active_node = id_array[0].now;
@@ -364,7 +369,7 @@ namespace ex::gui::tree {
         const auto after = Snapshot::create(state);
 
         undo_history().push(strings::gui_tree_ops_history_paste,
-        new std::function([before, id_array, move] (ex::State *) {
+        new std::function([before, id_array, move, ref, parcels] (ex::State *) mutable {
             TreeState::reset(tree::state());
 
             if (move) {
@@ -382,9 +387,20 @@ namespace ex::gui::tree {
                 return;
             }
 
+            if (!ref) { // copy
+                for (int i = 0; i < id_array.size; ++i) {
+                    TreeNode *node_1 = ex::entity::find(id_array[i].now);
+                    ParcelBox box = parcels[i];
+
+                    const auto mapper = i_::mappers_.at_or_default(node_1->id_type);
+                    if (const auto store_fn = mapper.store)
+                        box.reset(store_fn(node_1));
+                }
+            }
+
             before->rollback();
         }),
-        new std::function([after, id_array, move, ref] (ex::State *) {
+        new std::function([after, id_array, move, ref, parcels] (ex::State *) mutable {
             TreeState::reset(tree::state());
 
             if (move) {
@@ -402,25 +418,27 @@ namespace ex::gui::tree {
                 return;
             }
 
-            if (!ref) {
+            if (!ref) { // copy
                 after->rollback();
+
                 for (int i = 0; i < id_array.size; ++i) {
-                    TreeNode  *node_was   = ex::entity::find(id_array[i].was);
-                    TreeNode  *node_now   = ex::entity::find(id_array[i].now);
-                    const auto mapper     = i_::mappers_.at_or_default(node_was->id_type);
-                    const auto store_fn   = mapper.store;
+                    TreeNode *node_1 = ex::entity::find(id_array[i].now);
+                    ParcelBox box = parcels[i];
+                    const auto mapper = i_::mappers_.at_or_default(node_1->id_type);
                     const auto restore_fn = mapper.restore;
-                    if (store_fn && restore_fn)
-                        restore_fn(node_now, store_fn(node_was));
+                    if (box.present() && restore_fn)
+                        restore_fn(node_1, box.parcel());
                 }
                 return;
             }
 
             after->rollback();
         }),
-        new std::function([before, after] {
+        new std::function([before, after, parcels] () mutable {
             Snapshot::free(before);
             Snapshot::free(after);
+            for (int i = 0; i < parcels.size; ++i)
+                ParcelBox::free(parcels[i]);
         }));
     }
 

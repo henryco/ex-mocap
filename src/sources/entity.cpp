@@ -104,7 +104,7 @@ namespace ex {
         static bool                    &dirty      = state.dirty;
 
         bool check_contains(const id_type_32 node_id) {
-            return !(node_id > internal_state::entities.size || node_id == ID32_UNSET);
+            return !(node_id >= internal_state::entities.size || node_id == ID32_UNSET);
         }
     }
 
@@ -167,7 +167,7 @@ namespace ex {
         if (!internal_state::check_contains(node_id))
             return nullptr;
         TreeNode *node = &internal_state::entities[node_id].node;
-        if (node != nullptr && !(node->state >>= node_state::deleted))
+        if (node != nullptr && !(node->state >>= node_state::deleted) && node->id_node == node_id)
             return node;
         return nullptr;
     }

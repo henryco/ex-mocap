@@ -191,6 +191,13 @@ namespace ex::gui {
                 active_one = &box;
             }
 
+            if (box.id == ID32_UNSET) {
+                active_node = nullptr;
+                active_one  = nullptr;
+                windows_.swap_remove(i--);
+                continue;
+            }
+
             if (dirty_state) {
                 box.window.node = ex::entity::find(box.id);
                 if (&box == active_one) {
