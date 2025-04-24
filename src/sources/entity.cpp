@@ -166,7 +166,10 @@ namespace ex {
     TreeNode *entity::find(const id_type_32 node_id) {
         if (!internal_state::check_contains(node_id))
             return nullptr;
-        return &internal_state::entities[node_id].node;
+        TreeNode *node = &internal_state::entities[node_id].node;
+        if (node != nullptr && !(node->state >>= node_state::deleted))
+            return node;
+        return nullptr;
     }
 
     entity::IdArray entity::children(const id_type_32 node_id) {

@@ -1317,19 +1317,48 @@ namespace ex::gui::tree {
         const auto node_id  = node->id_node;
         const auto snapshot = Snapshot::create();
 
+        const auto mapper = i_::mappers_.at_or_default(node->id_type);
+        const auto store_fn   = mapper.store;
+        const auto restore_fn = mapper.restore;
+
+        GuiNodeParcel **parcel_ptr = static_cast<GuiNodeParcel **>(::malloc(sizeof(void *)));
+        *parcel_ptr                = nullptr;
+        if (store_fn && restore_fn) {
+            *parcel_ptr = store_fn(node);
+        }
+
         ex::entity::remove(node_id);
 
         undo_history().push(strings::gui_tree_ops_history_node_deleted,
-        new std::function([snapshot] (ex::State *s) {
+        new std::function([snapshot, node_id, parcel_ptr, restore_fn] (ex::State *s) {
             TreeState::reset(tree::state());
             snapshot->rollback(s);
+
+            if (restore_fn && parcel_ptr && *parcel_ptr)
+                restore_fn(ex::entity::find(node_id), *parcel_ptr);
         }),
-        new std::function([node_id] (ex::State *) {
+        new std::function([node_id, store_fn, parcel_ptr] (ex::State *) {
             TreeState::reset(tree::state());
+
+            if (!parcel_ptr)
+                return;
+
+            if (*parcel_ptr) {
+                (*parcel_ptr)->free(*parcel_ptr);
+                *parcel_ptr = nullptr;
+            }
+
+            if (store_fn) {
+                *parcel_ptr = store_fn(ex::entity::find(node_id));
+            }
+
             ex::entity::remove(node_id);
         }),
-        new std::function([snapshot] {
+        new std::function([snapshot, parcel_ptr] {
             Snapshot::free(snapshot);
+            if (!parcel_ptr) return;
+            if (*parcel_ptr) (*parcel_ptr)->free(*parcel_ptr);
+            ::free(parcel_ptr);
         }));
     }
 
