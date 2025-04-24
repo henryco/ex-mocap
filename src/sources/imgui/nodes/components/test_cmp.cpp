@@ -46,11 +46,6 @@ namespace ex::gui::test::one {
         return node;
     }
 
-    limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node) {
-        std::cout << "relocate: " << tree->id_node << '\n';
-        return node;
-    }
-
     void destroy(ex::TreeNode *, limbo::graph::BaseNode *node) {
         node->detach_all();
         delete node;
@@ -96,11 +91,6 @@ namespace ex::gui::test::two {
     limbo::graph::BaseNode *instance(TreeNode *from) {
         const auto node = new NodeTwo();
         node->set_id(from->id_node);
-        return node;
-    }
-
-    limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node) {
-        std::cout << "relocate: " << tree->id_node << '\n';
         return node;
     }
 
@@ -151,11 +141,6 @@ namespace ex::gui::test::tri {
     limbo::graph::BaseNode *instance(TreeNode *from) {
         const auto node = new NodeTri();
         node->set_id(from->id_node);
-        return node;
-    }
-
-    limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node) {
-        std::cout << "relocate: " << tree->id_node << '\n';
         return node;
     }
 

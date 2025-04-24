@@ -13,7 +13,6 @@ namespace ex::logic::mappers {
         NodeMapper from_struct_() {
             return {
                 .instance = &T::instance,
-                .relocate = &T::relocate,
                 .destroy  = &T::destroy
             };
         }

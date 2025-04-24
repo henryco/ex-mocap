@@ -57,8 +57,4 @@ namespace ex::map::camera {
         return node;
     }
 
-    limbo::graph::BaseNode *relocate(TreeNode *, limbo::graph::BaseNode *self) {
-        return self;
-    }
-
 }

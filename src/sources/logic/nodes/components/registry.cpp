@@ -18,7 +18,6 @@ namespace ex::logic::mappers {
         NodeMapper from_struct_() {
             return {
                 .instance = &T::instance,
-                .relocate = &T::relocate,
                 .destroy  = &T::destroy
             };
         }
@@ -26,8 +25,6 @@ namespace ex::logic::mappers {
         inline NodeMapper verify_(const NodeMapper &mapper) {
             if (mapper.instance == nullptr)
                 abort_("mapper.instance == nullptr");
-            if (mapper.relocate == nullptr)
-                abort_("mapper.relocate == nullptr");
             if (mapper.destroy == nullptr)
                 abort_("mapper.destroy == nullptr");
             return mapper;

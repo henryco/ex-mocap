@@ -12,8 +12,7 @@
 
 namespace ex::map::camera {
     limbo::graph::BaseNode            *instance(TreeNode *from);
-    limbo::graph::BaseNode            *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
-    static constexpr logic::NodeMapper mappers = { instance, relocate };
+    static constexpr logic::NodeMapper mappers = { instance };
 }
 
 namespace ex::cmp {
