@@ -228,7 +228,7 @@ namespace ex {
 
     TreeNode *entity::parent(const id_type_32 node_id) {
         if (const TreeNode *node = find(node_id))
-            find(node->id_parent);
+            return find(node->id_parent);
         return nullptr;
     }
 
