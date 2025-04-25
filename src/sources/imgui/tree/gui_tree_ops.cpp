@@ -645,7 +645,8 @@ namespace ex::gui::tree {
         ex::data::array<id_mapping> id_array;
         ex::data::array<ParcelBox>  parcels;
 
-        copy_(node, node->id_parent, &id_array); // specify index?
+        const int index = ex::entity::index_of(node->id_node);
+        copy_(node, node->id_parent, &id_array, index + 1); // specify index?
         for (int i = 0; i < id_array.size; ++i)
             parcels.push(ParcelBox::create());
 
