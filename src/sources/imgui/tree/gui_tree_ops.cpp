@@ -1467,55 +1467,66 @@ namespace ex::gui::tree {
             head = head->next;
         }
 
-        const auto snapshot = Snapshot::create();
+        const auto before = Snapshot::create();
         selection_node::free(copy_selection);
 
-        ex::data::array<ParcelBox> parcels;
-        for (int i = 0; i < selections.size; ++i) {
-            TreeNode *node = ex::entity::find(selections[i]);
-            ParcelBox box = ParcelBox::create();
+        ex::data::array<id_mapping> id_array;
+        ex::data::array<ParcelBox>  parcels;
 
-            const auto mapper = i_::mappers_.at_or_default(node->id_type);
-            const auto store_fn   = mapper.store;
-            const auto restore_fn = mapper.restore;
+        for (int k = 0; k < selections.size; ++k) {
+            TreeNode *node = ex::entity::find(selections[k]);
 
-            if (store_fn && restore_fn)
-                box.set(store_fn(node));
+            ex::data::array<id_mapping> id_array_2;
+            deep_map_(node, &id_array_2);
 
-            ex::entity::remove(selections[i]);
-            parcels.push(box);
+            for (int i = 0; i < id_array_2.size; ++i) {
+                TreeNode *node_1 = ex::entity::find(id_array_2[i].now);
+                ParcelBox box = ParcelBox::create();
+                const auto mapper = i_::mappers_.at_or_default(node_1->id_type);
+                if (const auto store_fn = mapper.store)
+                    box.set(store_fn(node_1));
+
+                parcels.push(box);
+                id_array.push(id_array_2[i]);
+            }
+
+            ex::entity::remove(node->id_node);
         }
 
-        undo_history().push(strings::gui_tree_ops_history_select_deleted,
-        new std::function([snapshot, selections, parcels] (ex::State *) {
-            TreeState::reset(tree::state());
-            snapshot->rollback();
+        const auto after = Snapshot::create();
 
-            for (int i = 0; i < selections.size; ++i) {
-                TreeNode *node = ex::entity::find(selections[i]);
+        undo_history().push(strings::gui_tree_ops_history_select_deleted,
+        new std::function([before, id_array, parcels] (ex::State *) mutable {
+            TreeState::reset(tree::state());
+            before->rollback();
+
+            for (int i = 0; i < id_array.size; ++i) {
+                TreeNode *node_1 = ex::entity::find(id_array[i].now);
                 ParcelBox box = parcels[i];
-                const auto mapper = i_::mappers_.at_or_default(node->id_type);
+                const auto mapper = i_::mappers_.at_or_default(node_1->id_type);
                 const auto restore_fn = mapper.restore;
                 if (box.present() && restore_fn)
-                    restore_fn(ex::entity::find(node->id_node), box.parcel());
+                    restore_fn(ex::entity::find(node_1->id_node), box.parcel());
             }
         }),
-        new std::function([selections, parcels] (ex::State *) {
+        new std::function([after, id_array, parcels] (ex::State *) mutable {
             TreeState::reset(tree::state());
-            for (int i = 0; i < selections.size; ++i) {
-                TreeNode *node = ex::entity::find(selections[i]);
+
+            for (int i = 0; i < id_array.size; ++i) {
+                TreeNode *node_1 = ex::entity::find(id_array[i].now);
                 ParcelBox box = parcels[i];
-                const auto mapper = i_::mappers_.at_or_default(node->id_type);
+                const auto mapper = i_::mappers_.at_or_default(node_1->id_type);
                 const auto store_fn = mapper.store;
 
                 if (box.present() && store_fn)
-                    box.reset(store_fn(ex::entity::find(node->id_node)));
-
-                ex::entity::remove(selections[i]);
+                    box.reset(store_fn(ex::entity::find(node_1->id_node)));
             }
+
+            after->rollback();
         }),
-        new std::function([snapshot, parcels] () mutable {
-            Snapshot::free(snapshot);
+        new std::function([after, before, parcels] () mutable {
+            Snapshot::free(after);
+            Snapshot::free(before);
             for (int i = 0; i < parcels.size; ++i)
                 ParcelBox::free(parcels[i]);
         }));
