@@ -203,6 +203,8 @@ namespace ex::gui::tree {
 
         if (head->name != nullptr)
             node->name = (new std::string(head->name))->append(" (copy)").c_str();
+        else
+            node->name = "";
 
         if (id_array != nullptr)
             id_array->push({ head->id_node, node->id_node });
@@ -257,6 +259,8 @@ namespace ex::gui::tree {
 
         if (head->name != nullptr)
             node->name = (new std::string(head->name))->c_str();
+        else
+            node->name = "";
 
         ex::entity::add_child(id_target, node->id_node, index);
 
@@ -310,6 +314,8 @@ namespace ex::gui::tree {
 
         if (add->name != nullptr)
             created->name = (new std::string(add->name))->c_str();
+        else
+            created->name = "";
 
         const id_type_32 id_node = created->id_node;
         state.logic.active_node  = id_node;
@@ -473,13 +479,16 @@ namespace ex::gui::tree {
 
         if (add->name != nullptr)
             created->name = (new std::string(add->name))->c_str();
+        else
+            created->name = "";
 
         state.logic.active_node = created->id_node;
 
         entity::IdArray children_1 = ex::entity::children(node->id_node);
         if (children_1.data == nullptr || children_1.size <= 0) {
             TreeNode *group = ex::entity::create();
-            group->state = node_state::group;
+            group->name     = "generic_container";
+            group->state    = node_state::group;
             ex::entity::add_child(node->id_node, group->id_node);
         }
 
@@ -532,6 +541,8 @@ namespace ex::gui::tree {
 
         if (add->name != nullptr)
             created->name = (new std::string(add->name))->c_str();
+        else
+            created->name = "";
 
         state.logic.active_node = created->id_node;
 
@@ -862,7 +873,8 @@ namespace ex::gui::tree {
         entity::IdArray children_1 = ex::entity::children(node_into->id_node);
         if (children_1.data == nullptr || children_1.size <= 0) {
             TreeNode *group = ex::entity::create();
-            group->state = node_state::group;
+            group->name     = "generic_container";
+            group->state    = node_state::group;
             ex::entity::add_child(node_into->id_node, group->id_node);
         }
 
@@ -1039,6 +1051,7 @@ namespace ex::gui::tree {
         entity::IdArray children_1 = ex::entity::children(node_into->id_node);
         if (children_1.data == nullptr || children_1.size <= 0) {
             TreeNode *group = ex::entity::create();
+            group->name  = "generic_container";
             group->state = node_state::group;
             ex::entity::add_child(node_into->id_node, group->id_node);
         }
