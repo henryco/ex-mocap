@@ -39,7 +39,7 @@ namespace ex::gui::tree {
             return create(ex::logic::globals::state());
         }
 
-        static Snapshot *create(State &state) {
+        static Snapshot *create(const State &state) {
             Snapshot *s = static_cast<Snapshot *>(::malloc(sizeof(Snapshot)));
             *s = {
                 .snap = ex::entity::store_entities(),
@@ -1088,76 +1088,59 @@ namespace ex::gui::tree {
     }
 
     void group_selected(selection_node *selection) {
-        // TODO
-//        const auto sorted    = bubble_sort_selection(selection->root);
-//        const auto parent    = selection->root->selected->parent;
-//        const auto parent_id = parent->id_local;
-//
-//        const auto &state = ex::logic::globals::state();
-//
-//        TreeState::reset(tree::state());
-//        const auto snapshot = state.logic.work_tree->deep_copy();
-//
-//        TreeNode *new_group = TreeNode::create();
-//        new_group->name     = "generic_group";
-//        new_group->state |= node_state::is_group;
-//        new_group->state |= node_state::created;
-//
-//        int             index = -1;
-//        selection_node *head  = sorted;
-//        while (head != nullptr) {
-//            if (index == -1)
-//                index = head->selected->index;
-//            TreeNode *new_one = head->selected->deep_copy();
-//            new_one->state |= node_state::created;
-//
-//            new_group->add_node(new_one);
-//            head->selected->state |= node_state::moved;
-//            head->selected        = TreeNode::shallow_copy(head->selected);
-//            head                  = head->next;
-//        }
-//
-//        if (index >= 0)
-//            parent->insert_node(index, new_group->deep_copy());
-//
-//        undo_history().push(strings::gui_tree_ops_history_group,
-//        new std::function([snapshot] (ex::State *s) {
-//            TreeState::reset(tree::state());
-//            if (s->logic.work_tree != nullptr && s->logic.work_tree != snapshot)
-//                delete s->logic.work_tree;
-//            s->logic.work_tree            = snapshot->deep_copy();
-//            s->logic.work_tree->state -= node_state::connected;
-//            s->logic.work_tree->state |= node_state::created;
-//        }),
-//
-//        new std::function([new_group, parent_id, index, sorted] (ex::State *s) {
-//            TreeState::reset(tree::state());
-//            if (index < 0)
-//                abort__("Cannot find original node, index < 0");
-//
-//            auto node = sorted;
-//            while (node != nullptr) {
-//                const auto child = s->logic.work_tree->find_node(node->selected->id_local);
-//                if (child == nullptr)
-//                    abort__("Cannot find original child node");
-//                child->state |= node_state::moved;
-//                node         = node->next;
-//            }
-//
-//            const auto p_node = s->logic.work_tree->find_node(parent_id);
-//            if (p_node == nullptr)
-//                abort__("Cannot find original parent node");
-//
-//            p_node->insert_node(index, new_group->deep_copy());
-//        }),
-//
-//        new std::function([new_group, snapshot, sorted] {
-//            if (new_group != nullptr)
-//                delete new_group;
-//            if (snapshot != nullptr)
-//                delete snapshot;
-//            selection_node::free(sorted);
-//        }));
+        selection_node  *sorted    = bubble_sort_selection_(selection->root);
+        const TreeNode  *root_node = selection->root->selected;
+        const id_type_32 parent_id = root_node->id_parent;
+
+        TreeState::reset(tree::state());
+        const auto before = Snapshot::create();
+
+        TreeNode *new_group = ex::entity::create();
+        new_group->state    = node_state::group;
+        new_group->name     = "generic_group";
+
+        ex::entity::add_child(parent_id, new_group->id_node, ex::entity::index_of(root_node->id_node));
+
+        ex::data::array<id_mapping> id_array;
+        for (selection_node *head = sorted; head != nullptr; head = head->next)
+            move_(ex::entity::find(head->selected->id_node), new_group->id_node, &id_array);
+
+        selection_node::free(sorted);
+        const auto after = Snapshot::create();
+
+        undo_history().push(strings::gui_tree_ops_history_group,
+        new std::function([before, id_array] (ex::State *) mutable {
+            TreeState::reset(tree::state());
+            ex::data::array<TreeNode> before_array;
+            for (int i = 0; i < id_array.size; ++i) {
+                before_array.push(*ex::entity::find(id_array[i].now));
+            }
+            before->rollback();
+            for (int i = 0; i < id_array.size; ++i) {
+                TreeNode  *node   = ex::entity::find(id_array[i].now);
+                const auto mapper = i_::mappers_.at_or_default(node->id_type);
+                if (const auto &upd_fn = mapper.update_tree_node)
+                    upd_fn(&before_array[i], node);
+            }
+        }),
+        new std::function([after, id_array] (ex::State *) mutable {
+            TreeState::reset(tree::state());
+            ex::data::array<TreeNode> before_array;
+            for (int i = 0; i < id_array.size; ++i) {
+                before_array.push(*ex::entity::find(id_array[i].now));
+            }
+            after->rollback();
+            for (int i = 0; i < id_array.size; ++i) {
+                TreeNode  *node   = ex::entity::find(id_array[i].now);
+                const auto mapper = i_::mappers_.at_or_default(node->id_type);
+                if (const auto &upd_fn = mapper.update_tree_node)
+                    upd_fn(&before_array[i], node);
+            }
+        }),
+        new std::function([before, after] () mutable {
+            Snapshot::free(after);
+            Snapshot::free(before);
+        }));
     }
 
     void ungroup_selected(selection_node *selection) {
