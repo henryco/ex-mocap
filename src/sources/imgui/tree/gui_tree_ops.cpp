@@ -217,8 +217,14 @@ namespace ex::gui::tree {
 
         const TreeNode node_0 = *node;
 
+        int idx_fix = 0;
+        if (node->id_parent == id_target) {
+            if (ex::entity::index_of(node->id_node) < index)
+                idx_fix = -1;
+        }
+
         ex::entity::del_child(node->id_parent, node->id_node);
-        ex::entity::add_child(id_target, node->id_node, index);
+        ex::entity::add_child(id_target, node->id_node, index + idx_fix);
 
         const auto mapper = i_::mappers_.at_or_default(node->id_type);
         if (const auto &upd_fn = mapper.update_tree_node)
@@ -927,55 +933,57 @@ namespace ex::gui::tree {
         }));
     }
 
-    void move_after_node(TreeNode *node, TreeNode *move) {
-        // TODO
-//        if (node == nullptr || move == nullptr || node == move)
-//            return;
-//
-//        State &state = ex::logic::globals::state();
-//
-//        TreeState::reset(tree::state());
-//        const auto snapshot = Snapshot::create(state);
-//
-//        const auto parent    = node->parent;
-//        const auto index     = node->index;
-//        const auto parent_id = parent->id_local;
-//
-//        TreeNode *copy = TreeNode::deep_copy(move);
-//        copy->state |= node_state::created;
-//        move->state |= node_state::moved;
-//
-//        TreeNode *nco = TreeNode::deep_copy(copy);
-//        parent->insert_node(index + 1, nco);
-//        state.logic.active_node = nco;
-//
-//        undo_history().push(strings::gui_tree_ops_history_move_after,
-//        new std::function([snapshot] (ex::State *s) {
-//            TreeState::reset(tree::state());
-//            snapshot->rollback(s);
-//        }),
-//        new std::function([parent_id, index, copy] (ex::State *s) {
-//            TreeState::reset(tree::state());
-//            const auto p_node = s->logic.work_tree->find_node(parent_id);
-//            if (p_node == nullptr)
-//                abort__("Cannot find original node");
-//
-//            const auto f_node = s->logic.work_tree->find_node(copy->id_local);
-//            if (f_node == nullptr)
-//                abort__("Cannot find original node");
-//            f_node->state |= node_state::moved;
-//
-//            TreeNode *new_copy = TreeNode::deep_copy(copy);
-//            new_copy->state |= node_state::created;
-//
-//            p_node->insert_node(index + 1, new_copy);
-//            s->logic.active_node = new_copy;
-//        }),
-//        new std::function([snapshot, copy] {
-//            Snapshot::free(snapshot);
-//            if (copy != nullptr)
-//                delete copy;
-//        }));
+    void move_after_node(TreeNode *node_before, TreeNode *move) {
+        if (node_before == nullptr || move == nullptr || node_before == move)
+            return;
+
+        State &state = ex::logic::globals::state();
+
+        TreeState::reset(tree::state());
+        ex::data::array<id_mapping> id_array;
+
+        const int  index  = ex::entity::index_of(node_before->id_node);
+        const auto before = Snapshot::create(state);
+
+        move_(ex::entity::find(move->id_node), node_before->id_parent, &id_array, index + 1);
+
+        state.logic.active_node = id_array[0].now;
+
+        const auto after = Snapshot::create(state);
+
+        undo_history().push(strings::gui_tree_ops_history_paste_after,
+        new std::function([before, id_array] (ex::State *) mutable {
+            TreeState::reset(tree::state());
+            ex::data::array<TreeNode> before_array;
+            for (int i = 0; i < id_array.size; ++i) {
+                before_array.push(*ex::entity::find(id_array[i].now));
+            }
+            before->rollback();
+            for (int i = 0; i < id_array.size; ++i) {
+                TreeNode  *node   = ex::entity::find(id_array[i].now);
+                const auto mapper = i_::mappers_.at_or_default(node->id_type);
+                if (const auto &upd_fn = mapper.update_tree_node)
+                    upd_fn(&before_array[i], node);
+            }
+        }),
+        new std::function([after, id_array] (ex::State *) mutable {
+            TreeState::reset(tree::state());
+            ex::data::array<TreeNode> before_array;
+            for (int i = 0; i < id_array.size; ++i) {
+                before_array.push(*ex::entity::find(id_array[i].now));
+            }
+            after->rollback();
+            for (int i = 0; i < id_array.size; ++i) {
+                TreeNode  *node   = ex::entity::find(id_array[i].now);
+                const auto mapper = i_::mappers_.at_or_default(node->id_type);
+                if (const auto &upd_fn = mapper.update_tree_node)
+                    upd_fn(&before_array[i], node);
+            }
+        }),
+        new std::function([before, after] () mutable {
+            Snapshot::free(before);
+            Snapshot::free(after);
+        }));
     }
 
     void move_into_node(TreeNode *node, TreeNode *move) {
