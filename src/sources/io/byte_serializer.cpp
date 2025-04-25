@@ -215,7 +215,7 @@ namespace ex::io::bytes {
     void read_tree(in::buffer &buffer, const byte_array &data, byte_buffer &bb, TreeNode *head) {
         // TODO FIXME
 
-//        std::cout << "in: " << head->name << std::endl;
+        std::cout << "in: " << head->name << std::endl;
         bool prev_arr_end = false;
 
         std::int64_t i = in::offset(buffer);
@@ -225,35 +225,35 @@ namespace ex::io::bytes {
 
         while ((i = in::next(buffer, data + i)) != -1) {
 
-//            std::cout << "\n-> i: " << i << std::endl;
+            std::cout << "\n-> i: " << i << std::endl;
 
             if (in::begin_array(buffer)) {
                 if (in::array_type(buffer) == TYPE_NODE_BGN) {
 
-//                    std::cout << ">> TYPE_NODE_BGN\n";
-//                    std::cout << "   head: " << head->name << std::endl;
+                    std::cout << ">> TYPE_NODE_BGN\n";
+                    std::cout << "   head: " << head->name << std::endl;
 
                     node = &root;
                 }
 
                 else if (in::array_type(buffer) == TYPE_NODE_ARR) {
 
-//                    std::cout << ">> TYPE_NODE_ARR\n";
-//                    std::cout << "   head: " << head->name << std::endl;
-//                    std::cout << "   node: " << node->name << std::endl;
+                    std::cout << ">> TYPE_NODE_ARR\n";
+                    std::cout << "   head: " << head->name << std::endl;
+                    std::cout << "   node: " << node->name << std::endl;
 
                     read_tree(buffer, data, bb, node);
                     i = in::offset(buffer);
 
-//                    std::cout << "-- TYPE_NODE_ARR\n";
-//                    std::cout << "   head: " << head->name << std::endl;
-//                    std::cout << "   node: " << node->name << std::endl;
+                    std::cout << "-- TYPE_NODE_ARR\n";
+                    std::cout << "   head: " << head->name << std::endl;
+                    std::cout << "   node: " << node->name << std::endl;
                 }
 
                 else if (in::array_type(buffer) == TYPE_ARRAY) {
 
-//                    std::cout << ">> TYPE_ARRAY\n";
-//                    std::cout << "   head: " << head->name << std::endl;
+                    std::cout << ">> TYPE_ARRAY\n";
+                    std::cout << "   head: " << head->name << std::endl;
 
                     // very beginning
                 }
@@ -267,8 +267,8 @@ namespace ex::io::bytes {
 
                 if (in::item_type(buffer) == TYPE_NODE_NAM) {
 
-//                    std::cout << "** TYPE_NODE_NAM\n";
-//                    std::cout << "   head: " << head->name << std::endl;
+                    std::cout << "** TYPE_NODE_NAM\n";
+                    std::cout << "   head: " << head->name << std::endl;
 
                     bb.allocate(obj_size_b);
                     ::memcpy(bb.data, data + i, obj_size_b);
@@ -277,15 +277,15 @@ namespace ex::io::bytes {
                     ::memcpy(new_name, bb.data, obj_size_b);
                     node->name = reinterpret_cast<const char *>(new_name);
 
-//                    std::cout << "   node: " << node->name << std::endl;
+                    std::cout << "   node: " << node->name << std::endl;
 
                 }
 
                 else if (in::item_type(buffer) == TYPE_NODE_OBJ) {
 
-//                    std::cout << "** TYPE_NODE_OBJ\n";
-//                    std::cout << "   head: " << head->name << std::endl;
-//                    std::cout << "   node: " << node->name << std::endl;
+                    std::cout << "** TYPE_NODE_OBJ\n";
+                    std::cout << "   head: " << head->name << std::endl;
+                    std::cout << "   node: " << node->name << std::endl;
 
                     to_node(reinterpret_cast<const tree_node_1 *>(data + i), node);
                     TreeNode *new_node = ex::entity::create(node->id_node);
@@ -300,9 +300,9 @@ namespace ex::io::bytes {
 
                 else if (in::item_type(buffer) == TYPE_NODE_DAT) {
 
-//                    std::cout << "** TYPE_NODE_DAT\n";
-//                    std::cout << "   head: " << head->name << std::endl;
-//                    std::cout << "   node: " << node->name << std::endl;
+                    std::cout << "** TYPE_NODE_DAT\n";
+                    std::cout << "   head: " << head->name << std::endl;
+                    std::cout << "   node: " << node->name << std::endl;
 
                     if (node->state >>= node_state::link)
                         continue;
@@ -321,8 +321,8 @@ namespace ex::io::bytes {
             if (in::end_array(buffer)) {
                 if (in::array_type(buffer) == TYPE_NODE_BGN) {
 
-//                    std::cout << "<< TYPE_NODE_BGN\n";
-//                    std::cout << "   head: " << head->name << std::endl;
+                    std::cout << "<< TYPE_NODE_BGN\n";
+                    std::cout << "   head: " << head->name << std::endl;
 
                     if (prev_arr_end)
                         return;
@@ -332,7 +332,7 @@ namespace ex::io::bytes {
                         return;
                     }
 
-//                    std::cout << "   node: " << node->name << std::endl;
+                    std::cout << "   node: " << node->name << std::endl;
 
                     node->id_parent = -1;
                     ex::entity::add_child(head->id_node, node->id_node);
@@ -341,16 +341,16 @@ namespace ex::io::bytes {
 
                 else if (in::array_type(buffer) == TYPE_NODE_ARR) {
 
-//                    std::cout << "<< TYPE_NODE_ARR\n";
-//                    std::cout << "   head: " << head->name << std::endl;
+                    std::cout << "<< TYPE_NODE_ARR\n";
+                    std::cout << "   head: " << head->name << std::endl;
 
                     prev_arr_end = true;
                 }
 
                 else if (in::array_type(buffer) == TYPE_ARRAY) {
 
-//                    std::cout << "<< TYPE_ARRAY\n";
-//                    std::cout << "   head: " << head->name << std::endl;
+                    std::cout << "<< TYPE_ARRAY\n";
+                    std::cout << "   head: " << head->name << std::endl;
 
                     i = (-1);
                 }
@@ -419,6 +419,7 @@ namespace ex::io::bytes {
         bb.allocate(64);
 
         TreeNode base;
+        base.name = "_base_";
         ex::entity::reset_entities();
 
         const auto t0 = std::chrono::high_resolution_clock::now();
