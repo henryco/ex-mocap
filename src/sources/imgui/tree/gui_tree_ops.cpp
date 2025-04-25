@@ -180,6 +180,18 @@ namespace ex::gui::tree {
         id_type_32 now;
     };
 
+    void deep_map_(const TreeNode *node, data::array<id_mapping> *id_array) {
+        if (node == nullptr)
+            return;
+
+        if (id_array != nullptr)
+            id_array->push({ node->id_node, node->id_node });
+
+        const auto children = ex::entity::children(node->id_node);
+        for (int i = 0; i < children.size; ++i)
+            deep_map_(ex::entity::find(children.data[i]), id_array);
+    }
+
     void copy_(const TreeNode *head, const id_type_32 id_parent, data::array<id_mapping> *id_array, const int index = -1) {
         if (head == nullptr)
             return;
@@ -1516,35 +1528,60 @@ namespace ex::gui::tree {
         TreeState::reset(tree::state());
 
         node->state -= node_state::selected;
-        const auto node_id  = node->id_node;
-        const auto snapshot = Snapshot::create();
+        const auto before = Snapshot::create();
 
-        const auto mapper = i_::mappers_.at_or_default(node->id_type);
-        const auto store_fn   = mapper.store;
-        const auto restore_fn = mapper.restore;
+        ex::data::array<id_mapping> id_array;
+        ex::data::array<ParcelBox>  parcels;
 
-        ParcelBox box = ParcelBox::create();
-        if (store_fn && restore_fn)
-            box.set(store_fn(node));
+        deep_map_(node, &id_array);
 
-        ex::entity::remove(node_id);
+        for (int i = 0; i < id_array.size; ++i) {
+            TreeNode *node_1 = ex::entity::find(id_array[i].now);
+            ParcelBox box = ParcelBox::create();
+            const auto mapper = i_::mappers_.at_or_default(node_1->id_type);
+            if (const auto store_fn = mapper.store)
+                box.set(store_fn(node_1));
+            parcels.push(box);
+        }
+
+        ex::entity::remove(node->id_node);
+
+        const auto after = Snapshot::create();
 
         undo_history().push(strings::gui_tree_ops_history_node_deleted,
-        new std::function([snapshot, node_id, box, restore_fn] (ex::State *) {
+        new std::function([before, id_array, parcels] (ex::State *) mutable {
             TreeState::reset(tree::state());
-            snapshot->rollback();
-            if (box.present() && restore_fn)
-                restore_fn(ex::entity::find(node_id), box.parcel());
+            before->rollback();
+
+            for (int i = 0; i < id_array.size; ++i) {
+                TreeNode *node_1 = ex::entity::find(id_array[i].now);
+                ParcelBox box = parcels[i];
+                const auto mapper = i_::mappers_.at_or_default(node_1->id_type);
+                const auto restore_fn = mapper.restore;
+                if (box.present() && restore_fn)
+                    restore_fn(ex::entity::find(node_1->id_node), box.parcel());
+            }
         }),
-        new std::function([node_id, store_fn, box] (ex::State *) mutable {
+        new std::function([after, id_array, parcels] (ex::State *) mutable {
             TreeState::reset(tree::state());
-            if (box.present() && store_fn)
-                box.reset(store_fn(ex::entity::find(node_id)));
-            ex::entity::remove(node_id);
+
+            for (int i = 0; i < id_array.size; ++i) {
+                TreeNode *node_1 = ex::entity::find(id_array[i].now);
+                ParcelBox box = parcels[i];
+                const auto mapper = i_::mappers_.at_or_default(node_1->id_type);
+                const auto store_fn = mapper.store;
+
+                if (box.present() && store_fn)
+                    box.reset(store_fn(ex::entity::find(node_1->id_node)));
+            }
+
+            after->rollback();
         }),
-        new std::function([snapshot, box] () mutable {
-            Snapshot::free(snapshot);
-            ParcelBox::free(box);
+        new std::function([after, before, parcels] () mutable {
+            Snapshot::free(after);
+            Snapshot::free(before);
+            for (int i = 0; i < parcels.size; ++i)
+                ParcelBox::free(parcels[i]);
         }));
     }
 

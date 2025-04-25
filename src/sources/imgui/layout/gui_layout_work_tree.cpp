@@ -497,15 +497,16 @@ namespace ex::gui {
                     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
                 // Regular element but it has children
-                const auto next = ex::entity::find(children.data[0]);
-                const auto n_children = ex::entity::children(next->id_node);
+                if (const auto next = ex::entity::find(children.data[0])) {
+                    const auto n_children = ex::entity::children(next->id_node);
 
-                for (int i = 0, u = 0; i < n_children.size; i++) {
-                    auto i_c = ex::entity::find(n_children.data[i]);
-                    counter_i = show_tree_node(state, gui, i_c,
-                        selected, active, menu_node, ref_node,
-                                               disabled || disabled_ || dimmed, counter_i + 1, u);
-                    u += !(i_c->state >>= node_state::disabled);
+                    for (int i = 0, u = 0; i < n_children.size; i++) {
+                        auto i_c = ex::entity::find(n_children.data[i]);
+                        counter_i = show_tree_node(state, gui, i_c,
+                            selected, active, menu_node, ref_node,
+                                                   disabled || disabled_ || dimmed, counter_i + 1, u);
+                        u += !(i_c->state >>= node_state::disabled);
+                    }
                 }
                 ImGui::TreePop();
 
