@@ -701,6 +701,15 @@ namespace ex::gui::tree {
         State &state = ex::logic::globals::state();
 
         const auto selection = bubble_sort_selection_(tree_state.buffer->selection->root);
+
+        // self-referencing safety check
+        for (selection_node *head = selection; head != nullptr; head = head->next) {
+            if (ex::entity::is_within(head->selected->id_node, node_before->id_node)) {
+                selection_node::free(selection);
+                return;
+            }
+        }
+
         const bool move      = tree_state.buffer->move;
         const bool ref       = tree_state.buffer->ref;
 
@@ -819,6 +828,15 @@ namespace ex::gui::tree {
         State &state = ex::logic::globals::state();
 
         const auto selection = bubble_sort_selection_(tree_state.buffer->selection->root);
+
+        // self-referencing safety check
+        for (selection_node *head = selection; head != nullptr; head = head->next) {
+            if (ex::entity::is_within(head->selected->id_node, node_into->id_node)) {
+                selection_node::free(selection);
+                return;
+            }
+        }
+
         const bool move      = tree_state.buffer->move;
         const bool ref       = tree_state.buffer->ref;
 
@@ -934,7 +952,11 @@ namespace ex::gui::tree {
     }
 
     void move_after_node(TreeNode *node_before, TreeNode *move) {
-        if (node_before == nullptr || move == nullptr || node_before == move)
+        if (node_before == nullptr || move == nullptr)
+            return;
+
+        // self-referencing safety check
+        if (ex::entity::is_within(move->id_node, node_before->id_node))
             return;
 
         State &state = ex::logic::globals::state();

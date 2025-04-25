@@ -181,6 +181,28 @@ namespace ex {
         return { .data = ct.children.data, .size = ct.children.size };
     }
 
+    bool entity::is_within(const id_type_32 node_id, const id_type_32 id_within) {
+        TreeNode *head = find(id_within);
+        if (head == nullptr)
+            return false;
+
+        if (node_id == id_within)
+            return true;
+
+        if (!internal_state::check_contains(head->id_parent))
+            return false;
+
+        while (true) {
+            if (TreeNode *parent = find(head->id_parent)) {
+                if (parent->id_node == node_id)
+                    return true;
+                head = parent;
+                continue;
+            }
+            return false;
+        }
+    }
+
     int entity::index_of(const id_type_32 node_id) {
         if (!internal_state::check_contains(node_id))
             return -1;
