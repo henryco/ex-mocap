@@ -1101,6 +1101,9 @@ namespace ex::gui::tree {
     }
 
     void group_selected(selection_node *selection) {
+
+        // TODO FIXME
+
         selection_node  *sorted    = bubble_sort_selection_(selection->root);
         const TreeNode  *root_node = selection->root->selected;
         const id_type_32 parent_id = root_node->id_parent;
@@ -1157,78 +1160,63 @@ namespace ex::gui::tree {
     }
 
     void ungroup_selected(selection_node *selection) {
-        // TODO
-//        const auto sorted = bubble_sort_selection(selection->root);
-//        const auto parent = selection->root->selected->parent;
-//
-//        const std::size_t parent_id = parent->parent->id_local;
-//        const std::size_t index     = parent->index;
-//
-//        const auto &state = ex::logic::globals::state();
-//
-//        TreeState::reset(tree::state());
-//        const auto snapshot = state.logic.work_tree->deep_copy();
-//
-//        TreeNode       *temp_group = TreeNode::create();
-//        selection_node *head       = sorted;
-//
-//        while (head != nullptr) {
-//            TreeNode *new_one = head->selected->deep_copy();
-//            new_one->state |= node_state::created;
-//
-//            temp_group->add_node(new_one);
-//            head->selected->state |= node_state::moved;
-//            head->selected        = TreeNode::shallow_copy(head->selected);
-//            head                  = head->next;
-//        }
-//
-//        for (int c = 0, i = index; c < temp_group->children_n; c++) {
-//            parent->parent->insert_node(++i, temp_group->children[c]->deep_copy());
-//        }
-//
-//        undo_history().push(strings::gui_tree_ops_history_ungroup,
-//        new std::function([snapshot] (ex::State *s) {
-//            TreeState::reset(tree::state());
-//            if (s->logic.work_tree != nullptr && s->logic.work_tree != snapshot)
-//                delete s->logic.work_tree;
-//            s->logic.work_tree            = snapshot->deep_copy();
-//            s->logic.work_tree->state -= node_state::connected;
-//            s->logic.work_tree->state |= node_state::created;
-//        }),
-//
-//        new std::function([index, parent_id, sorted, temp_group] (ex::State *s) {
-//            TreeState::reset(tree::state());
-//            if (index < 0)
-//                abort__("Cannot find original node, index < 0");
-//
-//            auto node = sorted;
-//            while (node != nullptr) {
-//                const auto child = s->logic.work_tree->find_node(node->selected->id_local);
-//                if (child == nullptr)
-//                    abort__("Cannot find original child node");
-//                child->state |= node_state::moved;
-//                node         = node->next;
-//            }
-//
-//            const auto p_node = s->logic.work_tree->find_node(parent_id);
-//            if (p_node == nullptr)
-//                abort__("Cannot find original parent node");
-//
-//            for (int c = 0, i = index; c < temp_group->children_n; c++) {
-//                const auto child = temp_group->children[c]->deep_copy();
-//                child->state |= node_state::created;
-//                p_node->insert_node(++i, child);
-//            }
-//
-//        }),
-//
-//        new std::function([snapshot, temp_group, sorted] {
-//            if (temp_group != nullptr)
-//                delete temp_group;
-//            if (snapshot != nullptr)
-//                delete snapshot;
-//            selection_node::free(sorted);
-//        }));
+
+        // TODO FIXME
+
+        selection_node  *sorted      = bubble_sort_selection_(selection->root);
+        TreeNode        *root_node   = selection->root->selected;
+        TreeNode        *parent_node = ex::entity::find(root_node->id_parent);
+        const int        parent_idx  = ex::entity::index_of(parent_node->id_node);
+        const id_type_32 grand_id    = parent_node->id_parent;
+
+        TreeState::reset(tree::state());
+        const auto before = Snapshot::create();
+
+        ex::data::array<id_mapping> id_array;
+        int j = 0;
+        for (selection_node *head = sorted; head != nullptr; head = head->next)
+            move_(ex::entity::find(head->selected->id_node), grand_id, &id_array, parent_idx);
+
+        const auto children = ex::entity::children(parent_node->id_node);
+        if (children.size == 0 || children.data == nullptr)
+            ex::entity::remove(parent_node->id_node);
+
+        selection_node::free(sorted);
+        const auto after = Snapshot::create();
+
+        undo_history().push(strings::gui_tree_ops_history_ungroup,
+        new std::function([before, id_array] (ex::State *) mutable {
+            TreeState::reset(tree::state());
+            ex::data::array<TreeNode> before_array;
+            for (int i = 0; i < id_array.size; ++i) {
+                before_array.push(*ex::entity::find(id_array[i].now));
+            }
+            before->rollback();
+            for (int i = 0; i < id_array.size; ++i) {
+                TreeNode  *node   = ex::entity::find(id_array[i].now);
+                const auto mapper = i_::mappers_.at_or_default(node->id_type);
+                if (const auto &upd_fn = mapper.update_tree_node)
+                    upd_fn(&before_array[i], node);
+            }
+        }),
+        new std::function([after, id_array] (ex::State *) mutable {
+            TreeState::reset(tree::state());
+            ex::data::array<TreeNode> before_array;
+            for (int i = 0; i < id_array.size; ++i) {
+                before_array.push(*ex::entity::find(id_array[i].now));
+            }
+            after->rollback();
+            for (int i = 0; i < id_array.size; ++i) {
+                TreeNode  *node   = ex::entity::find(id_array[i].now);
+                const auto mapper = i_::mappers_.at_or_default(node->id_type);
+                if (const auto &upd_fn = mapper.update_tree_node)
+                    upd_fn(&before_array[i], node);
+            }
+        }),
+        new std::function([before, after] () mutable {
+            Snapshot::free(after);
+            Snapshot::free(before);
+        }));
     }
 
     void enable_node(TreeNode *node) {
