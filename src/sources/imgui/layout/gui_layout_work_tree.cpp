@@ -392,7 +392,7 @@ namespace ex::gui {
 
         int counter_i = counter;
 
-        const auto children = ex::entity::children(node->id_node);
+
         if (!(node->state >>= node_state::group)) {
             // Not a group just regular element
 
@@ -414,6 +414,7 @@ namespace ex::gui {
 //            const auto &mapper       = work_tree::internals_::mappers_[node->id_type];
             const auto &mapper       = *work_tree::internals_::cache(node->id_type);
 
+            const auto children     = ex::entity::children(node->id_node);
             const bool is_nested_   = children.size > 0;
             const bool is_selected_ = node->state >>= node_state::selected;
 
@@ -440,7 +441,12 @@ namespace ex::gui {
                                                          children.size > 0, (node->state >>= node_state::selected));
                 drag_space(node, mapper);
             } else {
-                tree::show_context_menu_group(); // TODO
+                tree::show_context_menu_group();
+            }
+
+            if (ex::entity::is_dirty()) {
+                ImGui::PopID();
+                return counter_i;
             }
 
             if (menu_element) {
@@ -528,6 +534,7 @@ namespace ex::gui {
         }
 
         // It's a group
+        const auto children = ex::entity::children(node->id_node);
         if (children.size <= 0 || children.data == nullptr) {
             // ignore such case
             return counter_i;
@@ -581,7 +588,13 @@ namespace ex::gui {
                                                              first->state >>= node_state::selected);
                     drag_space(first, mapper);
                 } else {
-                    tree::show_context_menu_group(); // TODO
+                    tree::show_context_menu_group();
+                }
+
+                if (ex::entity::is_dirty()) {
+                    ImGui::PopID();
+                    brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
+                    return counter_i;
                 }
 
                 if (menu_element) {
