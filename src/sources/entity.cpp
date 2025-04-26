@@ -93,9 +93,9 @@ namespace ex {
         };
 
         struct EntityState {
-            data::array<TreeNodeCT> entities;
-            data::array<id_type_32> free_stack;
-            bool                    dirty = true;
+            data::array<TreeNodeCT> entities   = 1 << 8;
+            data::array<id_type_32> free_stack = 1 << 8;
+            bool                    dirty      = true;
 
             void reset() {
                 for (int i = 0; i < entities.size; ++i)
@@ -157,7 +157,7 @@ namespace ex {
 
         if (new_id < idx_1) {
             if (const int stack_idx = internal_state::free_stack.index_of(new_id); stack_idx >= 0)
-                internal_state::free_stack.collapse(stack_idx);
+                internal_state::free_stack.swap_remove(stack_idx);
             else
                 abort_("Not in a free stack list");
 
@@ -176,8 +176,18 @@ namespace ex {
         }
 
         // TODO FIXME
+        for (int i = idx_1; i < new_id; ++i) {
+            const int p_idx = internal_state::entities.push();
+            if (p_idx != i)
+                abort_("wtf");
+            if (!internal_state::free_stack.contains(i))
+                internal_state::free_stack.push(i);
+        }
 
-        internal_state::entities.insert(new_id);
+        const int p_idx = internal_state::entities.push();
+        if (p_idx != new_id)
+            abort_("wtf");
+
         container_t &ct = internal_state::entities[new_id];
         ct.node.state     = node_state::blank;
         ct.node.name      = nullptr;
@@ -185,11 +195,6 @@ namespace ex {
         ct.node.id_type   = ID64_UNSET;
         ct.node.id_link   = ID32_UNSET;
         ct.node.id_parent = ID32_UNSET;
-
-        const int idx_2 = internal_state::entities.size;
-
-        for (int i = idx_1; i < idx_2 - 1; ++i)
-            internal_state::free_stack.sort_insert_once(i);
 
         return &ct.node;
     }
@@ -387,7 +392,8 @@ namespace ex {
 
         internal_state::ArrayInt::free(&ct.children);
 
-        internal_state::free_stack.sort_insert_once(node_id);
+        if (!internal_state::free_stack.contains(node_id))
+            internal_state::free_stack.push(node_id);
         internal_state::dirty = true;
     }
 

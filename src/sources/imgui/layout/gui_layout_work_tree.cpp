@@ -445,6 +445,8 @@ namespace ex::gui {
             }
 
             if (ex::entity::is_dirty()) {
+                if (open && children.size > 0)
+                    ImGui::TreePop();
                 ImGui::PopID();
                 return counter_i;
             }
