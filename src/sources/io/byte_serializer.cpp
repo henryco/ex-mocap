@@ -287,7 +287,12 @@ namespace ex::io::bytes {
 
                     to_node(reinterpret_cast<const tree_node_1 *>(data + i), node);
                     TreeNode *new_node = ex::entity::create(node->id_node);
-                    *new_node          = *node;
+                    new_node->id_link = node->id_link;
+                    new_node->id_type = node->id_type;
+                    new_node->state   = node->state;
+                    new_node->name    = node->name;
+
+                    ex::entity::add_child(node->id_parent, new_node->id_node);
                 }
 
                 else if (in::item_type(buffer) == TYPE_NODE_DAT) {
@@ -324,11 +329,6 @@ namespace ex::io::bytes {
                         return;
                     }
 
-//                    std::cout << "   node: " << node->name << std::endl;
-
-                    const id_type_32 id_parent = node->id_parent;
-                    node->id_parent            = ID32_UNSET;
-                    const int idx = ex::entity::add_child(id_parent, node->id_node);
                     node = nullptr;
                 }
 

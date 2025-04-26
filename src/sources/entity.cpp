@@ -146,6 +146,26 @@ namespace ex {
 
         const int idx_1 = internal_state::entities.size;
 
+        if (new_id < idx_1) {
+            if (const int stack_idx = internal_state::free_stack.index_of(new_id); stack_idx >= 0)
+                internal_state::free_stack.collapse(stack_idx);
+            else
+                abort_("Not in a free stack list");
+
+            container_t &ct = internal_state::entities[new_id];
+            ct.node.state     = node_state::blank;
+            ct.node.name      = nullptr;
+            ct.node.id_node   = new_id;
+            ct.node.id_type   = ID64_UNSET;
+            ct.node.id_link   = ID32_UNSET;
+            ct.node.id_parent = ID32_UNSET;
+
+            ex::internal_state::ArrayInt array;
+            ct.children = array;
+
+            return &ct.node;
+        }
+
         internal_state::entities.insert(new_id);
         container_t &ct = internal_state::entities[new_id];
         ct.node.state     = node_state::blank;
