@@ -1101,9 +1101,6 @@ namespace ex::gui::tree {
     }
 
     void group_selected(selection_node *selection) {
-
-        // TODO FIXME
-
         selection_node  *sorted    = bubble_sort_selection_(selection->root);
         const TreeNode  *root_node = selection->root->selected;
         const id_type_32 parent_id = root_node->id_parent;
@@ -1160,9 +1157,6 @@ namespace ex::gui::tree {
     }
 
     void ungroup_selected(selection_node *selection) {
-
-        // TODO FIXME
-
         selection_node  *sorted      = bubble_sort_selection_(selection->root);
         TreeNode        *root_node   = selection->root->selected;
         TreeNode        *parent_node = ex::entity::find(root_node->id_parent);
@@ -1175,7 +1169,7 @@ namespace ex::gui::tree {
         ex::data::array<id_mapping> id_array;
         int j = 0;
         for (selection_node *head = sorted; head != nullptr; head = head->next)
-            move_(ex::entity::find(head->selected->id_node), grand_id, &id_array, parent_idx);
+            move_(ex::entity::find(head->selected->id_node), grand_id, &id_array, parent_idx + (j++));
 
         const auto children = ex::entity::children(parent_node->id_node);
         if (children.size == 0 || children.data == nullptr)
