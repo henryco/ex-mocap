@@ -136,6 +136,9 @@ namespace ex::gui {
         static auto     &node_mappers_ = node_mappers();
         static GuiState &gui           = ex::gui::state();
 
+        if (box.window.node->state >>= node_state::group)
+            return false; // TODO
+
         const auto &mapper    = node_mappers_[box.window.node->id_type];
         const auto  render_fn  = mapper.draw_node_window;
         const auto  dock_id_fn = mapper.get_dock_id;
@@ -254,7 +257,9 @@ namespace ex::gui {
             }
 
             if (!contains) {
-                if (!(active_node->state >>= node_state::deleted)) {
+                if (!(active_node->state >>= node_state::deleted) &&
+                    !(active_node->state >>= node_state::group)) {
+                    // TODO
                     windows_.push(create_new_box(active_node));
                 }
                 active_one = &(windows_[windows_.size - 1]);

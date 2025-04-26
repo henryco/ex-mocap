@@ -42,10 +42,11 @@ namespace ex::gui::strings {
     constexpr auto logs_bot_copy      = "Copy to clipboard";
     constexpr auto logs_bot_clear_all = "Clear all";
 
-    constexpr auto gui_tree_menu_general_add   = "Add new node";
-    constexpr auto gui_tree_menu_general_new   = "New node";
-    constexpr auto gui_tree_menu_general_out   = "New output";
-    constexpr auto gui_tree_menu_general_paste = "Paste node";
+    constexpr auto gui_tree_menu_general_add     = "Add new node";
+    constexpr auto gui_tree_menu_general_new     = "New node";
+    constexpr auto gui_tree_menu_general_out     = "New output";
+    constexpr auto gui_tree_menu_general_paste   = "Paste node";
+    constexpr auto gui_tree_menu_general_section = "Create section";
 
     constexpr auto gui_tree_menu_group         = "Group";
     constexpr auto gui_tree_menu_group_ungroup = "Ungroup";

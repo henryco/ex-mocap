@@ -34,6 +34,7 @@ namespace ex {
         selected  = 1 << 7,
         disabled  = 1 << 8,
         connected = 1 << 9,
+        section   = 1 << 10, // TODO
     };
 
     // 32 bytes

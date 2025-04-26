@@ -161,6 +161,13 @@ namespace ex::gui::tree {
         }
     }
 
+    bool create_new_section(TreeNode *new_node) {
+        new_node->state = node_state::group | node_state::section;
+        new_node->name  = "new section";
+        // TODO
+        return true;
+    }
+
     bool create_node_from_menu(TreeNode *new_node) {
         int offset = 0;
         for (; offset < tm::node_outputs_.key_entries.size; offset++) {
@@ -337,27 +344,33 @@ namespace ex::gui::tree {
                 else tree::enable_node(node);
             }
 
-            if (ImGui::MenuItem(strings::gui_tree_menu_node_group)) {
-                tree::selection_node selection;
-                selection.selected = node;
-                selection.root     = &selection;
-                selection.next     = nullptr;
-                selection.prev     = nullptr;
-                tree::group_selected(&selection);
-            }
+            if (!(node->state >>= node_state::section)) {
+                // TODO
 
-            if (is_grouped) {
-                if (ImGui::MenuItem(strings::gui_tree_menu_node_ungroup)) {
+                if (ImGui::MenuItem(strings::gui_tree_menu_node_group)) {
                     tree::selection_node selection;
                     selection.selected = node;
                     selection.root     = &selection;
                     selection.next     = nullptr;
                     selection.prev     = nullptr;
-                    tree::ungroup_selected(&selection);
+                    tree::group_selected(&selection);
+                }
+
+                if (is_grouped) {
+                    if (ImGui::MenuItem(strings::gui_tree_menu_node_ungroup)) {
+                        tree::selection_node selection;
+                        selection.selected = node;
+                        selection.root     = &selection;
+                        selection.next     = nullptr;
+                        selection.prev     = nullptr;
+                        tree::ungroup_selected(&selection);
+                    }
                 }
             }
 
-            if (!(node->state >>= node_state::link)) {
+            if (!(node->state >>= node_state::link) && !(node->state >>= node_state::section)) {
+                // TODO
+
                 if (ImGui::MenuItem(strings::gui_tree_menu_node_inspect)) {
                     tree::pick_inspected_node(node);
                 }
@@ -456,7 +469,15 @@ namespace ex::gui::tree {
                 ImGui::EndMenu();
             }
 
+            if (ImGui::MenuItem(strings::gui_tree_menu_general_section)) {
+                TreeNode new_node;
+                if (create_new_section(&new_node))
+                    tree::add_node(&new_node);
+                // TODO
+            }
+
             if (tree_state.buffer != nullptr) {
+                ImGui::Separator();
                 if (ImGui::MenuItem(strings::gui_tree_menu_general_paste, key_mappings().work_tree.paste.label)) {
                     tree::paste_node();
                 }
