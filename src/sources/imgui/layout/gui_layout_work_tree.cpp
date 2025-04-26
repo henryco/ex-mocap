@@ -817,6 +817,7 @@ namespace ex::gui {
         if (!show)
             return;
 
+        tree::reset_actions();
         ex::gui::next_auto_hide(docked || gui.view.docking);
         ImGui::SetNextWindowDockID(gui.docking.dock_left_top_id, cond_node());
         ImGui::Begin("Work tree", ptr, reset_flag(gui) | ImGuiWindowFlags_NoCollapse);
@@ -836,6 +837,7 @@ namespace ex::gui {
         node_state.force_collapse   = false;
 
         ImGui::End();
+        tree::call_actions();
         tree::show_inspected_node();
     }
 

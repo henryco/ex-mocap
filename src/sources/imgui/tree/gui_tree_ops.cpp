@@ -268,87 +268,106 @@ namespace ex::gui::tree {
             id_array->push({node->id_node, node->id_node});
     }
 
+    inline std::function<void()> delayed_action_;
+
+    void noop_() {}
+
+    void reset_actions() {
+        delayed_action_ = &noop_;
+    }
+
+    void call_actions() {
+        delayed_action_();
+    }
+
     void copy_selected(selection_node *selection) {
+        delayed_action_ = [selection] {
+            auto head_h = selection->root;
+            while (head_h != nullptr) {
+                if (head_h->selected->id_parent != selection->root->selected->id_parent)
+                    return;
+                head_h = head_h->next;
+            }
 
-        auto head_h = selection->root;
-        while (head_h != nullptr) {
-            if (head_h->selected->id_parent != selection->root->selected->id_parent)
+            const auto copy = selection_node::copy(selection->root);
+            TreeState::reset(tree::state());
+
+            if (copy == nullptr)
                 return;
-            head_h = head_h->next;
-        }
 
-        const auto copy = selection_node::copy(selection->root);
-        TreeState::reset(tree::state());
-
-        if (copy == nullptr)
-            return;
-
-        node_buffer::create(&tree::state().buffer, copy->root, false, false);
-        selection_node::free(copy);
+            node_buffer::create(&tree::state().buffer, copy->root, false, false);
+            selection_node::free(copy);
+        };
     }
 
     void copy_node(TreeNode *node) {
-        if (node->state >>= node_state::link)
-            return;
-        TreeState::reset(tree::state());
-        node_buffer::create(&tree::state().buffer, node, false, false);
+        delayed_action_ = [node] () mutable {
+            if (node->state >>= node_state::link)
+                return;
+            TreeState::reset(tree::state());
+            node_buffer::create(&tree::state().buffer, node, false, false);
+        };
     }
 
     void ref_node(TreeNode *node) {
-        if (node->state >>= node_state::link)
-            return;
-        TreeState::reset(tree::state());
-        node_buffer::create(&tree::state().buffer, node, false, true);
+        delayed_action_ = [node] () mutable {
+            if (node->state >>= node_state::link)
+                return;
+            TreeState::reset(tree::state());
+            node_buffer::create(&tree::state().buffer, node, false, true);
+        };
     }
 
-    void add_node(TreeNode *add) {
-        State &state = ex::logic::globals::state();
+    void add_node(TreeNode *add_node) {
+        delayed_action_ = [add = *add_node] {
+            State &state = ex::logic::globals::state();
 
-        TreeState::reset(tree::state());
-        Snapshot *before = Snapshot::create(state);
-
-        TreeNode *created = ex::entity::create();
-        created->id_type  = add->id_type;
-        created->id_link  = add->id_link;
-        created->state    = add->state;
-
-        if (add->name != nullptr)
-            created->name = (new std::string(add->name))->c_str();
-        else
-            created->name = "";
-
-        const id_type_32 id_node = created->id_node;
-        state.logic.active_node  = id_node;
-        ex::entity::add_child(state.logic.root_node, id_node);
-
-        const auto after = Snapshot::create();
-        ParcelBox box = ParcelBox::create();
-
-        undo_history().push(strings::gui_tree_ops_history_add,
-        new std::function([before, id_node, box] (State *) mutable {
             TreeState::reset(tree::state());
+            Snapshot *before = Snapshot::create(state);
 
-            const TreeNode *node   = ex::entity::find(id_node);
-            if (const auto store_fn = i_::mappers_.at_or_default(node->id_type).store)
-                box.reset(store_fn(node));
+            TreeNode *created = ex::entity::create();
+            created->id_type  = add.id_type;
+            created->id_link  = add.id_link;
+            created->state    = add.state;
 
-            before->rollback();
-        }),
-        new std::function([after, id_node, box] (State *) {
-            TreeState::reset(tree::state());
-            after->rollback();
+            if (add.name != nullptr)
+                created->name = (new std::string(add.name))->c_str();
+            else
+                created->name = "";
 
-            TreeNode *new_node = ex::entity::find(id_node);
-            if (box.present()) {
-                if (const auto restore_fn = i_::mappers_.at_or_default(new_node->id_type).restore)
-                    restore_fn(new_node, box.parcel());
-            }
-        }),
-        new std::function([before, after, box] () mutable {
-            Snapshot::free(before);
-            Snapshot::free(after);
-            ParcelBox::free(box);
-        }));
+            const id_type_32 id_node = created->id_node;
+            state.logic.active_node  = id_node;
+            ex::entity::add_child(state.logic.root_node, id_node);
+
+            const auto after = Snapshot::create();
+            ParcelBox box = ParcelBox::create();
+
+            undo_history().push(strings::gui_tree_ops_history_add,
+            new std::function([before, id_node, box] (State *) mutable {
+                TreeState::reset(tree::state());
+
+                const TreeNode *node   = ex::entity::find(id_node);
+                if (const auto store_fn = i_::mappers_.at_or_default(node->id_type).store)
+                    box.reset(store_fn(node));
+
+                before->rollback();
+            }),
+            new std::function([after, id_node, box] (State *) {
+                TreeState::reset(tree::state());
+                after->rollback();
+
+                TreeNode *new_node = ex::entity::find(id_node);
+                if (box.present()) {
+                    if (const auto restore_fn = i_::mappers_.at_or_default(new_node->id_type).restore)
+                        restore_fn(new_node, box.parcel());
+                }
+            }),
+            new std::function([before, after, box] () mutable {
+                Snapshot::free(before);
+                Snapshot::free(after);
+                ParcelBox::free(box);
+            }));
+        };
     }
 
     void paste_node() {

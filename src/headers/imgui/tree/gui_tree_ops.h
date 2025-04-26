@@ -9,6 +9,9 @@
 
 namespace ex::gui::tree {
 
+    void reset_actions();
+    void call_actions();
+
     void rename_node(TreeNode *node, const char *name);
 
     void duplicate_node(TreeNode *node);
