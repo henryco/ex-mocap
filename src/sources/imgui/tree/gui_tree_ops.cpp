@@ -289,6 +289,31 @@ namespace ex::gui::tree {
         }
     }
 
+    void state_(TreeNode *node, const node_state state, const bool add, ex::data::array<id_mapping> *id_array) {
+        if (node == nullptr)
+            return;
+
+        const TreeNode before = *node;
+
+        if (add) node->state |= state;
+        else     node->state -= state;
+
+        if (id_array != nullptr)
+            id_array->push({ node->id_node, node->id_node });
+
+        const id_type_16 state_b = static_cast<id_type_16>(before.state);
+        const id_type_16 state_a = static_cast<id_type_16>(node->state);
+
+        if (state_b != state_a) {
+            if (const auto &upd_fn = i_::mappers_.at_or_default(node->id_type).update_tree_node)
+                upd_fn(&before, node);
+        }
+
+        const auto children = ex::entity::children(node->id_node);
+        for (int i = 0; i < children.size; ++i)
+            state_(ex::entity::find(children.data[i]), state, add, id_array);
+    }
+
     void link_(const TreeNode *head, const id_type_32 id_target, data::array<id_mapping> *id_array, const int index = -1) {
         if (head == nullptr)
             return;
@@ -1272,100 +1297,92 @@ namespace ex::gui::tree {
     }
 
     void enable_node(TreeNode *node) {
-        const TreeNode before = *node;
-
-        const auto og_state = node->state;
-        node->state -= node_state::disabled;
-
-        // todo
-
-        const auto &upd_fn = i_::mappers_.at_or_default(node->id_type).update_tree_node;
-        if (upd_fn != nullptr)
-            upd_fn(&before, node);
-
         TreeState::reset(tree::state());
+        const auto before = Snapshot::create();
+
+        ex::data::array<id_mapping> id_array;
+        state_(node, node_state::disabled, false, &id_array);
         ex::entity::set_dirty(true);
 
+        const auto after = Snapshot::create();
+
         undo_history().push(strings::gui_tree_ops_history_node_enabled,
-        new std::function([id_l = node->id_node, og_state, upd_fn] (ex::State *) {
-            const auto f_node = ex::entity::find(id_l);
-            if (f_node == nullptr)
-                abort__("Cannot find original node");
-
-            const TreeNode before_ = *f_node;
-
-            f_node->state -= node_state::disabled;
-            f_node->state |= (og_state & node_state::disabled);
-
-            if (upd_fn != nullptr)
-                upd_fn(&before_, f_node);
-
+        new std::function([before, id_array] (ex::State *) {
             TreeState::reset(tree::state());
-            ex::entity::set_dirty(true);
+            ex::data::array<TreeNode> before_array;
+            for (int i = 0; i < id_array.size; ++i) {
+                before_array.push(*ex::entity::find(id_array[i].now));
+            }
+            before->rollback();
+            for (int i = 0; i < id_array.size; ++i) {
+                TreeNode  *node_0 = ex::entity::find(id_array[i].now);
+                const auto mapper = i_::mappers_.at_or_default(node_0->id_type);
+                if (const auto &upd_fn = mapper.update_tree_node)
+                    upd_fn(&before_array[i], node_0);
+            }
         }),
-        new std::function([id_l = node->id_node, upd_fn] (ex::State *) {
-            const auto f_node = ex::entity::find(id_l);
-            if (f_node == nullptr)
-                abort__("Cannot find original node");
-
-            const TreeNode before_ = *f_node;
-
-            f_node->state -= node_state::disabled;
-
-            if (upd_fn != nullptr)
-                upd_fn(&before_, f_node);
-
+        new std::function([after, id_array] (ex::State *) {
             TreeState::reset(tree::state());
-            ex::entity::set_dirty(true);
+            ex::data::array<TreeNode> before_array;
+            for (int i = 0; i < id_array.size; ++i) {
+                before_array.push(*ex::entity::find(id_array[i].now));
+            }
+            after->rollback();
+            for (int i = 0; i < id_array.size; ++i) {
+                TreeNode  *node_0 = ex::entity::find(id_array[i].now);
+                const auto mapper = i_::mappers_.at_or_default(node_0->id_type);
+                if (const auto &upd_fn = mapper.update_tree_node)
+                    upd_fn(&before_array[i], node_0);
+            }
+        }),
+        new std::function([before, after] () mutable {
+            Snapshot::free(after);
+            Snapshot::free(before);
         }));
     }
 
     void disable_node(TreeNode *node) {
-        const TreeNode before = *node;
-
-        const auto og_state = node->state;
-        node->state |= node_state::disabled;
-
-        // todo
-
-        if (const auto &upd_fn = i_::mappers_.at_or_default(node->id_type).update_tree_node)
-            upd_fn(&before, node);
-
         TreeState::reset(tree::state());
+        const auto before = Snapshot::create();
+
+        ex::data::array<id_mapping> id_array;
+        state_(node, node_state::disabled, true, &id_array);
         ex::entity::set_dirty(true);
 
+        const auto after = Snapshot::create();
+
         undo_history().push(strings::gui_tree_ops_history_node_disabled,
-        new std::function([id_l = node->id_node, og_state] (ex::State *) {
-            const auto f_node = ex::entity::find(id_l);
-            if (f_node == nullptr)
-                abort__("Cannot find original node");
-
-            const TreeNode before_ = *f_node;
-
-            f_node->state -= node_state::disabled;
-            f_node->state |= (og_state & node_state::disabled);
-
-            if (const auto &upd_fn = i_::mappers_.at_or_default(f_node->id_type).update_tree_node)
-                upd_fn(&before_, f_node);
-
+        new std::function([before, id_array] (ex::State *) {
             TreeState::reset(tree::state());
-            ex::entity::set_dirty(true);
+            ex::data::array<TreeNode> before_array;
+            for (int i = 0; i < id_array.size; ++i) {
+                before_array.push(*ex::entity::find(id_array[i].now));
+            }
+            before->rollback();
+            for (int i = 0; i < id_array.size; ++i) {
+                TreeNode  *node_0 = ex::entity::find(id_array[i].now);
+                const auto mapper = i_::mappers_.at_or_default(node_0->id_type);
+                if (const auto &upd_fn = mapper.update_tree_node)
+                    upd_fn(&before_array[i], node_0);
+            }
         }),
-        new std::function([id_l = node->id_node] (ex::State *) {
-
-            const auto f_node = ex::entity::find(id_l);
-            if (f_node == nullptr)
-                abort__("Cannot find original node");
-
-            const TreeNode before_ = *f_node;
-
-            f_node->state |= node_state::disabled;
-
-            if (const auto &upd_fn = i_::mappers_.at_or_default(f_node->id_type).update_tree_node)
-                upd_fn(&before_, f_node);
-
+        new std::function([after, id_array] (ex::State *) {
             TreeState::reset(tree::state());
-            ex::entity::set_dirty(true);
+            ex::data::array<TreeNode> before_array;
+            for (int i = 0; i < id_array.size; ++i) {
+                before_array.push(*ex::entity::find(id_array[i].now));
+            }
+            after->rollback();
+            for (int i = 0; i < id_array.size; ++i) {
+                TreeNode  *node_0 = ex::entity::find(id_array[i].now);
+                const auto mapper = i_::mappers_.at_or_default(node_0->id_type);
+                if (const auto &upd_fn = mapper.update_tree_node)
+                    upd_fn(&before_array[i], node_0);
+            }
+        }),
+        new std::function([before, after] () mutable {
+            Snapshot::free(after);
+            Snapshot::free(before);
         }));
     }
 
