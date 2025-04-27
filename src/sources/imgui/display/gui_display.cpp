@@ -68,7 +68,8 @@ namespace ex::display::imp::imgui {
         int            w;
         int            h;
         int            c;
-        bool           u;
+        bool           updated;
+        bool           to_clear;
     };
 
     static ex::data::array_map<unsigned int, display_window_t> display_map_(10);
@@ -83,7 +84,7 @@ namespace ex::display::imp::imgui {
         sprintf(uuid, "%s##display/%d", name, new_id);
         strcpy(label, name);
 
-        display_map_.put(new_id, { label, uuid, nullptr, 0, 0, 0, 0, true });
+        display_map_.put(new_id, { label, uuid, nullptr, 0, 0, 0, 0, true, false });
         return new_id;
     }
 
@@ -106,7 +107,7 @@ namespace ex::display::imp::imgui {
             delete[] d_ref.name;
 
         display_map_.remove(id);
-        display_map_.put(id, { label, uuid, d_cpy.data, d_cpy.txid, d_cpy.w, d_cpy.h, d_cpy.c, d_cpy.u });
+        display_map_.put(id, { label, uuid, d_cpy.data, d_cpy.txid, d_cpy.w, d_cpy.h, d_cpy.c, d_cpy.updated, d_cpy.to_clear });
     }
 
     void remove_output(const unsigned int id) {
@@ -124,11 +125,12 @@ namespace ex::display::imp::imgui {
 
     void clear(const unsigned int id) {
         display_window_t &ref = display_map_.at(id);
-        if (ref.txid != 0)
-            glDeleteTextures(1, &ref.txid);
-        ref.txid = 0;
-        ref.data = nullptr;
-        ref.u    = false;
+//        if (ref.txid != 0)
+//            glDeleteTextures(1, &ref.txid);
+//        ref.txid = 0;
+        ref.data     = nullptr;
+        ref.updated  = false;
+        ref.to_clear = true;
     }
 
     void draw_bytes_bgra_8(const unsigned int id, unsigned char *data, const int w, const int h, const int cn) {
@@ -137,7 +139,7 @@ namespace ex::display::imp::imgui {
         ref.c                 = cn;
         ref.w                 = w;
         ref.h                 = h;
-        ref.u                 = true;
+        ref.updated           = true;
 
         if (w <= 0 || h <= 0)
             abort_("w <= 0 || h <= 0");
@@ -182,7 +184,14 @@ namespace ex::gui::display {
 
         if (ImGui::Begin(disp.uuid, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
 
-            if (disp.u == true) {
+            if (disp.to_clear == true) {
+                if (disp.txid != 0)
+                    glDeleteTextures(1, &disp.txid);
+                disp.txid      = 0;
+                disp.to_clear = false;
+            }
+
+            else if (disp.updated == true) {
 
                 if (disp.txid == 0 && disp.data != nullptr) {
                     disp.txid = ex::display::imp::imgui::create_texture_bgra(disp.w, disp.h, disp.c);
@@ -218,7 +227,7 @@ namespace ex::gui::display {
                 }
 
                 ImGui::Image(disp.txid, { static_cast<float>(disp.w), static_cast<float>(disp.h) });
-                disp.u = false;
+                disp.updated = false;
             }
         }
 

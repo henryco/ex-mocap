@@ -67,6 +67,7 @@ namespace ex::logic::node::out {
 
     void DisplayOutputNode::disable() {
         enabled = false;
+        reset();
     }
 
     void DisplayOutputNode::enable() {
@@ -121,10 +122,8 @@ namespace ex::logic::node::out {
 
     void DisplayOutputNode::on_update(const int clock_i) {
 
-        if (!enabled) {
-            reset();
+        if (!enabled)
             return;
-        }
 
         updates_.update();
 
