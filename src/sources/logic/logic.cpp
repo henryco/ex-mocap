@@ -457,9 +457,13 @@ namespace ex::main {
         }
 
         if (node->state >>= node_state::group) {
-            TreeNode *prev_node = previous;
+            TreeNode *prev_node = nullptr;
             TreeNode *curr_node = nullptr;
             TreeNode *last_node = nullptr;
+
+            if (!(node->state >>= node_state::section)) {
+                prev_node = previous; // sections are isolated
+            }
 
             const auto children = ex::entity::children(node->id_node);
             for (std::size_t i = 0; i < children.size; i++) {
@@ -481,6 +485,10 @@ namespace ex::main {
                 if (!(curr_node->state >>= node_state::output)) {
                     last_node = curr_node;
                 }
+            }
+
+            if (node->state >>= node_state::section) {
+                return; // sections are isolated
             }
 
             if (last_node != nullptr &&
