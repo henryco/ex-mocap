@@ -656,7 +656,7 @@ namespace ex::gui {
         const bool observer  = first->state >>= node_state::output;
         const bool dimmed    = first->state >>= node_state::dimmed;
 
-        if (f_children.size <= 0) {
+        if (f_children.size <= 0) {// TODO FIXME
             // Group with children, where the first element _HAS NO_ its own children
             const ImVec2 outer_start = brackets_start();
             {

@@ -225,14 +225,39 @@ namespace ex::gui::tree {
             restore_fn(node, store_fn(head));
     }
 
+    void del_(const TreeNode *node) {
+        if (node == nullptr)
+            return;
+
+        const id_type_32 node_id   = node->id_node;
+        const id_type_32 parent_id = node->id_parent;
+
+        ex::entity::remove(node_id);
+
+        const auto children = ex::entity::children(parent_id);
+        if (children.size > 0)
+            return;
+        if (TreeNode *parent = ex::entity::find(parent_id)) {
+            if (parent->state >>= node_state::section)
+                return;
+            if (!(parent->state >>= node_state::group))
+                return;
+            if (!ex::entity::find(parent->id_parent))
+                return;
+            ex::entity::remove(parent_id);
+        }
+    }
+
     void move_(TreeNode *node, const id_type_32 id_target, data::array<id_mapping> *id_array, const int index = -1) {
         if (node == nullptr)
             return;
 
         const TreeNode node_0 = *node;
 
+        const id_type_32 old_parent_id = node->id_parent;
+
         int idx_fix = 0;
-        if (node->id_parent == id_target) {
+        if (old_parent_id == id_target) {
             if (ex::entity::index_of(node->id_node) < index)
                 idx_fix = -1;
         }
@@ -246,6 +271,22 @@ namespace ex::gui::tree {
 
         if (id_array != nullptr)
             id_array->push({node->id_node, node->id_node});
+
+        if (old_parent_id == id_target)
+            return;
+
+        if (ex::entity::children(old_parent_id).size > 0)
+            return;
+
+        if (TreeNode *parent = ex::entity::find(old_parent_id)) {
+            if (parent->state >>= node_state::section)
+                return;
+            if (!(parent->state >>= node_state::group))
+                return;
+            if (!ex::entity::find(parent->id_parent))
+                return;
+            ex::entity::remove(old_parent_id);
+        }
     }
 
     void link_(const TreeNode *head, const id_type_32 id_target, data::array<id_mapping> *id_array, const int index = -1) {
@@ -1187,9 +1228,6 @@ namespace ex::gui::tree {
             int j = 0;
             for (selection_node *head = sorted; head != nullptr; head = head->next)
                 move_(ex::entity::find(head->selected->id_node), grand_id, &id_array, parent_idx + (j++));
-            const auto children = ex::entity::children(parent_node->id_node);
-            if (children.size == 0 || children.data == nullptr)
-                ex::entity::remove(parent_node->id_node);
         } else {
             for (selection_node *head = sorted; head != nullptr; head = head->next)
                 move_(ex::entity::find(head->selected->id_node), grand_id, &id_array);
@@ -1488,7 +1526,8 @@ namespace ex::gui::tree {
                 id_array.push(id_array_2[i]);
             }
 
-            ex::entity::remove(node->id_node);
+//            ex::entity::remove(node->id_node);
+            del_(node);
         }
 
         const auto after = Snapshot::create();
@@ -1553,7 +1592,8 @@ namespace ex::gui::tree {
             parcels.push(box);
         }
 
-        ex::entity::remove(node->id_node);
+//        ex::entity::remove(node->id_node);
+        del_(node);
 
         const auto after = Snapshot::create();
 
