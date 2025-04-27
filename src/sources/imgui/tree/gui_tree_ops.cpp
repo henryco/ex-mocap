@@ -1274,10 +1274,10 @@ namespace ex::gui::tree {
     void enable_node(TreeNode *node) {
         const TreeNode before = *node;
 
-        // TODO sections
-
         const auto og_state = node->state;
         node->state -= node_state::disabled;
+
+        // todo
 
         const auto &upd_fn = i_::mappers_.at_or_default(node->id_type).update_tree_node;
         if (upd_fn != nullptr)
@@ -1323,10 +1323,10 @@ namespace ex::gui::tree {
     void disable_node(TreeNode *node) {
         const TreeNode before = *node;
 
-        // TODO sections
-
         const auto og_state = node->state;
         node->state |= node_state::disabled;
+
+        // todo
 
         if (const auto &upd_fn = i_::mappers_.at_or_default(node->id_type).update_tree_node)
             upd_fn(&before, node);
@@ -1381,7 +1381,7 @@ namespace ex::gui::tree {
             og_map.put(head->selected->id_node, head->selected->state);
             head->selected->state -= node_state::disabled;
 
-            if (const auto &upd_fn = i_::mappers_[head->selected->id_type].update_tree_node)
+            if (const auto &upd_fn = i_::mappers_.at_or_default(head->selected->id_type).update_tree_node)
                 upd_fn(&before_, head->selected);
             head = head->next;
         }
@@ -1404,7 +1404,7 @@ namespace ex::gui::tree {
                 f_node->state -= node_state::disabled;
                 f_node->state |= (v & node_state::disabled);
 
-                if (const auto &upd_fn = i_::mappers_[f_node->id_type].update_tree_node)
+                if (const auto &upd_fn = i_::mappers_.at_or_default(f_node->id_type).update_tree_node)
                     upd_fn(&before_, f_node);
             }
             ex::entity::set_dirty(true);
@@ -1421,7 +1421,7 @@ namespace ex::gui::tree {
 
                 f_node->state -= node_state::disabled;
 
-                if (const auto &upd_fn = i_::mappers_[f_node->id_type].update_tree_node)
+                if (const auto &upd_fn = i_::mappers_.at_or_default(f_node->id_type).update_tree_node)
                     upd_fn(&before_, f_node);
             }
             ex::entity::set_dirty(true);
@@ -1441,7 +1441,7 @@ namespace ex::gui::tree {
             og_map.put(head->selected->id_node, head->selected->state);
             head->selected->state |= node_state::disabled;
 
-            if (const auto &upd_fn = i_::mappers_[head->selected->id_type].update_tree_node)
+            if (const auto &upd_fn = i_::mappers_.at_or_default(head->selected->id_type).update_tree_node)
                 upd_fn(&before_, head->selected);
 
             head = head->next;
@@ -1465,7 +1465,7 @@ namespace ex::gui::tree {
                 f_node->state -= node_state::disabled;
                 f_node->state |= (v & node_state::disabled);
 
-                if (const auto &upd_fn = i_::mappers_[f_node->id_type].update_tree_node)
+                if (const auto &upd_fn = i_::mappers_.at_or_default(f_node->id_type).update_tree_node)
                     upd_fn(&before_, f_node);
             }
             ex::entity::set_dirty(true);
@@ -1482,7 +1482,7 @@ namespace ex::gui::tree {
 
                 f_node->state |= node_state::disabled;
 
-                if (const auto &upd_fn = i_::mappers_[f_node->id_type].update_tree_node)
+                if (const auto &upd_fn = i_::mappers_.at_or_default(f_node->id_type).update_tree_node)
                     upd_fn(&before_, f_node);
             }
             ex::entity::set_dirty(true);

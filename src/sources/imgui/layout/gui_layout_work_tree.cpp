@@ -436,12 +436,20 @@ namespace ex::gui {
                 return counter_i;
             }
 
-            constexpr const char *col_text = "*";
-//            constexpr const char *col_text = "";
-            static const float offset = ImGui::CalcTextSize(col_text).x;
 
-            ImGui::TableNextColumn();
-            ImGui::TextDisabled("%s", col_text);
+            float offset;
+            if (disabled) {
+                offset = ImGui::CalcTextSize(ICON_LC_LINK_2_OFF).x;
+
+                ImGui::TableNextColumn();
+                ImGui::TextDisabled(ICON_LC_LINK_2_OFF);
+            } else {
+                constexpr const char *col_text = "*";
+                offset = ImGui::CalcTextSize(col_text).x;
+
+                ImGui::TableNextColumn();
+                ImGui::TextDisabled("%s", col_text);
+            }
 
             if (open) {
 

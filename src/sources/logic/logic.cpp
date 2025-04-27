@@ -449,8 +449,15 @@ namespace ex::main {
     void build_tree_(Logic &logic, TreeNode *node, TreeNode *previous, simple_list *group_list) {
         static limbo::graph::Clock &clock = ex::logic::state::get_clock();
 
-        if (node == nullptr || group_list == nullptr || (node->state >>= node_state::deleted))
+        if (node == nullptr || group_list == nullptr)
             return;
+
+        if (node->state >>= node_state::deleted)
+            return;
+
+        if (node->state >>= node_state::disabled) {
+            return;
+        }
 
         if (!(node->state >>= node_state::link) && !(node->state >>= node_state::group)) {
             node->state -= node_state::connected;
