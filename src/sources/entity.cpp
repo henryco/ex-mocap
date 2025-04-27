@@ -175,11 +175,10 @@ namespace ex {
             return &ct.node;
         }
 
-        // TODO FIXME
         for (int i = idx_1; i < new_id; ++i) {
             const int p_idx = internal_state::entities.push();
             if (p_idx != i)
-                abort_("wtf");
+                abort_("ex::entity p_idx != i");
             if (!internal_state::free_stack.contains(i))
                 internal_state::free_stack.push(i);
         }
@@ -399,6 +398,7 @@ namespace ex {
 
     void entity::rename(const id_type_32 id_node, const char *name) {
         // TODO preventing mem leak
+        abort_("ex::entity::rename currently is not implemented");
 //        if (name == nullptr)
 //            return;
 //
