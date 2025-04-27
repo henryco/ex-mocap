@@ -1274,6 +1274,8 @@ namespace ex::gui::tree {
     void enable_node(TreeNode *node) {
         const TreeNode before = *node;
 
+        // TODO sections
+
         const auto og_state = node->state;
         node->state -= node_state::disabled;
 
@@ -1320,6 +1322,8 @@ namespace ex::gui::tree {
 
     void disable_node(TreeNode *node) {
         const TreeNode before = *node;
+
+        // TODO sections
 
         const auto og_state = node->state;
         node->state |= node_state::disabled;
