@@ -444,7 +444,7 @@ namespace ex::gui {
                 ImGui::TableNextColumn();
                 ImGui::TextDisabled(ICON_LC_LINK_2_OFF);
             } else {
-                constexpr const char *col_text = "*";
+                constexpr const char *col_text = "";
                 offset = ImGui::CalcTextSize(col_text).x;
 
                 ImGui::TableNextColumn();
