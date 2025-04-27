@@ -507,12 +507,20 @@ namespace ex::gui {
             const auto &mapper       = *work_tree::internals_::cache(node->id_type);
 
             const auto children     = ex::entity::children(node->id_node);
-            const bool is_nested_   = children.size > 0;
+
+            bool is_nested_ = children.size > 0;
+            if (children.size == 1) {
+                if (ex::entity::children(children.data[0]).size <= 0)
+                    is_nested_ = false;
+            }
+
             const bool is_selected_ = node->state >>= node_state::selected;
 
             const tree::TreeState &node_state = ex::gui::tree::state();
             const bool open = mapper.draw_tree_node(node, is_nested_, is_selected_, node_state.force_collapse,
                                                     node_state.force_expand);
+
+            const bool has_opened = open && children.size > 0 && is_nested_;
 
             if (ImGui::IsItemHovered())
                 *ref_node = (node->state >>= node_state::link) ? node->id_link : (-1);
@@ -537,7 +545,7 @@ namespace ex::gui {
             }
 
             if (ex::entity::is_dirty()) {
-                if (open && children.size > 0)
+                if (has_opened)
                     ImGui::TreePop();
                 ImGui::PopID();
                 return counter_i;
@@ -547,7 +555,7 @@ namespace ex::gui {
                 *menu_node = node->id_node;
             }
 
-            if (open && children.size > 0)
+            if (has_opened)
                 ImGui::Indent();
 
             if ((ImGui::IsItemClicked() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) || menu_element) {
@@ -592,7 +600,7 @@ namespace ex::gui {
                     ImGui::PopStyleColor();
             }
 
-            if (open && children.size > 0) {// && !(node->children[0]->state >>= node_state::created)) {
+            if (has_opened) {// && !(node->children[0]->state >>= node_state::created)) {
                 if (disabled || disabled_ || dimmed)
                     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
 
@@ -617,7 +625,7 @@ namespace ex::gui {
                 brackets_end_half(pos, 0, (disabled || disabled_ || dimmed) ? 0.5f : 1.f);
             }
 
-            else if (children.size > 0)
+            else if (children.size > 0 && is_nested_)
                 counter_i = count_children(node, counter_i);
 
             ImGui::PopID();

@@ -429,13 +429,28 @@ namespace ex::gui::tree {
 
         if (ImGui::BeginPopup("rename-popup")) {
             ImGui::Text(strings::gui_tree_menu_node_edit_name);
+
+            ImGui::SetKeyboardFocusHere();
             ImGui::InputText("##edit", name_buffer, IM_ARRAYSIZE(name_buffer));
-            ImGui::BeginDisabled(strlen(name_buffer) <= 3);
-            if (ImGui::Button(strings::gui_tree_menu_node_edit_apply)) {
-                tree::rename_node(node, name_buffer);
-                ImGui::CloseCurrentPopup();
+
+            const bool is_disabled = (strlen(name_buffer) <= 3) || (::strcmp(name_buffer, node->name) == 0);
+            ImGui::BeginDisabled(is_disabled);
+            {
+                if (ImGui::Button(strings::gui_tree_menu_node_edit_apply)) {
+                    tree::rename_node(node, name_buffer);
+                    ImGui::CloseCurrentPopup();
+                }
+                else if (!is_disabled && (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyDown(ImGuiKey_Enter))) {
+                    tree::rename_node(node, name_buffer);
+                    ImGui::CloseCurrentPopup();
+                }
             }
             ImGui::EndDisabled();
+
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsKeyDown(ImGuiKey_Escape)) {
+                ImGui::CloseCurrentPopup();
+            }
+
             ImGui::EndPopup();
         } else if (rename_popup) {
             ImGui::OpenPopup("rename-popup");
