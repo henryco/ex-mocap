@@ -44,6 +44,8 @@ namespace ex::gui {
 
     int window_reset_flags(bool reset, bool standalone);
 
+    bool section_node(const char *name, bool selected = false, bool expand = false, bool collapse = false);
+
     bool generic_node(const char *name, bool bullet, bool selected = false, bool nested = false, bool expand = false, bool collapse = false);
 
     bool plain_node(const char *name, bool bullet, bool selected = false, bool nested = false, bool expand = false, bool collapse = false);

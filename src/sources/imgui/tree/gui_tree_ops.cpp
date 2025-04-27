@@ -319,7 +319,10 @@ namespace ex::gui::tree {
 
         const id_type_32 id_node = created->id_node;
         state.logic.active_node  = id_node;
-        ex::entity::add_child(state.logic.root_node, id_node);
+
+        const int index = (add->state >>= node_state::section) ? (0) : (-1);
+
+        ex::entity::add_child(state.logic.root_node, id_node, index);
 
         const auto after = Snapshot::create();
         ParcelBox box = ParcelBox::create();
@@ -484,16 +487,21 @@ namespace ex::gui::tree {
 
         state.logic.active_node = created->id_node;
 
-        entity::IdArray children_1 = ex::entity::children(node->id_node);
-        if (children_1.data == nullptr || children_1.size <= 0) {
-            TreeNode *group = ex::entity::create();
-            group->name     = "generic_container";
-            group->state    = node_state::group;
-            ex::entity::add_child(node->id_node, group->id_node);
+        TreeNode *parent = nullptr;
+        if (node->state >>= node_state::section) {
+            parent = node;
+        } else {
+            entity::IdArray children_1 = ex::entity::children(node->id_node);
+            if (children_1.data == nullptr || children_1.size <= 0) {
+                TreeNode *group = ex::entity::create();
+                group->name  = "generic_container";
+                group->state = node_state::group;
+                ex::entity::add_child(node->id_node, group->id_node);
+            }
+            entity::IdArray children_2 = ex::entity::children(node->id_node);
+            parent                     = ex::entity::find(children_2.data[0]);
         }
 
-        entity::IdArray  children_2 = ex::entity::children(node->id_node);
-        TreeNode        *parent     = ex::entity::find(children_2.data[0]);
         const id_type_32 id_node    = created->id_node;
         ex::entity::add_child(parent->id_node, id_node);
 
@@ -625,7 +633,7 @@ namespace ex::gui::tree {
 
         TreeState::reset(tree::state());
 
-        const auto &upd_fn = i_::mappers_[node->id_type].update_tree_node;
+        const auto &upd_fn = i_::mappers_.at_or_default(node->id_type).update_tree_node;
         if (upd_fn != nullptr)
             upd_fn(&before, node);
 
@@ -870,16 +878,20 @@ namespace ex::gui::tree {
 
         const auto before = Snapshot::create(state);
 
-        entity::IdArray children_1 = ex::entity::children(node_into->id_node);
-        if (children_1.data == nullptr || children_1.size <= 0) {
-            TreeNode *group = ex::entity::create();
-            group->name     = "generic_container";
-            group->state    = node_state::group;
-            ex::entity::add_child(node_into->id_node, group->id_node);
+        TreeNode *parent = nullptr;
+        if (node_into->state >>= node_state::section) {
+            parent = node_into;
+        } else {
+            entity::IdArray children_1 = ex::entity::children(node_into->id_node);
+            if (children_1.data == nullptr || children_1.size <= 0) {
+                TreeNode *group = ex::entity::create();
+                group->name  = "generic_container";
+                group->state = node_state::group;
+                ex::entity::add_child(node_into->id_node, group->id_node);
+            }
+            entity::IdArray children_2 = ex::entity::children(node_into->id_node);
+            parent                     = ex::entity::find(children_2.data[0]);
         }
-
-        entity::IdArray  children_2 = ex::entity::children(node_into->id_node);
-        TreeNode        *parent     = ex::entity::find(children_2.data[0]);
 
         if (ref) {
             for (selection_node *head = selection; head != nullptr; head = head->next)
@@ -1048,16 +1060,20 @@ namespace ex::gui::tree {
 
         const auto before = Snapshot::create(state);
 
-        entity::IdArray children_1 = ex::entity::children(node_into->id_node);
-        if (children_1.data == nullptr || children_1.size <= 0) {
-            TreeNode *group = ex::entity::create();
-            group->name  = "generic_container";
-            group->state = node_state::group;
-            ex::entity::add_child(node_into->id_node, group->id_node);
+        TreeNode *parent = nullptr;
+        if (node_into->state >>= node_state::section) {
+            parent = node_into;
+        } else {
+            entity::IdArray children_1 = ex::entity::children(node_into->id_node);
+            if (children_1.data == nullptr || children_1.size <= 0) {
+                TreeNode *group = ex::entity::create();
+                group->name  = "generic_container";
+                group->state = node_state::group;
+                ex::entity::add_child(node_into->id_node, group->id_node);
+            }
+            entity::IdArray children_2 = ex::entity::children(node_into->id_node);
+            parent                     = ex::entity::find(children_2.data[0]);
         }
-
-        entity::IdArray  children_2 = ex::entity::children(node_into->id_node);
-        TreeNode        *parent     = ex::entity::find(children_2.data[0]);
 
         move_(ex::entity::find(move->id_node), parent->id_node, &id_array);
 
@@ -1167,13 +1183,17 @@ namespace ex::gui::tree {
         const auto before = Snapshot::create();
 
         ex::data::array<id_mapping> id_array;
-        int j = 0;
-        for (selection_node *head = sorted; head != nullptr; head = head->next)
-            move_(ex::entity::find(head->selected->id_node), grand_id, &id_array, parent_idx + (j++));
-
-        const auto children = ex::entity::children(parent_node->id_node);
-        if (children.size == 0 || children.data == nullptr)
-            ex::entity::remove(parent_node->id_node);
+        if (!(parent_node->state >>= node_state::section)) {
+            int j = 0;
+            for (selection_node *head = sorted; head != nullptr; head = head->next)
+                move_(ex::entity::find(head->selected->id_node), grand_id, &id_array, parent_idx + (j++));
+            const auto children = ex::entity::children(parent_node->id_node);
+            if (children.size == 0 || children.data == nullptr)
+                ex::entity::remove(parent_node->id_node);
+        } else {
+            for (selection_node *head = sorted; head != nullptr; head = head->next)
+                move_(ex::entity::find(head->selected->id_node), grand_id, &id_array);
+        }
 
         selection_node::free(sorted);
         const auto after = Snapshot::create();
@@ -1219,7 +1239,7 @@ namespace ex::gui::tree {
         const auto og_state = node->state;
         node->state -= node_state::disabled;
 
-        const auto &upd_fn = i_::mappers_[node->id_type].update_tree_node;
+        const auto &upd_fn = i_::mappers_.at_or_default(node->id_type).update_tree_node;
         if (upd_fn != nullptr)
             upd_fn(&before, node);
 
@@ -1266,7 +1286,7 @@ namespace ex::gui::tree {
         const auto og_state = node->state;
         node->state |= node_state::disabled;
 
-        if (const auto &upd_fn = i_::mappers_[node->id_type].update_tree_node)
+        if (const auto &upd_fn = i_::mappers_.at_or_default(node->id_type).update_tree_node)
             upd_fn(&before, node);
 
         TreeState::reset(tree::state());
@@ -1283,7 +1303,7 @@ namespace ex::gui::tree {
             f_node->state -= node_state::disabled;
             f_node->state |= (og_state & node_state::disabled);
 
-            if (const auto &upd_fn = i_::mappers_[f_node->id_type].update_tree_node)
+            if (const auto &upd_fn = i_::mappers_.at_or_default(f_node->id_type).update_tree_node)
                 upd_fn(&before_, f_node);
 
             TreeState::reset(tree::state());
@@ -1299,7 +1319,7 @@ namespace ex::gui::tree {
 
             f_node->state |= node_state::disabled;
 
-            if (const auto &upd_fn = i_::mappers_[f_node->id_type].update_tree_node)
+            if (const auto &upd_fn = i_::mappers_.at_or_default(f_node->id_type).update_tree_node)
                 upd_fn(&before_, f_node);
 
             TreeState::reset(tree::state());

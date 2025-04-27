@@ -36,6 +36,7 @@ namespace ex::gui {
 
     constexpr auto col_orange = IM_COL32(255, 140, 40, 255);
     constexpr auto col_purple = IM_COL32(255, 0, 255, 255);
+    constexpr auto col_dark_g  = IM_COL32(80, 80, 80, 180);
     constexpr auto vec_purple = ImVec4(255, 0, 255, 255);
 
     static constexpr auto dnd_type = "node";
@@ -392,6 +393,97 @@ namespace ex::gui {
 
         int counter_i = counter;
 
+        if (node->state >>= node_state::section) {
+            // TODO
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+
+            const bool disabled  = node->state >>= node_state::disabled;
+            const bool dimmed    = node->state >>= node_state::dimmed;
+
+            if (disabled || disabled_ || dimmed)
+                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
+
+            ImGui::PushID(node->id_node);
+
+            const auto children     = ex::entity::children(node->id_node);
+            const bool is_selected_ = node->state >>= node_state::selected;
+
+            const tree::TreeState &node_state = ex::gui::tree::state();
+            const bool open = ex::gui::section_node(node->name, is_selected_, node_state.force_expand, node_state.force_collapse);
+
+            const auto     p_min = ImGui::GetItemRectMin();
+
+            insertion_node(node);
+
+            bool menu_element = false;
+            if (tree::selection_node::single(*selected)) {
+                menu_element = tree::show_context_menu_element(node, *menu_node == node->id_node,
+                    children.size > 0, (node->state >>= node_state::selected));
+            }
+
+            if (menu_element) {
+                *menu_node = node->id_node;
+            }
+
+            if (disabled || disabled_ || dimmed)
+                ImGui::PopStyleVar();
+
+            if (ex::entity::is_dirty()) {
+                if (open) {
+                    ImGui::TreePop();
+                }
+                ImGui::PopID();
+                return counter_i;
+            }
+
+            constexpr const char *col_text = "*";
+//            constexpr const char *col_text = "";
+            static const float offset = ImGui::CalcTextSize(col_text).x;
+
+            ImGui::TableNextColumn();
+            ImGui::TextDisabled("%s", col_text);
+
+            if (open) {
+
+                if (disabled || disabled_ || dimmed)
+                    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
+
+                const auto p_max_1 = ImGui::GetItemRectMax();
+
+                for (int i = 0, u = 0; i < children.size; i++) {
+                    auto i_c = ex::entity::find(children.data[i]);
+                    counter_i = show_tree_node(state, gui, i_c,
+                        selected, active, menu_node, ref_node, disabled_,
+                                               counter_i + 1, u);
+                    u += !(i_c->state >>= node_state::disabled);
+                }
+
+                if (disabled || disabled_ || dimmed)
+                    ImGui::PopStyleVar();
+
+
+                const auto p_max_2   = ImGui::GetItemRectMax();
+                const auto draw_list = ImGui::GetWindowDrawList();
+
+                draw_list->AddRect(
+                    ImVec2(p_min.x, p_min.y - 1),
+                    ImVec2(p_max_1.x + ctrl_width - 1 - offset, p_max_2.y + 4),
+                    col_dark_g, 0.f, 0, 1.f);
+                ImGui::TreePop();
+            }
+
+            ImGui::PopID();
+
+            insertion_space(node, counter_i);
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            return counter_i;
+        }
 
         if (!(node->state >>= node_state::group)) {
             // Not a group just regular element

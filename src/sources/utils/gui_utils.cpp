@@ -195,6 +195,23 @@ namespace ex::gui {
         draw_list->AddTriangleFilled(p7, p5, p6, color_1);
     }
 
+    bool section_node(const char *name, const bool selected, const bool expand, const bool collapse) {
+        if (expand)   ImGui::SetNextItemOpen(true, ImGuiCond_Always);
+        if (collapse) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
+
+        constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
+        const auto c_flag = tree_node_flags | (selected ? ImGuiTreeNodeFlags_Selected : 0);
+
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.2f, 0.3f, 0.4f, 0.25f));       // Normal
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.3f, 0.4f, 0.5f, 0.5f)); // Hovered
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.5f, 0.6f, 1.0f));  // Clicked
+
+        const bool open = ImGui::TreeNodeEx(name, c_flag | ImGuiTreeNodeFlags_Framed);
+
+        ImGui::PopStyleColor(3);
+        return open;
+    }
+
     bool generic_node(const char *name, const bool bullet, const bool selected, const bool nested, const bool expand, const bool collapse) {
         if (expand)   ImGui::SetNextItemOpen(true, ImGuiCond_Always);
         if (collapse) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
