@@ -386,7 +386,7 @@ namespace ex::gui {
 
     int show_tree_node(State &state, GuiState &gui, TreeNode *node, tree::selection_node **selected, TreeNode **active,
                        std::size_t *menu_node, std::size_t *ref_node, const bool disabled_, const int counter,
-                       const int n) {
+                       const int n, const bool ignore_disconnect) {
 
         if (node == nullptr)
             return counter;
@@ -394,8 +394,6 @@ namespace ex::gui {
         int counter_i = counter;
 
         if (node->state >>= node_state::section) {
-            // TODO
-
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
 
@@ -452,12 +450,15 @@ namespace ex::gui {
 
                 const auto p_max_1 = ImGui::GetItemRectMax();
 
+                bool non_group = false;
                 for (int i = 0, u = 0; i < children.size; i++) {
                     auto i_c = ex::entity::find(children.data[i]);
                     counter_i = show_tree_node(state, gui, i_c,
                         selected, active, menu_node, ref_node, disabled_,
-                                               counter_i + 1, u);
+                                               counter_i + 1, u, !non_group);
                     u += !(i_c->state >>= node_state::disabled);
+                    if (!(i_c->state >>= node_state::group))
+                        non_group = true;
                 }
 
                 if (disabled || disabled_ || dimmed)
@@ -492,7 +493,7 @@ namespace ex::gui {
             ImGui::TableNextColumn();
 
             const bool reference = node->state >>= node_state::link;
-            const bool connected = (node->state >>= node_state::connected) || reference || n <= 0;
+            const bool connected = (node->state >>= node_state::connected) || reference || n <= 0 || ignore_disconnect;
             const bool symlinked = *ref_node > 0 && *ref_node == node->id_node;
             const bool observer  = node->state >>= node_state::output;
             const bool disabled  = node->state >>= node_state::disabled;
@@ -608,12 +609,15 @@ namespace ex::gui {
                 if (const auto next = ex::entity::find(children.data[0])) {
                     const auto n_children = ex::entity::children(next->id_node);
 
+                    bool non_group = false;
                     for (int i = 0, u = 0; i < n_children.size; i++) {
                         auto i_c = ex::entity::find(n_children.data[i]);
                         counter_i = show_tree_node(state, gui, i_c,
                             selected, active, menu_node, ref_node,
-                                                   disabled || disabled_ || dimmed, counter_i + 1, u);
+                                                   disabled || disabled_ || dimmed, counter_i + 1, u, !non_group);
                         u += !(i_c->state >>= node_state::disabled);
+                        if (!(i_c->state >>= node_state::group))
+                            non_group = true;
                     }
                 }
                 ImGui::TreePop();
@@ -656,7 +660,7 @@ namespace ex::gui {
         const bool observer  = first->state >>= node_state::output;
         const bool dimmed    = first->state >>= node_state::dimmed;
 
-        if (f_children.size <= 0) {// TODO FIXME
+        if (f_children.size <= 0) {
             // Group with children, where the first element _HAS NO_ its own children
             const ImVec2 outer_start = brackets_start();
             {
@@ -739,12 +743,15 @@ namespace ex::gui {
 
                 int u = disabled ? 0 : 1;
                 if (children.size > 1) {
+                    bool non_group = false;
                     for (int i = 1; i < children.size; i++) {
                         auto i_c = ex::entity::find(children.data[i]);
                         counter_i = show_tree_node(state, gui, i_c,
                             selected, active, menu_node, ref_node,
-                                                   disabled_, counter_i + 1, u);
+                                                   disabled_, counter_i + 1, u, !non_group);
                         u += !(i_c->state >>= node_state::disabled);
+                        if (!(i_c->state >>= node_state::group))
+                            non_group = true;
                     }
                 }
             }
@@ -757,12 +764,15 @@ namespace ex::gui {
 
         // Group with children, where the first element _HAS_ its own children
         const ImVec2 outer_start = brackets_start();
+        bool non_group = false;
         for (int i = 0, u = 0; i < children.size; i++) {
             auto i_c = ex::entity::find(children.data[i]);
             counter_i = show_tree_node(state, gui, i_c,
                 selected, active, menu_node, ref_node, disabled_,
-                                       counter_i + 1, u);
+                                       counter_i + 1, u, !non_group);
             u += !(i_c->state >>= node_state::disabled);
+            if (!(i_c->state >>= node_state::group))
+                non_group = true;
         }
 
         brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
@@ -804,9 +814,13 @@ namespace ex::gui {
 
             ImGui::Indent(10.f);
             work_tree::internals_::cache.begin();
+            bool non_group = false;
             for (int i = 0, p = 0; i < root_children.size; i++) {
-                p = show_tree_node(state, gui, ex::entity::find(root_children.data[i]), &tree_state.selection,
-                    &active_node, &last_menu, &last_ref, false, p + 1, i);
+                TreeNode *i_c = ex::entity::find(root_children.data[i]);
+                p = show_tree_node(state, gui, i_c, &tree_state.selection,
+                    &active_node, &last_menu, &last_ref, false, p + 1, i, !non_group);
+                if (!(i_c->state >>= node_state::group))
+                    non_group = true;
             }
             work_tree::internals_::cache.end();
             ImGui::Unindent(10.f);
