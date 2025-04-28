@@ -7,8 +7,8 @@
 
 #include "../../extra/data/struct/array_map.h"
 
-#include "../logic/nodes/logic_nodes.h"
-#include "../imgui/nodes/gui_nodes.h"
+#include "../imgui/gui_nodes.h"
+#include "../logic/logic_nodes.h"
 
 namespace ex::nodes {
 

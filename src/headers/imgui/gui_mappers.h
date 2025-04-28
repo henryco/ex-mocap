@@ -5,8 +5,8 @@
 #ifndef EX_MOTION_GUI_MAPPERS_H
 #define EX_MOTION_GUI_MAPPERS_H
 
-#include "nodes/gui_nodes.h"
 #include "../../extra/data/struct/array_map.h"
+#include "gui_nodes.h"
 
 namespace ex::gui {
     using id_type  = unsigned long int;

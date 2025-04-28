@@ -148,9 +148,9 @@ set(HEADER_FILES
         src/headers/imgui/layout/gui_layout.h
         src/headers/core/camera.h
         src/headers/logic/logic.h
-        src/headers/logic/nodes/logic_nodes.h
+        src/headers/logic/logic_nodes.h
         src/headers/core/image_protocol.h
-        src/headers/imgui/nodes/gui_nodes.h
+        src/headers/imgui/gui_nodes.h
         src/headers/imgui/gui_state.h
         src/headers/imgui/tree/gui_tree_ops.h
         src/headers/imgui/gui_globals.h

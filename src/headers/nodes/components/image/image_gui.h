@@ -5,7 +5,7 @@
 #ifndef EX_NODES_CMP_IMAGE_GUI_H
 #define EX_NODES_CMP_IMAGE_GUI_H
 
-#include "../../../imgui/nodes/gui_nodes.h"
+#include "../../../imgui/gui_nodes.h"
 
 namespace ex::gui::node::cmp::image {
 

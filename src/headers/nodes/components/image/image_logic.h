@@ -5,9 +5,9 @@
 #ifndef EX_NODES_CMP_IMAGE_LOGIC_H
 #define EX_NODES_CMP_IMAGE_LOGIC_H
 
-#include "../../../io/byte_serializer.h"
 #include "../../../cl/cl_image.h"
-#include "../../../logic/nodes/logic_nodes.h"
+#include "../../../io/byte_serializer.h"
+#include "../../../logic/logic_nodes.h"
 
 namespace ex::logic::node::cmp::image {
 

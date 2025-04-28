@@ -5,7 +5,7 @@
 #ifndef EX_IMGUI_NODE_COMPONENTS_H
 #define EX_IMGUI_NODE_COMPONENTS_H
 
-#include "../../entity.h"
+#include "../entity.h"
 
 namespace ex::gui {
 

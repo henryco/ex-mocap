@@ -6,7 +6,7 @@
 #define EX_NODES_OUTPUT_DISPLAY_LOGIC_H
 
 #include "../../../cl/cl_image.h"
-#include "../../../logic/nodes/logic_nodes.h"
+#include "../../../logic/logic_nodes.h"
 
 namespace ex::logic::node::out {
     namespace ln = limbo::graph;
