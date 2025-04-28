@@ -2,12 +2,12 @@
 // Created by xd on 4/9/25.
 //
 
-#ifndef EX_LOGIC_CMP_IMAGE_H
-#define EX_LOGIC_CMP_IMAGE_H
+#ifndef EX_NODES_CMP_IMAGE_LOGIC_H
+#define EX_NODES_CMP_IMAGE_LOGIC_H
 
 #include "../../../io/byte_serializer.h"
 #include "../../../cl/cl_image.h"
-#include "../logic_nodes.h"
+#include "../../../logic/nodes/logic_nodes.h"
 
 namespace ex::logic::node::cmp::image {
 
@@ -60,4 +60,4 @@ namespace ex::logic::node::cmp::image {
 
 }
 
-#endif //EX_LOGIC_CMP_IMAGE_H
+#endif //EX_NODES_CMP_IMAGE_LOGIC_H

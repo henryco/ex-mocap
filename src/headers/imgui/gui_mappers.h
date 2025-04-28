@@ -2,8 +2,8 @@
 // Created by henryco on 25/02/25.
 //
 
-#ifndef GUI_MAPPERS_H
-#define GUI_MAPPERS_H
+#ifndef EX_MOTION_GUI_MAPPERS_H
+#define EX_MOTION_GUI_MAPPERS_H
 
 #include "nodes/gui_nodes.h"
 #include "../../extra/data/struct/array_map.h"
@@ -24,4 +24,4 @@ namespace ex::gui {
 
 }
 
-#endif //GUI_MAPPERS_H
+#endif //EX_MOTION_GUI_MAPPERS_H

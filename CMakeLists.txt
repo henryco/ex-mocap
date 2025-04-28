@@ -147,13 +147,11 @@ set(HEADER_FILES
         src/headers/cl/ocl_interop_ext.h
         src/headers/imgui/layout/gui_layout.h
         src/headers/core/camera.h
-        src/headers/logic/nodes/components/c_camera.h
         src/headers/logic/logic.h
         src/headers/logic/nodes/logic_nodes.h
         src/headers/core/image_protocol.h
         src/headers/imgui/nodes/gui_nodes.h
         src/headers/imgui/gui_state.h
-        src/headers/imgui/nodes/components/test_cmp.h
         src/headers/imgui/tree/gui_tree_ops.h
         src/headers/imgui/gui_globals.h
         src/headers/logic/logic_state.h
@@ -173,17 +171,18 @@ set(HEADER_FILES
         src/headers/imgui/display/gui_display.h
         src/headers/display/display.h
         src/headers/imgui/display/imp.h
-        src/headers/logic/nodes/outputs/display.h
-        src/headers/imgui/nodes/outputs/display.h
         src/headers/logic/logic_mappers.h
         src/headers/imgui/gui_mappers.h
-        src/sources/logic/nodes/outputs/display.cpp
         src/headers/io/serializer.h
         src/headers/utils/err_utils.h
-        src/headers/imgui/nodes/components/image.h
-        src/headers/logic/nodes/components/image.h
         src/headers/cl/cl_image.h
         src/headers/entity.h
+        src/headers/nodes/node_registry.h
+        src/headers/nodes/components/image/image_gui.h
+        src/headers/nodes/components/image/image_logic.h
+        src/headers/nodes/components/test_cmp/test_cmp.h
+        src/headers/nodes/outputs/display/display_gui.h
+        src/headers/nodes/outputs/display/display_logic.h
 )
 
 set(SOURCE_FILES
@@ -206,9 +205,7 @@ set(SOURCE_FILES
         src/sources/imgui/layout/gui_layout_history.cpp
         src/sources/imgui/layout/gui_layout_main_content.cpp
         src/sources/core/camera.cpp
-        src/sources/logic/nodes/components/c_camera.cpp
         src/sources/logic/logic.cpp
-        src/sources/imgui/nodes/components/test_cmp.cpp
         src/sources/imgui/tree/gui_tree_menu.cpp
         src/sources/imgui/layout/gui_layout_work_window.cpp
         src/sources/imgui/layout/gui_layout_node_inspector.cpp
@@ -223,23 +220,24 @@ set(SOURCE_FILES
         src/sources/imgui/actions/gui_actions_registry.cpp
         src/sources/imgui/actions/gui_actions.cpp
         src/sources/imgui/layout/gui_layout_alert_dialogs.cpp
-        src/sources/logic/nodes/components/registry.cpp
-        src/sources/imgui/nodes/components/registry.cpp
         src/sources/utils/time_utils.cpp
         src/sources/imgui/layout/pane/gui_pane_left.cpp
         src/sources/imgui/layout/pane/gui_pane_right.cpp
         src/sources/imgui/display/gui_display.cpp
-        src/sources/imgui/nodes/outputs/registry.cpp
-        src/sources/logic/nodes/outputs/registry.cpp
         src/sources/logic/logic_mappers.cpp
         src/sources/imgui/gui_mappers.cpp
-        src/sources/imgui/nodes/outputs/display.cpp
         src/sources/display/display.cpp
         src/sources/utils/err_utils.cpp
-        src/sources/imgui/nodes/components/image.cpp
-        src/sources/logic/nodes/components/image.cpp
         src/sources/cl/cl_image.cpp
         src/sources/entity.cpp
+        src/sources/nodes/provider.cpp
+        src/sources/nodes/outputs/registry.cpp
+        src/sources/nodes/components/registry.cpp
+        src/sources/nodes/components/image/image_gui.cpp
+        src/sources/nodes/components/image/image_logic.cpp
+        src/sources/nodes/components/test_cmp/test_cmp.cpp
+        src/sources/nodes/outputs/display/display_gui.cpp
+        src/sources/nodes/outputs/display/display_logic.cpp
 )
 
 # =================== OpenCL kernels generation =====================

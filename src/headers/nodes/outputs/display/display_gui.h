@@ -2,10 +2,10 @@
 // Created by xd on 2/24/25.
 //
 
-#ifndef EX_IMGUI_OUTPUT_DISPLAY_H
-#define EX_IMGUI_OUTPUT_DISPLAY_H
+#ifndef EX_NODES_OUTPUT_DISPLAY_GUI_H
+#define EX_NODES_OUTPUT_DISPLAY_GUI_H
 
-#include "../gui_nodes.h"
+#include "../../../imgui/nodes/gui_nodes.h"
 
 namespace ex::gui::node::out::display {
 
@@ -29,4 +29,4 @@ namespace ex::gui::node::out::display {
 
 }
 
-#endif //EX_IMGUI_OUTPUT_DISPLAY_H
+#endif //EX_NODES_OUTPUT_DISPLAY_GUI_H

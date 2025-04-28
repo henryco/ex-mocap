@@ -2,11 +2,11 @@
 // Created by xd on 2/24/25.
 //
 
-#ifndef EX_LOGIC_OUTPUT_DISPLAY_H
-#define EX_LOGIC_OUTPUT_DISPLAY_H
+#ifndef EX_NODES_OUTPUT_DISPLAY_LOGIC_H
+#define EX_NODES_OUTPUT_DISPLAY_LOGIC_H
 
 #include "../../../cl/cl_image.h"
-#include "../logic_nodes.h"
+#include "../../../logic/nodes/logic_nodes.h"
 
 namespace ex::logic::node::out {
     namespace ln = limbo::graph;
@@ -61,4 +61,4 @@ namespace ex::logic::node::out {
 
 }
 
-#endif //EX_LOGIC_OUTPUT_DISPLAY_H
+#endif //EX_NODES_OUTPUT_DISPLAY_LOGIC_H

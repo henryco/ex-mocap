@@ -2,8 +2,8 @@
 // Created by xd on 4/9/25.
 //
 
-#include "../../../../headers/imgui/nodes/components/image.h"
-#include "../../../../headers/logic/nodes/components/image.h"
+#include "../../../../headers/nodes/components/image/image_gui.h"
+#include "../../../../headers/nodes/components/image/image_logic.h"
 #include "../../../../headers/imgui/strings/gui_strings.h"
 #include "../../../../headers/logic/logic_globals.h"
 #include "../../../../headers/logic/logic_mappers.h"

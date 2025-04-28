@@ -2,7 +2,7 @@
 // Created by xd on 4/9/25.
 //
 
-#include "../../../../headers/logic/nodes/components/image.h"
+#include "../../../../headers/nodes/components/image/image_logic.h"
 #include "../../../../headers/logic/nodes/logic_nodes.h"
 #include "../../../../headers/logic/logic_globals.h"
 #include "../../../../headers/cl/cl_kernel.h"

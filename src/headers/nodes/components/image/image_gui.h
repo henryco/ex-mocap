@@ -2,10 +2,10 @@
 // Created by xd on 4/9/25.
 //
 
-#ifndef EX_IMGUI_CMP_IMAGE_H
-#define EX_IMGUI_CMP_IMAGE_H
+#ifndef EX_NODES_CMP_IMAGE_GUI_H
+#define EX_NODES_CMP_IMAGE_GUI_H
 
-#include "../gui_nodes.h"
+#include "../../../imgui/nodes/gui_nodes.h"
 
 namespace ex::gui::node::cmp::image {
 
@@ -32,4 +32,4 @@ namespace ex::gui::node::cmp::image {
     };
 }
 
-#endif //EX_IMGUI_CMP_IMAGE_H
+#endif //EX_NODES_CMP_IMAGE_GUI_H

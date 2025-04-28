@@ -2,8 +2,8 @@
 // Created by xd on 2/25/25.
 //
 
-#include "../../../../headers/logic/nodes/outputs/display.h"
-#include "../../../../headers/imgui/nodes/outputs/display.h"
+#include "../../../../headers/nodes/outputs/display/display_logic.h"
+#include "../../../../headers/nodes/outputs/display/display_gui.h"
 #include "../../../../headers/imgui/strings/gui_strings.h"
 #include "../../../../headers/imgui/gui_globals.h"
 #include "../../../../headers/logic/logic_state.h"

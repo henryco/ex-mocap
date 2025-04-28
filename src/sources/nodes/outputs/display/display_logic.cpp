@@ -2,7 +2,7 @@
 // Created by xd on 2/25/25.
 //
 
-#include "../../../../headers/logic/nodes/outputs/display.h"
+#include "../../../../headers/nodes/outputs/display/display_logic.h"
 #include "../../../../headers/logic/logic_globals.h"
 #include "../../../../headers/display/display.h"
 #include "../../../../headers/cl/ocl_interop.h"
