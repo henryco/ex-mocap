@@ -163,7 +163,7 @@ namespace ex::gui::tree {
 
     bool create_new_section(TreeNode *new_node) {
         new_node->state = node_state::group | node_state::section;
-        new_node->name  = "new section";
+        new_node->name  = strings::node_section_new_name;
         // TODO
         return true;
     }

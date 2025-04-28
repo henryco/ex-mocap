@@ -136,6 +136,8 @@ namespace ex::gui::strings {
     constexpr auto gui_dialogs_alert_error     = "Error";
     constexpr auto gui_dialogs_alert_error_yes = "OK";
 
+    constexpr auto node_section_new_name = "New section";
+
     constexpr auto node_output_display_name = "Display";
 
     constexpr auto node_component_image_name       = "Image";
