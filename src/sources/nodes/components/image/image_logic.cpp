@@ -45,10 +45,9 @@ namespace ex::logic::node::cmp::image {
         parcel.c = source_.channels;
         parcel.s = image_size;
 
-        // TODO FIXME
         unsigned char *bytes = static_cast<unsigned char *>(::malloc(total_size));
+        ::memcpy(bytes, &parcel, sizeof(serial_parcel));
         if (source_.data_ptr != nullptr) {
-            ::memcpy(bytes, &parcel, sizeof(serial_parcel));
             ::memcpy(bytes + sizeof(serial_parcel), source_.data_ptr, image_size);
         }
 
