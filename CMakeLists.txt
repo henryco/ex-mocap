@@ -226,7 +226,6 @@ set(SOURCE_FILES
         src/sources/imgui/display/gui_display.cpp
         src/sources/logic/logic_mappers.cpp
         src/sources/imgui/gui_mappers.cpp
-        src/sources/io/display.cpp
         src/sources/utils/err_utils.cpp
         src/sources/cl/cl_image.cpp
         src/sources/entity.cpp

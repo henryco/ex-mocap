@@ -18,7 +18,7 @@ namespace ex::display {
         // TODO
     };
 
-    extern IO &io;
+    inline IO io;
 
 }
 
