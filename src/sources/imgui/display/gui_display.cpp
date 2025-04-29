@@ -3,16 +3,38 @@
 //
 
 #include "../../../extra/data/struct/array_map.h"
+#include "../../../headers/imgui/strings/gui_strings.h"
 #include "../../../headers/imgui/display/gui_display.h"
 #include "../../../headers/imgui/display/imp.h"
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/utils/gui_utils.h"
 
 #include <imgui_internal.h>
+#include <IconsLucide.h>
 
 namespace ex::display::imp::imgui {
 
-    int format_c(const int c) {
+    static constexpr ImVec4 BG_COLORS_[6] = {
+        ImVec4(0, 0, 0, 1), // BLACK
+        ImVec4(1, 1, 1, 1), // WHITE
+        ImVec4(1, 0, 1, 1), // MAGENTA
+        ImVec4(0, 1, 0, 1), // GREEN
+        ImVec4(1, 0, 0, 1), // BLUE
+        ImVec4(0, 0, 1, 1), // RED
+    };
+
+    static void switch_bg_color_(char *idx) {
+        if (idx == nullptr) return;
+        if (++(*idx) >= 6) *idx = 0;
+    }
+
+    static const ImVec4 &bg_color_(const int idx) {
+        if (idx >= 6)
+            return BG_COLORS_[0];
+        return BG_COLORS_[idx];
+    }
+
+    static int format_c(const int c) {
         if (c == 3)
             return GL_BGR;
         if (c == 4)
@@ -22,7 +44,7 @@ namespace ex::display::imp::imgui {
         abort_("channels number invalid: " << c);
     }
 
-    GLuint create_texture_bgra(const int width, const int height, const int channels) {
+    static GLuint create_texture_bgra(const int width, const int height, const int channels) {
         GLuint texture_id;
         glGenTextures(1, &texture_id);
         glBindTexture(GL_TEXTURE_2D, texture_id);
@@ -68,6 +90,7 @@ namespace ex::display::imp::imgui {
         int            w;
         int            h;
         int            c;
+        char           bg_color;
         bool           updated;
         bool           to_clear;
     };
@@ -84,7 +107,7 @@ namespace ex::display::imp::imgui {
         sprintf(uuid, "%s##display/%d", name, new_id);
         strcpy(label, name);
 
-        display_map_.put(new_id, { label, uuid, nullptr, 0, 0, 0, 0, true, false });
+        display_map_.put(new_id, { label, uuid, nullptr, 0, 0, 0, 0, 0, true, false });
         return new_id;
     }
 
@@ -107,7 +130,8 @@ namespace ex::display::imp::imgui {
             delete[] d_ref.name;
 
         display_map_.remove(id);
-        display_map_.put(id, { label, uuid, d_cpy.data, d_cpy.txid, d_cpy.w, d_cpy.h, d_cpy.c, d_cpy.updated, d_cpy.to_clear });
+        display_map_.put(id, { label, uuid, d_cpy.data, d_cpy.txid, d_cpy.w, d_cpy.h, d_cpy.c, d_cpy.bg_color,
+                               d_cpy.updated, d_cpy.to_clear });
     }
 
     void remove_output(const unsigned int id) {
@@ -148,7 +172,7 @@ namespace ex::display::imp::imgui {
 
 namespace ex::gui::display {
 
-    ImGuiWindowClass create_display_dock_host_class_() {
+    static ImGuiWindowClass create_display_dock_host_class_() {
         ImGuiWindowClass class_;
         class_.ClassId = 111777111;
         class_.DockingAllowUnclassed = false;
@@ -171,6 +195,25 @@ namespace ex::gui::display {
         return a > b ? b : a;
     }
 
+    static bool switch_button(const char *label, const bool def_state = false) {
+        bool new_state = def_state;
+
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 255));
+        ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(200, 200, 200, 255));
+        ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(0, 0, 0, 255));
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 11.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+
+        if (ImGui::Button(label)) {
+            new_state = !new_state;
+        }
+
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor(3);
+
+        return new_state;
+    }
+
     static ImVec2 img_size_(const float x, const float y, const float win_w, const float win_h, const bool fit) {
         if (!fit || (x == win_w && y == win_h))
             return { x, y };
@@ -185,11 +228,11 @@ namespace ex::gui::display {
         ImGui::SetNextWindowClass(&display_dock_host_class_);
         ImGui::SetNextWindowDockID(gui.docking.dock_main_id, gui.view.reset ? ImGuiCond_Always : ImGuiCond_Once);
 
-        // CUSTOM BG COLOR, TODO: MOVE TO SETTINGS
-        ImVec4 custom_bg = ImVec4(0.f, 0.f, 0.f, 1.0f);
+        const ImVec4 &custom_bg = ex::display::imp::imgui::bg_color_(disp.bg_color);
         ImGui::PushStyleColor(ImGuiCol_WindowBg, custom_bg);
 
         if (ImGui::Begin(disp.uuid, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
+            const float pos_y_0 = ImGui::GetCursorPosY();
 
             if (disp.to_clear == true) {
                 if (disp.txid != 0)
@@ -219,10 +262,10 @@ namespace ex::gui::display {
                 }
             }
 
-            if (disp.txid != 0) {
+            const float window_width  = ImGui::GetContentRegionAvail().x;
+            const float window_height = ImGui::GetContentRegionAvail().y;
 
-                const float window_width  = ImGui::GetContentRegionAvail().x;
-                const float window_height = ImGui::GetContentRegionAvail().y;
+            if (disp.txid != 0) {
 
                 constexpr bool should_fit = true; // TODO: MOVE TO SETTINGS
 
@@ -240,6 +283,20 @@ namespace ex::gui::display {
 
                 ImGui::Image(disp.txid, img_size);
                 disp.updated = false;
+            }
+
+            if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
+
+                ImGui::SetCursorPosX(window_width - ImGui::CalcTextSize(ICON_LC_PALETTE).x);
+                ImGui::SetCursorPosY(pos_y_0);
+                if (switch_button(ICON_LC_PALETTE)) {
+                    ex::display::imp::imgui::switch_bg_color_(&disp.bg_color);
+                }
+                ex::gui::plain_tooltip(strings::gui_display_button_bg_change);
+
+                // TODO: BUTTON CENTER
+
+                // TODO: BUTTON FIT
             }
         }
 
