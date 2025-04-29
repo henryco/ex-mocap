@@ -169,7 +169,7 @@ set(HEADER_FILES
         src/headers/imgui/layout/pane/gui_pane_right.h
         src/headers/imgui/layout/pane/gui_pane.h
         src/headers/imgui/display/gui_display.h
-        src/headers/display/display.h
+        src/headers/io/display.h
         src/headers/imgui/display/imp.h
         src/headers/logic/logic_mappers.h
         src/headers/imgui/gui_mappers.h
@@ -226,7 +226,7 @@ set(SOURCE_FILES
         src/sources/imgui/display/gui_display.cpp
         src/sources/logic/logic_mappers.cpp
         src/sources/imgui/gui_mappers.cpp
-        src/sources/display/display.cpp
+        src/sources/io/display.cpp
         src/sources/utils/err_utils.cpp
         src/sources/cl/cl_image.cpp
         src/sources/entity.cpp

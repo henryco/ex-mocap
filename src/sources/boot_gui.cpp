@@ -3,15 +3,15 @@
 //
 
 #include "../headers/boot.h"
+#include "../headers/cl/cl_gl_interop.h"
+#include "../headers/imgui/display/imp.h"
 #include "../headers/imgui/gui.h"
+#include "../headers/imgui/gui_globals.h"
+#include "../headers/io/display.h"
 #include "../headers/logic/logic.h"
 #include "../headers/logic/logic_globals.h"
-#include "../headers/imgui/gui_globals.h"
-#include "../headers/utils/time_utils.h"
 #include "../headers/utils/glfw_utils.h"
-#include "../headers/cl/cl_gl_interop.h"
-#include "../headers/display/display.h"
-#include "../headers/imgui/display/imp.h"
+#include "../headers/utils/time_utils.h"
 
 #include <GLFW/glfw3.h>
 #include <iostream>

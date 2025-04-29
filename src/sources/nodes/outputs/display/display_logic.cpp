@@ -3,10 +3,10 @@
 //
 
 #include "../../../../headers/nodes/outputs/display/display_logic.h"
-#include "../../../../headers/logic/logic_globals.h"
-#include "../../../../headers/display/display.h"
-#include "../../../../headers/cl/ocl_interop.h"
 #include "../../../../headers/cl/cl_kernel.h"
+#include "../../../../headers/cl/ocl_interop.h"
+#include "../../../../headers/io/display.h"
+#include "../../../../headers/logic/logic_globals.h"
 
 #include <iostream>
 

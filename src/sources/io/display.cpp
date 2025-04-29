@@ -2,7 +2,7 @@
 // Created by xd on 2/25/25.
 //
 
-#include "../../headers/display/display.h"
+#include "../../headers/io/display.h"
 
 namespace ex::display {
 
