@@ -7,7 +7,7 @@
 #include "../headers/imgui/display/imp.h"
 #include "../headers/imgui/gui.h"
 #include "../headers/imgui/gui_globals.h"
-#include "../headers/io/display.h"
+#include "../headers/io/display_out.h"
 #include "../headers/logic/logic.h"
 #include "../headers/logic/logic_globals.h"
 #include "../headers/utils/glfw_utils.h"

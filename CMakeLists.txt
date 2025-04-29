@@ -169,7 +169,7 @@ set(HEADER_FILES
         src/headers/imgui/layout/pane/gui_pane_right.h
         src/headers/imgui/layout/pane/gui_pane.h
         src/headers/imgui/display/gui_display.h
-        src/headers/io/display.h
+        src/headers/io/display_out.h
         src/headers/imgui/display/imp.h
         src/headers/logic/logic_mappers.h
         src/headers/imgui/gui_mappers.h
