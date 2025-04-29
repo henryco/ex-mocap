@@ -148,12 +148,6 @@ namespace ex::display::imp::imgui {
 
 namespace ex::gui::display {
 
-    void debug_node_host_(ImGuiDockNode *dock_host_node) {
-        ImGui::Begin("Dock Debug Window");
-        ImGui::DebugNodeDockNode(dock_host_node, "Debug");
-        ImGui::End();
-    }
-
     ImGuiWindowClass create_display_dock_host_class_() {
         ImGuiWindowClass class_;
         class_.ClassId = 111777111;
@@ -162,7 +156,7 @@ namespace ex::gui::display {
         return class_;
     }
 
-    inline int dock_host_flag_(GuiState &gui) {
+    static int dock_host_flag_(GuiState &gui) {
         constexpr int docked = ImGuiDockNodeFlags_NoUndocking;
         return 0 | (gui.view.docking ? 0 : (docked))
 #ifndef EXM_DISABLE_EXPERIMENTAL
@@ -173,7 +167,20 @@ namespace ex::gui::display {
 
     static const ImGuiWindowClass display_dock_host_class_ = create_display_dock_host_class_();
 
-    bool draw_display(const ImGuiWindow *host_window, ex::display::imp::imgui::display_window_t &disp) {
+    static float min_(const float a, const float b) {
+        return a > b ? b : a;
+    }
+
+    static ImVec2 img_size_(const float x, const float y, const float win_w, const float win_h, const bool fit) {
+        if (!fit || (x == win_w && y == win_h))
+            return { x, y };
+        const float scale = min_(win_w / x, win_h / y);
+        const float n_w = x * scale;
+        const float n_h = y * scale;
+        return { n_w, n_h };
+    }
+
+    static bool draw_display(const ImGuiWindow *host_window, ex::display::imp::imgui::display_window_t &disp) {
         static const GuiState &gui = ex::gui::state();
         ImGui::SetNextWindowClass(&display_dock_host_class_);
         ImGui::SetNextWindowDockID(gui.docking.dock_main_id, gui.view.reset ? ImGuiCond_Always : ImGuiCond_Once);
@@ -214,19 +221,24 @@ namespace ex::gui::display {
 
             if (disp.txid != 0) {
 
+                const float window_width  = ImGui::GetContentRegionAvail().x;
+                const float window_height = ImGui::GetContentRegionAvail().y;
+
+                constexpr bool should_fit = true; // TODO: MOVE TO SETTINGS
+
+                ImVec2 img_size = img_size_(disp.w, disp.h, window_width, window_height, should_fit);
+
                 {
                     // CENTERING, TODO: MOVE TO SETTINGS
-                    const float window_width  = ImGui::GetContentRegionAvail().x;
-                    const float window_height = ImGui::GetContentRegionAvail().y;
-                    const float x_offset      = (window_width - disp.w)  * 0.5f;
-                    const float y_offset      = (window_height - disp.h) * 0.5f;
+                    const float x_offset = (window_width - img_size.x) * 0.5f;
+                    const float y_offset = (window_height - img_size.y) * 0.5f;
                     if (x_offset > 0.0f)
                         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + x_offset);
                     if (y_offset > 0.0f)
                         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + y_offset);
                 }
 
-                ImGui::Image(disp.txid, { static_cast<float>(disp.w), static_cast<float>(disp.h) });
+                ImGui::Image(disp.txid, img_size);
                 disp.updated = false;
             }
         }
@@ -245,7 +257,7 @@ namespace ex::gui::display {
         return false;
     }
 
-    void draw_displays_(const ImGuiWindow *host_window, bool *docking_empty) {
+    static void draw_displays_(const ImGuiWindow *host_window, bool *docking_empty) {
         namespace edii = ex::display::imp::imgui;
         bool docked = false;
 
@@ -256,6 +268,12 @@ namespace ex::gui::display {
 
         *docking_empty = !docked;
     }
+
+//    static void debug_node_host_(ImGuiDockNode *dock_host_node) {
+//        ImGui::Begin("Dock Debug Window");
+//        ImGui::DebugNodeDockNode(dock_host_node, "Debug");
+//        ImGui::End();
+//    }
 
     void show_display() {
         static GuiState &gui = ex::gui::state();
