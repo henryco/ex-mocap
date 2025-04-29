@@ -22,7 +22,7 @@ namespace ex::gui::node::out::display {
         get_node_preview,
         draw_tree_node,
         nullptr,
-        draw_node_window,
+        nullptr,
         update_tree_node,
         nullptr
     };
