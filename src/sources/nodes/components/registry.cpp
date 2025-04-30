@@ -11,6 +11,9 @@
 #include "../../../headers/nodes/components/image/image_gui.h"
 #include "../../../headers/nodes/components/image/image_logic.h"
 
+#include "../../../headers/nodes/components/camera/camera_gui.h"
+#include "../../../headers/nodes/components/camera/camera_logic.h"
+
 namespace ex::nodes::mappers {
 
     const data::array_map<id_type, Mapper> &cmp_registry_() {
@@ -31,6 +34,14 @@ namespace ex::nodes::mappers {
             });
         } // TODO REMOVE
 
+        { // Camera component
+            namespace camera_node_n = ex::gui::node::camera;
+            using camera_node_t     = ex::logic::node::camera::CameraNode;
+            registry.put(id_from_struct_<camera_node_t>(), {
+                .gui = camera_node_n::gui_mappers,
+                .logic = logic_from_struct_<camera_node_t>()
+            });
+        }
 
         { // Image component
             namespace image_node_n = ex::gui::node::cmp::image;
