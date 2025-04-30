@@ -26,6 +26,8 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::set_image_id(const id_type_16 id) {
+        state.image_id    = static_cast<id_type_16>(id);
+        promise_.image.id = static_cast<id_type_16>(id);
         // TODO
     }
 
@@ -60,6 +62,7 @@ namespace ex::logic::node::camera {
     }
 
     CameraNode::CameraNode() :
+        state({ .image_id = 0, .selected = false }),
         queue_(nullptr) {
         // TODO
     }

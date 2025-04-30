@@ -147,6 +147,9 @@ namespace ex::gui::strings {
     constexpr auto node_component_image_select     = " Select ";
     constexpr auto node_component_image_source     = "Source";
     constexpr auto node_component_image_sourceless = "Source not selected";
+
+    constexpr auto node_component_camera_id         = "Image ID";
+    constexpr auto node_component_camera_name       = "Camera";
 }
 
 #endif //GUI_STRINGS_H

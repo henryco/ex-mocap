@@ -14,4 +14,77 @@
 #include <simpfp.h>
 #include "imgui.h"
 
-// TODO
+namespace ex::gui::node::camera {
+
+    static const char *prev_name_() {
+        static char out_name[128];
+        sprintf(out_name, "%s %s", ICON_LC_CAMERA, strings::node_component_camera_name);
+        return out_name;
+    }
+
+    void update_tree_node(const TreeNode *, TreeNode *) {
+    }
+
+    unsigned long int get_node_type_id() {
+        return ex::logic::node::camera::CameraNode::get_node_id();
+    }
+
+    const char *get_node_name() {
+        return strings::node_component_camera_name;
+    }
+
+    const char *get_node_preview() {
+        static const char *name = prev_name_();
+        return name;
+    }
+
+    bool draw_tree_node(TreeNode *n, const bool nested, const bool selected, const bool collapse, const bool expand) {
+        static char out_name[128]{};
+        sprintf(out_name, "%s %s", ICON_LC_CAMERA, n->name);
+        return generic_node(out_name, false, selected, nested, expand, collapse);
+    }
+
+    bool draw_node_window(GuiNodeWindow *window) {
+        static ex::State &state = ex::logic::globals::state();
+
+        auto *cmr_node = dynamic_cast<ex::logic::node::camera::CameraNode *>(ex::logic::state::get_node(window->node->id_node));
+        if (cmr_node == nullptr || cmr_node->get_id() != window->node->id_node)
+            return true;
+
+        {
+            ImGui::SeparatorText(strings::node_component_camera_id);
+
+            static char buff[8] = "";
+            ::snprintf(buff, 7, "%u", cmr_node->state.image_id);
+
+            const auto input_pos  = ImGui::GetCursorScreenPos();
+            const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
+            ImGui::SetNextItemWidth(input_size.x);
+            if (ImGui::InputText("##CameraID", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+                cmr_node->set_image_id(::atoi(buff));
+            }
+
+            constexpr float alpha = 1.f;
+            ImGui::GetWindowDrawList()->AddRect(input_pos,
+                                                ImVec2(input_pos.x + input_size.x, input_pos.y + input_size.y),
+                                                IM_COL32(0, 0, 0, 90 * alpha));
+        }
+
+        ImGui::NewLine();
+
+        // TODO
+
+        return true;
+    }
+
+    GuiNodeParcel *store(const TreeNode *node) {
+        // TODO
+        return nullptr;
+    }
+
+    void restore(TreeNode *node, GuiNodeParcel *parcel) {
+        if (parcel == nullptr)
+            return;
+        // TODO
+    }
+}

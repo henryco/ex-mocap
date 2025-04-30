@@ -11,11 +11,17 @@
 
 namespace ex::logic::node::camera {
 
+    struct camera_state {
+        id_type_16 image_id;
+        bool       selected;
+    };
+
     struct CameraNode final : limbo::graph::BaseNode,
                               limbo::graph::id::name<"camera_node">,
                               limbo::graph::io::out<ocl::img_promise, 1, "Frame image">,
                               ex::io::bytes::serializable
     {
+        camera_state      state;
 
         cl_command_queue  queue_;
         ocl::ImagePromise promise_;
