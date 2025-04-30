@@ -12,15 +12,16 @@
 namespace ex::logic::node::cmp::image {
 
     struct image_state {
-        char source[255];
-        bool selected;
+        char       source[255];
+        id_type_16 image_id;
+        bool       selected;
     };
 
     struct image_source {
         unsigned char *data_ptr = nullptr;
-        unsigned int   channels = 0;
-        unsigned int   width    = 0;
-        unsigned int   height   = 0;
+        unsigned short width    = 0;
+        unsigned short height   = 0;
+        unsigned char  channels = 0;
     };
 
     struct ImageNode final : limbo::graph::BaseNode,
@@ -41,6 +42,7 @@ namespace ex::logic::node::cmp::image {
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
         static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
 
+        void set_image_id(const id_type_16 id);
         void set_image(const char *image_path);
 
         io::byte_array serialize() const override;

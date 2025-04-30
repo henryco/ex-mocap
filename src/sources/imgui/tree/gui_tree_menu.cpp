@@ -430,8 +430,19 @@ namespace ex::gui::tree {
         if (ImGui::BeginPopup("rename-popup")) {
             ImGui::Text(strings::gui_tree_menu_node_edit_name);
 
+            const auto input_pos  = ImGui::GetCursorScreenPos();
+
+            static const float char_size  = ImGui::CalcTextSize(".").x;
+            static const auto  input_size = ImVec2(char_size * 32, ImGui::GetFrameHeight());
+
+            ImGui::SetNextItemWidth(input_size.x);
             ImGui::SetKeyboardFocusHere();
             ImGui::InputText("##edit", name_buffer, IM_ARRAYSIZE(name_buffer));
+
+            constexpr float alpha = 1.f;
+            ImGui::GetWindowDrawList()->AddRect(input_pos,
+                                                ImVec2(input_pos.x + input_size.x, input_pos.y + input_size.y),
+                                                IM_COL32(0, 0, 0, 90 * alpha));
 
             const bool is_disabled = (strlen(name_buffer) <= 3) || (::strcmp(name_buffer, node->name) == 0);
             ImGui::BeginDisabled(is_disabled);

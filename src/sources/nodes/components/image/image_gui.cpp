@@ -110,6 +110,27 @@ namespace ex::gui::node::cmp::image {
         if (img_node == nullptr || img_node->get_id() != window->node->id_node)
             return true;
 
+        {
+            ImGui::SeparatorText(strings::node_component_image_id);
+
+            static char buff[8] = "";
+            ::snprintf(buff, 7, "%u", img_node->state.image_id);
+
+            const auto input_pos  = ImGui::GetCursorScreenPos();
+            const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
+            ImGui::SetNextItemWidth(input_size.x);
+            if (ImGui::InputText("##ImageID", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+                img_node->set_image_id(::atoi(buff));
+            }
+
+            constexpr float alpha = 1.f;
+            ImGui::GetWindowDrawList()->AddRect(input_pos,
+                                                ImVec2(input_pos.x + input_size.x, input_pos.y + input_size.y),
+                                                IM_COL32(0, 0, 0, 90 * alpha));
+        }
+
+        ImGui::NewLine();
+
         const char *source_file = nullptr;
         if (img_node->state.selected) {
             source_file = img_node->state.source;
@@ -135,8 +156,6 @@ namespace ex::gui::node::cmp::image {
 
         if (!img_node->state.selected)
             return true;
-
-        // TODO image resize etc ?
 
         return true;
     }

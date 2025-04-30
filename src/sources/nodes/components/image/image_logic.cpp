@@ -17,6 +17,7 @@ namespace ex::logic::node::cmp::image {
     limbo::graph::BaseNode *ImageNode::instance(TreeNode *node) {
         ImageNode *ptr = new ImageNode();
         ptr->set_id(node->id_node);
+        ptr->set_image_id(node->id_node);
         return ptr;
     }
 
@@ -27,6 +28,11 @@ namespace ex::logic::node::cmp::image {
     void ImageNode::destroy(TreeNode *, limbo::graph::BaseNode *node) {
         node->detach_all();
         delete node;
+    }
+
+    void ImageNode::set_image_id(const id_type_16 id) {
+        state.image_id = static_cast<id_type_16>(id);
+        image_.id      = static_cast<id_type_16>(id);
     }
 
     struct serial_parcel {
@@ -89,8 +95,9 @@ namespace ex::logic::node::cmp::image {
             source_.channels, 1, state_.cl.context, queue_);
         promise.finalize();
 
-        promise_ = promise;
-        image_   = promise.image;
+        promise_  = promise;
+        image_    = promise.image;
+        image_.id = state.image_id;
         updates_.refresh();
     }
 
@@ -133,8 +140,9 @@ namespace ex::logic::node::cmp::image {
             source_.channels, 1, state_.cl.context, queue_);
         promise.finalize();
 
-        promise_ = promise;
-        image_   = promise.image;
+        promise_  = promise;
+        image_    = promise.image;
+        image_.id = state.image_id;
         updates_.refresh();
     }
 
@@ -168,7 +176,7 @@ namespace ex::logic::node::cmp::image {
     ImageNode::ImageNode() :
         queue_(nullptr),
         image_(ocl::Image2D::blank()),
-        state({ .source = {}, .selected = false }) {
+        state({ .source = {}, .image_id = 0, .selected = false }) {
     }
 }
 
