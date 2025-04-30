@@ -31,8 +31,9 @@ namespace ex::logic::node::cmp::image {
     }
 
     void ImageNode::set_image_id(const id_type_16 id) {
-        state.image_id = static_cast<id_type_16>(id);
-        image_.id      = static_cast<id_type_16>(id);
+        state.image_id    = static_cast<id_type_16>(id);
+        promise_.image.id = static_cast<id_type_16>(id);
+        image_.id         = static_cast<id_type_16>(id);
     }
 
     struct serial_parcel {
@@ -95,9 +96,9 @@ namespace ex::logic::node::cmp::image {
             source_.channels, 1, state_.cl.context, queue_);
         promise.finalize();
 
-        promise_  = promise;
-        image_    = promise.image;
-        image_.id = state.image_id;
+        promise_          = promise;
+        promise_.image.id = state.image_id;
+        image_            = promise_.image;
         updates_.refresh();
     }
 
@@ -140,9 +141,9 @@ namespace ex::logic::node::cmp::image {
             source_.channels, 1, state_.cl.context, queue_);
         promise.finalize();
 
-        promise_  = promise;
-        image_    = promise.image;
-        image_.id = state.image_id;
+        promise_          = promise;
+        promise_.image.id = state.image_id;
+        image_            = promise_.image;
         updates_.refresh();
     }
 
