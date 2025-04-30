@@ -31,6 +31,11 @@ namespace ex::logic::node::camera {
         // TODO
     }
 
+    void CameraNode::set_device(const v_device_t &device) {
+        state.device   = device;
+        state.selected = true;
+    }
+
     io::byte_array CameraNode::serialize() const {
         // TODO
         return io::byte_array::from(nullptr, 0);
@@ -62,7 +67,7 @@ namespace ex::logic::node::camera {
     }
 
     CameraNode::CameraNode() :
-        state({ .image_id = 0, .selected = false }),
+        state({ .device = { .uuid = "", .name = "" }, .image_id = 0, .selected = false }),
         queue_(nullptr) {
         // TODO
     }

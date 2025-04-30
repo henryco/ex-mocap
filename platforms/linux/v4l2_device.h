@@ -19,9 +19,9 @@ namespace ex::platform::dev::v4l2 {
     typedef v4l2_control V4L2_Control;
 
     struct V4L2Device {
+        char uuid[128];
         char device_id[64];
         char index[64];
-        char uuid[64];
         char name[64];
     };
 

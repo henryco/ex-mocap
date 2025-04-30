@@ -22,7 +22,7 @@ namespace ex::platform::dev {
     };
 
     struct VideoDevice {
-        char uuid[64];
+        char uuid[128];
         char name[64];
     };
 

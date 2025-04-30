@@ -15,7 +15,7 @@
 
 namespace ex::platform::dev {
 
-    void abort__(const char* format, ...) noexcept(true) {
+    static void abort__(const char* format, ...) noexcept(true) {
         const char* prefix = "Error: ";
         char buffer[256];
 
@@ -42,7 +42,7 @@ namespace ex::platform::dev {
         static ex::data::array<v4l2::V4L2Device> devices_list;
         static bool initialized = false;
 
-        void copy_string_(const char *src, char dst[], const int dst_size) {
+        static void copy_string_(const char *src, char dst[], const int dst_size) {
             if (src == nullptr)
                 return;
             ::strncpy(dst, src, dst_size - 1);
@@ -50,7 +50,7 @@ namespace ex::platform::dev {
         }
 
 
-        void read_file(const std::string &filePath, char dst[], const int dst_size) {
+        static void read_file(const std::string &filePath, char dst[], const int dst_size) {
             std::ifstream file(filePath);
             if (!file.is_open()) {
                 copy_string_("", dst, dst_size);
@@ -61,7 +61,7 @@ namespace ex::platform::dev {
             copy_string_(content.c_str(), dst, dst_size);
         }
 
-        void fourcc_to_chars(const uint32_t fourcc, char *out) {
+        static void fourcc_to_chars(const uint32_t fourcc, char *out) {
             out[0] = fourcc & 0xFF;
             out[1] = (fourcc >> 8) & 0xFF;
             out[2] = (fourcc >> 16) & 0xFF;
@@ -103,7 +103,7 @@ namespace ex::platform::dev {
                 // Follow symbolic link to actual device path
                 if (std::filesystem::exists(dev_path)) {
                     const std::string tmp_ = std::filesystem::canonical(dev_path).string();
-                    copy_string_(tmp_.c_str(), device.uuid, 64);
+                    copy_string_(tmp_.c_str(), device.uuid, 128);
                 }
 
                 // Resolve name
@@ -244,12 +244,12 @@ namespace ex::platform::dev {
             const auto uuid  = device_uuid.substr(split_idx + 1);
 
             for (v4l2::V4L2Device &device: v4l2::devices_list) {
-                if (device.uuid == uuid && device.index == index) {
+                if (::strcmp(device.uuid, uuid.c_str()) == 0 &&
+                    ::strcmp(device.index, index.c_str()) == 0) {
                     return device.device_id;
                 }
             }
 
-            abort__("invalid device uuid: %s", device_uuid.c_str());
             return nullptr;
         }
     }
@@ -332,8 +332,8 @@ namespace ex::platform::dev {
         devices.reserve(v4l2::devices_list.size);
         for (const v4l2::V4L2Device &item: v4l2::devices_list) {
             VideoDevice dev;
-            std::string tmp_ = std::string(item.index) + ":" + std::string(item.name);
-            v4l2::copy_string_(tmp_.c_str(), dev.uuid, 64);
+            std::string tmp_ = std::string(item.index) + ":" + std::string(item.uuid);
+            v4l2::copy_string_(tmp_.c_str(), dev.uuid, 128);
             v4l2::copy_string_(item.name, dev.name, 64);
             devices.push(dev);
         }
@@ -363,7 +363,8 @@ namespace ex::platform::dev {
         const auto uuid  = id.substr(split_idx + 1);
 
         for (const v4l2::V4L2Device &device: v4l2::devices_list) {
-            if (device.uuid == uuid && device.index == index) {
+            if (::strcmp(device.uuid, uuid.c_str()) == 0 &&
+                ::strcmp(device.index, index.c_str()) == 0) {
                 const std::string tmp_ = device.device_id;
                 return std::stoi(tmp_.substr(10));
             }
