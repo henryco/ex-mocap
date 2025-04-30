@@ -3,9 +3,9 @@
 //
 
 #include "../../../../headers/nodes/components/image/image_logic.h"
-#include "../../../../headers/cl/cl_kernel.h"
 #include "../../../../headers/logic/logic_globals.h"
 #include "../../../../headers/logic/logic_nodes.h"
+#include "../../../../headers/cl/cl_kernel.h"
 
 // STB INCLUDES ---------------------------------
 #define STB_IMAGE_IMPLEMENTATION
