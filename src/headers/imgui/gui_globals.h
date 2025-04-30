@@ -22,7 +22,7 @@ namespace ex::gui {
 
     actions::keys::Mappings &key_mappings();
 
-    limbo::undo::history<ex::State> &undo_history();
+    limbo::undo::history &undo_history();
 }
 
 #endif //GUI_GLOBALS_H

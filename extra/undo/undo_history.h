@@ -9,9 +9,8 @@
 
 namespace limbo::undo {
 
-    template<typename T>
     struct record {
-        using rollback_fn = std::function<void(T *)>;
+        using rollback_fn = std::function<void()>;
         using cleanup__fn = std::function<void()>;
 
         const std::size_t  id;
@@ -36,14 +35,13 @@ namespace limbo::undo {
         }
     };
 
-    template<typename T>
     struct history {
         static constexpr int cap_history = 64;
 
-        record<T> *records = nullptr;
-        record<T> *current = nullptr;
-        record<T> *target_ = nullptr;
-        record<T> *root___ = nullptr;
+        record *records = nullptr;
+        record *current = nullptr;
+        record *target_ = nullptr;
+        record *root___ = nullptr;
 
         int capacity = cap_history;
         int size     = 0;
@@ -57,9 +55,9 @@ namespace limbo::undo {
         }
 
         ~history() {
-            record<T> *head = records;
+            record *head = records;
             while (head != nullptr) {
-                record<T> *prev = head->prev;
+                record *prev = head->prev;
                 head->next      = nullptr;
                 delete head;
                 head = prev;
@@ -75,14 +73,14 @@ namespace limbo::undo {
         }
 
         void push(const char *name,
-            std::function<void(T *)> *undo,
-            std::function<void(T *)> *redo,
+            std::function<void()> *undo,
+            std::function<void()> *redo,
             std::function<void()> *cleanup = nullptr)
         {
             static std::size_t counter = 0;
 
             if (records == nullptr || current == nullptr) {
-                records = new record<T>(counter++, name, undo, redo, cleanup, nullptr, nullptr);
+                records = new record(counter++, name, undo, redo, cleanup, nullptr, nullptr);
                 current = records;
                 target_ = records;
                 root___ = records;
@@ -91,7 +89,7 @@ namespace limbo::undo {
             }
 
             if (records->id == current->id && current == records) {
-                records->next = new record<T>(counter++, name, undo, redo, cleanup, records, nullptr);
+                records->next = new record(counter++, name, undo, redo, cleanup, records, nullptr);
                 records       = records->next;
                 current       = records;
                 target_       = records;
@@ -116,17 +114,17 @@ namespace limbo::undo {
             //           x           // current
             //           > > > > x   // target_
 
-            record<T> *head = records;
+            record *head = records;
             while (head != nullptr) {
                 if (head->id == current->id && current == head) {
-                    current->next = new record<T>(counter++, name, undo, redo, cleanup, current, nullptr);
+                    current->next = new record(counter++, name, undo, redo, cleanup, current, nullptr);
                     current       = current->next;
                     records       = current;
                     target_       = current;
                     size++;
                     return;
                 }
-                record<T> *prev = head->prev;
+                record *prev = head->prev;
                 head->next      = nullptr;
                 delete head;
                 head = prev;
@@ -135,7 +133,7 @@ namespace limbo::undo {
         }
 
         bool move(const std::size_t id) {
-            record<T> *head = records;
+            record *head = records;
             while (head != nullptr) {
                 if (head->id == id) {
                     target_ = head;
@@ -160,7 +158,7 @@ namespace limbo::undo {
                 target_ = target_->prev;
         }
 
-        void apply(T *state) {
+        void apply() {
             if (records == nullptr || current == nullptr || target_ == nullptr)
                 return;
 
@@ -173,20 +171,20 @@ namespace limbo::undo {
                     return;
 
                 if (!direction && current->undo != nullptr)
-                    current->undo->operator()(state);
+                    current->undo->operator()();
 
                 current = direction ? current->next : current->prev;
 
                 if (direction && current != nullptr && current->redo != nullptr)
-                    current->redo->operator()(state);
+                    current->redo->operator()();
             }
             target_ = current;
         }
 
         void reset() {
-            record<T> *head = records;
+            record *head = records;
             while (head != nullptr) {
-                record<T> *prev = head->prev;
+                record *prev = head->prev;
                 head->next      = nullptr;
                 delete head;
                 head = prev;

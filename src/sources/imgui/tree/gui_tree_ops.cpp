@@ -394,7 +394,7 @@ namespace ex::gui::tree {
         ParcelBox box = ParcelBox::create();
 
         undo_history().push(strings::gui_tree_ops_history_add,
-        new std::function([before, id_node, box] (State *) mutable {
+        new std::function([before, id_node, box] () mutable {
             TreeState::reset(tree::state());
 
             const TreeNode *node   = ex::entity::find(id_node);
@@ -403,7 +403,7 @@ namespace ex::gui::tree {
 
             before->rollback();
         }),
-        new std::function([after, id_node, box] (State *) {
+        new std::function([after, id_node, box] {
             TreeState::reset(tree::state());
             after->rollback();
 
@@ -462,7 +462,7 @@ namespace ex::gui::tree {
         const auto after = Snapshot::create(state);
 
         undo_history().push(strings::gui_tree_ops_history_paste,
-        new std::function([before, id_array, move, ref, parcels] (ex::State *) mutable {
+        new std::function([before, id_array, move, ref, parcels] () mutable {
             TreeState::reset(tree::state());
 
             if (move) {
@@ -493,7 +493,7 @@ namespace ex::gui::tree {
 
             before->rollback();
         }),
-        new std::function([after, id_array, move, ref, parcels] (ex::State *) mutable {
+        new std::function([after, id_array, move, ref, parcels] () mutable {
             TreeState::reset(tree::state());
 
             if (move) {
@@ -576,18 +576,18 @@ namespace ex::gui::tree {
         const auto after = Snapshot::create(state);
 
         undo_history().push(strings::gui_tree_ops_history_add_into,
-        new std::function([before, id_node, box] (ex::State *s) mutable {
+        new std::function([before, id_node, box] () mutable {
             TreeState::reset(tree::state());
 
             const TreeNode *new_node   = ex::entity::find(id_node);
             if (const auto store_fn = i_::mappers_.at_or_default(new_node->id_type).store)
                 box.reset(store_fn(new_node));
 
-            before->rollback(s);
+            before->rollback();
         }),
-        new std::function([after, id_node, box] (ex::State *s) {
+        new std::function([after, id_node, box] {
             TreeState::reset(tree::state());
-            after->rollback(s);
+            after->rollback();
 
             TreeNode *new_node = ex::entity::find(id_node);
             if (box.present()) {
@@ -629,7 +629,7 @@ namespace ex::gui::tree {
         const auto after = Snapshot::create();
 
         undo_history().push(strings::gui_tree_ops_history_add_after,
-        new std::function([before, id_node, box] (ex::State *) mutable {
+        new std::function([before, id_node, box] () mutable {
             TreeState::reset(tree::state());
 
             const TreeNode *new_node   = ex::entity::find(id_node);
@@ -638,7 +638,7 @@ namespace ex::gui::tree {
 
             before->rollback();
         }),
-        new std::function([after, id_node, box] (ex::State *) {
+        new std::function([after, id_node, box] {
             TreeState::reset(tree::state());
             after->rollback();
 
@@ -704,7 +704,7 @@ namespace ex::gui::tree {
             upd_fn(&before, node);
 
         undo_history().push(strings::gui_tree_ops_history_node_renamed,
-        new std::function([id_local, og_name, upd_fn] (State *) {
+        new std::function([id_local, og_name, upd_fn] {
             TreeState::reset(tree::state());
             const auto f_node = ex::entity::find(id_local);
             if (f_node == nullptr)
@@ -716,7 +716,7 @@ namespace ex::gui::tree {
             if (upd_fn != nullptr)
                 upd_fn(&before_, f_node);
         }),
-        new std::function([id_local, new_name, upd_fn] (State *) {
+        new std::function([id_local, new_name, upd_fn] {
             TreeState::reset(tree::state());
             const auto f_node = ex::entity::find(id_local);
             if (f_node == nullptr)
@@ -752,7 +752,7 @@ namespace ex::gui::tree {
         const auto after = Snapshot::create();
 
         undo_history().push(strings::gui_tree_ops_history_node_duplicated,
-        new std::function([before, id_array, parcels] (ex::State *) mutable {
+        new std::function([before, id_array, parcels] () mutable {
             TreeState::reset(tree::state());
 
             for (int i = 0; i < id_array.size; ++i) {
@@ -767,7 +767,7 @@ namespace ex::gui::tree {
             before->rollback();
         }),
 
-        new std::function([after, id_array, parcels] (ex::State *) mutable {
+        new std::function([after, id_array, parcels] () mutable {
             TreeState::reset(tree::state());
             after->rollback();
 
@@ -843,7 +843,7 @@ namespace ex::gui::tree {
         const auto after = Snapshot::create(state);
 
         undo_history().push(strings::gui_tree_ops_history_paste_after,
-        new std::function([before, id_array, move, ref, parcels] (ex::State *) mutable {
+        new std::function([before, id_array, move, ref, parcels] () mutable {
             TreeState::reset(tree::state());
 
             if (move) {
@@ -874,7 +874,7 @@ namespace ex::gui::tree {
 
             before->rollback();
         }),
-        new std::function([after, id_array, move, ref, parcels] (ex::State *) mutable {
+        new std::function([after, id_array, move, ref, parcels] () mutable {
             TreeState::reset(tree::state());
 
             if (move) {
@@ -981,7 +981,7 @@ namespace ex::gui::tree {
         const auto after = Snapshot::create(state);
 
         undo_history().push(strings::gui_tree_ops_history_paste_into,
-        new std::function([before, id_array, move, ref, parcels] (ex::State *) mutable {
+        new std::function([before, id_array, move, ref, parcels] () mutable {
             TreeState::reset(tree::state());
 
             if (move) {
@@ -1012,7 +1012,7 @@ namespace ex::gui::tree {
 
             before->rollback();
         }),
-        new std::function([after, id_array, move, ref, parcels] (ex::State *) mutable {
+        new std::function([after, id_array, move, ref, parcels] () mutable {
             TreeState::reset(tree::state());
 
             if (move) {
@@ -1077,7 +1077,7 @@ namespace ex::gui::tree {
         const auto after = Snapshot::create(state);
 
         undo_history().push(strings::gui_tree_ops_history_move_after,
-        new std::function([before, id_array] (ex::State *) mutable {
+        new std::function([before, id_array] () mutable {
             TreeState::reset(tree::state());
             ex::data::array<TreeNode> before_array;
             for (int i = 0; i < id_array.size; ++i) {
@@ -1091,7 +1091,7 @@ namespace ex::gui::tree {
                     upd_fn(&before_array[i], node);
             }
         }),
-        new std::function([after, id_array] (ex::State *) mutable {
+        new std::function([after, id_array] () mutable {
             TreeState::reset(tree::state());
             ex::data::array<TreeNode> before_array;
             for (int i = 0; i < id_array.size; ++i) {
@@ -1148,7 +1148,7 @@ namespace ex::gui::tree {
         const auto after = Snapshot::create(state);
 
         undo_history().push(strings::gui_tree_ops_history_move_into,
-        new std::function([before, id_array] (ex::State *) mutable {
+        new std::function([before, id_array] () mutable {
             TreeState::reset(tree::state());
             ex::data::array<TreeNode> before_array;
             for (int i = 0; i < id_array.size; ++i) {
@@ -1162,7 +1162,7 @@ namespace ex::gui::tree {
                     upd_fn(&before_array[i], node);
             }
         }),
-        new std::function([after, id_array] (ex::State *) mutable {
+        new std::function([after, id_array] () mutable {
             TreeState::reset(tree::state());
             ex::data::array<TreeNode> before_array;
             for (int i = 0; i < id_array.size; ++i) {
@@ -1204,7 +1204,7 @@ namespace ex::gui::tree {
         const auto after = Snapshot::create();
 
         undo_history().push(strings::gui_tree_ops_history_group,
-        new std::function([before, id_array] (ex::State *) mutable {
+        new std::function([before, id_array] () mutable {
             TreeState::reset(tree::state());
             ex::data::array<TreeNode> before_array;
             for (int i = 0; i < id_array.size; ++i) {
@@ -1218,7 +1218,7 @@ namespace ex::gui::tree {
                     upd_fn(&before_array[i], node);
             }
         }),
-        new std::function([after, id_array] (ex::State *) mutable {
+        new std::function([after, id_array] () mutable {
             TreeState::reset(tree::state());
             ex::data::array<TreeNode> before_array;
             for (int i = 0; i < id_array.size; ++i) {
@@ -1262,7 +1262,7 @@ namespace ex::gui::tree {
         const auto after = Snapshot::create();
 
         undo_history().push(strings::gui_tree_ops_history_ungroup,
-        new std::function([before, id_array] (ex::State *) mutable {
+        new std::function([before, id_array] () mutable {
             TreeState::reset(tree::state());
             ex::data::array<TreeNode> before_array;
             for (int i = 0; i < id_array.size; ++i) {
@@ -1276,7 +1276,7 @@ namespace ex::gui::tree {
                     upd_fn(&before_array[i], node);
             }
         }),
-        new std::function([after, id_array] (ex::State *) mutable {
+        new std::function([after, id_array] () mutable {
             TreeState::reset(tree::state());
             ex::data::array<TreeNode> before_array;
             for (int i = 0; i < id_array.size; ++i) {
@@ -1307,7 +1307,7 @@ namespace ex::gui::tree {
         const auto after = Snapshot::create();
 
         undo_history().push(strings::gui_tree_ops_history_node_enabled,
-        new std::function([before, id_array] (ex::State *) {
+        new std::function([before, id_array] {
             TreeState::reset(tree::state());
             ex::data::array<TreeNode> before_array;
             for (int i = 0; i < id_array.size; ++i) {
@@ -1321,7 +1321,7 @@ namespace ex::gui::tree {
                     upd_fn(&before_array[i], node_0);
             }
         }),
-        new std::function([after, id_array] (ex::State *) {
+        new std::function([after, id_array] {
             TreeState::reset(tree::state());
             ex::data::array<TreeNode> before_array;
             for (int i = 0; i < id_array.size; ++i) {
@@ -1352,7 +1352,7 @@ namespace ex::gui::tree {
         const auto after = Snapshot::create();
 
         undo_history().push(strings::gui_tree_ops_history_node_disabled,
-        new std::function([before, id_array] (ex::State *) {
+        new std::function([before, id_array] {
             TreeState::reset(tree::state());
             ex::data::array<TreeNode> before_array;
             for (int i = 0; i < id_array.size; ++i) {
@@ -1366,7 +1366,7 @@ namespace ex::gui::tree {
                     upd_fn(&before_array[i], node_0);
             }
         }),
-        new std::function([after, id_array] (ex::State *) {
+        new std::function([after, id_array] {
             TreeState::reset(tree::state());
             ex::data::array<TreeNode> before_array;
             for (int i = 0; i < id_array.size; ++i) {
@@ -1407,7 +1407,7 @@ namespace ex::gui::tree {
         ex::entity::set_dirty(true);
 
         undo_history().push(strings::gui_tree_ops_history_select_enabled,
-        new std::function([og_state = og_map](ex::State *) {
+        new std::function([og_state = og_map] {
             for (int j = 0; j < og_state.size; j++) {
                 const auto &k = og_state.key_entries[j];
                 const auto &v = og_state.val_entries[j];
@@ -1427,7 +1427,7 @@ namespace ex::gui::tree {
             ex::entity::set_dirty(true);
             TreeState::reset(tree::state());
         }),
-        new std::function([og_state = og_map](ex::State *) {
+        new std::function([og_state = og_map] {
             for (int ik = 0; ik < og_state.size; ik++) {
                 const auto &k = og_state.key_entries[ik];
                 const auto f_node = ex::entity::find(k);
@@ -1468,7 +1468,7 @@ namespace ex::gui::tree {
         ex::entity::set_dirty(true);
 
         undo_history().push(strings::gui_tree_ops_history_select_disabled,
-        new std::function([og_state = og_map](ex::State *) {
+        new std::function([og_state = og_map] {
             for (int j = 0; j < og_state.size; j++) {
                 const auto &k = og_state.key_entries[j];
                 const auto &v = og_state.val_entries[j];
@@ -1488,7 +1488,7 @@ namespace ex::gui::tree {
             ex::entity::set_dirty(true);
             TreeState::reset(tree::state());
         }),
-        new std::function([og_state = og_map](ex::State *) {
+        new std::function([og_state = og_map] {
             for (int ik = 0; ik < og_state.size; ik++) {
                 const auto &k = og_state.key_entries[ik];
                 const auto f_node = ex::entity::find(k);
@@ -1554,7 +1554,7 @@ namespace ex::gui::tree {
         const auto after = Snapshot::create();
 
         undo_history().push(strings::gui_tree_ops_history_select_deleted,
-        new std::function([before, id_array, parcels] (ex::State *) mutable {
+        new std::function([before, id_array, parcels] () mutable {
             TreeState::reset(tree::state());
             before->rollback();
 
@@ -1567,7 +1567,7 @@ namespace ex::gui::tree {
                     restore_fn(ex::entity::find(node_1->id_node), box.parcel());
             }
         }),
-        new std::function([after, id_array, parcels] (ex::State *) mutable {
+        new std::function([after, id_array, parcels] () mutable {
             TreeState::reset(tree::state());
 
             for (int i = 0; i < id_array.size; ++i) {
@@ -1619,7 +1619,7 @@ namespace ex::gui::tree {
         const auto after = Snapshot::create();
 
         undo_history().push(strings::gui_tree_ops_history_node_deleted,
-        new std::function([before, id_array, parcels] (ex::State *) mutable {
+        new std::function([before, id_array, parcels] () mutable {
             TreeState::reset(tree::state());
             before->rollback();
 
@@ -1632,7 +1632,7 @@ namespace ex::gui::tree {
                     restore_fn(ex::entity::find(node_1->id_node), box.parcel());
             }
         }),
-        new std::function([after, id_array, parcels] (ex::State *) mutable {
+        new std::function([after, id_array, parcels] () mutable {
             TreeState::reset(tree::state());
 
             for (int i = 0; i < id_array.size; ++i) {

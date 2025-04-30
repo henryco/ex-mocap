@@ -72,14 +72,14 @@ namespace ex::gui::actions {
         if (!undo_history().can_undo())
             return;
         undo_history().undo();
-        undo_history().apply(&ex::logic::globals::state());
+        undo_history().apply();
     }
 
     void redo_action() {
         if (!undo_history().can_redo())
             return;
         undo_history().redo();
-        undo_history().apply(&ex::logic::globals::state());
+        undo_history().apply();
     }
 
     void pin_unpin_layout_action() {

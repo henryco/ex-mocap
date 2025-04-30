@@ -76,7 +76,7 @@ namespace ex::gui {
 
             if (selected >= 0 && selected != previous) {
                 undo_history().move(static_cast<std::size_t>(selected));
-                undo_history().apply(&ex::logic::globals::state());
+                undo_history().apply();
             }
             previous = selected;
         }

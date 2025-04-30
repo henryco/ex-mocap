@@ -17,8 +17,8 @@ namespace ex::gui {
         return log;
     }
 
-    limbo::undo::history<ex::State> &undo_history() {
-        static limbo::undo::history<ex::State> undo_history(strings::gui_tree_ops_history_blank);
+    limbo::undo::history &undo_history() {
+        static limbo::undo::history undo_history(strings::gui_tree_ops_history_blank);
         return undo_history;
     }
 
