@@ -7,6 +7,8 @@
 
 #include "../../../imgui/gui_nodes.h"
 
-// TODO
+namespace ex::gui::node::camera {
+    // TODO
+}
 
 #endif //EX_NODES_CMP_CAMERA_GUI_H

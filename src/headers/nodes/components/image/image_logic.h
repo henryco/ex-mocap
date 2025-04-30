@@ -42,7 +42,7 @@ namespace ex::logic::node::cmp::image {
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
         static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
 
-        void set_image_id(const id_type_16 id);
+        void set_image_id(id_type_16 id);
         void set_image(const char *image_path);
 
         io::byte_array serialize() const override;
