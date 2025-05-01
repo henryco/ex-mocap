@@ -25,10 +25,14 @@ namespace ex::logic::node::camera {
 
     const ex::data::array<v_control_t> &CameraNode::list_controls(const bool refresh) {
         if (refresh) {
-            if (!state.device.selected)
+            if (!state.device.selected) {
+                controls.clean();
                 return controls;
-            if (!state.mode.selected)
+            }
+            if (!state.mode.selected) {
+                controls.clean();
                 return controls;
+            }
             // TODO CHECK OPEN
             controls = ex::platform::dev::list_controls(state.device.device);
         }

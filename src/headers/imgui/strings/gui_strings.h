@@ -148,11 +148,13 @@ namespace ex::gui::strings {
     constexpr auto node_component_image_source     = "Source";
     constexpr auto node_component_image_sourceless = "Source not selected";
 
-    constexpr auto node_component_camera_id         = "Image ID";
-    constexpr auto node_component_camera_name       = "Camera";
-    constexpr auto node_component_camera_mode       = "Device Mode";
-    constexpr auto node_component_camera_device     = "Camera Device";
-    constexpr auto node_component_camera_reset      = " Reset Settings ";
+    constexpr auto node_component_camera_id        = "Image ID";
+    constexpr auto node_component_camera_name      = "Camera";
+    constexpr auto node_component_camera_mode      = "Device Mode";
+    constexpr auto node_component_camera_device    = "Camera Device";
+    constexpr auto node_component_camera_refresh   = "Refresh";
+    constexpr auto node_component_camera_reset     = "Reset";
+    constexpr auto node_component_camera_reset_all = " Reset Settings ";
 }
 
 #endif //GUI_STRINGS_H

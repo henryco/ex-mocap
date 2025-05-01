@@ -178,13 +178,30 @@ namespace ex::gui::node::camera {
         ImGui::NewLine();
 
         {
-            if (ImGui::Button(strings::node_component_camera_reset)) {
+            constexpr int off = 10;
+            static const float one_size = ImGui::CalcTextSize(strings::node_component_camera_reset_all).x + off;
+            static const float two_size = ImGui::CalcTextSize(ICON_LC_REFRESH_CCW_DOT).x;
+
+            const float total_w = ImGui::GetContentRegionAvail().x;
+            const float pox = total_w - two_size;
+            const float av_w = one_size < (pox - off) ? one_size : (pox - off);
+
+            if (ImGui::Button(strings::node_component_camera_reset_all, ImVec2(av_w, ImGui::GetFrameHeight()))) {
                 cam_node->reset_controls();
                 cam_node->list_controls(true);
                 prev_change.dt = -1;
                 prev_change.nd = -1;
                 prev_change.id = -1;
             }
+
+            ImGui::SameLine(pox);
+            if (ImGui::Button(ICON_LC_REFRESH_CCW_DOT)) {
+                cam_node->list_controls(true);
+                prev_change.dt = -1;
+                prev_change.nd = -1;
+                prev_change.id = -1;
+            }
+            ex::gui::plain_tooltip(strings::node_component_camera_refresh);
         }
 
         ImGui::NewLine();
@@ -272,6 +289,7 @@ namespace ex::gui::node::camera {
                         prev_change.nd = -1;
                         prev_change.id = -1;
                     }
+                    ex::gui::plain_tooltip(strings::node_component_camera_reset);
 
                     if (value == item.default_value)
                         ImGui::PopStyleColor();
