@@ -171,7 +171,35 @@ namespace ex::gui::node::camera {
         ImGui::NewLine();
 
         {
-            // TODO CONTROLS
+            const auto &controls = cam_node->list_controls();
+            for (int i = 0; i < controls.size; ++i) {
+                const auto &item = controls[i];
+                if (item.step == 0 || item.min == item.max)
+                    continue;
+
+                ImGui::NewLine();
+
+                ImGui::PushID(i);
+                ImGui::SeparatorText(item.name);
+
+                const auto input_pos  = ImGui::GetCursorScreenPos();
+                const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
+                ImGui::SetNextItemWidth(input_size.x);
+
+                int value = item.value;
+                ImGui::SliderInt("##drag_value", &value, item.min, item.max);
+
+                if (value != item.value) {
+                    // TODO
+                }
+
+                constexpr float alpha = 1.f;
+                ImGui::GetWindowDrawList()->AddRect(input_pos,
+                                                    ImVec2(input_pos.x + input_size.x, input_pos.y + input_size.y),
+                                                    IM_COL32(0, 0, 0, 90 * alpha));
+
+                ImGui::PopID();
+            }
         }
 
         return true;

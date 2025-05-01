@@ -13,8 +13,9 @@
 
 namespace ex::logic::node::camera {
 
-    using v_device_t = ex::platform::dev::VideoDevice;
-    using v_devcap_t = ex::platform::dev::DeviceCapability;
+    using v_device_t  = ex::platform::dev::VideoDevice;
+    using v_devcap_t  = ex::platform::dev::DeviceCapability;
+    using v_control_t = ex::platform::dev::VideoControl;
 
     struct device_t {
         v_device_t  device;
@@ -38,7 +39,8 @@ namespace ex::logic::node::camera {
                               limbo::graph::io::out<ocl::img_promise, 1, "Frame image">,
                               ex::io::bytes::serializable
     {
-        ex::data::array<v_devcap_t> capabilities;
+        ex::data::array<v_devcap_t>  capabilities;
+        ex::data::array<v_control_t> controls;
 
         camera_state      state;
 
@@ -51,11 +53,15 @@ namespace ex::logic::node::camera {
 
         const ex::data::array<v_devcap_t> &list_capabilities() const;
 
+        const ex::data::array<v_control_t> &list_controls(bool refresh = false);
+
         void set_image_id(id_type_16 id);
 
         void set_device_mode(const v_devcap_t &cap);
 
         void set_device(const v_device_t &device);
+
+        void set_control(unsigned int id, int value);
 
         io::byte_array serialize() const override;
 

@@ -19,6 +19,22 @@ namespace ex::logic::node::camera {
         return list;
     }
 
+    const ex::data::array<v_control_t> &CameraNode::list_controls(const bool refresh) {
+        if (refresh) {
+            if (!state.device.selected)
+                return controls;
+            if (!state.mode.selected)
+                return controls;
+            // TODO CHECK OPEN
+            controls = ex::platform::dev::list_controls(state.device.device);
+        }
+        return controls;
+    }
+
+    const ex::data::array<v_devcap_t> &CameraNode::list_capabilities() const {
+        return capabilities;
+    }
+
     limbo::graph::BaseNode *CameraNode::instance(TreeNode *from) {
         CameraNode *ptr = new CameraNode();
         ptr->set_id(from->id_node);
@@ -35,28 +51,10 @@ namespace ex::logic::node::camera {
         delete node;
     }
 
-    const ex::data::array<v_devcap_t> &CameraNode::list_capabilities() const {
-        return capabilities;
-    }
-
     void CameraNode::set_image_id(const id_type_16 id) {
         promise_.image.id = static_cast<id_type_16>(id);
         state.image_id    = static_cast<id_type_16>(id);
         // TODO
-    }
-
-    void CameraNode::set_device_mode(const v_devcap_t &cap) {
-        // TODO release camera
-
-        ::memset(&state.mode, 0, sizeof(mode_t));
-
-        state.mode.mode     = cap;
-        state.mode.selected = true;
-        snprintf(state.mode.description, 95, "%s (%s) - %d fps [%d x %d]", cap.description, cap.format_4cc,
-                 cap.refresh_rate, cap.width, cap.height);
-        state.mode.description[95] = '\0';
-
-        // TODO open camera
     }
 
     void CameraNode::set_device(const v_device_t &device) {
@@ -65,14 +63,40 @@ namespace ex::logic::node::camera {
         ::memset(&state.device, 0, sizeof(device_t));
         ::memset(&state.mode, 0, sizeof(mode_t));
         capabilities.clean();
+        controls.clean();
 
         if (ex::platform::dev::get_device_index(device.uuid) != -1) {
-            // TODO open camera
-
             state.device.device   = device;
             state.device.selected = true;
-            capabilities = ex::platform::dev::list_capabilities(device.uuid);
+            capabilities          = ex::platform::dev::list_capabilities(device);
         }
+    }
+
+    void CameraNode::set_device_mode(const v_devcap_t &cap) {
+        // TODO release camera
+
+        ::memset(&state.mode, 0, sizeof(mode_t));
+        controls.clean();
+
+        state.mode.mode     = cap;
+        state.mode.selected = true;
+        snprintf(state.mode.description, 95, "%s (%s) - %d fps [%d x %d]", cap.description, cap.format_4cc,
+                 cap.refresh_rate, cap.width, cap.height);
+        state.mode.description[95] = '\0';
+
+        // TODO open camera
+
+        controls = ex::platform::dev::list_controls(state.device.device);
+    }
+
+    void CameraNode::set_control(const unsigned int id, const int value) {
+        if (!state.device.selected)
+            return;
+        if (!state.mode.selected)
+            return;
+        // TODO CHECK OPEN
+        ex::platform::dev::set_control_value(state.device.device, id, value);
+        list_controls(true);
     }
 
     io::byte_array CameraNode::serialize() const {

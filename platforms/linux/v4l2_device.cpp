@@ -268,6 +268,10 @@ namespace ex::platform::dev {
         }
     }
 
+    ex::data::array<DeviceCapability> list_capabilities(const VideoDevice &device) {
+        return list_capabilities(device.uuid);
+    }
+
     ex::data::array<DeviceCapability> list_capabilities(const char *device_uuid) {
         const int file_descriptor = open(v4l2::get_device_id(device_uuid), O_RDWR);
         if (file_descriptor == -1) {

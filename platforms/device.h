@@ -47,6 +47,8 @@ namespace ex::platform::dev {
 
     ex::data::array<DeviceCapability> list_capabilities(const char *device_uuid);
 
+    ex::data::array<DeviceCapability> list_capabilities(const VideoDevice &device);
+
     bool set_control_value(const char *device_uuid, control_id prop_id, int value);
 
     bool set_control_value(const VideoDevice &device, control_id prop_id, int value);
