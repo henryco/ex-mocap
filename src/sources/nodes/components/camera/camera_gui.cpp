@@ -75,7 +75,7 @@ namespace ex::gui::node::camera {
 
         {
             static auto list = ex::platform::dev::list_devices();
-            static bool closed = false;
+            static bool closed = true;
 
             const auto &device = state.device;
 
@@ -84,9 +84,10 @@ namespace ex::gui::node::camera {
             const auto input_pos  = ImGui::GetCursorScreenPos();
             const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
             ImGui::SetNextItemWidth(input_size.x);
+
             if (ImGui::BeginCombo("##cam_device_list", device.name, ImGuiComboFlags_HeightRegular)) {
+
                 if (closed) {
-                    closed = false;
                     ex::platform::dev::refresh();
                     list = ex::platform::dev::list_devices();
                 }
@@ -109,7 +110,11 @@ namespace ex::gui::node::camera {
                         ImGui::SetItemDefaultFocus();
                     ImGui::PopID();
                 }
+
                 ImGui::EndCombo();
+
+                closed = false;
+            } else {
                 closed = true;
             }
 
