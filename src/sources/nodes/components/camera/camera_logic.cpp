@@ -114,7 +114,7 @@ namespace ex::logic::node::camera {
         // TODO CHECK OPEN
 
         ex::platform::dev::reset_controls(state.device.device);
-        log->info("reset camera settings: {}");
+        log->info("reset camera settings");
     }
 
     io::byte_array CameraNode::serialize() const {

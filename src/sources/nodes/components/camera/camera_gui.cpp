@@ -52,6 +52,13 @@ namespace ex::gui::node::camera {
 
         const auto &state = cam_node->state;
 
+        static struct {
+            double dt  = -1;
+            uint   nd  = -1;
+            uint   id  = -1;
+            int    val = -1;
+        } prev_change;
+
         {
             ImGui::SeparatorText(strings::node_component_camera_id);
 
@@ -115,10 +122,10 @@ namespace ex::gui::node::camera {
             ImGui::GetWindowDrawList()->AddRect(input_pos,
                                                 ImVec2(input_pos.x + input_size.x, input_pos.y + input_size.y),
                                                 IM_COL32(0, 0, 0, 90 * alpha));
-        }
 
-        if (!state.device.selected)
-            return true;
+            if (!state.device.selected)
+                return true;
+        }
 
         ImGui::NewLine();
 
@@ -163,21 +170,26 @@ namespace ex::gui::node::camera {
             ImGui::GetWindowDrawList()->AddRect(input_pos,
                                                 ImVec2(input_pos.x + input_size.x, input_pos.y + input_size.y),
                                                 IM_COL32(0, 0, 0, 90 * alpha));
-        }
 
-        if (!state.mode.selected)
-            return true;
+            if (!state.mode.selected)
+                return true;
+        }
 
         ImGui::NewLine();
 
         {
-            static struct {
-                double dt  = -1;
-                uint   nd  = -1;
-                uint   id  = -1;
-                int    val = -1;
-            } prev_change;
+            if (ImGui::Button(strings::node_component_camera_reset)) {
+                cam_node->reset_controls();
+                cam_node->list_controls(true);
+                prev_change.dt = -1;
+                prev_change.nd = -1;
+                prev_change.id = -1;
+            }
+        }
 
+        ImGui::NewLine();
+
+        {
             if (prev_change.id != -1 && prev_change.dt != -1) {
                 const double dt = ImGui::GetTime() - prev_change.dt;
                 if (dt >= 0.25) {
