@@ -15,13 +15,13 @@
 
 namespace ex::platform::dev {
 
-    static unsigned long int fnv1aHash(const char *str, int size) {
-        constexpr unsigned long int FNV_OFFSET_BASIS = 14695981039346656037ull;
-        constexpr unsigned long int FNV_PRIME        = 1099511628211ull;
+    static ulong fnv1aHash(const char *str, int size) {
+        constexpr ulong FNV_OFFSET_BASIS = 14695981039346656037ull;
+        constexpr ulong FNV_PRIME        = 1099511628211ull;
 
-        unsigned long int hash = FNV_OFFSET_BASIS;
+        ulong hash = FNV_OFFSET_BASIS;
         while (size > 0) {
-            hash ^= static_cast<unsigned long int>(*str);
+            hash ^= static_cast<ulong>(*str);
             hash *= FNV_PRIME;
             ++str;
             --size;
@@ -400,13 +400,13 @@ namespace ex::platform::dev {
         props.reserve(camera_props.size);
         for (const v4l2::V4L2_QueryCtrl &p: camera_props) {
             VideoControl control;
-            control.id = p.id;
+            control.id            = p.id;
             control.default_value = p.default_value;
             v4l2::copy_string_(reinterpret_cast<const char *>(p.name), control.name, 32);
             control.value = p.value;
-            control.min = p.minimum;
-            control.max = p.maximum;
-            control.step = p.step;
+            control.min   = p.minimum;
+            control.max   = p.maximum;
+            control.step  = p.step;
             props.push(control);
         }
         return props;

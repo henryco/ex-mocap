@@ -27,12 +27,12 @@ namespace ex::platform::dev {
     };
 
     struct DeviceCapability {
-        char description[64];
-        char format_4cc[4];
-        unsigned long int uuid;
-        int  refresh_rate;
-        int  width;
-        int  height;
+        char  description[64];
+        char  format_4cc[4];
+        ulong uuid;
+        int   refresh_rate;
+        int   width;
+        int   height;
     };
 
     int get_capture_api();
