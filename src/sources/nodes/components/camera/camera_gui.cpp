@@ -16,10 +16,20 @@
 
 namespace ex::gui::node::camera {
 
-    static const char *prev_name_() {
-        static char out_name[128];
-        sprintf(out_name, "%s %s", ICON_LC_CAMERA, strings::node_component_camera_name);
-        return out_name;
+    namespace {
+        const char *prev_name_() {
+            static char out_name[128];
+            sprintf(out_name, "%s %s", ICON_LC_CAMERA, strings::node_component_camera_name);
+            return out_name;
+        }
+
+        void parcel_free_(GuiNodeParcel *parcel) {
+            if (parcel == nullptr)
+                return;
+            if (parcel->data != nullptr)
+                ::free(parcel->data);
+            ::free(parcel);
+        }
     }
 
     void update_tree_node(const TreeNode *, TreeNode *) {
@@ -303,13 +313,44 @@ namespace ex::gui::node::camera {
     }
 
     GuiNodeParcel *store(const TreeNode *node) {
-        // TODO
-        return nullptr;
+        auto *img_node = dynamic_cast<logic::node::camera::CameraNode *>(ex::logic::state::get_node(node->id_node));
+        if (img_node == nullptr)
+            return nullptr;
+
+        io::byte_array data = img_node->serialize();
+
+        GuiNodeParcel *parcel = static_cast<GuiNodeParcel *>(::malloc(sizeof(GuiNodeParcel)));
+        parcel->free          = &parcel_free_;
+        parcel->size          = data.size;
+        parcel->data          = nullptr;
+
+        if (!data.empty()) {
+            parcel->data = static_cast<unsigned char *>(::malloc(data.size));
+            ::memcpy(parcel->data, data.data, data.size);
+        }
+
+        io::byte_array::free(data);
+        return parcel;
     }
 
     void restore(TreeNode *node, GuiNodeParcel *parcel) {
         if (parcel == nullptr)
             return;
-        // TODO
+        if (auto *cam_node = dynamic_cast<logic::node::camera::CameraNode *>(ex::logic::state::get_node(node->id_node))) {
+            auto byte_data = io::byte_array::from(parcel->data, parcel->size);
+            cam_node->deserialize(byte_data);
+            return;
+        }
+
+        auto instance = ex::logic::node_mappers()[node->id_type].instance(node);
+        if (auto *cam_node = dynamic_cast<logic::node::camera::CameraNode *>(instance)) {
+            ex::logic::state::store_node(node->id_node, instance);
+
+            auto byte_data = io::byte_array::from(parcel->data, parcel->size);
+            cam_node->deserialize(byte_data);
+            return;
+        }
+
+        abort_("Invalid node mapper type");
     }
 }
