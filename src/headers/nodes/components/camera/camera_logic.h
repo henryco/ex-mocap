@@ -16,9 +16,10 @@ namespace ex::logic::node::camera {
     using v_device_t = ex::platform::dev::VideoDevice;
 
     struct camera_state {
-        v_device_t device;
-        id_type_16 image_id;
-        bool       selected;
+        v_device_t  device;
+        const char *device_id;
+        id_type_16  image_id;
+        bool        selected;
     };
 
     struct CameraNode final : limbo::graph::BaseNode,

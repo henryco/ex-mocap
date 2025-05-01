@@ -8,6 +8,21 @@
 #include "../data/struct/array.h"
 #include <typeinfo>
 
+namespace limbo {
+    static constexpr ::size_t fnv1aHash(const char *str) {
+        constexpr ::size_t FNV_OFFSET_BASIS = (sizeof(::size_t) == 4) ? 2166136261u : 14695981039346656037ull;
+        constexpr ::size_t FNV_PRIME = (sizeof(::size_t) == 4) ? 16777619u : 1099511628211ull;
+
+        ::size_t hash = FNV_OFFSET_BASIS;
+        while (*str) {
+            hash ^= static_cast<::size_t>(*str);
+            hash *= FNV_PRIME;
+            ++str;
+        }
+        return hash;
+    }
+}
+
 namespace limbo::graph {
 
 #define GRAPH_SKIP ((void **) -1)
@@ -201,26 +216,10 @@ namespace limbo::graph {
         template<string_literal name_>
         struct name : virtual IO {
 
-            static constexpr std::size_t FNV_OFFSET_BASIS =
-                    (sizeof(std::size_t) == 4) ? 2166136261u : 14695981039346656037ull;
-            static constexpr std::size_t FNV_PRIME = (sizeof(std::size_t) == 4) ? 16777619u : 1099511628211ull;
-
-            static constexpr std::size_t fnv1aHash() {
-                constexpr auto name__ = name_.value;
-                auto           str    = static_cast<const char *>(name__);
-                std::size_t    hash   = FNV_OFFSET_BASIS;
-                while (*str) {
-                    hash ^= static_cast<std::size_t>(*str);
-                    hash *= FNV_PRIME;
-                    ++str;
-                }
-                return hash;
-            }
-
             ~name() override = default;
 
             static constexpr std::size_t get_node_id() {
-                constexpr std::size_t id_ = fnv1aHash();
+                constexpr std::size_t id_ = fnv1aHash(static_cast<const char *>(name_.value));
                 return id_;
             }
 

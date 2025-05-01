@@ -3,9 +3,11 @@
 //
 
 #include "../../../../headers/nodes/components/camera/camera_logic.h"
+
+#include "../../../../../platforms/linux/v4l2_device.h"
+#include "../../../../headers/cl/cl_kernel.h"
 #include "../../../../headers/logic/logic_globals.h"
 #include "../../../../headers/logic/logic_nodes.h"
-#include "../../../../headers/cl/cl_kernel.h"
 
 namespace ex::logic::node::camera {
 
@@ -32,8 +34,20 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::set_device(const v_device_t &device) {
-        state.device   = device;
-        state.selected = true;
+        // TODO release camera
+
+        state.selected       = false;
+        state.device_id      = nullptr;
+        state.device.uuid[0] = '\0';
+        state.device.name[0] = '\0';
+
+        if (const char *device_id = ex::platform::dev::v4l2::get_device_id(device.uuid)) {
+            // TODO open camera
+
+            state.device_id = device_id;
+            state.selected  = true;
+            state.device    = device;
+        }
     }
 
     io::byte_array CameraNode::serialize() const {
@@ -67,7 +81,15 @@ namespace ex::logic::node::camera {
     }
 
     CameraNode::CameraNode() :
-        state({ .device = { .uuid = "", .name = "" }, .image_id = 0, .selected = false }),
+        state({
+            .device = {
+                .uuid = "",
+                .name = ""
+            },
+            .device_id = nullptr,
+            .image_id = 0,
+            .selected = false
+        }),
         queue_(nullptr) {
         // TODO
     }

@@ -50,11 +50,13 @@ namespace ex::gui::node::camera {
         if (cam_node == nullptr || cam_node->get_id() != window->node->id_node)
             return true;
 
+        const auto &state = cam_node->state;
+
         {
             ImGui::SeparatorText(strings::node_component_camera_id);
 
             static char buff[8] = "";
-            ::snprintf(buff, 7, "%u", cam_node->state.image_id);
+            ::snprintf(buff, 7, "%u", state.image_id);
 
             const auto input_pos  = ImGui::GetCursorScreenPos();
             const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
@@ -75,7 +77,7 @@ namespace ex::gui::node::camera {
             static auto list = ex::platform::dev::list_devices();
             static bool closed = false;
 
-            const auto &device = cam_node->state.device;
+            const auto &device = state.device;
 
             ImGui::SeparatorText(strings::node_component_camera_device);
 
@@ -117,7 +119,21 @@ namespace ex::gui::node::camera {
                                                 IM_COL32(0, 0, 0, 90 * alpha));
         }
 
-        // TODO
+        if (!state.selected || !state.device_id)
+            return true;
+
+        ImGui::NewLine();
+
+        {
+            static data::array<id_type_64>                          dev_keys         = 8;
+            static data::array<ex::platform::dev::VideoControl>     dev_controls     = 8;
+            static data::array<ex::platform::dev::DeviceCapability> dev_capabilities = 8;
+
+            const id_type_64 dev_id_64 = limbo::fnv1aHash(state.device_id);
+            int              index     = dev_keys.index_of(dev_id_64);
+
+            // TODO
+        }
 
         return true;
     }
