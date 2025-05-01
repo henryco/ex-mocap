@@ -55,6 +55,8 @@ namespace ex::logic::node::camera {
         CameraNode();
     };
 
+    const ex::data::array<v_device_t> &list_camera_devices(bool refresh = false);
+
 }
 
 #endif //EX_NODES_CMP_CAMERA_LOGIC_H

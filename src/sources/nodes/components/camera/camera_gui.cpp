@@ -74,9 +74,7 @@ namespace ex::gui::node::camera {
         ImGui::NewLine();
 
         {
-            static auto list = ex::platform::dev::list_devices();
             static bool closed = true;
-
             const auto &device = state.device;
 
             ImGui::SeparatorText(strings::node_component_camera_device);
@@ -86,12 +84,7 @@ namespace ex::gui::node::camera {
             ImGui::SetNextItemWidth(input_size.x);
 
             if (ImGui::BeginCombo("##cam_device_list", device.name, ImGuiComboFlags_HeightRegular)) {
-
-                if (closed) {
-                    ex::platform::dev::refresh();
-                    list = ex::platform::dev::list_devices();
-                }
-
+                const auto &list = ex::logic::node::camera::list_camera_devices(closed);
                 static char buff_full[192];
                 for (int i = 0; i < list.size; ++i) {
                     const auto &item = list[i];

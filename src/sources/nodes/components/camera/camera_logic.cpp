@@ -11,6 +11,14 @@
 
 namespace ex::logic::node::camera {
 
+    const ex::data::array<v_device_t> &list_camera_devices(const bool refresh) {
+        static ex::data::array<v_device_t> list = ex::platform::dev::list_devices();
+        if (refresh) {
+            list = ex::platform::dev::list_devices();
+        }
+        return list;
+    }
+
     limbo::graph::BaseNode *CameraNode::instance(TreeNode *from) {
         CameraNode *ptr = new CameraNode();
         ptr->set_id(from->id_node);
@@ -81,15 +89,7 @@ namespace ex::logic::node::camera {
     }
 
     CameraNode::CameraNode() :
-        state({
-            .device = {
-                .uuid = "",
-                .name = ""
-            },
-            .device_id = nullptr,
-            .image_id = 0,
-            .selected = false
-        }),
+        state({ .device = { .uuid = "", .name = "" }, .device_id = nullptr, .image_id = 0, .selected = false }),
         queue_(nullptr) {
         // TODO
     }
