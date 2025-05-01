@@ -63,6 +63,8 @@ namespace ex::logic::node::camera {
 
         void set_control(unsigned int id, int value);
 
+        void reset_controls();
+
         io::byte_array serialize() const override;
 
         void deserialize(const io::byte_array &) override;

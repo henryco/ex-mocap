@@ -195,47 +195,75 @@ namespace ex::gui::node::camera {
                 if (item.step == 0 || item.min == item.max)
                     continue;
 
+                int value = item.value;
+
                 ImGui::NewLine();
 
                 ImGui::PushID(i);
                 ImGui::SeparatorText(item.name);
 
-                const auto input_pos  = ImGui::GetCursorScreenPos();
-                const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
-                ImGui::SetNextItemWidth(input_size.x);
+                constexpr float    button_off  = 5;
+                static const float button_size = ImGui::CalcTextSize(ICON_LC_ROTATE_CCW).x;
+                static const float button_pad  = button_size + button_off;
 
-                int value = item.value;
-                if (cam_node->get_id() == prev_change.nd && item.id == prev_change.id)
-                    value = prev_change.val;
+                const float total_w = ImGui::GetContentRegionAvail().x;
 
-                ImGui::SliderInt("##drag_value", &value, item.min, item.max);
+                { // VALUE SLIDER
+                    const auto input_pos  = ImGui::GetCursorScreenPos();
+                    const auto input_size = ImVec2(total_w - button_pad - button_off, ImGui::GetFrameHeight());
+                    ImGui::SetNextItemWidth(input_size.x);
 
-                if (value != item.value) {
+                    if (cam_node->get_id() == prev_change.nd && item.id == prev_change.id)
+                        value = prev_change.val;
 
-                    if (cam_node->get_id() == prev_change.nd) {
-                        if (item.id != prev_change.id) {
-                            cam_node->set_control(prev_change.id, prev_change.val);
-                            cam_node->list_controls(true);
+                    ImGui::SliderInt("##drag_value", &value, item.min, item.max);
+
+                    if (value != item.value) {
+
+                        if (cam_node->get_id() == prev_change.nd) {
+                            if (item.id != prev_change.id) {
+                                cam_node->set_control(prev_change.id, prev_change.val);
+                                cam_node->list_controls(true);
+                                prev_change.dt = ImGui::GetTime();
+                            }
+
+                            else if (value != prev_change.val) {
+                                prev_change.dt = ImGui::GetTime();
+                            }
+                        }
+                        else {
                             prev_change.dt = ImGui::GetTime();
                         }
 
-                        else if (value != prev_change.val) {
-                            prev_change.dt = ImGui::GetTime();
-                        }
-                    }
-                    else {
-                        prev_change.dt = ImGui::GetTime();
+                        prev_change.nd  = cam_node->get_id();
+                        prev_change.id  = item.id;
+                        prev_change.val = value;
                     }
 
-                    prev_change.nd  = cam_node->get_id();
-                    prev_change.id  = item.id;
-                    prev_change.val = value;
+                    constexpr float alpha = 1.f;
+                    ImGui::GetWindowDrawList()->AddRect(input_pos,
+                                                        ImVec2(input_pos.x + input_size.x, input_pos.y + input_size.y),
+                                                        IM_COL32(0, 0, 0, 90 * alpha));
                 }
 
-                constexpr float alpha = 1.f;
-                ImGui::GetWindowDrawList()->AddRect(input_pos,
-                                                    ImVec2(input_pos.x + input_size.x, input_pos.y + input_size.y),
-                                                    IM_COL32(0, 0, 0, 90 * alpha));
+                { // RESET BUTTON
+                    const float pox = total_w - button_pad + button_off;
+                    ImGui::SameLine(pox);
+
+                    if (value == item.default_value)
+                        ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(200, 200, 200, 255));
+
+                    if (ImGui::Button(ICON_LC_ROTATE_CCW)) {
+                        cam_node->set_control(item.id, item.default_value);
+                        cam_node->list_controls(true);
+                        prev_change.dt = -1;
+                        prev_change.nd = -1;
+                        prev_change.id = -1;
+                    }
+
+                    if (value == item.default_value)
+                        ImGui::PopStyleColor();
+                }
 
                 ImGui::PopID();
             }
