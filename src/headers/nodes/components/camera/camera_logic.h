@@ -14,12 +14,23 @@
 namespace ex::logic::node::camera {
 
     using v_device_t = ex::platform::dev::VideoDevice;
+    using v_devcap_t = ex::platform::dev::DeviceCapability;
+
+    struct device_t {
+        v_device_t  device;
+        bool        selected;
+    };
+
+    struct mode_t {
+        v_devcap_t mode;
+        char       description[96];
+        bool       selected;
+    };
 
     struct camera_state {
-        v_device_t  device;
-        const char *device_id;
+        device_t    device;
+        mode_t      mode;
         id_type_16  image_id;
-        bool        selected;
     };
 
     struct CameraNode final : limbo::graph::BaseNode,
@@ -27,6 +38,8 @@ namespace ex::logic::node::camera {
                               limbo::graph::io::out<ocl::img_promise, 1, "Frame image">,
                               ex::io::bytes::serializable
     {
+        ex::data::array<v_devcap_t> capabilities;
+
         camera_state      state;
 
         cl_command_queue  queue_;
@@ -36,7 +49,11 @@ namespace ex::logic::node::camera {
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
         static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
 
+        const ex::data::array<v_devcap_t> &list_capabilities() const;
+
         void set_image_id(id_type_16 id);
+
+        void set_device_mode(const v_devcap_t &cap);
 
         void set_device(const v_device_t &device);
 

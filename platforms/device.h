@@ -29,6 +29,7 @@ namespace ex::platform::dev {
     struct DeviceCapability {
         char description[64];
         char format_4cc[4];
+        unsigned long int uuid;
         int  refresh_rate;
         int  width;
         int  height;

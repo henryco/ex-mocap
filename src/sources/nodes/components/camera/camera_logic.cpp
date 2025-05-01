@@ -35,26 +35,43 @@ namespace ex::logic::node::camera {
         delete node;
     }
 
+    const ex::data::array<v_devcap_t> &CameraNode::list_capabilities() const {
+        return capabilities;
+    }
+
     void CameraNode::set_image_id(const id_type_16 id) {
-        state.image_id    = static_cast<id_type_16>(id);
         promise_.image.id = static_cast<id_type_16>(id);
+        state.image_id    = static_cast<id_type_16>(id);
         // TODO
+    }
+
+    void CameraNode::set_device_mode(const v_devcap_t &cap) {
+        // TODO release camera
+
+        ::memset(&state.mode, 0, sizeof(mode_t));
+
+        state.mode.mode     = cap;
+        state.mode.selected = true;
+        snprintf(state.mode.description, 95, "%s (%s) - %d fps [%d x %d]", cap.description, cap.format_4cc,
+                 cap.refresh_rate, cap.width, cap.height);
+        state.mode.description[95] = '\0';
+
+        // TODO open camera
     }
 
     void CameraNode::set_device(const v_device_t &device) {
         // TODO release camera
 
-        state.selected       = false;
-        state.device_id      = nullptr;
-        state.device.uuid[0] = '\0';
-        state.device.name[0] = '\0';
+        ::memset(&state.device, 0, sizeof(device_t));
+        ::memset(&state.mode, 0, sizeof(mode_t));
+        capabilities.clean();
 
-        if (const char *device_id = ex::platform::dev::v4l2::get_device_id(device.uuid)) {
+        if (ex::platform::dev::get_device_index(device.uuid) != -1) {
             // TODO open camera
 
-            state.device_id = device_id;
-            state.selected  = true;
-            state.device    = device;
+            state.device.device   = device;
+            state.device.selected = true;
+            capabilities = ex::platform::dev::list_capabilities(device.uuid);
         }
     }
 
@@ -89,9 +106,9 @@ namespace ex::logic::node::camera {
     }
 
     CameraNode::CameraNode() :
-        state({ .device = { .uuid = "", .name = "" }, .device_id = nullptr, .image_id = 0, .selected = false }),
+        state({}),
         queue_(nullptr) {
-        // TODO
+        ::memset(&state, 0, sizeof(camera_state));
     }
 
-} // namespace ex::logic::node::camera
+}

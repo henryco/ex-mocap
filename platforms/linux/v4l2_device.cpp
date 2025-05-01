@@ -15,6 +15,20 @@
 
 namespace ex::platform::dev {
 
+    static unsigned long int fnv1aHash(const char *str, int size) {
+        constexpr unsigned long int FNV_OFFSET_BASIS = 14695981039346656037ull;
+        constexpr unsigned long int FNV_PRIME        = 1099511628211ull;
+
+        unsigned long int hash = FNV_OFFSET_BASIS;
+        while (size > 0) {
+            hash ^= static_cast<unsigned long int>(*str);
+            hash *= FNV_PRIME;
+            ++str;
+            --size;
+        }
+        return hash;
+    }
+
     static void abort__(const char* format, ...) noexcept(true) {
         const char* prefix = "Error: ";
         char buffer[256];
@@ -272,49 +286,50 @@ namespace ex::platform::dev {
         ex::data::array<DeviceCapability> vec;
 
         v4l2_fmtdesc fmt;
-            ::memset(&fmt, 0, sizeof(fmt));
-            fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        ::memset(&fmt, 0, sizeof(fmt));
+        fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-            while (ioctl(file_descriptor, VIDIOC_ENUM_FMT, &fmt) == 0) {
-                char format[5];
-                v4l2::fourcc_to_chars(fmt.pixelformat, format);
+        while (ioctl(file_descriptor, VIDIOC_ENUM_FMT, &fmt) == 0) {
+            char format[5];
+            v4l2::fourcc_to_chars(fmt.pixelformat, format);
 
-                // Enumerate resolutions for each format
-                v4l2_frmsizeenum frmsize;
-                ::memset(&frmsize, 0, sizeof(frmsize));
-                frmsize.pixel_format = fmt.pixelformat;
+            // Enumerate resolutions for each format
+            v4l2_frmsizeenum frmsize;
+            ::memset(&frmsize, 0, sizeof(frmsize));
+            frmsize.pixel_format = fmt.pixelformat;
 
-                while (ioctl(file_descriptor, VIDIOC_ENUM_FRAMESIZES, &frmsize) == 0) {
-                    if (frmsize.type == V4L2_FRMSIZE_TYPE_DISCRETE) {
+            while (ioctl(file_descriptor, VIDIOC_ENUM_FRAMESIZES, &frmsize) == 0) {
+                if (frmsize.type == V4L2_FRMSIZE_TYPE_DISCRETE) {
 
-                        // Enumerate frame intervals for each resolution
-                        v4l2_frmivalenum frmival;
-                        ::memset(&frmival, 0, sizeof(frmival));
-                        frmival.pixel_format = fmt.pixelformat;
-                        frmival.width = frmsize.discrete.width;
-                        frmival.height = frmsize.discrete.height;
+                    // Enumerate frame intervals for each resolution
+                    v4l2_frmivalenum frmival;
+                    ::memset(&frmival, 0, sizeof(frmival));
+                    frmival.pixel_format = fmt.pixelformat;
+                    frmival.width        = frmsize.discrete.width;
+                    frmival.height       = frmsize.discrete.height;
 
-                        while (ioctl(file_descriptor, VIDIOC_ENUM_FRAMEINTERVALS, &frmival) == 0) {
-                            if (frmival.type == V4L2_FRMIVAL_TYPE_DISCRETE) {
-                                DeviceCapability capability = {};
+                    while (ioctl(file_descriptor, VIDIOC_ENUM_FRAMEINTERVALS, &frmival) == 0) {
+                        if (frmival.type == V4L2_FRMIVAL_TYPE_DISCRETE) {
+                            DeviceCapability capability = {};
 
-                                const char *four_cc = reinterpret_cast<const char *>(fmt.pixelformat);
-                                ::memcpy(capability.format_4cc, four_cc, 4);
-                                v4l2::copy_string_(reinterpret_cast<const char *>(fmt.description), capability.description, 32);
+                            ::memcpy(capability.format_4cc, format, 4);
+                            v4l2::copy_string_(reinterpret_cast<const char *>(fmt.description), capability.description, 32);
 
-                                capability.width = frmsize.discrete.width;
-                                capability.height = frmsize.discrete.height;
-                                capability.refresh_rate =
-                                        static_cast<double>(frmival.discrete.denominator) / frmival.discrete.numerator;
-                                vec.push(capability);
-                            }
-                            frmival.index++;
+                            capability.width  = frmsize.discrete.width;
+                            capability.height = frmsize.discrete.height;
+                            capability.refresh_rate =
+                                    static_cast<double>(frmival.discrete.denominator) / frmival.discrete.numerator;
+                            capability.uuid = 0;
+                            capability.uuid = fnv1aHash(reinterpret_cast<const char *>(&capability), sizeof(DeviceCapability));
+                            vec.push(capability);
                         }
+                        frmival.index++;
                     }
-                    frmsize.index++;
                 }
-                fmt.index++;
+                frmsize.index++;
             }
+            fmt.index++;
+        }
 
         close(file_descriptor);
         return vec;

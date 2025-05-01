@@ -150,6 +150,7 @@ namespace ex::gui::strings {
 
     constexpr auto node_component_camera_id         = "Image ID";
     constexpr auto node_component_camera_name       = "Camera";
+    constexpr auto node_component_camera_mode       = "Device Mode";
     constexpr auto node_component_camera_device     = "Camera Device";
 }
 

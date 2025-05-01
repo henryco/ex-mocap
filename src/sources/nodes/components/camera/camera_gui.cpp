@@ -83,12 +83,12 @@ namespace ex::gui::node::camera {
             const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
             ImGui::SetNextItemWidth(input_size.x);
 
-            if (ImGui::BeginCombo("##cam_device_list", device.name, ImGuiComboFlags_HeightRegular)) {
+            if (ImGui::BeginCombo("##cam_device_list", device.device.name, ImGuiComboFlags_HeightRegular)) {
                 const auto &list = ex::logic::node::camera::list_camera_devices(closed);
                 static char buff_full[192];
                 for (int i = 0; i < list.size; ++i) {
                     const auto &item = list[i];
-                    const bool is_selected = ::strcmp(device.uuid, item.uuid) == 0;
+                    const bool is_selected = ::strcmp(device.device.uuid, item.uuid) == 0;
 
                     ::memset(buff_full, '\0', 192);
                     ::snprintf(buff_full, 191, "%s [%s]", item.name, item.uuid);
@@ -117,20 +117,61 @@ namespace ex::gui::node::camera {
                                                 IM_COL32(0, 0, 0, 90 * alpha));
         }
 
-        if (!state.selected || !state.device_id)
+        if (!state.device.selected)
             return true;
 
         ImGui::NewLine();
 
         {
-            static data::array<id_type_64>                          dev_keys         = 8;
-            static data::array<ex::platform::dev::VideoControl>     dev_controls     = 8;
-            static data::array<ex::platform::dev::DeviceCapability> dev_capabilities = 8;
+            const auto &mode = state.mode;
 
-            const id_type_64 dev_id_64 = limbo::fnv1aHash(state.device_id);
-            int              index     = dev_keys.index_of(dev_id_64);
+            ImGui::SeparatorText(strings::node_component_camera_mode);
 
-            // TODO
+            const auto input_pos  = ImGui::GetCursorScreenPos();
+            const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
+            ImGui::SetNextItemWidth(input_size.x);
+
+            if (ImGui::BeginCombo("##cam_cap_list", mode.description, ImGuiComboFlags_HeightRegular)) {
+
+                const auto &caps = cam_node->list_capabilities();
+
+                static char buff_full[192];
+                for (int i = 0; i < caps.size; ++i) {
+                    const auto &item = caps[i];
+                    const bool is_selected = mode.mode.uuid == item.uuid;
+
+                    ::memset(buff_full, '\0', 192);
+                    ::snprintf(buff_full, 191, "%s (%s) - %d fps [%d x %d]", item.description, item.format_4cc,
+                               item.refresh_rate, item.width, item.height);
+
+                    buff_full[191] = '\0';
+
+                    ImGui::PushID(i);
+                    if (ImGui::Selectable(buff_full, is_selected)) {
+                        cam_node->set_device_mode(item);
+                    }
+
+                    if (is_selected)
+                        ImGui::SetItemDefaultFocus();
+                    ImGui::PopID();
+                }
+
+                ImGui::EndCombo();
+            }
+
+            constexpr float alpha = 1.f;
+            ImGui::GetWindowDrawList()->AddRect(input_pos,
+                                                ImVec2(input_pos.x + input_size.x, input_pos.y + input_size.y),
+                                                IM_COL32(0, 0, 0, 90 * alpha));
+        }
+
+        if (!state.mode.selected)
+            return true;
+
+        ImGui::NewLine();
+
+        {
+            // TODO CONTROLS
         }
 
         return true;
