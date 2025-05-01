@@ -171,6 +171,24 @@ namespace ex::gui::node::camera {
         ImGui::NewLine();
 
         {
+            static struct {
+                double dt  = -1;
+                uint   nd  = -1;
+                uint   id  = -1;
+                int    val = -1;
+            } prev_change;
+
+            if (prev_change.id != -1 && prev_change.dt != -1) {
+                const double dt = ImGui::GetTime() - prev_change.dt;
+                if (dt >= 0.25) {
+                    cam_node->set_control(prev_change.id, prev_change.val);
+                    cam_node->list_controls(true);
+                    prev_change.dt = -1;
+                    prev_change.nd = -1;
+                    prev_change.id = -1;
+                }
+            }
+
             const auto &controls = cam_node->list_controls();
             for (int i = 0; i < controls.size; ++i) {
                 const auto &item = controls[i];
@@ -187,10 +205,31 @@ namespace ex::gui::node::camera {
                 ImGui::SetNextItemWidth(input_size.x);
 
                 int value = item.value;
+                if (cam_node->get_id() == prev_change.nd && item.id == prev_change.id)
+                    value = prev_change.val;
+
                 ImGui::SliderInt("##drag_value", &value, item.min, item.max);
 
                 if (value != item.value) {
-                    // TODO
+
+                    if (cam_node->get_id() == prev_change.nd) {
+                        if (item.id != prev_change.id) {
+                            cam_node->set_control(prev_change.id, prev_change.val);
+                            cam_node->list_controls(true);
+                            prev_change.dt = ImGui::GetTime();
+                        }
+
+                        else if (value != prev_change.val) {
+                            prev_change.dt = ImGui::GetTime();
+                        }
+                    }
+                    else {
+                        prev_change.dt = ImGui::GetTime();
+                    }
+
+                    prev_change.nd  = cam_node->get_id();
+                    prev_change.id  = item.id;
+                    prev_change.val = value;
                 }
 
                 constexpr float alpha = 1.f;

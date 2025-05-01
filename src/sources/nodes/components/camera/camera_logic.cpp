@@ -11,6 +11,10 @@
 
 namespace ex::logic::node::camera {
 
+    namespace {
+        const auto log = logs::get_logger("node_camera");
+    }
+
     const ex::data::array<v_device_t> &list_camera_devices(const bool refresh) {
         static ex::data::array<v_device_t> list = ex::platform::dev::list_devices();
         if (refresh) {
@@ -94,9 +98,12 @@ namespace ex::logic::node::camera {
             return;
         if (!state.mode.selected)
             return;
+
         // TODO CHECK OPEN
+
         ex::platform::dev::set_control_value(state.device.device, id, value);
-        list_controls(true);
+
+        log->info("set camera settings: {}, {}", id, value);
     }
 
     io::byte_array CameraNode::serialize() const {
