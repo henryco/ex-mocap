@@ -32,7 +32,8 @@ namespace ex::gui::node::camera {
         }
     }
 
-    void update_tree_node(const TreeNode *, TreeNode *) {
+    void update_tree_node(const TreeNode *o, TreeNode *n) {
+        // TODO disable/enable
     }
 
     unsigned long int get_node_type_id() {
