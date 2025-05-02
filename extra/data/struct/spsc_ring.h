@@ -7,9 +7,13 @@
 
 namespace ex::data {
 
+    #ifndef EX_DEF_CACHE_LINE_SIZE
+    #define EX_DEF_CACHE_LINE_SIZE 64
+    #endif
+
     // Single Producer - Single Consumer Ring Buffer for efficient lock-free inter-threading communication
-    template <typename T, int N = 64, int ALIGN = 64>
-    struct alignas(64) spsc_ring {
+    template <typename T, int N = 64, int ALIGN = EX_DEF_CACHE_LINE_SIZE>
+    struct alignas(EX_DEF_CACHE_LINE_SIZE) spsc_ring {
         volatile int head_ = 0;
         volatile int tail_ = 0;
         struct alignas(ALIGN) {
