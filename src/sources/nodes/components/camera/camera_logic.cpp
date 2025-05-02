@@ -16,6 +16,10 @@
 
 namespace ex::logic::node::camera {
 
+    struct capture_t {
+        cv::VideoCapture captrue;
+    };
+
     namespace {
         const auto log = logs::get_logger("node_camera");
 
@@ -252,9 +256,15 @@ namespace ex::logic::node::camera {
             clReleaseCommandQueue(queue_);
             queue_ = nullptr;
         }
+        if (capture != nullptr) {
+            capture->captrue.release();
+            delete capture;
+            capture = nullptr;
+        }
     }
 
     CameraNode::CameraNode() :
+        capture(new capture_t()),
         state({}),
         b_index_(0),
         queue_(nullptr) {

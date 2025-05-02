@@ -17,6 +17,8 @@ namespace ex::logic::node::camera {
     using v_devcap_t  = ex::platform::dev::DeviceCapability;
     using v_control_t = ex::platform::dev::VideoControl;
 
+    struct capture_t;
+
     struct device_t {
         v_device_t  device;
         bool        selected;
@@ -42,8 +44,8 @@ namespace ex::logic::node::camera {
         ex::data::array<v_devcap_t>  capabilities;
         ex::data::array<v_control_t> controls;
 
+        capture_t        *capture;
         camera_state      state;
-
         ocl::ImagePromise promises_[2];
         unsigned int      b_index_;
         cl_command_queue  queue_;
