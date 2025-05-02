@@ -33,7 +33,17 @@ namespace ex::gui::node::camera {
     }
 
     void update_tree_node(const TreeNode *o, TreeNode *n) {
-        // TODO disable/enable
+        if (!(o->state >>= node_state::disabled) &&
+            (n->state >>= node_state::disabled)) {
+            if (const auto base = dynamic_cast<ex::logic::node::camera::CameraNode *>(ex::logic::state::get_node(n->id_node)))
+                base->close();
+            return;
+        }
+        if ((o->state >>= node_state::disabled) &&
+            !(n->state >>= node_state::disabled)) {
+            if (const auto base = dynamic_cast<ex::logic::node::camera::CameraNode *>(ex::logic::state::get_node(n->id_node)))
+                base->open();
+        }
     }
 
     unsigned long int get_node_type_id() {
@@ -114,6 +124,7 @@ namespace ex::gui::node::camera {
 
                     ImGui::PushID(i);
                     if (ImGui::Selectable(buff_full, is_selected)) {
+                        cam_node->close();
                         cam_node->set_device(item);
                     }
 
@@ -166,7 +177,9 @@ namespace ex::gui::node::camera {
 
                     ImGui::PushID(i);
                     if (ImGui::Selectable(buff_full, is_selected)) {
+                        cam_node->close();
                         cam_node->set_device_mode(item);
+                        cam_node->open();
                     }
 
                     if (is_selected)

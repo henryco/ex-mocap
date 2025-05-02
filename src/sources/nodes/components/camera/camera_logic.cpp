@@ -225,8 +225,6 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::set_device(const v_device_t &device) {
-        close();
-
         ::memset(&state.device, 0, sizeof(device_t));
         ::memset(&state.mode, 0, sizeof(mode_t));
         capabilities.clean();
@@ -254,8 +252,6 @@ namespace ex::logic::node::camera {
         state.mode.description[95] = '\0';
 
         controls = ex::platform::dev::list_controls(state.device.device);
-
-        open();
 
         const ex::State &state_ = ex::logic::globals::state();
         if (queue_ == nullptr) {
