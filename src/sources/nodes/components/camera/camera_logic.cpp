@@ -297,7 +297,7 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::on_input(const int in_idx, const int out_idx, const int clock_i, const void *data) {
-        // TODO
+        // TODO process synchronizer
     }
 
     void CameraNode::on_update(const int clock_i) {
