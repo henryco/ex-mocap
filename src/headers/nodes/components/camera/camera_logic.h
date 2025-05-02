@@ -44,8 +44,9 @@ namespace ex::logic::node::camera {
 
         camera_state      state;
 
+        ocl::ImagePromise promises_[2];
+        unsigned int      b_index_;
         cl_command_queue  queue_;
-        ocl::ImagePromise promise_;
 
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);

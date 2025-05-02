@@ -150,8 +150,9 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::set_image_id(const id_type_16 id) {
-        promise_.image.id = static_cast<id_type_16>(id);
-        state.image_id    = static_cast<id_type_16>(id);
+        promises_[0].image.id = static_cast<id_type_16>(id);
+        promises_[1].image.id = static_cast<id_type_16>(id);
+        state.image_id        = static_cast<id_type_16>(id);
         // TODO
     }
 
@@ -182,9 +183,20 @@ namespace ex::logic::node::camera {
                  cap.refresh_rate, cap.width, cap.height);
         state.mode.description[95] = '\0';
 
+        controls = ex::platform::dev::list_controls(state.device.device);
+
         // TODO open camera
 
-        controls = ex::platform::dev::list_controls(state.device.device);
+        const ex::State &state_ = ex::logic::globals::state();
+        if (queue_ == nullptr) {
+            queue_ = xm::ocl::create_queue_device(state_.cl.context, state_.cl.device, true, false);
+        }
+
+        b_index_ = 0;
+        promises_[0].image.release();
+        promises_[1].image.release();
+        promises_[0].image = ex::ocl::Image2D::allocate(cap.width, cap.height, 3, 1, state_.cl.context);
+        promises_[1].image = ex::ocl::Image2D::allocate(cap.width, cap.height, 3, 1, state_.cl.context);
     }
 
     void CameraNode::set_control(const unsigned int id, const int value) {
@@ -230,11 +242,12 @@ namespace ex::logic::node::camera {
 
     void *CameraNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
         // TODO
-        return &promise_;
+        return &promises_[b_index_];
     }
 
     CameraNode::~CameraNode() {
-        // TODO
+        promises_[0].image.release();
+        promises_[1].image.release();
         if (queue_ != nullptr) {
             clReleaseCommandQueue(queue_);
             queue_ = nullptr;
@@ -243,6 +256,7 @@ namespace ex::logic::node::camera {
 
     CameraNode::CameraNode() :
         state({}),
+        b_index_(0),
         queue_(nullptr) {
         ::memset(&state, 0, sizeof(camera_state));
         start_worker();
