@@ -237,6 +237,9 @@ namespace ex::logic::node::camera {
                 capture->captrue.open(platform::dev::get_device_index(state.device.device),
                     platform::dev::get_capture_api());
             }
+
+            const bool is_opened = capture->captrue.isOpened();
+            log->info("Camera device: [{}] open: {}", state.device.device.uuid, is_opened);
         }
 
 
