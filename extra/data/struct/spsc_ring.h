@@ -5,11 +5,11 @@
 #ifndef EX_LIMBO_DATA_SPSC_RING_H
 #define EX_LIMBO_DATA_SPSC_RING_H
 
-namespace ex::data {
+#ifndef EX_DEF_CACHE_LINE_SIZE
+#define EX_DEF_CACHE_LINE_SIZE 64
+#endif
 
-    #ifndef EX_DEF_CACHE_LINE_SIZE
-    #define EX_DEF_CACHE_LINE_SIZE 64
-    #endif
+namespace ex::data {
 
     // Single Producer - Single Consumer Ring Buffer for efficient lock-free inter-threading communication
     template <typename T, int N = 64, int ALIGN = EX_DEF_CACHE_LINE_SIZE>
