@@ -176,8 +176,6 @@ namespace ex::logic::node::camera {
         if (!state.mode.selected)
             return;
 
-        // TODO ASYNC
-
         std::vector<int> params;
         if (::strlen(state.mode.mode.format_4cc) >= 4) {
             params.push_back(cv::CAP_PROP_FOURCC);
