@@ -4,6 +4,7 @@
 
 #include "../../headers/core/camera.h"
 #include "../../headers/cl/cl_kernel.h"
+#include "../../headers/utils/log_utils.h"
 
 namespace ex::camera {
 

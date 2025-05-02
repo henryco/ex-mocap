@@ -10,7 +10,6 @@
 #include "../../../extra/data/struct/array.h"
 #include "../../../platforms/device.h"
 #include "../cl/ocl_interop.h"
-#include "../utils/log_utils.h"
 
 namespace ex::camera {
     using dev_caps = ex::data::array<platform::dev::DeviceCapability>;
@@ -23,7 +22,7 @@ namespace ex::camera {
         int  fps      = -1;
     };
 
-    class Camera {
+    struct Camera {
     private:
         cl_context   ocl_context = nullptr;
         cl_device_id ocl_device  = nullptr;
