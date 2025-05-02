@@ -201,7 +201,6 @@ namespace ex::logic::node::camera {
 
         controls = ex::platform::dev::list_controls(state.device.device);
 
-        // TODO open camera
 
         {
             std::vector<int> params;
