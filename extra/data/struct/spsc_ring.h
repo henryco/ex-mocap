@@ -7,11 +7,14 @@
 
 namespace ex::data {
 
-    template <typename T, int N = 256>
-    struct spsc_ring {
-        alignas(64) volatile int head = 0;
-        alignas(64) volatile int tail = 0;
-        T buffer[N];
+    // Single Producer - Single Consumer Ring Buffer for efficient lock-free inter-threading communication
+    template <typename T, int N = 64, int ALIGN = 64>
+    struct alignas(64) spsc_ring {
+        volatile int head_ = 0;
+        volatile int tail_ = 0;
+        struct alignas(ALIGN) {
+            T item;
+        } buffer_[N];
 
         spsc_ring()                                    = default;
         spsc_ring(const spsc_ring &other)              = delete;
@@ -20,19 +23,19 @@ namespace ex::data {
         spsc_ring &operator = (spsc_ring &&other)      = delete;
 
         bool push(const T *item) {
-            const int next = (head + 1) % N;
-            if (next == tail)
+            const int next = (head_ + 1) % N;
+            if (next == tail_)
                 return false;
-            buffer[head] = *item;
-            head         = next;
+            buffer_[head_].item = *item;
+            head_               = next;
             return true;
         }
 
         bool pop(T* item) {
-            if (head == tail)
+            if (head_ == tail_)
                 return false;
-            *item = buffer[tail];
-            tail  = (tail + 1) % N;
+            *item  = buffer_[tail_].item;
+            tail_  = (tail_ + 1) % N;
             return true;
         }
     };
