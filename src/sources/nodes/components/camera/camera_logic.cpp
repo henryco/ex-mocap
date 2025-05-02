@@ -49,9 +49,24 @@ namespace ex::logic::node::camera {
             while (true) {
 
                 if (messages_to_s.pop(&message_s)) {
+                    if (message_s.cap_ptr && message_s.cap_ptr->isOpened()) {
 
-                    // TODO
+                        if (!message_s.cap_ptr->grab()) {
+                            // TODO MESSAGE NO MORE FRAMES
+                        }
 
+                        cv::Mat frame;
+                        if(message_s.cap_ptr->retrieve(frame)) {
+                            ex::ocl::ops::from_bytes(frame.data, message_s.promise_dst);
+                            // TODO MESSAGE COMPLETE
+                        }
+                        else {
+                            // TODO ERR MESSAGE
+                        }
+
+                    } else {
+                        // TODO ERR MESSAGE
+                    }
                     attempts = 0;
                 }
 
