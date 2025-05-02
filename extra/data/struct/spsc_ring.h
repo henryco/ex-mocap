@@ -38,8 +38,8 @@ namespace ex::data {
         bool pop(T* item) {
             if (head_ == tail_)
                 return false;
-            *item  = buffer_[tail_].item;
-            tail_  = (tail_ + 1) % N;
+            *item = buffer_[tail_].item;
+            tail_ = (tail_ + 1) % N;
             return true;
         }
     };
