@@ -186,6 +186,8 @@ set(HEADER_FILES
         src/headers/nodes/outputs/display/display_logic.h
         src/headers/nodes/components/camera/camera_gui.h
         src/headers/nodes/components/camera/camera_logic.h
+        src/headers/nodes/components/sync/sync_gui.h
+        src/headers/nodes/components/sync/sync_logic.h
 )
 
 set(SOURCE_FILES
@@ -242,6 +244,8 @@ set(SOURCE_FILES
         src/sources/nodes/outputs/display/display_logic.cpp
         src/sources/nodes/components/camera/camera_gui.cpp
         src/sources/nodes/components/camera/camera_logic.cpp
+        src/sources/nodes/components/sync/sync_gui.cpp
+        src/sources/nodes/components/sync/sync_logic.cpp
 )
 
 # =================== OpenCL kernels generation =====================
