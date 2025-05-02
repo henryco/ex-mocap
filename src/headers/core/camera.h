@@ -25,9 +25,6 @@ namespace ex::camera {
 
     class Camera {
     private:
-        static inline const auto log =
-            logs::get_logger("camera");
-
         cl_context   ocl_context = nullptr;
         cl_device_id ocl_device  = nullptr;
 

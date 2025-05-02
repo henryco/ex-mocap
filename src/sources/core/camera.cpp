@@ -7,6 +7,10 @@
 
 namespace ex::camera {
 
+    namespace {
+        const auto log = logs::get_logger("camera");
+    }
+
     int fourCC(const char *name) {
         return cv::VideoWriter::fourcc(
                 name[0],
@@ -28,6 +32,9 @@ namespace ex::camera {
 
     void Camera::open(const char *device_uuid, const config &prop) {
         close();
+
+        log->debug("Open video capture");
+
         queue = xm::ocl::create_queue_device(ocl_context, ocl_device, true, false);
 
         std::vector<int> params;
@@ -132,6 +139,7 @@ namespace ex::camera {
     }
 
     void Camera::close() {
+        log->debug("Close video capture");
         cap_.release();
         cap_called_ = false;
         grab_called = false;
