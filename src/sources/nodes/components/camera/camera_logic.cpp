@@ -251,6 +251,8 @@ namespace ex::logic::node::camera {
         b_index_ = 0;
         promises_[0].image.release();
         promises_[1].image.release();
+        promises_[0].queue = queue_;
+        promises_[1].queue = queue_;
         promises_[0].image = ex::ocl::Image2D::allocate(cap.width, cap.height, 3, 1, state_.cl.context);
         promises_[1].image = ex::ocl::Image2D::allocate(cap.width, cap.height, 3, 1, state_.cl.context);
     }

@@ -49,7 +49,7 @@ namespace ex::logic::node::camera {
         ocl::ImagePromise promises_[2];
         unsigned int      b_index_;
         cl_command_queue  queue_;
-        int      buffer_size;
+        int               buffer_size;
 
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
