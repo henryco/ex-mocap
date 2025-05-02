@@ -301,7 +301,20 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::on_update(const int clock_i) {
-        // TODO
+        message_from message;
+        bool processed = false;
+        while (messages_from.pop(&message)) {
+            if (message.node_id == get_id()) {
+
+                // TODO
+
+                if (!processed) {
+                    processed = true;
+                    continue;
+                }
+            }
+            unloaded_messages.push(message);
+        }
     }
 
     void *CameraNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
