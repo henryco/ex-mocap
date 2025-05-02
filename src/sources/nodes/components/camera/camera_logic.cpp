@@ -20,7 +20,9 @@ namespace ex::logic::node::camera {
         const auto log = logs::get_logger("node_camera");
 
         struct message_from {
-            bool error;
+            id_type_32 node_id;
+            bool       empty;
+            bool       error;
         };
 
         struct message_to_s {
@@ -43,30 +45,41 @@ namespace ex::logic::node::camera {
         ex::data::array<message_from> unloaded_messages;
 
         [[noreturn]] void *worker_routine(void *) {
+            message_from response_;
             message_to_s message_s;
             message_to_m message_m;
             int          attempts = 0;
+
+            cv::Mat frame;
             while (true) {
 
                 if (messages_to_s.pop(&message_s)) {
-                    if (message_s.cap_ptr && message_s.cap_ptr->isOpened()) {
 
-                        if (!message_s.cap_ptr->grab()) {
-                            // TODO MESSAGE NO MORE FRAMES
-                        }
-
-                        cv::Mat frame;
-                        if(message_s.cap_ptr->retrieve(frame)) {
-                            ex::ocl::ops::from_bytes(frame.data, message_s.promise_dst);
-                            // TODO MESSAGE COMPLETE
-                        }
-                        else {
-                            // TODO ERR MESSAGE
-                        }
-
-                    } else {
-                        // TODO ERR MESSAGE
+                    if (!message_s.cap_ptr || !message_s.cap_ptr->isOpened()) {
+                        response_.empty = true;
+                        response_.error = true;
+                        goto send_response_solo;
                     }
+
+                    if (!message_s.cap_ptr->grab()) {
+                        response_.empty = true;
+                        response_.error = false;
+                        goto send_response_solo;
+                    }
+
+                    if (!message_s.cap_ptr->retrieve(frame)) {
+                        response_.empty = true;
+                        response_.error = false;
+                        goto send_response_solo;
+                    }
+
+                    ex::ocl::ops::from_bytes(frame.data, message_s.promise_dst);
+                    response_.empty = false;
+                    response_.error = false;
+
+                send_response_solo:
+                    response_.node_id = message_s.node_id;
+                    messages_from.push(&response_);
                     attempts = 0;
                 }
 
