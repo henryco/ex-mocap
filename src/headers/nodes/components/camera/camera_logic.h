@@ -50,6 +50,7 @@ namespace ex::logic::node::camera {
         unsigned int      b_index_;
         cl_command_queue  queue_;
         int               buffer_size;
+        bool              enabled;
 
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
@@ -60,6 +61,8 @@ namespace ex::logic::node::camera {
         const ex::data::array<v_control_t> &list_controls(bool refresh = false);
 
         void close();
+
+        void open();
 
         void set_image_id(id_type_16 id);
 

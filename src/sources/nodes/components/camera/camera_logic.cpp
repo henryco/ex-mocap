@@ -161,12 +161,57 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::close() {
-        if (capture->camera.isOpened())
+        if (capture && capture->camera.isOpened())
             capture->camera.release();
-        ::memset(&state.device, 0, sizeof(device_t));
-        ::memset(&state.mode, 0, sizeof(mode_t));
-        capabilities.clean();
-        controls.clean();
+        enabled = false;
+    }
+
+    void CameraNode::open() {
+        close();
+
+        if (!capture)
+            return;
+        if (!state.device.selected)
+            return;
+        if (!state.mode.selected)
+            return;
+
+        // TODO ASYNC
+
+        std::vector<int> params;
+        if (::strlen(state.mode.mode.format_4cc) >= 4) {
+            params.push_back(cv::CAP_PROP_FOURCC);
+            params.push_back(fourCC(state.mode.mode.format_4cc));
+        }
+
+        if (state.mode.mode.width > 0 && state.mode.mode.height > 0) {
+            params.push_back(cv::CAP_PROP_FRAME_WIDTH);
+            params.push_back(state.mode.mode.width);
+
+            params.push_back(cv::CAP_PROP_FRAME_HEIGHT);
+            params.push_back(state.mode.mode.height);
+        }
+
+        if (state.mode.mode.refresh_rate > 0) {
+            params.push_back(cv::CAP_PROP_FPS);
+            params.push_back(state.mode.mode.refresh_rate);
+        }
+
+        if (buffer_size >= 0) {
+            params.push_back(cv::CAP_PROP_BUFFERSIZE);
+            params.push_back(buffer_size);
+        }
+
+        if (params.size() > 0) {
+            enabled = capture->camera.open(platform::dev::get_device_index(state.device.device),
+            platform::dev::get_capture_api(), params);
+            log->info("Camera device: [{}] open: {}", state.device.device.uuid, enabled);
+            return;
+        }
+
+        enabled = capture->camera.open(platform::dev::get_device_index(state.device.device),
+                platform::dev::get_capture_api());
+        log->info("Camera device: [{}] open: {}", state.device.device.uuid, enabled);
     }
 
     void CameraNode::set_image_id(const id_type_16 id) {
@@ -181,6 +226,11 @@ namespace ex::logic::node::camera {
 
     void CameraNode::set_device(const v_device_t &device) {
         close();
+
+        ::memset(&state.device, 0, sizeof(device_t));
+        ::memset(&state.mode, 0, sizeof(mode_t));
+        capabilities.clean();
+        controls.clean();
 
         if (ex::platform::dev::get_device_index(device.uuid) != -1) {
             state.device.device   = device;
@@ -198,54 +248,14 @@ namespace ex::logic::node::camera {
 
         state.mode.mode     = cap;
         state.mode.selected = true;
-        snprintf(state.mode.description, 95, "%s (%s) - %d fps [%d x %d]", cap.description, cap.format_4cc,
+        snprintf(state.mode.description, 95,
+            "%s (%s) - %d fps [%d x %d]", cap.description, cap.format_4cc,
                  cap.refresh_rate, cap.width, cap.height);
         state.mode.description[95] = '\0';
 
         controls = ex::platform::dev::list_controls(state.device.device);
 
-
-        {
-            // TODO ASYNC
-            std::vector<int> params;
-            if (::strlen(state.mode.mode.format_4cc) >= 4) {
-                params.push_back(cv::CAP_PROP_FOURCC);
-                params.push_back(fourCC(state.mode.mode.format_4cc));
-            }
-
-            if (state.mode.mode.width > 0 && state.mode.mode.height > 0) {
-                params.push_back(cv::CAP_PROP_FRAME_WIDTH);
-                params.push_back(state.mode.mode.width);
-
-                params.push_back(cv::CAP_PROP_FRAME_HEIGHT);
-                params.push_back(state.mode.mode.height);
-            }
-
-            if (state.mode.mode.refresh_rate > 0) {
-                params.push_back(cv::CAP_PROP_FPS);
-                params.push_back(state.mode.mode.refresh_rate);
-            }
-
-            if (buffer_size >= 0) {
-                params.push_back(cv::CAP_PROP_BUFFERSIZE);
-                params.push_back(buffer_size);
-            }
-
-            if (params.size() > 0) {
-                capture->camera.open(platform::dev::get_device_index(state.device.device),
-                platform::dev::get_capture_api(),
-                params);
-            }
-
-            else {
-                capture->camera.open(platform::dev::get_device_index(state.device.device),
-                    platform::dev::get_capture_api());
-            }
-
-            const bool is_opened = capture->camera.isOpened();
-            log->info("Camera device: [{}] open: {}", state.device.device.uuid, is_opened);
-        }
-
+        open();
 
         const ex::State &state_ = ex::logic::globals::state();
         if (queue_ == nullptr) {
@@ -301,9 +311,7 @@ namespace ex::logic::node::camera {
     }
 
     void *CameraNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
-        if (!state.device.selected)
-            return nullptr;
-        if (!state.mode.selected)
+        if (!enabled)
             return nullptr;
         return &promises_[b_index_];
     }
@@ -327,7 +335,8 @@ namespace ex::logic::node::camera {
         state({}),
         b_index_(0),
         queue_(nullptr),
-        buffer_size(1)
+        buffer_size(1),
+        enabled(false)
     {
         ::memset(&state, 0, sizeof(camera_state));
         start_worker();
