@@ -127,7 +127,6 @@ namespace ex::logic::node::camera {
                 controls.clean();
                 return controls;
             }
-            // TODO CHECK OPEN
             controls = ex::platform::dev::list_controls(state.device.device);
         }
         return controls;
@@ -157,11 +156,11 @@ namespace ex::logic::node::camera {
         promises_[0].image.id = static_cast<id_type_16>(id);
         promises_[1].image.id = static_cast<id_type_16>(id);
         state.image_id        = static_cast<id_type_16>(id);
-        // TODO
     }
 
     void CameraNode::set_device(const v_device_t &device) {
-        // TODO release camera
+        if (capture->captrue.isOpened())
+            capture->captrue.release();
 
         ::memset(&state.device, 0, sizeof(device_t));
         ::memset(&state.mode, 0, sizeof(mode_t));
@@ -176,7 +175,8 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::set_device_mode(const v_devcap_t &cap) {
-        // TODO release camera
+        if (capture->captrue.isOpened())
+            capture->captrue.release();
 
         ::memset(&state.mode, 0, sizeof(mode_t));
         controls.clean();
@@ -209,8 +209,6 @@ namespace ex::logic::node::camera {
         if (!state.mode.selected)
             return;
 
-        // TODO CHECK OPEN
-
         ex::platform::dev::set_control_value(state.device.device, id, value);
         log->info("set camera settings: {}, {}", id, value);
     }
@@ -220,8 +218,6 @@ namespace ex::logic::node::camera {
             return;
         if (!state.mode.selected)
             return;
-
-        // TODO CHECK OPEN
 
         ex::platform::dev::reset_controls(state.device.device);
         log->info("reset camera settings");
