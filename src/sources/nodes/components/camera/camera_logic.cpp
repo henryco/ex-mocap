@@ -17,7 +17,8 @@
 namespace ex::logic::node::camera {
 
     struct capture_t {
-        cv::VideoCapture captrue;
+        cv::Mat          frame;
+        cv::VideoCapture camera;
     };
 
     namespace {
@@ -40,6 +41,7 @@ namespace ex::logic::node::camera {
         struct message_to_s {
             ocl::ImagePromise promise_dst;
             cv::VideoCapture *cap_ptr;
+            cv::Mat          *mat_ptr;
             id_type_32        node_id;
         };
 
@@ -60,10 +62,8 @@ namespace ex::logic::node::camera {
             message_from response_;
             message_to_s message_s;
             message_to_m message_m;
-            int          attempts = 0;
 
-            cv::Mat frame;
-            while (true) {
+            for (int attempts = 0;;) {
 
                 if (messages_to_s.pop(&message_s)) {
 
@@ -79,13 +79,13 @@ namespace ex::logic::node::camera {
                         goto send_response_solo;
                     }
 
-                    if (!message_s.cap_ptr->retrieve(frame)) {
+                    if (!message_s.cap_ptr->retrieve(*message_s.mat_ptr)) {
                         response_.empty = true;
                         response_.error = false;
                         goto send_response_solo;
                     }
 
-                    ex::ocl::ops::from_bytes(frame.data, message_s.promise_dst);
+                    ex::ocl::ops::from_bytes(message_s.mat_ptr->data, message_s.promise_dst);
                     response_.empty = false;
                     response_.error = false;
 
@@ -161,8 +161,8 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::close() {
-        if (capture->captrue.isOpened())
-            capture->captrue.release();
+        if (capture->camera.isOpened())
+            capture->camera.release();
         ::memset(&state.device, 0, sizeof(device_t));
         ::memset(&state.mode, 0, sizeof(mode_t));
         capabilities.clean();
@@ -190,8 +190,8 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::set_device_mode(const v_devcap_t &cap) {
-        if (capture->captrue.isOpened())
-            capture->captrue.release();
+        if (capture->camera.isOpened())
+            capture->camera.release();
 
         ::memset(&state.mode, 0, sizeof(mode_t));
         controls.clean();
@@ -231,17 +231,17 @@ namespace ex::logic::node::camera {
             }
 
             if (params.size() > 0) {
-                capture->captrue.open(platform::dev::get_device_index(state.device.device),
+                capture->camera.open(platform::dev::get_device_index(state.device.device),
                 platform::dev::get_capture_api(),
                 params);
             }
 
             else {
-                capture->captrue.open(platform::dev::get_device_index(state.device.device),
+                capture->camera.open(platform::dev::get_device_index(state.device.device),
                     platform::dev::get_capture_api());
             }
 
-            const bool is_opened = capture->captrue.isOpened();
+            const bool is_opened = capture->camera.isOpened();
             log->info("Camera device: [{}] open: {}", state.device.device.uuid, is_opened);
         }
 
@@ -315,7 +315,7 @@ namespace ex::logic::node::camera {
             queue_ = nullptr;
         }
         if (capture != nullptr) {
-            capture->captrue.release();
+            capture->camera.release();
             delete capture;
             capture = nullptr;
         }
