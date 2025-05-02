@@ -160,6 +160,15 @@ namespace ex::logic::node::camera {
         delete node;
     }
 
+    void CameraNode::close() {
+        if (capture->captrue.isOpened())
+            capture->captrue.release();
+        ::memset(&state.device, 0, sizeof(device_t));
+        ::memset(&state.mode, 0, sizeof(mode_t));
+        capabilities.clean();
+        controls.clean();
+    }
+
     void CameraNode::set_image_id(const id_type_16 id) {
         promises_[0].image.id = static_cast<id_type_16>(id);
         promises_[1].image.id = static_cast<id_type_16>(id);
@@ -171,13 +180,7 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::set_device(const v_device_t &device) {
-        if (capture->captrue.isOpened())
-            capture->captrue.release();
-
-        ::memset(&state.device, 0, sizeof(device_t));
-        ::memset(&state.mode, 0, sizeof(mode_t));
-        capabilities.clean();
-        controls.clean();
+        close();
 
         if (ex::platform::dev::get_device_index(device.uuid) != -1) {
             state.device.device   = device;
@@ -255,6 +258,8 @@ namespace ex::logic::node::camera {
         promises_[1].queue = queue_;
         promises_[0].image = ex::ocl::Image2D::allocate(cap.width, cap.height, 3, 1, state_.cl.context);
         promises_[1].image = ex::ocl::Image2D::allocate(cap.width, cap.height, 3, 1, state_.cl.context);
+        promises_[0].image.id = state.image_id;
+        promises_[1].image.id = state.image_id;
     }
 
     void CameraNode::set_control(const unsigned int id, const int value) {
@@ -295,7 +300,10 @@ namespace ex::logic::node::camera {
     }
 
     void *CameraNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
-        // TODO
+        if (!state.device.selected)
+            return nullptr;
+        if (!state.mode.selected)
+            return nullptr;
         return &promises_[b_index_];
     }
 

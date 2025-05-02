@@ -59,6 +59,8 @@ namespace ex::logic::node::camera {
 
         const ex::data::array<v_control_t> &list_controls(bool refresh = false);
 
+        void close();
+
         void set_image_id(id_type_16 id);
 
         void set_device_buff(int buffer_size);
