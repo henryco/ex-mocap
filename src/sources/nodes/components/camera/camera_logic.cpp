@@ -26,24 +26,26 @@ namespace ex::logic::node::camera {
 
         };
 
-        struct worker_t {
-            ex::data::spsc_ring<message_from> messages_from;
-            ex::data::spsc_ring<message_to>   messages_to;
+        ex::data::spsc_ring<message_from> messages_from;
+        ex::data::spsc_ring<message_to>   messages_to;
 
-            static void *worker_routine(void *) {
-                while (true) {
-                    // TODO
-                    ::usleep(1000);
-                }
-                return nullptr;
+        void *worker_routine(void *) {
+            while (true) {
+
+                // TODO
+                ::usleep(1000);
             }
+            return nullptr;
+        }
 
-            worker_t() {
+        void start_worker() {
+            if (static bool started = false; !started) {
                 ::pthread_t thread;
                 ::pthread_create(&thread, nullptr, &worker_routine, nullptr);
                 ::pthread_detach(thread);
+                started = true;
             }
-        } worker;
+        }
 
     }
 
@@ -187,6 +189,7 @@ namespace ex::logic::node::camera {
         state({}),
         queue_(nullptr) {
         ::memset(&state, 0, sizeof(camera_state));
+        start_worker();
     }
 
 }
