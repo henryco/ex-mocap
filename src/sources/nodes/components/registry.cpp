@@ -14,6 +14,9 @@
 #include "../../../headers/nodes/components/camera/camera_gui.h"
 #include "../../../headers/nodes/components/camera/camera_logic.h"
 
+#include "../../../headers/nodes/components/sync/sync_gui.h"
+#include "../../../headers/nodes/components/sync/sync_logic.h"
+
 namespace ex::nodes::mappers {
 
     const data::array_map<id_type, Mapper> &cmp_registry_() {
@@ -49,6 +52,15 @@ namespace ex::nodes::mappers {
             registry.put(id_from_struct_<image_node_t>(), {
                 .gui = image_node_n::gui_mappers,
                 .logic = logic_from_struct_<image_node_t>()
+            });
+        }
+
+        { // Sync component
+            namespace sync_node_n = ex::gui::node::sync;
+            using sync_node_t     = ex::logic::node::sync::SyncNode;
+            registry.put(id_from_struct_<sync_node_t>(), {
+                .gui = sync_node_n::gui_mappers,
+                .logic = logic_from_struct_<sync_node_t>()
             });
         }
 

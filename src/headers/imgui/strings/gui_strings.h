@@ -155,6 +155,9 @@ namespace ex::gui::strings {
     constexpr auto node_component_camera_refresh   = "Refresh";
     constexpr auto node_component_camera_reset     = "Reset";
     constexpr auto node_component_camera_reset_all = " Reset Settings ";
+
+    constexpr auto node_component_sync_name = "Sync";
+
 }
 
 #endif //GUI_STRINGS_H
