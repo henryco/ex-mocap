@@ -4,15 +4,47 @@
 
 #include "../../../../headers/nodes/components/camera/camera_logic.h"
 
-#include "../../../../../platforms/linux/v4l2_device.h"
 #include "../../../../headers/cl/cl_kernel.h"
 #include "../../../../headers/logic/logic_globals.h"
 #include "../../../../headers/logic/logic_nodes.h"
+
+#include "../../../../../platforms/linux/v4l2_device.h"
+#include "../../../../../extra/data/struct/spsc_ring.h"
+
+#include <pthread.h>
 
 namespace ex::logic::node::camera {
 
     namespace {
         const auto log = logs::get_logger("node_camera");
+
+        struct message_from {
+
+        };
+
+        struct message_to {
+
+        };
+
+        struct worker_t {
+            ex::data::spsc_ring<message_from> messages_from;
+            ex::data::spsc_ring<message_to>   messages_to;
+
+            static void *worker_routine(void *) {
+                while (true) {
+                    // TODO
+                    ::usleep(1000);
+                }
+                return nullptr;
+            }
+
+            worker_t() {
+                ::pthread_t thread;
+                ::pthread_create(&thread, nullptr, &worker_routine, nullptr);
+                ::pthread_detach(thread);
+            }
+        } worker;
+
     }
 
     const ex::data::array<v_device_t> &list_camera_devices(const bool refresh) {
