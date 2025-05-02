@@ -23,6 +23,14 @@ namespace ex::logic::node::camera {
     namespace {
         const auto log = logs::get_logger("node_camera");
 
+        int fourCC(const char *name) {
+            return cv::VideoWriter::fourcc(
+                    name[0],
+                    name[1],
+                    name[2],
+                    name[3]);
+        }
+
         struct message_from {
             id_type_32 node_id;
             bool       empty;
@@ -158,6 +166,10 @@ namespace ex::logic::node::camera {
         state.image_id        = static_cast<id_type_16>(id);
     }
 
+    void CameraNode::set_device_buff(const int buffer_size) {
+        this->buffer_size = buffer_size;
+    }
+
     void CameraNode::set_device(const v_device_t &device) {
         if (capture->captrue.isOpened())
             capture->captrue.release();
@@ -190,6 +202,44 @@ namespace ex::logic::node::camera {
         controls = ex::platform::dev::list_controls(state.device.device);
 
         // TODO open camera
+
+        {
+            std::vector<int> params;
+            if (::strlen(state.mode.mode.format_4cc) >= 4) {
+                params.push_back(cv::CAP_PROP_FOURCC);
+                params.push_back(fourCC(state.mode.mode.format_4cc));
+            }
+
+            if (state.mode.mode.width > 0 && state.mode.mode.height > 0) {
+                params.push_back(cv::CAP_PROP_FRAME_WIDTH);
+                params.push_back(state.mode.mode.width);
+
+                params.push_back(cv::CAP_PROP_FRAME_HEIGHT);
+                params.push_back(state.mode.mode.height);
+            }
+
+            if (state.mode.mode.refresh_rate > 0) {
+                params.push_back(cv::CAP_PROP_FPS);
+                params.push_back(state.mode.mode.refresh_rate);
+            }
+
+            if (buffer_size >= 0) {
+                params.push_back(cv::CAP_PROP_BUFFERSIZE);
+                params.push_back(buffer_size);
+            }
+
+            if (params.size() > 0) {
+                capture->captrue.open(platform::dev::get_device_index(state.device.device),
+                platform::dev::get_capture_api(),
+                params);
+            }
+
+            else {
+                capture->captrue.open(platform::dev::get_device_index(state.device.device),
+                    platform::dev::get_capture_api());
+            }
+        }
+
 
         const ex::State &state_ = ex::logic::globals::state();
         if (queue_ == nullptr) {
@@ -263,7 +313,9 @@ namespace ex::logic::node::camera {
         capture(new capture_t()),
         state({}),
         b_index_(0),
-        queue_(nullptr) {
+        queue_(nullptr),
+        buffer_size(1)
+    {
         ::memset(&state, 0, sizeof(camera_state));
         start_worker();
     }
