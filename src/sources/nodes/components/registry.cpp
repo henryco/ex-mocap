@@ -47,8 +47,8 @@ namespace ex::nodes::mappers {
         }
 
         { // Image component
-            namespace image_node_n = ex::gui::node::cmp::image;
-            using image_node_t     = ex::logic::node::cmp::image::ImageNode;
+            namespace image_node_n = ex::gui::node::image;
+            using image_node_t     = ex::logic::node::image::ImageNode;
             registry.put(id_from_struct_<image_node_t>(), {
                 .gui = image_node_n::gui_mappers,
                 .logic = logic_from_struct_<image_node_t>()

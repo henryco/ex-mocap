@@ -9,7 +9,7 @@
 #include "../../../io/byte_serializer.h"
 #include "../../../logic/logic_nodes.h"
 
-namespace ex::logic::node::cmp::image {
+namespace ex::logic::node::image {
 
     struct image_state {
         char       source[255];

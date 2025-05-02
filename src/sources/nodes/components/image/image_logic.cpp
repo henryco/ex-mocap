@@ -12,7 +12,7 @@
 #include <stb_image.h>
 // STB INCLUDES ---------------------------------
 
-namespace ex::logic::node::cmp::image {
+namespace ex::logic::node::image {
 
     limbo::graph::BaseNode *ImageNode::instance(TreeNode *node) {
         ImageNode *ptr = new ImageNode();

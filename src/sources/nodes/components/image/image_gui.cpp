@@ -14,9 +14,9 @@
 #include <simpfp.h>
 #include "imgui.h"
 
-namespace ex::gui::node::cmp::image {
+namespace ex::gui::node::image {
 
-    namespace imgn = ex::logic::node::cmp::image;
+    namespace imgn = ex::logic::node::image;
 
     namespace internal_ {
 
@@ -49,7 +49,7 @@ namespace ex::gui::node::cmp::image {
     }
 
     unsigned long int get_node_type_id() {
-        return logic::node::cmp::image::ImageNode::get_node_id();
+        return logic::node::image::ImageNode::get_node_id();
     }
 
     bool draw_tree_node(TreeNode *n, const bool nested, const bool selected, const bool collapse, const bool expand) {

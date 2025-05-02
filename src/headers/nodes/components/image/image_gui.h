@@ -7,7 +7,7 @@
 
 #include "../../../imgui/gui_nodes.h"
 
-namespace ex::gui::node::cmp::image {
+namespace ex::gui::node::image {
 
     unsigned long int get_node_type_id();
 
