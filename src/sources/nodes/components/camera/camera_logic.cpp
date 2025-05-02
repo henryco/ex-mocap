@@ -2,6 +2,9 @@
 // Created by xd on 4/30/25.
 //
 
+#include <pthread.h>
+#include <opencv2/videoio.hpp>
+
 #include "../../../../headers/nodes/components/camera/camera_logic.h"
 
 #include "../../../../headers/cl/cl_kernel.h"
@@ -11,29 +14,55 @@
 #include "../../../../../platforms/linux/v4l2_device.h"
 #include "../../../../../extra/data/struct/spsc_ring.h"
 
-#include <pthread.h>
-
 namespace ex::logic::node::camera {
 
     namespace {
         const auto log = logs::get_logger("node_camera");
 
         struct message_from {
-
+            bool error;
         };
 
-        struct message_to {
-
+        struct message_to_s {
+            ocl::ImagePromise promise_dst;
+            cv::VideoCapture *cap_ptr;
+            id_type_32        node_id;
         };
 
+        struct message_to_m {
+            // TODO
+        };
+
+        // host --> worker
+        ex::data::spsc_ring<message_to_s> messages_to_s;
+        ex::data::spsc_ring<message_to_m> messages_to_m;
+
+        // host <-- worker
         ex::data::spsc_ring<message_from> messages_from;
-        ex::data::spsc_ring<message_to>   messages_to;
 
-        void *worker_routine(void *) {
+        ex::data::array<message_from> unloaded_messages;
+
+        [[noreturn]] void *worker_routine(void *) {
+            message_to_s message_s;
+            message_to_m message_m;
+            int          attempts = 0;
             while (true) {
 
-                // TODO
-                ::usleep(1000);
+                if (messages_to_s.pop(&message_s)) {
+
+                    // TODO
+
+                    attempts = 0;
+                }
+
+                if (messages_to_m.pop(&message_m)) {
+                    // TODO many (synchronized grab)
+                    attempts = 0;
+                    continue;
+                }
+
+                if (attempts++ > 1000)
+                    ::usleep(1000);
             }
         }
 

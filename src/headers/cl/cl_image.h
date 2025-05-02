@@ -202,6 +202,12 @@ namespace ex::ocl {
             Image2D::ACCESS access = Image2D::ACCESS::RW
         );
 
+        // === BLOCKING OP ===
+        void from_bytes(const unsigned char *bytes, Image2D &image_dst, cl_command_queue queue);
+
+        // non blocking op
+        void from_bytes(const unsigned char *bytes, ImagePromise &image_dst);
+
         // non blocking op
         Promise to_bytes(const Image2D &image, unsigned char *out, cl_command_queue queue);
 

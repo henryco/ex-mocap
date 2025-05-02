@@ -402,6 +402,26 @@ namespace ex::ocl {
             return { copy, queue };
         }
 
+        void from_bytes(const unsigned char *bytes, Image2D &image_dst, const cl_command_queue queue) {
+            cl_int err =
+                    clEnqueueWriteBuffer(queue, image_dst.handle, CL_TRUE, 0, image_dst.size(),
+                        bytes, 0, nullptr, nullptr);
+            if (err != CL_SUCCESS)
+                abort__("Cannot enqueue copy data to cl buffer: %d", err);
+        }
+
+        void from_bytes(const unsigned char *bytes, ImagePromise &image_dst) {
+            cl_command_queue queue  = image_dst.queue;
+            cl_mem           handle = image_dst.image.handle;
+            ::size_t         size   = image_dst.image.size();
+            cl_int err =
+                    clEnqueueWriteBuffer(queue, handle, CL_FALSE, 0, size,
+                        bytes, 0, nullptr, nullptr);
+            if (err != CL_SUCCESS)
+                abort__("Cannot enqueue copy data to cl buffer: %d", err);
+            image_dst.set_completed(false);
+        }
+
         Promise to_bytes(const Image2D &image, unsigned char *out, const cl_command_queue queue) {
             if (image.handle == nullptr)
                 abort__("Image cl_mem ptr is null");
