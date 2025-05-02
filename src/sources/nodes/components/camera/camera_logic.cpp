@@ -35,7 +35,6 @@ namespace ex::logic::node::camera {
                 // TODO
                 ::usleep(1000);
             }
-            return nullptr;
         }
 
         void start_worker() {
