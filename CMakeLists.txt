@@ -93,6 +93,7 @@ set(EXTRA_FILES
 
         # data structures
         extra/data/data_utils.h
+        extra/data/struct/spsc_ring.h
         extra/data/struct/lifo_queue.h
         extra/data/struct/sorted_map.h
         extra/data/struct/array_map.h
