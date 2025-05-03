@@ -300,7 +300,7 @@ namespace ex::logic::node::camera {
         // TODO process synchronizer
     }
 
-    bool process_input_(CameraNode *that, const message_from &message) {
+    static bool process_message_(CameraNode *that, const message_from &message) {
         if (!message.empty) {
             // complete, swap buffers
             that->b_index_ = (that->b_index_ + 1) % 2;
@@ -317,6 +317,15 @@ namespace ex::logic::node::camera {
         return false;
     }
 
+    static void enqueue_(CameraNode *that) {
+        message_to_s to_msg;
+        to_msg.node_id     = static_cast<id_type_32>(that->get_id());
+        to_msg.cap_ptr     = &that->capture->camera;
+        to_msg.mat_ptr     = &that->capture->frame;
+        to_msg.promise_dst = that->promises_[(that->b_index_ + 1) % 2];
+        messages_to_s.push(&to_msg);
+    }
+
     void CameraNode::on_update(const int clock_i) {
         bool processed = false,
              success   = false;
@@ -325,7 +334,7 @@ namespace ex::logic::node::camera {
         for (int i = 0; i < unloaded_messages.size; ++i) {
             message_from &message = unloaded_messages[i];
             if (message.node_id == static_cast<id_type_32>(get_id())) {
-                if (process_input_(this, message))
+                if (process_message_(this, message))
                     success = true;
                 unloaded_messages.swap_remove(i--);
             }
@@ -336,7 +345,7 @@ namespace ex::logic::node::camera {
             if (message.node_id == static_cast<id_type_32>(get_id())) {
                 if (processed)
                     continue;
-                if (process_input_(this, message))
+                if (process_message_(this, message))
                     success = true;
                 processed = true;
                 continue;
@@ -347,13 +356,7 @@ namespace ex::logic::node::camera {
         if (!success)
             return;
 
-        // enqueue new
-        message_to_s to_msg;
-        to_msg.node_id     = static_cast<id_type_32>(get_id());
-        to_msg.cap_ptr     = &capture->camera;
-        to_msg.mat_ptr     = &capture->frame;
-        to_msg.promise_dst = promises_[(b_index_ + 1) % 2];
-        messages_to_s.pop(&to_msg);
+        enqueue_(this);
     }
 
     void *CameraNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
