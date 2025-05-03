@@ -26,7 +26,7 @@ namespace limbo::worker {
 
     channel create_channel(worker);
 
-    void enqueue(channel, void(*)(void *), void *arg, int arg_sz_b);
+    void enqueue(channel, const void(*)(void *), void *arg, int arg_sz_b);
 
     void stop(channel);
 
