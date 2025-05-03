@@ -117,6 +117,32 @@ namespace ex::logic::node::camera {
 
     }
 
+    static bool process_message_(CameraNode *that, const message_from &message) {
+        if (!message.empty) {
+            // complete, swap buffers
+            that->b_index_ = (that->b_index_ + 1) % 2;
+            return true;
+        }
+
+        if (!message.error) {
+            // nothing to grab / processing
+            return false;
+        }
+
+        log->error("frame processing error");
+        that->close();
+        return false;
+    }
+
+    static void enqueue_(CameraNode *that) {
+        message_to_s to_msg;
+        to_msg.node_id     = static_cast<id_type_32>(that->get_id());
+        to_msg.cap_ptr     = &that->capture->camera;
+        to_msg.mat_ptr     = &that->capture->frame;
+        to_msg.promise_dst = that->promises_[(that->b_index_ + 1) % 2];
+        messages_to_s.push(&to_msg);
+    }
+
     const ex::data::array<v_device_t> &list_camera_devices(const bool refresh) {
         static ex::data::array<v_device_t> list = ex::platform::dev::list_devices();
         if (refresh) {
@@ -203,12 +229,15 @@ namespace ex::logic::node::camera {
         if (params.size() > 0) {
             enabled = capture->camera.open(platform::dev::get_device_index(state.device.device),
             platform::dev::get_capture_api(), params);
-            log->info("Camera device: [{}] open: {}", state.device.device.uuid, enabled);
-            return;
+        } else {
+            enabled = capture->camera.open(platform::dev::get_device_index(state.device.device),
+                platform::dev::get_capture_api());
         }
 
-        enabled = capture->camera.open(platform::dev::get_device_index(state.device.device),
-                platform::dev::get_capture_api());
+        if (enabled) {
+            enqueue_(this);
+        }
+
         log->info("Camera device: [{}] open: {}", state.device.device.uuid, enabled);
     }
 
@@ -300,32 +329,6 @@ namespace ex::logic::node::camera {
         // TODO process synchronizer
     }
 
-    static bool process_message_(CameraNode *that, const message_from &message) {
-        if (!message.empty) {
-            // complete, swap buffers
-            that->b_index_ = (that->b_index_ + 1) % 2;
-            return true;
-        }
-
-        if (!message.error) {
-            // nothing to grab / processing
-            return false;
-        }
-
-        log->error("frame processing error");
-        that->close();
-        return false;
-    }
-
-    static void enqueue_(CameraNode *that) {
-        message_to_s to_msg;
-        to_msg.node_id     = static_cast<id_type_32>(that->get_id());
-        to_msg.cap_ptr     = &that->capture->camera;
-        to_msg.mat_ptr     = &that->capture->frame;
-        to_msg.promise_dst = that->promises_[(that->b_index_ + 1) % 2];
-        messages_to_s.push(&to_msg);
-    }
-
     void CameraNode::on_update(const int clock_i) {
         bool processed = false,
              success   = false;
@@ -354,6 +357,9 @@ namespace ex::logic::node::camera {
         }
 
         if (!success)
+            return;
+
+        if (!enabled)
             return;
 
         enqueue_(this);
