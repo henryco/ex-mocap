@@ -111,6 +111,8 @@ set(EXTRA_FILES
         extra/data/alloc/provider.h
         extra/data/alloc/lalloc.h
         extra/data/struct/byte_array.h
+        extra/worker/worker.h
+        extra/worker/worker.cpp
 )
 
 set(PLATFORM_FILES
