@@ -147,10 +147,8 @@ set(HEADER_FILES
         src/headers/cl/ocl_interop.h
         src/headers/cl/ocl_interop_ext.h
         src/headers/imgui/layout/gui_layout.h
-        src/headers/core/camera.h
         src/headers/logic/logic.h
         src/headers/logic/logic_nodes.h
-        src/headers/core/image_protocol.h
         src/headers/imgui/gui_nodes.h
         src/headers/imgui/gui_state.h
         src/headers/imgui/tree/gui_tree_ops.h
@@ -209,7 +207,6 @@ set(SOURCE_FILES
         src/sources/imgui/layout/gui_layout_work_tree.cpp
         src/sources/imgui/layout/gui_layout_history.cpp
         src/sources/imgui/layout/gui_layout_main_content.cpp
-        src/sources/core/camera.cpp
         src/sources/logic/logic.cpp
         src/sources/imgui/tree/gui_tree_menu.cpp
         src/sources/imgui/layout/gui_layout_work_window.cpp
