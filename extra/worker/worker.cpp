@@ -30,15 +30,15 @@ namespace limbo::worker {
         return instance;
     }
 
-    void enqueue(channel_t *, const void (*fn)(void *), const void *arg, const int arg_sz_b) {
+    void enqueue(channel_t *ch_ptr, const void (*fn)(void *), const void *arg, const int arg_sz_b) {
 
     }
 
-    void stop(channel_t *) {
+    void stop(channel_t *ch_ptr) {
 
     }
 
-    void close(channel_t *) {
+    void close(channel_t *ch_ptr) {
 
     }
 
@@ -52,7 +52,7 @@ namespace limbo::worker {
         ::free(p);
     }
 
-    enum status status(channel_t *) {
+    enum status status(channel_t *ch_ptr) {
         return status::in_queue;
     }
 
