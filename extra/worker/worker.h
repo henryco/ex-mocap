@@ -32,7 +32,9 @@ namespace limbo::worker {
 
     void close(channel);
 
-    status status(channel);
+    enum status status(channel, int retries);
+
+    enum status status(channel);
 
     void free_worker(worker);
 

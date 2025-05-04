@@ -113,6 +113,7 @@ set(EXTRA_FILES
         extra/data/struct/byte_array.h
         extra/worker/worker.h
         extra/worker/worker.cpp
+        extra/data/struct/dcas_buffer.h
 )
 
 set(PLATFORM_FILES

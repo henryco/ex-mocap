@@ -13,9 +13,9 @@ namespace ex::data {
 
     // Single Producer - Single Consumer Ring Buffer for efficient lock-free inter-threading communication
     template <typename T, int N = 64, int ALIGN = EX_DEF_CACHE_LINE_SIZE>
-    struct alignas(EX_DEF_CACHE_LINE_SIZE) spsc_ring {
-        volatile int head_ = 0;
-        volatile int tail_ = 0;
+    struct spsc_ring {
+        alignas(EX_DEF_CACHE_LINE_SIZE) volatile int head_ = 0;
+        alignas(EX_DEF_CACHE_LINE_SIZE) volatile int tail_ = 0;
         struct alignas(ALIGN) {
             T item;
         } buffer_[N];
@@ -46,12 +46,12 @@ namespace ex::data {
 
     // similar to spsc_ring, but never stops
     template <typename T, int N = 64, int ALIGN = EX_DEF_CACHE_LINE_SIZE>
-    struct alignas(EX_DEF_CACHE_LINE_SIZE) spsc_drop_old {
+    struct spsc_drop_old {
         using ulong_t = unsigned long int;
 
-        ulong_t        ctr__ = 0;
-        volatile int   head_ = 0;
-        volatile int   tail_ = 0;
+        ulong_t ctr__                                      = 0;
+        alignas(EX_DEF_CACHE_LINE_SIZE) volatile int head_ = 0;
+        alignas(EX_DEF_CACHE_LINE_SIZE) volatile int tail_ = 0;
         struct alignas(ALIGN) {
             ulong_t ctr_;
             T       item;

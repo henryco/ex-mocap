@@ -3,22 +3,24 @@
 //
 
 #include "worker.h"
-#include "../data/struct/spsc_ring.h"
+#include "../data/struct/dcas_buffer.h"
 
 #include <stdlib.h>
 
 namespace limbo::worker {
 
     struct entry_t {
-        ex::data::spsc_ring<enum status> statuses;
+        ex::data::dcas_buffer<enum status> status_buff;
     };
 
     struct channel_t {
+
         worker_t *worker_ptr;
     };
 
     struct worker_t {
-
+        entry_t entries_d[128];
+        int     entries_s = 0;
     };
 
     worker_t *create_worker() {
@@ -57,7 +59,15 @@ namespace limbo::worker {
     }
 
     enum status status(channel_t *ch_ptr) {
-        return status::in_queue;
+        enum status s;
+//        ch_ptr->status_buff.load(&s);
+        return s;
+    }
+
+    enum status status(channel_t *ch_ptr, const int retries) {
+        enum status s;
+//        ch_ptr->status_buff.load(&s, retries);
+        return s;
     }
 
 }
