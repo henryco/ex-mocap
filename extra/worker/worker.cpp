@@ -26,7 +26,7 @@ namespace limbo::worker {
         };
 
         struct record_t {
-            command_t      state;
+            command_t       state;
             command_buff_t *command_ptr; // host   ->  worker
             status_buff_t  *status_ptr;  // worker <-  host
         };
