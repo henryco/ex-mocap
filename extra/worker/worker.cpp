@@ -9,6 +9,10 @@
 
 namespace limbo::worker {
 
+    struct entry_t {
+        ex::data::spsc_ring<enum status> statuses;
+    };
+
     struct channel_t {
         worker_t *worker_ptr;
     };
