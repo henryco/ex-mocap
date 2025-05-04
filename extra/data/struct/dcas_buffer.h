@@ -17,13 +17,24 @@ namespace ex::data {
     struct dcas_buffer {
 
         mutable std::atomic<uint32_t> tag_ = { 0 };
-        alignas(ALIGN) T val_;
+        alignas(ALIGN) volatile T val_;
 
         dcas_buffer()                                      = default;
         dcas_buffer(const dcas_buffer &other)              = delete;
         dcas_buffer(dcas_buffer &&other)                   = delete;
         dcas_buffer &operator = (const dcas_buffer &other) = delete;
         dcas_buffer &operator = (dcas_buffer &&other)      = delete;
+
+        uint32_t open() const {
+            uint32_t s = tag_.load(std::memory_order_relaxed);
+            tag_.store(s + 1, std::memory_order_relaxed);
+            return s;
+        }
+
+        void close(const uint32_t s, const T *value) {
+            val_ = *value;
+            tag_.store(s + 2, std::memory_order_release);
+        }
 
         void store(const T *value) {
             uint32_t s = tag_.load(std::memory_order_relaxed);
@@ -47,7 +58,7 @@ namespace ex::data {
             }
         }
 
-        bool load(T *out, int retries) const {
+        bool load(T *out, int attempts) const {
             while (true) {
                 uint32_t before = tag_.load(std::memory_order_acquire);
 
@@ -60,7 +71,7 @@ namespace ex::data {
                 if (before == after)
                     return true;
 
-                if (--retries > 0)
+                if (--attempts > 0)
                     return false;
             }
         }

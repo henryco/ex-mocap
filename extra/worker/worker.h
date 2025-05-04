@@ -13,13 +13,13 @@ namespace limbo::worker {
     using channel = channel_t *;
     using worker  = worker_t *;
 
-    enum status:
-    unsigned char {
-        in_queue,
-        completed,
-        aborted,
-        failed,
-        closed
+    enum status_t : unsigned char {
+        un_init   = 0,
+        in_queue  = 1 << 0,
+        completed = 1 << 1,
+        aborted   = 1 << 2,
+        failed    = 1 << 3,
+        closed    = 1 << 4
     };
 
     worker create_worker();
@@ -32,13 +32,11 @@ namespace limbo::worker {
 
     void close(channel);
 
-    enum status status(channel, int retries);
+    status_t status(channel, int retries);
 
-    enum status status(channel);
+    status_t status(channel);
 
-    void free_worker(worker);
-
-    void free_channel(channel);
+    void release_worker(worker);
 
 }
 
