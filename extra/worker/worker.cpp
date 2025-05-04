@@ -30,7 +30,7 @@ namespace limbo::worker {
         return instance;
     }
 
-    void enqueue(channel_t *, const void (*fn)(void *), void *arg, const int arg_sz_b) {
+    void enqueue(channel_t *, const void (*fn)(void *), const void *arg, const int arg_sz_b) {
 
     }
 
