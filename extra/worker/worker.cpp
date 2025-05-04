@@ -62,19 +62,25 @@ namespace limbo::worker {
     }
 
     void enqueue(channel_t *ch_ptr, const void (*fn)(void *), const void *arg, const int arg_sz_b) {
-
+        void *mem = ::malloc(arg_sz_b);
+        ::memcpy(mem, arg, arg_sz_b);
+        const command_t command = { .fn = fn, .args = mem, .size = arg_sz_b, .status = status_t::in_queue };
+        ch_ptr->command_buff_ptr->store(&command);
     }
 
     void stop(channel_t *ch_ptr) {
-
+        constexpr command_t command = { .status = status_t::aborted };
+        ch_ptr->command_buff_ptr->store(&command);
     }
 
     void close(channel_t *ch_ptr) {
-
+        constexpr command_t command = { .status = status_t::closed };
+        ch_ptr->command_buff_ptr->store(&command);
     }
 
     void release_worker(worker_t *p) {
         if (p == nullptr) return;
+        // TODO
         ::free(p);
     }
 
