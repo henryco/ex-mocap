@@ -21,7 +21,7 @@ namespace limbo::worker {
         struct command_t {
             const void (*fn)(void *);
             const void *args;
-            const int   size;
+            unsigned    size;
             status_t    status;
         };
 
@@ -61,7 +61,7 @@ namespace limbo::worker {
         return instance;
     }
 
-    void enqueue(channel_t *ch_ptr, const void (*fn)(void *), const void *arg, const int arg_sz_b) {
+    void enqueue(channel_t *ch_ptr, const void (*fn)(void *), const void *arg, const unsigned arg_sz_b) {
         void *mem = ::malloc(arg_sz_b);
         ::memcpy(mem, arg, arg_sz_b);
         const command_t command = { .fn = fn, .args = mem, .size = arg_sz_b, .status = status_t::in_queue };

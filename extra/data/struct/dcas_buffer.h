@@ -17,7 +17,7 @@ namespace ex::data {
     struct dcas_buffer {
 
         mutable std::atomic<uint32_t> tag_ = { 0 };
-        alignas(ALIGN) volatile T val_;
+        alignas(ALIGN) T val_;
 
         dcas_buffer()                                      = default;
         dcas_buffer(const dcas_buffer &other)              = delete;
@@ -49,6 +49,7 @@ namespace ex::data {
 
                 if (before & 1)
                     continue;
+
                 *out = val_;
 
                 const uint32_t after = tag_.load(std::memory_order_acquire);
@@ -64,6 +65,7 @@ namespace ex::data {
 
                 if (before & 1)
                     continue;
+
                 *out = val_;
 
                 uint32_t after = tag_.load(std::memory_order_acquire);
