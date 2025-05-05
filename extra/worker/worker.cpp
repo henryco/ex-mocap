@@ -25,10 +25,14 @@ namespace limbo::worker {
             status_t    status;
         };
 
+        struct buffers_t {
+            command_buff_t command; // host   ->  worker
+            status_buff_t  status;  // worker <-  host
+        };
+
         struct record_t {
-            command_t       state;
-            command_buff_t *command_ptr; // host   ->  worker
-            status_buff_t  *status_ptr;  // worker <-  host
+            command_t  state;
+            buffers_t *buffers;
         };
 
         struct array_t {
@@ -38,13 +42,11 @@ namespace limbo::worker {
     }
 
     struct channel_t {
-        command_buff_t *command_buff_ptr; // host   ->  worker
-        status_buff_t  *status_buff_ptr;  // worker <-  host
+        buffers_t *buffers;
     };
 
     struct worker_t {
         array_t records[2];
-
     };
 
     worker_t *create_worker() {
@@ -65,17 +67,17 @@ namespace limbo::worker {
         void *mem = ::malloc(arg_sz_b);
         ::memcpy(mem, arg, arg_sz_b);
         const command_t command = { .fn = fn, .args = mem, .size = arg_sz_b, .status = status_t::in_queue };
-        ch_ptr->command_buff_ptr->store(&command);
+        ch_ptr->buffers->command.store(&command);
     }
 
     void stop(channel_t *ch_ptr) {
         constexpr command_t command = { .status = status_t::aborted };
-        ch_ptr->command_buff_ptr->store(&command);
+        ch_ptr->buffers->command.store(&command);
     }
 
     void close(channel_t *ch_ptr) {
         constexpr command_t command = { .status = status_t::closed };
-        ch_ptr->command_buff_ptr->store(&command);
+        ch_ptr->buffers->command.store(&command);
     }
 
     void release_worker(worker_t *p) {
@@ -86,13 +88,13 @@ namespace limbo::worker {
 
     status_t status(channel_t *ch_ptr) {
         status_t s;
-        ch_ptr->status_buff_ptr->load(&s);
+        ch_ptr->buffers->status.load(&s);
         return s;
     }
 
     status_t status(channel_t *ch_ptr, const int retries) {
         status_t s;
-        ch_ptr->status_buff_ptr->load(&s, retries);
+        ch_ptr->buffers->status.load(&s, retries);
         return s;
     }
 
