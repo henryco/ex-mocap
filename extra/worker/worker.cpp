@@ -23,9 +23,9 @@ namespace limbo::worker {
 
         struct command_t {
             const void (*fn)(void *);
-            const void *args;
-            unsigned    size;
-            status_t    status;
+            void    *args;
+            unsigned id;
+            status_t status;
         };
 
         struct buffers_t {
@@ -49,6 +49,7 @@ namespace limbo::worker {
     struct channel_t {
         worker_t  *worker_ptr; // allocated outside
         buffers_t *buffer_ptr; // allocated outside
+        unsigned   counter;
     };
 
     struct worker_t {
@@ -61,15 +62,38 @@ namespace limbo::worker {
 
     namespace {
         void *worker_routine(void *arg) {
-            worker_t *context = static_cast<worker_t *>(arg);
-            if (context == nullptr)
+            worker_t *ctx = static_cast<worker_t *>(arg);
+            if (ctx == nullptr)
                 ::abort(); // wtf
 
-            while (context->live) {
+            while (ctx->live) {
+                ctx->spl2.lock();
 
+                workload_t *work = &ctx->jobs;
+                for (int i = 0; i < work->size; ++i) {
+
+                    record_t  *job          = &work->data[i];
+                    command_t *command_have = job->command;
+
+                    command_t command_in;
+                    job->buffers->command.load(&command_in);
+
+                    if (command_in.id == command_have->id)
+                        continue;
+
+                    // TODO
+                }
+
+                ctx->spl2.unlock();
             }
 
             return nullptr;
+        }
+
+        void *copy_mem_(const void *src, const unsigned size) {
+            void *mem = ::malloc(size);
+            ::memcpy(mem, src, size);
+            return mem;
         }
     }
 
@@ -97,6 +121,7 @@ namespace limbo::worker {
             buffers = static_cast<buffers_t *>(::malloc(sizeof(buffers_t)));
             channel->buffer_ptr = buffers;
             channel->worker_ptr = p;
+            channel->counter    = 0;
 
             command_buff_t::reset(&buffers->command);
             status_buff_t::reset(&buffers->status);
@@ -127,14 +152,27 @@ namespace limbo::worker {
     }
 
     void enqueue(channel_t *ch_ptr, const void (*fn)(void *), const void *arg, const unsigned arg_sz_b) {
-        void *mem = ::malloc(arg_sz_b);
-        ::memcpy(mem, arg, arg_sz_b);
-        const command_t command = { .fn = fn, .args = mem, .size = arg_sz_b, .status = status_t::in_queue };
+        const command_t command = {
+            .fn = fn,
+            .args = copy_mem_(arg, arg_sz_b),
+            .id = ++(ch_ptr->counter),
+            .status = status_t::in_queue
+        };
+        ch_ptr->buffer_ptr->command.store(&command);
+    }
+
+    void enqueue(channel_t *ch_ptr, const void (*fn)(void *)) {
+        const command_t command = {
+            .fn = fn,
+            .args = nullptr,
+            .id = ++(ch_ptr->counter),
+            .status = status_t::in_queue
+        };
         ch_ptr->buffer_ptr->command.store(&command);
     }
 
     void stop(channel_t *ch_ptr) {
-        constexpr command_t command = { .status = status_t::aborted };
+        const command_t command = { .id = ++(ch_ptr->counter), .status = status_t::aborted };
         ch_ptr->buffer_ptr->command.store(&command);
     }
 
@@ -153,8 +191,11 @@ namespace limbo::worker {
                         record_t *curr_ptr = &work->data[i];
                         if (curr_ptr->buffers != nullptr)
                             ::free(curr_ptr->buffers);
-                        if (curr_ptr->command != nullptr)
+                        if (curr_ptr->command != nullptr) {
+                            if (curr_ptr->command->args != nullptr)
+                                ::free(curr_ptr->command->args);
                             ::free(curr_ptr->command);
+                        }
 
                         record_t *last_ptr = &work->data[work->size - 1];
                         ::memcpy(curr_ptr, last_ptr, sizeof(record_t));
@@ -189,10 +230,13 @@ namespace limbo::worker {
         for (int i = 0; i < p->jobs.size; ++i) {
             if (p->jobs.data[i].buffers != nullptr)
                 ::free(p->jobs.data[i].buffers);
-            if (p->jobs.data[i].command != nullptr)
-                ::free(p->jobs.data[i].command);
             if (p->jobs.data[i].channel != nullptr)
                 ::free(p->jobs.data[i].channel);
+            if (p->jobs.data[i].command != nullptr) {
+                if (p->jobs.data[i].command->args != nullptr)
+                    ::free(p->jobs.data[i].command->args);
+                ::free(p->jobs.data[i].command);
+            }
         }
 
         ::free(p);

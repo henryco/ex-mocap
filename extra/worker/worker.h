@@ -33,6 +33,8 @@ namespace limbo::worker {
     // blocking operation
     void close_worker(worker, bool force = false);
 
+    void enqueue(channel, const void(*)(void *));
+
     void enqueue(channel, const void(*)(void *), const void *arg, unsigned arg_sz_b);
 
     void stop(channel);
