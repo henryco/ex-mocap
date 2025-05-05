@@ -53,11 +53,6 @@ namespace limbo::worker {
     constexpr status_t operator & (const status_t &lhs, const status_t &rhs) {
         return static_cast<status_t>(static_cast<unsigned char>(lhs) & static_cast<unsigned char>(rhs));
     }
-
-    /** contains */
-    constexpr bool operator >>= (const status_t &lhs, const status_t &rhs) {
-        return (static_cast<unsigned char>(lhs) & static_cast<unsigned char>(rhs)) != 0;
-    }
 }
 
 #endif //EX_LIMBO_WORKER_H
