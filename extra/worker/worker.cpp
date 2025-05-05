@@ -22,7 +22,7 @@ namespace limbo::worker {
         using spinlock_t     = ex::data::spinlock;
 
         struct command_t {
-            const void (*fn)(void *);
+            void (*fn)(void *);
             void    *args; // managed outside
             unsigned id;
             status_t status;
@@ -188,7 +188,7 @@ namespace limbo::worker {
         return channel;
     }
 
-    void enqueue(channel_t *ch_ptr, const void (*fn)(void *), void *arg) {
+    void enqueue(channel_t *ch_ptr, void (*fn)(void *), void *arg) {
         static constexpr status_t stat = status_t::in_queue;
         const command_t command = {
             .fn = fn,
@@ -280,7 +280,8 @@ namespace limbo::worker {
 
     status_t status(channel_t *ch_ptr, const int retries) {
         status_t s;
-        ch_ptr->buffer_ptr->status.load(&s, retries);
+        if (!ch_ptr->buffer_ptr->status.load(&s, retries))
+            return status_t::timeout;
         return s;
     }
 

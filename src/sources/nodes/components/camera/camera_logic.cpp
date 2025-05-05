@@ -12,17 +12,21 @@
 #include "../../../../headers/logic/logic_nodes.h"
 
 #include "../../../../../platforms/linux/v4l2_device.h"
-#include "../../../../../extra/data/struct/spsc_ring.h"
+#include "../../../../../extra/worker/worker.h"
 
 namespace ex::logic::node::camera {
+
+    namespace lw = limbo::worker;
 
     struct capture_t {
         cv::Mat          frame;
         cv::VideoCapture camera;
+        lw::channel_p    channel;
     };
 
     namespace {
-        const auto log = logs::get_logger("node_camera");
+        lw::worker_p worker = nullptr;
+        const auto   log    = logs::get_logger("node_camera");
 
         int fourCC(const char *name) {
             return cv::VideoWriter::fourcc(
@@ -32,115 +36,36 @@ namespace ex::logic::node::camera {
                     name[3]);
         }
 
-        struct message_from {
-            id_type_32 node_id;
-            bool       empty;
-            bool       error;
+        struct worker_payload {
+            ocl::ImagePromise *target;
+            capture_t         *capture;
         };
 
-        struct message_to_s {
-            ocl::ImagePromise promise_dst;
-            cv::VideoCapture *cap_ptr;
-            cv::Mat          *mat_ptr;
-            id_type_32        node_id;
-        };
-
-        struct message_to_m {
+        void worker_routine(void *arg) {
+            auto *payload = static_cast<worker_payload *>(arg);
             // TODO
-        };
-
-        // host --> worker
-        ex::data::spsc_ring<message_to_s> messages_to_s;
-        ex::data::spsc_ring<message_to_m> messages_to_m;
-
-        // host <-- worker
-        ex::data::spsc_ring<message_from> messages_from;
-
-        ex::data::array<message_from> unloaded_messages;
-
-        [[noreturn]] void *worker_routine(void *) {
-            message_from response_;
-            message_to_s message_s;
-            message_to_m message_m;
-
-            for (int attempts = 0;;) {
-
-                if (messages_to_s.pop(&message_s)) {
-
-                    if (!message_s.cap_ptr || !message_s.cap_ptr->isOpened()) {
-                        response_.empty = true;
-                        response_.error = true;
-                        goto send_response_solo;
-                    }
-
-                    if (!message_s.cap_ptr->grab()) {
-                        response_.empty = true;
-                        response_.error = false;
-                        goto send_response_solo;
-                    }
-
-                    if (!message_s.cap_ptr->retrieve(*message_s.mat_ptr)) {
-                        response_.empty = true;
-                        response_.error = false;
-                        goto send_response_solo;
-                    }
-
-                    ex::ocl::ops::from_bytes(message_s.mat_ptr->data, message_s.promise_dst);
-                    response_.empty = false;
-                    response_.error = false;
-
-                send_response_solo:
-                    response_.node_id = message_s.node_id;
-                    messages_from.push(&response_);
-                    attempts = 0;
-                }
-
-                if (messages_to_m.pop(&message_m)) {
-                    // TODO many (synchronized grab)
-                    attempts = 0;
-                    continue;
-                }
-
-                if (attempts++ > 1000)
-                    ::usleep(100);
-            }
         }
 
         void start_worker() {
-            if (static bool started = false; !started) {
-                ::pthread_t thread;
-                ::pthread_create(&thread, nullptr, &worker_routine, nullptr);
-                ::pthread_detach(thread);
-                started = true;
+            if (worker == nullptr)
+                worker = lw::create_worker();
+        }
+
+        void wait_for_(CameraNode *that) {
+            const lw::status_t status = lw::status(that->capture->channel);
+            if ((status & lw::status_t::finished) == 0) {
+                lw::stop(that->capture->channel);
+                while ((lw::status(that->capture->channel) & lw::status_t::finished) == 0) {
+                    ::usleep(100);
+                }
             }
         }
 
-    }
-
-    static bool process_message_(CameraNode *that, const message_from &message) {
-        if (!message.empty) {
-            // complete, swap buffers
-            that->b_index_ = (that->b_index_ + 1) % 2;
-            return true;
+        void enqueue_(CameraNode *that) {
+            // TODO
+            lw::enqueue(that->capture->channel, &worker_routine, nullptr);
         }
 
-        if (!message.error) {
-            // nothing to grab / processing
-            return false;
-        }
-
-        log->error("frame processing error");
-        that->close();
-        return false;
-    }
-
-    static void enqueue_(CameraNode *that) {
-        message_to_s to_msg;
-        to_msg.node_id     = static_cast<id_type_32>(that->get_id());
-        to_msg.cap_ptr     = &that->capture->camera;
-        to_msg.mat_ptr     = &that->capture->frame;
-        to_msg.promise_dst = that->promises_[(that->b_index_ + 1) % 2];
-        messages_to_s.push(&to_msg);
     }
 
     const ex::data::array<v_device_t> &list_camera_devices(const bool refresh) {
@@ -235,6 +160,7 @@ namespace ex::logic::node::camera {
         }
 
         if (enabled) {
+            wait_for_(this);
             enqueue_(this);
         }
 
@@ -330,39 +256,19 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::on_update(const int clock_i) {
-        bool processed = false,
-             success   = false;
-
-        // check old
-        for (int i = 0; i < unloaded_messages.size; ++i) {
-            message_from &message = unloaded_messages[i];
-            if (message.node_id == static_cast<id_type_32>(get_id())) {
-                if (process_message_(this, message))
-                    success = true;
-                unloaded_messages.swap_remove(i--);
-            }
-        }
-
-        // check/unload new
-        for (message_from message; messages_from.pop(&message);) {
-            if (message.node_id == static_cast<id_type_32>(get_id())) {
-                if (processed)
-                    continue;
-                if (process_message_(this, message))
-                    success = true;
-                processed = true;
-                continue;
-            }
-            unloaded_messages.push(message);
-        }
-
-        if (!success)
-            return;
-
         if (!enabled)
             return;
 
-        enqueue_(this);
+        const lw::status_t status = lw::status(capture->channel);
+
+        if ((status & lw::status_t::success) != 0) {
+            b_index_ = (b_index_ + 1) % 2; // swap buffers
+            enqueue_(this);
+            return;
+        }
+
+        if ((status & lw::status_t::failure) != 0)
+            abort_("capture worker error");
     }
 
     void *CameraNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
@@ -374,12 +280,19 @@ namespace ex::logic::node::camera {
     CameraNode::~CameraNode() {
         promises_[0].image.release();
         promises_[1].image.release();
+
         if (queue_ != nullptr) {
             clReleaseCommandQueue(queue_);
             queue_ = nullptr;
         }
+
         if (capture != nullptr) {
             capture->camera.release();
+
+            if (capture->channel != nullptr)
+                lw::close_channel(capture->channel);
+            capture->channel = nullptr;
+
             delete capture;
             capture = nullptr;
         }
@@ -395,6 +308,7 @@ namespace ex::logic::node::camera {
     {
         ::memset(&state, 0, sizeof(camera_state));
         start_worker();
+        capture->channel = lw::create_channel(worker);
     }
 
 }
