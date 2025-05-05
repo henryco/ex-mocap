@@ -98,7 +98,7 @@ namespace limbo::worker {
         ch_ptr->buffers->command.store(&command);
     }
 
-    void close(channel_t *ch_ptr) {
+    void close_channel(channel_t *ch_ptr) {
         if (worker_t *wpt = ch_ptr->worker_ptr;
             wpt->spl_1.lock()) {
             if (wpt->spl_2.lock()) {

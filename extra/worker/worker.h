@@ -24,19 +24,21 @@ namespace limbo::worker {
 
     worker create_worker();
 
-    channel create_channel(worker);
+    void release_worker(worker);
 
     void enqueue(channel, const void(*)(void *), const void *arg, unsigned arg_sz_b);
 
     void stop(channel);
 
-    void close(channel);
-
     status_t status(channel, int retries);
 
     status_t status(channel);
 
-    void release_worker(worker);
+    // blocking operation
+    channel create_channel(worker);
+
+    // blocking operation
+    void close_channel(channel);
 
 }
 
