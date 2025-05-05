@@ -23,7 +23,7 @@ namespace limbo::worker {
 
         struct command_t {
             const void (*fn)(void *);
-            void    *args;
+            void    *args; // managed outside
             unsigned id;
             status_t status;
         };
@@ -61,74 +61,69 @@ namespace limbo::worker {
     };
 
     namespace {
+        constexpr status_t total_success = status_t::finished | status_t::success;
+        constexpr status_t total_failure = status_t::finished | status_t::failure;
+        constexpr status_t total_abort   = status_t::finished | status_t::aborted;
+
+        #if defined(__GNUC__) || defined(__clang__)
+            #define likely(x)   __builtin_expect(!!(x), 1)
+            #define unlikely(x) __builtin_expect(!!(x), 0)
+        #else
+            #define likely(x) (x)
+            #define unlikely(x) (x)
+        #endif
+
         void *worker_routine(void *arg) {
             worker_t *ctx = static_cast<worker_t *>(arg);
-            if (ctx == nullptr)
+            if (unlikely(ctx == nullptr))
                 ::abort(); // wtf
 
-            while (ctx->live) {
+            while (likely(ctx->live)) {
                 ctx->spl2.lock();
 
                 workload_t *work = &ctx->jobs;
                 for (int i = 0; i < work->size; ++i) {
 
-                    record_t  *job          = &work->data[i];
-                    command_t *command_have = job->command;
+                    record_t  *job = &work->data[i];
+                    command_t *cmd = job->command;
 
                     command_t command_in;
                     job->buffers->command.load(&command_in);
 
-                    if (command_in.id == command_have->id)
+                    if (command_in.id == cmd->id)
                         continue;
 
-                    if (command_have->args != nullptr)
-                        ::free(command_have->args);
+                    cmd->id = command_in.id;
 
-                    if (command_in.status & status_t::aborted) {
+                    if (likely(command_in.status & status_t::in_queue)) {
 
-                        command_have->id = command_in.id;
-                        if (command_in.args != nullptr)
-                            ::free(command_in.args);
+                        if (unlikely(command_in.fn == nullptr))
+                            goto point_of_failure;
 
-                        constexpr status_t total_abort = status_t::finished | status_t::aborted;
-                        command_have->status           = total_abort;
-                        job->buffers->status.store(&total_abort);
-                        continue;
-                    }
+                        command_in.fn(command_in.args);
 
-                    if (command_in.status & status_t::in_queue) {
-
-                        // TODO
-
-                        command_have->id = command_in.id;
-                        if (command_in.args != nullptr)
-                            ::free(command_in.args);
-
-                        constexpr status_t total_success = status_t::finished | status_t::success;
-                        command_have->status             = total_success;
+                        cmd->status = total_success;
                         job->buffers->status.store(&total_success);
                         continue;
                     }
 
-                    command_have->id = command_in.id;
-                    if (command_in.args != nullptr)
-                        ::free(command_in.args);
+                    if (unlikely(command_in.status & status_t::aborted)) {
+                        cmd->status = total_abort;
+                        job->buffers->status.store(&total_abort);
+                        continue;
+                    }
 
-                    constexpr status_t total_failure = status_t::finished | status_t::failure;
-                    command_have->status             = total_failure;
-                    job->buffers->status.store(&total_failure);
+                    {
+                    point_of_failure:
+                        cmd->status = total_failure;
+                        job->buffers->status.store(&total_failure);
+                    }
                 }
 
                 ctx->spl2.unlock();
             }
 
             return nullptr;
-        }
-
-        void *copy_mem_(const void *src, const unsigned size) {
-            void *mem = ::malloc(size);
-            ::memcpy(mem, src, size);
-            return mem;
         }
     }
 
@@ -164,7 +159,7 @@ namespace limbo::worker {
             if (p->spl2.lock()) {
 
                 const unsigned size = p->jobs.size;
-                if (size >= WL_SZ) {
+                if (unlikely((size >= WL_SZ))) {
                     // not enough space
                     p->spl2.unlock();
                     p->spl1.unlock();
@@ -186,10 +181,10 @@ namespace limbo::worker {
         return channel;
     }
 
-    void enqueue(channel_t *ch_ptr, const void (*fn)(void *), const void *arg, const unsigned arg_sz_b) {
+    void enqueue(channel_t *ch_ptr, const void (*fn)(void *), void *arg) {
         const command_t command = {
             .fn = fn,
-            .args = copy_mem_(arg, arg_sz_b),
+            .args = arg,
             .id = ++(ch_ptr->counter),
             .status = status_t::in_queue
         };
@@ -224,13 +219,10 @@ namespace limbo::worker {
                     if (work->data[i].channel == ch_ptr) {
 
                         record_t *curr_ptr = &work->data[i];
-                        if (curr_ptr->buffers != nullptr)
+                        if (likely(curr_ptr->buffers != nullptr))
                             ::free(curr_ptr->buffers);
-                        if (curr_ptr->command != nullptr) {
-                            if (curr_ptr->command->args != nullptr)
-                                ::free(curr_ptr->command->args);
+                        if (likely(curr_ptr->command != nullptr))
                             ::free(curr_ptr->command);
-                        }
 
                         record_t *last_ptr = &work->data[work->size - 1];
                         ::memcpy(curr_ptr, last_ptr, sizeof(record_t));
@@ -263,15 +255,12 @@ namespace limbo::worker {
         p->spl2.lock();
 
         for (int i = 0; i < p->jobs.size; ++i) {
-            if (p->jobs.data[i].buffers != nullptr)
+            if (likely(p->jobs.data[i].buffers != nullptr))
                 ::free(p->jobs.data[i].buffers);
-            if (p->jobs.data[i].channel != nullptr)
+            if (likely(p->jobs.data[i].channel != nullptr))
                 ::free(p->jobs.data[i].channel);
-            if (p->jobs.data[i].command != nullptr) {
-                if (p->jobs.data[i].command->args != nullptr)
-                    ::free(p->jobs.data[i].command->args);
+            if (likely(p->jobs.data[i].command != nullptr))
                 ::free(p->jobs.data[i].command);
-            }
         }
 
         ::free(p);

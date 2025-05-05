@@ -35,7 +35,7 @@ namespace limbo::worker {
 
     void enqueue(channel, const void(*)(void *));
 
-    void enqueue(channel, const void(*)(void *), const void *arg, unsigned arg_sz_b);
+    void enqueue(channel, const void(*)(void *), void *arg);
 
     void stop(channel);
 
