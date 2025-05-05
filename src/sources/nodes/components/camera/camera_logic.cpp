@@ -19,8 +19,9 @@ namespace ex::logic::node::camera {
     namespace lw = limbo::worker;
 
     struct result_t {
-        bool empty;
-        bool error;
+        short fps;
+        bool  empty;
+        bool  error;
     };
 
     struct capture_t {
