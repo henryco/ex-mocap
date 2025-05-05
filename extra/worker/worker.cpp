@@ -6,6 +6,7 @@
 
 #include <cstring>
 #include <cstdlib>
+#include <pthread.h>
 
 #include "../data/struct/dcas_buffer.h"
 #include "../data/struct/spinlock.h"
@@ -52,16 +53,38 @@ namespace limbo::worker {
 
     struct worker_t {
         workload_t    jobs;
+        ::pthread_t   pthr;
         spinlock_t    spl1;
         spinlock_t    spl2;
         volatile bool live;
     };
+
+    namespace {
+        void *worker_routine(void *arg) {
+            worker_t *context = static_cast<worker_t *>(arg);
+            if (context == nullptr)
+                ::abort(); // wtf
+
+            while (context->live) {
+
+            }
+
+            return nullptr;
+        }
+    }
 
     worker_t *create_worker() {
         worker_t *instance = static_cast<worker_t *>(::malloc(sizeof(worker_t)));
         ::memset(instance, 0, sizeof(worker_t));
         spinlock_t::reset(&instance->spl1);
         spinlock_t::reset(&instance->spl2);
+        instance->live = true;
+
+        ::pthread_t thread;
+        ::pthread_create(&thread, nullptr, &worker_routine, instance);
+        ::pthread_detach(thread);
+        instance->pthr = thread;
+
         return instance;
     }
 
@@ -152,8 +175,12 @@ namespace limbo::worker {
         }
     }
 
-    void release_worker(worker_t *p) {
-        if (p == nullptr) return;
+    void release_worker(worker_t *p, const bool force) {
+        if (p == nullptr)
+            return;
+
+        if (force)
+            ::pthread_cancel(p->pthr);
 
         p->live = false;
         p->spl1.lock();

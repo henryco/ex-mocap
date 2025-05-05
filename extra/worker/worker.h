@@ -24,7 +24,7 @@ namespace limbo::worker {
 
     worker create_worker();
 
-    void release_worker(worker);
+    void release_worker(worker, bool force = false);
 
     void enqueue(channel, const void(*)(void *), const void *arg, unsigned arg_sz_b);
 
