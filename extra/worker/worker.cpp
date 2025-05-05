@@ -50,6 +50,7 @@ namespace limbo::worker {
 
     struct worker_t {
         spinlock_t spl_1;
+        spinlock_t spl_2;
         array_t    records[2];
     };
 
@@ -61,16 +62,25 @@ namespace limbo::worker {
     }
 
     channel_t *create_channel(worker_t *p) {
-        channel_t *instance  = static_cast<channel_t *>(::malloc(sizeof(channel_t)));
-        buffers_t *buffers   = static_cast<buffers_t *>(::malloc(sizeof(buffers_t)));
-        instance->buffers    = buffers;
-        instance->worker_ptr = p;
-
-        command_buff_t::reset(&buffers->command);
-        status_buff_t::reset(&buffers->status);
+        channel_t *instance = nullptr;
+        buffers_t *buffers  = nullptr;
 
         p->spl_1.lock();
+        {
+            instance  = static_cast<channel_t *>(::malloc(sizeof(channel_t)));
+            buffers   = static_cast<buffers_t *>(::malloc(sizeof(buffers_t)));
+            instance->buffers    = buffers;
+            instance->worker_ptr = p;
 
+            command_buff_t::reset(&buffers->command);
+            status_buff_t::reset(&buffers->status);
+
+            p->spl_2.lock();
+            {
+                // TODO update array
+            }
+            p->spl_2.unlock();
+        }
         p->spl_1.unlock();
 
         return instance;
@@ -90,9 +100,13 @@ namespace limbo::worker {
 
     void close(channel_t *ch_ptr) {
         ch_ptr->worker_ptr->spl_1.lock();
-
-        // TODO
-
+        {
+            ch_ptr->worker_ptr->spl_2.lock();
+            {
+                // TODO update array
+            }
+            ch_ptr->worker_ptr->spl_2.unlock();
+        }
         ch_ptr->worker_ptr->spl_1.unlock();
     }
 
