@@ -79,6 +79,7 @@ namespace limbo::worker {
 
                 // TODO update array
 
+                p->index = (p->index + 1) % 2;
                 p->spl_2.unlock();
             }
             p->spl_1.unlock();
@@ -106,6 +107,7 @@ namespace limbo::worker {
 
                 // TODO update array
 
+                wpt->index = (wpt->index + 1) % 2;
                 wpt->spl_2.unlock();
             }
             wpt->spl_1.unlock();
