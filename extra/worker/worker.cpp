@@ -76,10 +76,11 @@ namespace limbo::worker {
             status_buff_t::reset(&buffers->status);
 
             if (p->spl_2.lock()) {
+                const unsigned next_i = (p->index + 1) % 2;
 
                 // TODO update array
 
-                p->index = (p->index + 1) % 2;
+                p->index = next_i;
                 p->spl_2.unlock();
             }
             p->spl_1.unlock();
@@ -104,10 +105,11 @@ namespace limbo::worker {
         if (worker_t *wpt = ch_ptr->worker_ptr;
             wpt->spl_1.lock()) {
             if (wpt->spl_2.lock()) {
+                const unsigned next_i = (wpt->index + 1) % 2;
 
                 // TODO update array
 
-                wpt->index = (wpt->index + 1) % 2;
+                wpt->index = next_i;
                 wpt->spl_2.unlock();
             }
             wpt->spl_1.unlock();
