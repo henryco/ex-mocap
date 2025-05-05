@@ -254,6 +254,8 @@ namespace limbo::worker {
         p->live = false;
 
         if (force) {
+            if (p->spl1.lock(1000000) && p->spl2.lock(1000000))
+                goto finish;
             ::pthread_cancel(p->pthr);
             p->spl1.lock(1000000);
             p->spl2.lock(1000000);
@@ -262,6 +264,7 @@ namespace limbo::worker {
             p->spl2.lock();
         }
 
+    finish:
         for (int i = 0; i < p->jobs.size; ++i) {
             if (likely(p->jobs.data[i].buffers != nullptr))
                 ::free(p->jobs.data[i].buffers);
