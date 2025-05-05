@@ -35,6 +35,7 @@ namespace limbo::worker {
         struct record_t {
             command_t *command; // allocated outside
             buffers_t *buffers; // allocated outside
+            channel_t *channel; // allocated outside
         };
 
         struct workload_t {
@@ -64,14 +65,14 @@ namespace limbo::worker {
     }
 
     channel_t *create_channel(worker_t *p) {
-        channel_t *instance = nullptr;
-        buffers_t *buffers  = nullptr;
+        channel_t *channel = nullptr;
+        buffers_t *buffers = nullptr;
 
         if (p->spl1.lock()) {
-            instance  = static_cast<channel_t *>(::malloc(sizeof(channel_t)));
-            buffers   = static_cast<buffers_t *>(::malloc(sizeof(buffers_t)));
-            instance->buffer_ptr = buffers;
-            instance->worker_ptr = p;
+            channel = static_cast<channel_t *>(::malloc(sizeof(channel_t)));
+            buffers = static_cast<buffers_t *>(::malloc(sizeof(buffers_t)));
+            channel->buffer_ptr = buffers;
+            channel->worker_ptr = p;
 
             command_buff_t::reset(&buffers->command);
             status_buff_t::reset(&buffers->status);
@@ -89,15 +90,16 @@ namespace limbo::worker {
                 command_t *command = static_cast<command_t *>(::malloc(sizeof(command_t)));
                 ::memset(command, 0, sizeof(command_t));
 
-                p->jobs.data[size].buffers = buffers;
                 p->jobs.data[size].command = command;
+                p->jobs.data[size].buffers = buffers;
+                p->jobs.data[size].channel = channel;
 
                 p->spl2.unlock();
             }
             p->spl1.unlock();
         }
 
-        return instance;
+        return channel;
     }
 
     void enqueue(channel_t *ch_ptr, const void (*fn)(void *), const void *arg, const unsigned arg_sz_b) {
@@ -113,11 +115,35 @@ namespace limbo::worker {
     }
 
     void close_channel(channel_t *ch_ptr) {
+        if (ch_ptr == nullptr)
+            return;
+
         if (worker_t *wpt = ch_ptr->worker_ptr;
             wpt->spl1.lock()) {
             if (wpt->spl2.lock()) {
 
-                // TODO update array
+                workload_t *work = &wpt->jobs;
+                for (int i = 0; i < work->size; ++i) {
+                    if (work->data[i].channel == ch_ptr) {
+
+                        record_t *curr_ptr = &work->data[i];
+                        if (curr_ptr->buffers != nullptr)
+                            ::free(curr_ptr->buffers);
+                        if (curr_ptr->command != nullptr)
+                            ::free(curr_ptr->command);
+
+                        record_t *last_ptr = &work->data[work->size - 1];
+                        ::memcpy(curr_ptr, last_ptr, sizeof(record_t));
+                        ::memset(last_ptr, 0, sizeof(record_t));
+                        work->size--;
+
+                        wpt->spl2.unlock();
+                        wpt->spl1.unlock();
+
+                        ::free(ch_ptr);
+                        return;
+                    }
+                }
 
                 wpt->spl2.unlock();
             }
