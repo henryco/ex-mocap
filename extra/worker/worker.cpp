@@ -81,7 +81,42 @@ namespace limbo::worker {
                     if (command_in.id == command_have->id)
                         continue;
 
-                    // TODO
+                    if (command_have->args != nullptr)
+                        ::free(command_have->args);
+
+                    if (command_in.status & status_t::aborted) {
+
+                        command_have->id = command_in.id;
+                        if (command_in.args != nullptr)
+                            ::free(command_in.args);
+
+                        constexpr status_t total_abort = status_t::finished | status_t::aborted;
+                        command_have->status           = total_abort;
+                        job->buffers->status.store(&total_abort);
+                        continue;
+                    }
+
+                    if (command_in.status & status_t::in_queue) {
+
+                        // TODO
+
+                        command_have->id = command_in.id;
+                        if (command_in.args != nullptr)
+                            ::free(command_in.args);
+
+                        constexpr status_t total_success = status_t::finished | status_t::success;
+                        command_have->status             = total_success;
+                        job->buffers->status.store(&total_success);
+                        continue;
+                    }
+
+                    command_have->id = command_in.id;
+                    if (command_in.args != nullptr)
+                        ::free(command_in.args);
+
+                    constexpr status_t total_failure = status_t::finished | status_t::failure;
+                    command_have->status             = total_failure;
+                    job->buffers->status.store(&total_failure);
                 }
 
                 ctx->spl2.unlock();
