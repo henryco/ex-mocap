@@ -33,8 +33,8 @@ namespace limbo::worker {
         };
 
         struct record_t {
-            command_t *command;
-            buffers_t *buffers;
+            command_t *command; // should be allocated outside
+            buffers_t *buffers; // should be allocated outside
         };
 
         struct workload_t {
@@ -44,8 +44,8 @@ namespace limbo::worker {
     }
 
     struct channel_t {
-        worker_t  *worker_ptr;
-        buffers_t *buffers;
+        worker_t  *worker_ptr; // should be allocated outside
+        buffers_t *buffer_ptr; // should be allocated outside
     };
 
     struct worker_t {
@@ -69,7 +69,7 @@ namespace limbo::worker {
         if (p->spl_1.lock()) {
             instance  = static_cast<channel_t *>(::malloc(sizeof(channel_t)));
             buffers   = static_cast<buffers_t *>(::malloc(sizeof(buffers_t)));
-            instance->buffers    = buffers;
+            instance->buffer_ptr = buffers;
             instance->worker_ptr = p;
 
             command_buff_t::reset(&buffers->command);
@@ -91,12 +91,12 @@ namespace limbo::worker {
         void *mem = ::malloc(arg_sz_b);
         ::memcpy(mem, arg, arg_sz_b);
         const command_t command = { .fn = fn, .args = mem, .size = arg_sz_b, .status = status_t::in_queue };
-        ch_ptr->buffers->command.store(&command);
+        ch_ptr->buffer_ptr->command.store(&command);
     }
 
     void stop(channel_t *ch_ptr) {
         constexpr command_t command = { .status = status_t::aborted };
-        ch_ptr->buffers->command.store(&command);
+        ch_ptr->buffer_ptr->command.store(&command);
     }
 
     void close_channel(channel_t *ch_ptr) {
@@ -120,13 +120,13 @@ namespace limbo::worker {
 
     status_t status(channel_t *ch_ptr) {
         status_t s;
-        ch_ptr->buffers->status.load(&s);
+        ch_ptr->buffer_ptr->status.load(&s);
         return s;
     }
 
     status_t status(channel_t *ch_ptr, const int retries) {
         status_t s;
-        ch_ptr->buffers->status.load(&s, retries);
+        ch_ptr->buffer_ptr->status.load(&s, retries);
         return s;
     }
 
