@@ -182,22 +182,26 @@ namespace limbo::worker {
     }
 
     void enqueue(channel_t *ch_ptr, const void (*fn)(void *), void *arg) {
+        static constexpr status_t stat = status_t::in_queue;
         const command_t command = {
             .fn = fn,
             .args = arg,
             .id = ++(ch_ptr->counter),
             .status = status_t::in_queue
         };
+        ch_ptr->buffer_ptr->status.store(&stat);
         ch_ptr->buffer_ptr->command.store(&command);
     }
 
     void enqueue(channel_t *ch_ptr, const void (*fn)(void *)) {
+        static constexpr status_t stat = status_t::in_queue;
         const command_t command = {
             .fn = fn,
             .args = nullptr,
             .id = ++(ch_ptr->counter),
             .status = status_t::in_queue
         };
+        ch_ptr->buffer_ptr->status.store(&stat);
         ch_ptr->buffer_ptr->command.store(&command);
     }
 
