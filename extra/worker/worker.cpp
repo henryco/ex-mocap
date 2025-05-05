@@ -65,8 +65,7 @@ namespace limbo::worker {
         channel_t *instance = nullptr;
         buffers_t *buffers  = nullptr;
 
-        p->spl_1.lock();
-        {
+        if (p->spl_1.lock()) {
             instance  = static_cast<channel_t *>(::malloc(sizeof(channel_t)));
             buffers   = static_cast<buffers_t *>(::malloc(sizeof(buffers_t)));
             instance->buffers    = buffers;
@@ -75,13 +74,14 @@ namespace limbo::worker {
             command_buff_t::reset(&buffers->command);
             status_buff_t::reset(&buffers->status);
 
-            p->spl_2.lock();
-            {
+            if (p->spl_2.lock()) {
+
                 // TODO update array
+
+                p->spl_2.unlock();
             }
-            p->spl_2.unlock();
+            p->spl_1.unlock();
         }
-        p->spl_1.unlock();
 
         return instance;
     }
@@ -99,15 +99,16 @@ namespace limbo::worker {
     }
 
     void close(channel_t *ch_ptr) {
-        ch_ptr->worker_ptr->spl_1.lock();
-        {
-            ch_ptr->worker_ptr->spl_2.lock();
-            {
+        if (worker_t *wpt = ch_ptr->worker_ptr;
+            wpt->spl_1.lock()) {
+            if (wpt->spl_2.lock()) {
+
                 // TODO update array
+
+                wpt->spl_2.unlock();
             }
-            ch_ptr->worker_ptr->spl_2.unlock();
+            wpt->spl_1.unlock();
         }
-        ch_ptr->worker_ptr->spl_1.unlock();
     }
 
     void release_worker(worker_t *p) {
