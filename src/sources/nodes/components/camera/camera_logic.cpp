@@ -314,6 +314,8 @@ namespace ex::logic::node::camera {
         ::memset(&state, 0, sizeof(camera_state));
         start_worker();
         capture->channel = lw::create_channel(worker);
+        if (capture->channel == nullptr)
+            abort_("Cannot create worker channel (not enough slots?)");
     }
 
 }
