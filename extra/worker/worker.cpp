@@ -8,6 +8,7 @@
 #include <cstdlib>
 
 #include "../data/struct/dcas_buffer.h"
+#include "../data/struct/spinlock.h"
 
 namespace limbo::worker {
 
@@ -17,6 +18,7 @@ namespace limbo::worker {
 
         using command_buff_t = ex::data::dcas_buffer<command_t>;
         using status_buff_t  = ex::data::dcas_buffer<status_t>;
+        using spinlock_t     = ex::data::spinlock;
 
         struct command_t {
             const void (*fn)(void *);
@@ -42,11 +44,13 @@ namespace limbo::worker {
     }
 
     struct channel_t {
+        worker_t  *worker_ptr;
         buffers_t *buffers;
     };
 
     struct worker_t {
-        array_t records[2];
+        spinlock_t spl_1;
+        array_t    records[2];
     };
 
     worker_t *create_worker() {
@@ -57,14 +61,17 @@ namespace limbo::worker {
     }
 
     channel_t *create_channel(worker_t *p) {
-        channel_t *instance = static_cast<channel_t *>(::malloc(sizeof(channel_t)));
-        buffers_t *buffers  = static_cast<buffers_t *>(::malloc(sizeof(buffers_t)));
-        instance->buffers   = buffers;
+        channel_t *instance  = static_cast<channel_t *>(::malloc(sizeof(channel_t)));
+        buffers_t *buffers   = static_cast<buffers_t *>(::malloc(sizeof(buffers_t)));
+        instance->buffers    = buffers;
+        instance->worker_ptr = p;
 
         command_buff_t::reset(&buffers->command);
         status_buff_t::reset(&buffers->status);
 
-        // TODO
+        p->spl_1.lock();
+
+        p->spl_1.unlock();
 
         return instance;
     }
@@ -82,8 +89,11 @@ namespace limbo::worker {
     }
 
     void close(channel_t *ch_ptr) {
-        constexpr command_t command = { .status = status_t::closed };
-        ch_ptr->buffers->command.store(&command);
+        ch_ptr->worker_ptr->spl_1.lock();
+
+        // TODO
+
+        ch_ptr->worker_ptr->spl_1.unlock();
     }
 
     void release_worker(worker_t *p) {

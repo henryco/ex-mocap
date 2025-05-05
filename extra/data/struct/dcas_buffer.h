@@ -65,6 +65,7 @@ namespace ex::data {
         }
 
         bool load(T *out, int attempts) const {
+            --attempts;
             while (true) {
                 uint32_t before = tag_.load(std::memory_order_acquire);
 
@@ -78,7 +79,7 @@ namespace ex::data {
                 if (before == after)
                     return true;
 
-                if (--attempts > 0)
+                if (--attempts < 0)
                     return false;
             }
         }

@@ -14,12 +14,12 @@ namespace limbo::worker {
     using worker  = worker_t *;
 
     enum status_t : unsigned char {
-        un_init   = 0,
-        in_queue  = 1 << 0,
-        completed = 1 << 1,
-        aborted   = 1 << 2,
-        failed    = 1 << 3,
-        closed    = 1 << 4
+        un_init  = 0,
+        in_queue = 1 << 0,
+        finished = 1 << 1,
+        success  = 1 << 2,
+        failure  = 1 << 3,
+        aborted  = 1 << 4
     };
 
     worker create_worker();
