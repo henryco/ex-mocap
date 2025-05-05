@@ -49,10 +49,9 @@ namespace limbo::worker {
     };
 
     struct worker_t {
-        workload_t array[2];
-        spinlock_t spl_1;
-        spinlock_t spl_2;
-        unsigned   index;
+        workload_t jobs;
+        spinlock_t spl1;
+        spinlock_t spl2;
     };
 
     worker_t *create_worker() {
@@ -66,7 +65,7 @@ namespace limbo::worker {
         channel_t *instance = nullptr;
         buffers_t *buffers  = nullptr;
 
-        if (p->spl_1.lock()) {
+        if (p->spl1.lock()) {
             instance  = static_cast<channel_t *>(::malloc(sizeof(channel_t)));
             buffers   = static_cast<buffers_t *>(::malloc(sizeof(buffers_t)));
             instance->buffer_ptr = buffers;
@@ -75,15 +74,13 @@ namespace limbo::worker {
             command_buff_t::reset(&buffers->command);
             status_buff_t::reset(&buffers->status);
 
-            if (p->spl_2.lock()) {
-                const unsigned next_i = (p->index + 1) % 2;
+            if (p->spl2.lock()) {
 
                 // TODO update array
 
-                p->index = next_i;
-                p->spl_2.unlock();
+                p->spl2.unlock();
             }
-            p->spl_1.unlock();
+            p->spl1.unlock();
         }
 
         return instance;
@@ -103,16 +100,14 @@ namespace limbo::worker {
 
     void close_channel(channel_t *ch_ptr) {
         if (worker_t *wpt = ch_ptr->worker_ptr;
-            wpt->spl_1.lock()) {
-            if (wpt->spl_2.lock()) {
-                const unsigned next_i = (wpt->index + 1) % 2;
+            wpt->spl1.lock()) {
+            if (wpt->spl2.lock()) {
 
                 // TODO update array
 
-                wpt->index = next_i;
-                wpt->spl_2.unlock();
+                wpt->spl2.unlock();
             }
-            wpt->spl_1.unlock();
+            wpt->spl1.unlock();
         }
     }
 
