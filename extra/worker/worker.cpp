@@ -79,7 +79,7 @@ namespace limbo::worker {
             if (unlikely(ctx == nullptr))
                 ::abort(); // wtf
 
-            for (int attempts = 0; ctx->live;) {
+            for (int attempts = 0; likely(ctx->live);) {
                 ctx->spl2.lock();
 
                 workload_t *work = &ctx->jobs;
