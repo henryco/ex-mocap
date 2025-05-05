@@ -36,7 +36,7 @@ namespace limbo::worker {
         };
 
         struct array_t {
-            record_t data[128];
+            record_t data[127];
             unsigned size;
         };
     }
