@@ -39,10 +39,11 @@ namespace limbo::worker {
     // sends stop signal
     void stop(channel);
 
+    // must use & and | operators to check status
     status_t status(channel, int retries);
 
+    // must use & and | operators to check status
     status_t status(channel);
-
 
     /** OR */
     constexpr status_t operator | (const status_t &lhs, const status_t &rhs) {
