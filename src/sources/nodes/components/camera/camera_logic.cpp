@@ -18,11 +18,21 @@ namespace ex::logic::node::camera {
 
     namespace lw = limbo::worker;
 
+    struct result_t {
+        bool empty;
+        bool error;
+    };
+
     struct capture_t {
-        cv::Mat            bitmap;
-        cv::VideoCapture   camera;
-        ocl::ImagePromise *target;
-        lw::channel_p      channel;
+        cv::Mat            bitmap; //
+        cv::VideoCapture   camera; // regularly touched by worker
+        ocl::ImagePromise *target; //
+        // -----------------------
+        alignas(64)
+        result_t result;           // touched by host and worker
+        // -----------------------
+        alignas(64)
+        lw::channel_p channel;     // touched by host, never by worker
     };
 
     namespace {
@@ -39,7 +49,28 @@ namespace ex::logic::node::camera {
 
         void worker_routine(void *arg) {
             capture_t *capture = static_cast<capture_t *>(arg);
-            // TODO
+
+            if (!capture->camera.isOpened()) {
+                capture->result.error = true;
+                capture->result.empty = true;
+                return;
+            }
+
+            if (!capture->camera.grab()) {
+                capture->result.error = false;
+                capture->result.empty = true;
+                return;
+            }
+
+            if (!capture->camera.retrieve(capture->bitmap)) {
+                capture->result.error = false;
+                capture->result.empty = true;
+                return;
+            }
+
+            ex::ocl::ops::from_bytes(capture->bitmap.data, *capture->target);
+            capture->result.error = false;
+            capture->result.empty = false;
         }
 
         void start_worker() {
@@ -58,6 +89,8 @@ namespace ex::logic::node::camera {
         }
 
         void enqueue(CameraNode *that) {
+            that->capture->result.error = false;
+            that->capture->result.empty = true;
             that->capture->target = &(that->promises_[(that->b_index_ + 1) % 2]);
             lw::enqueue(that->capture->channel, &worker_routine, that->capture);
         }
@@ -118,6 +151,8 @@ namespace ex::logic::node::camera {
             capture->camera.release();
 
         capture->bitmap.release();
+        capture->result.error = false;
+        capture->result.empty = true;
     }
 
     void CameraNode::open() {
@@ -267,7 +302,9 @@ namespace ex::logic::node::camera {
         const lw::status_t status = lw::status(capture->channel);
 
         if ((status & lw::status_t::success) != 0) {
-            b_index_ = (b_index_ + 1) % 2; // swap buffers
+            if (!capture->result.empty && !capture->result.error) {
+                b_index_ = (b_index_ + 1) % 2; // swap buffers
+            }
             enqueue(this);
             return;
         }
@@ -313,6 +350,8 @@ namespace ex::logic::node::camera {
     {
         ::memset(&state, 0, sizeof(camera_state));
         start_worker();
+        capture->result.error = false;
+        capture->result.empty = true;
         capture->channel = lw::create_channel(worker);
         if (capture->channel == nullptr)
             abort_("Cannot create worker channel (not enough slots?)");
