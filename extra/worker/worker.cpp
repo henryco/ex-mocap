@@ -51,9 +51,10 @@ namespace limbo::worker {
     };
 
     struct worker_t {
-        workload_t jobs;
-        spinlock_t spl1;
-        spinlock_t spl2;
+        workload_t    jobs;
+        spinlock_t    spl1;
+        spinlock_t    spl2;
+        volatile bool live;
     };
 
     worker_t *create_worker() {
@@ -153,7 +154,20 @@ namespace limbo::worker {
 
     void release_worker(worker_t *p) {
         if (p == nullptr) return;
-        // TODO
+
+        p->live = false;
+        p->spl1.lock();
+        p->spl2.lock();
+
+        for (int i = 0; i < p->jobs.size; ++i) {
+            if (p->jobs.data[i].buffers != nullptr)
+                ::free(p->jobs.data[i].buffers);
+            if (p->jobs.data[i].command != nullptr)
+                ::free(p->jobs.data[i].command);
+            if (p->jobs.data[i].channel != nullptr)
+                ::free(p->jobs.data[i].channel);
+        }
+
         ::free(p);
     }
 
