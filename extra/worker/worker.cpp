@@ -33,8 +33,8 @@ namespace limbo::worker {
         };
 
         struct record_t {
-            command_t *command; // should be allocated outside
-            buffers_t *buffers; // should be allocated outside
+            command_t *command; // allocated outside
+            buffers_t *buffers; // allocated outside
         };
 
         struct workload_t {
@@ -44,8 +44,8 @@ namespace limbo::worker {
     }
 
     struct channel_t {
-        worker_t  *worker_ptr; // should be allocated outside
-        buffers_t *buffer_ptr; // should be allocated outside
+        worker_t  *worker_ptr; // allocated outside
+        buffers_t *buffer_ptr; // allocated outside
     };
 
     struct worker_t {
