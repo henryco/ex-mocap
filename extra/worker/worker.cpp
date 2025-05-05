@@ -37,7 +37,7 @@ namespace limbo::worker {
             buffers_t *buffers;
         };
 
-        struct array_t {
+        struct workload_t {
             record_t data[127];
             unsigned size;
         };
@@ -49,9 +49,10 @@ namespace limbo::worker {
     };
 
     struct worker_t {
+        workload_t array[2];
         spinlock_t spl_1;
         spinlock_t spl_2;
-        array_t    records[2];
+        unsigned   index;
     };
 
     worker_t *create_worker() {
