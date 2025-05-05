@@ -19,6 +19,11 @@ namespace ex::data {
         mutable std::atomic<uint32_t> tag_ = { 0 };
         alignas(ALIGN) T val_;
 
+        static void reset(dcas_buffer *buffer) {
+            ::memset(&buffer->val_, 0, sizeof(T));
+            buffer->tag_ = { 0 };
+        }
+
         dcas_buffer()                                      = default;
         dcas_buffer(const dcas_buffer &other)              = delete;
         dcas_buffer(dcas_buffer &&other)                   = delete;

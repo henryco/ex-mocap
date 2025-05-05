@@ -58,8 +58,14 @@ namespace limbo::worker {
 
     channel_t *create_channel(worker_t *p) {
         channel_t *instance = static_cast<channel_t *>(::malloc(sizeof(channel_t)));
+        buffers_t *buffers  = static_cast<buffers_t *>(::malloc(sizeof(buffers_t)));
+        instance->buffers   = buffers;
+
+        command_buff_t::reset(&buffers->command);
+        status_buff_t::reset(&buffers->status);
 
         // TODO
+
         return instance;
     }
 
