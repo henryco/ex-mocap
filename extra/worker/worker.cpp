@@ -75,10 +75,11 @@ namespace limbo::worker {
 
         void *worker_routine(void *arg) {
             worker_t *ctx = static_cast<worker_t *>(arg);
+
             if (unlikely(ctx == nullptr))
                 ::abort(); // wtf
 
-            while (likely(ctx->live)) {
+            for (int attempts = 0; ctx->live;) {
                 ctx->spl2.lock();
 
                 workload_t *work = &ctx->jobs;
@@ -92,6 +93,8 @@ namespace limbo::worker {
 
                     if (command_in.id == cmd->id)
                         continue;
+
+                    attempts = 0;
 
                     cmd->id = command_in.id;
 
@@ -121,6 +124,9 @@ namespace limbo::worker {
                 }
 
                 ctx->spl2.unlock();
+
+                if (attempts++ > 1000)
+                    ::usleep(100);
             }
 
             return nullptr;
