@@ -33,7 +33,7 @@ namespace limbo::worker {
         };
 
         struct record_t {
-            command_t  state;
+            command_t *command;
             buffers_t *buffers;
         };
 
