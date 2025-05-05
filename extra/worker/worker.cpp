@@ -251,12 +251,16 @@ namespace limbo::worker {
         if (p == nullptr)
             return;
 
-        if (force)
-            ::pthread_cancel(p->pthr);
-
         p->live = false;
-        p->spl1.lock();
-        p->spl2.lock();
+
+        if (force) {
+            ::pthread_cancel(p->pthr);
+            p->spl1.lock(1000000);
+            p->spl2.lock(1000000);
+        } else {
+            p->spl1.lock();
+            p->spl2.lock();
+        }
 
         for (int i = 0; i < p->jobs.size; ++i) {
             if (likely(p->jobs.data[i].buffers != nullptr))
