@@ -19,9 +19,10 @@ namespace ex::logic::node::camera {
     namespace lw = limbo::worker;
 
     struct capture_t {
-        cv::Mat          frame;
-        cv::VideoCapture camera;
-        lw::channel_p    channel;
+        cv::Mat            bitmap;
+        cv::VideoCapture   camera;
+        ocl::ImagePromise *target;
+        lw::channel_p      channel;
     };
 
     namespace {
@@ -36,13 +37,8 @@ namespace ex::logic::node::camera {
                     name[3]);
         }
 
-        struct worker_payload {
-            ocl::ImagePromise *target;
-            capture_t         *capture;
-        };
-
         void worker_routine(void *arg) {
-            auto *payload = static_cast<worker_payload *>(arg);
+            capture_t *capture = static_cast<capture_t *>(arg);
             // TODO
         }
 
@@ -51,7 +47,7 @@ namespace ex::logic::node::camera {
                 worker = lw::create_worker();
         }
 
-        void wait_for_(CameraNode *that) {
+        void stop_wait(CameraNode *that) {
             const lw::status_t status = lw::status(that->capture->channel);
             if ((status & lw::status_t::finished) == 0) {
                 lw::stop(that->capture->channel);
@@ -61,9 +57,9 @@ namespace ex::logic::node::camera {
             }
         }
 
-        void enqueue_(CameraNode *that) {
-            // TODO
-            lw::enqueue(that->capture->channel, &worker_routine, nullptr);
+        void enqueue(CameraNode *that) {
+            that->capture->target = &(that->promises_[(that->b_index_ + 1) % 2]);
+            lw::enqueue(that->capture->channel, &worker_routine, that->capture);
         }
 
     }
@@ -112,9 +108,16 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::close() {
-        if (capture && capture->camera.isOpened())
-            capture->camera.release();
         enabled = false;
+        stop_wait(this);
+
+        if (!capture)
+            return;
+
+        if (capture->camera.isOpened())
+            capture->camera.release();
+
+        capture->bitmap.release();
     }
 
     void CameraNode::open() {
@@ -151,6 +154,8 @@ namespace ex::logic::node::camera {
             params.push_back(buffer_size);
         }
 
+        capture->bitmap.release();
+
         if (params.size() > 0) {
             enabled = capture->camera.open(platform::dev::get_device_index(state.device.device),
             platform::dev::get_capture_api(), params);
@@ -160,8 +165,7 @@ namespace ex::logic::node::camera {
         }
 
         if (enabled) {
-            wait_for_(this);
-            enqueue_(this);
+            enqueue(this);
         }
 
         log->info("Camera device: [{}] open: {}", state.device.device.uuid, enabled);
@@ -178,6 +182,8 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::set_device(const v_device_t &device) {
+        close();
+
         ::memset(&state.device, 0, sizeof(device_t));
         ::memset(&state.mode, 0, sizeof(mode_t));
         capabilities.clean();
@@ -191,8 +197,7 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::set_device_mode(const v_devcap_t &cap) {
-        if (capture->camera.isOpened())
-            capture->camera.release();
+        close();
 
         ::memset(&state.mode, 0, sizeof(mode_t));
         controls.clean();
@@ -243,12 +248,12 @@ namespace ex::logic::node::camera {
     }
 
     io::byte_array CameraNode::serialize() const {
-        // TODO
+        // TODO write to bytes
         return io::byte_array::from(nullptr, 0);
     }
 
     void CameraNode::deserialize(const io::byte_array &) {
-        // TODO
+        // TODO read from bytes
     }
 
     void CameraNode::on_input(const int in_idx, const int out_idx, const int clock_i, const void *data) {
@@ -263,7 +268,7 @@ namespace ex::logic::node::camera {
 
         if ((status & lw::status_t::success) != 0) {
             b_index_ = (b_index_ + 1) % 2; // swap buffers
-            enqueue_(this);
+            enqueue(this);
             return;
         }
 
