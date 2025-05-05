@@ -172,6 +172,7 @@ namespace limbo::worker {
                 p->jobs.data[size].command = command;
                 p->jobs.data[size].buffers = buffers;
                 p->jobs.data[size].channel = channel;
+                p->jobs.size++;
 
                 p->spl2.unlock();
             }
