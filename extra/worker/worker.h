@@ -23,7 +23,7 @@ namespace limbo::worker {
         timeout  = 1 << 5
     };
 
-    worker_p create_worker();
+    worker_p create_worker(unsigned idle_us = 0, unsigned idle_after = 0);
 
     // blocking operation
     channel_p create_channel(worker_p);

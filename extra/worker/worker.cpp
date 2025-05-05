@@ -57,6 +57,8 @@ namespace limbo::worker {
         ::pthread_t   pthr;
         spinlock_t    spl1;
         spinlock_t    spl2;
+        unsigned      idle;
+        unsigned      atmp;
         volatile bool live;
     };
 
@@ -125,19 +127,24 @@ namespace limbo::worker {
 
                 ctx->spl2.unlock();
 
-                if (attempts++ > 1000)
-                    ::usleep(100);
+                if (ctx->atmp == 0 || ctx->idle == 0)
+                    continue;
+
+                if (attempts++ > ctx->atmp)
+                    ::usleep(ctx->idle);
             }
 
             return nullptr;
         }
     }
 
-    worker_t *create_worker() {
+    worker_t *create_worker(const unsigned idle_us, const unsigned idle_after) {
         worker_t *instance = static_cast<worker_t *>(::malloc(sizeof(worker_t)));
         ::memset(instance, 0, sizeof(worker_t));
         spinlock_t::reset(&instance->spl1);
         spinlock_t::reset(&instance->spl2);
+        instance->atmp = idle_after;
+        instance->idle = idle_us;
         instance->live = true;
 
         ::pthread_t thread;
