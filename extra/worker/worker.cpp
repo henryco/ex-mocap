@@ -38,7 +38,8 @@ namespace limbo::worker {
         };
 
         struct workload_t {
-            record_t data[127];
+            #define WL_SZ 127
+            record_t data[WL_SZ]; // stack allocated
             unsigned size;
         };
     }
@@ -57,7 +58,8 @@ namespace limbo::worker {
     worker_t *create_worker() {
         worker_t *instance = static_cast<worker_t *>(::malloc(sizeof(worker_t)));
         ::memset(instance, 0, sizeof(worker_t));
-        // TODO
+        spinlock_t::reset(&instance->spl1);
+        spinlock_t::reset(&instance->spl2);
         return instance;
     }
 
@@ -76,7 +78,19 @@ namespace limbo::worker {
 
             if (p->spl2.lock()) {
 
-                // TODO update array
+                const unsigned size = p->jobs.size;
+                if (size >= WL_SZ) {
+                    // not enough space
+                    p->spl2.unlock();
+                    p->spl1.unlock();
+                    return nullptr;
+                }
+
+                command_t *command = static_cast<command_t *>(::malloc(sizeof(command_t)));
+                ::memset(command, 0, sizeof(command_t));
+
+                p->jobs.data[size].buffers = buffers;
+                p->jobs.data[size].command = command;
 
                 p->spl2.unlock();
             }

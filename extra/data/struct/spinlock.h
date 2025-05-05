@@ -12,6 +12,10 @@ namespace ex::data {
     struct spinlock {
         std::atomic_flag flag_ = ATOMIC_FLAG_INIT;
 
+        static void reset(spinlock *sp) {
+            sp->flag_.clear(std::memory_order_relaxed);
+        }
+
         spinlock()                                   = default;
         spinlock(const spinlock &other)              = delete;
         spinlock(spinlock &&other)                   = delete;

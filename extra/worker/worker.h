@@ -14,7 +14,7 @@ namespace limbo::worker {
     using worker  = worker_t *;
 
     enum status_t : unsigned char {
-        un_init  = 0,
+        not_init = 0,
         in_queue = 1 << 0,
         finished = 1 << 1,
         success  = 1 << 2,
