@@ -33,10 +33,12 @@ namespace limbo::worker {
     // blocking operation
     void close_worker(worker, bool force = false);
 
-    void enqueue(channel, const void(*)(void *));
-
+    // memory under *arg* is expected to be managed by caller
     void enqueue(channel, const void(*)(void *), void *arg);
 
+    void enqueue(channel, const void(*)(void *));
+
+    // sends stop signal
     void stop(channel);
 
     status_t status(channel, int retries);
