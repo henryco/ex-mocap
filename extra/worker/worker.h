@@ -24,7 +24,14 @@ namespace limbo::worker {
 
     worker create_worker();
 
-    void release_worker(worker, bool force = false);
+    // blocking operation
+    channel create_channel(worker);
+
+    // blocking operation
+    void close_channel(channel);
+
+    // blocking operation
+    void close_worker(worker, bool force = false);
 
     void enqueue(channel, const void(*)(void *), const void *arg, unsigned arg_sz_b);
 
@@ -33,12 +40,6 @@ namespace limbo::worker {
     status_t status(channel, int retries);
 
     status_t status(channel);
-
-    // blocking operation
-    channel create_channel(worker);
-
-    // blocking operation
-    void close_channel(channel);
 
 }
 

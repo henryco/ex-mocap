@@ -175,7 +175,7 @@ namespace limbo::worker {
         }
     }
 
-    void release_worker(worker_t *p, const bool force) {
+    void close_worker(worker_t *p, const bool force) {
         if (p == nullptr)
             return;
 
