@@ -436,7 +436,8 @@ namespace ex::gui::tree {
             static const auto  input_size = ImVec2(char_size * 32, ImGui::GetFrameHeight());
 
             ImGui::SetNextItemWidth(input_size.x);
-            ImGui::SetKeyboardFocusHere();
+            if (rename_popup)
+                ImGui::SetKeyboardFocusHere();
             ImGui::InputText("##edit", name_buffer, IM_ARRAYSIZE(name_buffer));
 
             constexpr float alpha = 1.f;
