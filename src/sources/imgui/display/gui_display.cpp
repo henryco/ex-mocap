@@ -15,7 +15,7 @@
 #include <IconsLucide.h>
 
 namespace {
-    static ex::data::spinlock lock_;
+    ex::data::spinlock lock_;
 }
 
 namespace ex::display::imp::imgui {
