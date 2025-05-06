@@ -264,6 +264,9 @@ namespace ex::gui::node::camera {
                 prev_change.id = -1;
             }
 
+            ImGui::SameLine();
+            ImGui::TextDisabled("%.4f FPS", cam_node->timings.frame_rate);
+
             ImGui::SameLine(pox);
             if (ImGui::Button(ICON_LC_REFRESH_CCW_DOT)) {
                 cam_node->list_controls(true);

@@ -54,7 +54,6 @@ namespace ex::logic::node::camera {
         }
 
         void worker_routine(void *arg) {
-//            const auto t0 = std::chrono::high_resolution_clock::now();
             capture_t *capture = static_cast<capture_t *>(arg);
 
             if (!capture->camera.grab()) {
@@ -68,10 +67,6 @@ namespace ex::logic::node::camera {
                 capture->result.empty = true;
                 return;
             }
-
-//            const auto t1 = std::chrono::high_resolution_clock::now();
-//            const auto dt = (t1 - t0).count();
-//            std::cout << dt << '\n';
 
             ocl::ops::from_bytes(capture->bitmap.data, *capture->target);
             capture->result.error = false;
@@ -148,6 +143,7 @@ namespace ex::logic::node::camera {
 
     void CameraNode::close() {
         enabled = false;
+        ::memset(&timings, 0, sizeof(timings_t));
         stop_wait(this);
 
         if (!capture)
@@ -313,11 +309,19 @@ namespace ex::logic::node::camera {
         const lw::status_t status = lw::status(capture->channel);
 
         if ((status & lw::status_t::success) != 0) {
-            // TODO fps timing
+
+            const auto t1 = std::chrono::high_resolution_clock::now();
+            if (timings.t0 != 0) {
+                const unsigned long dt = t1.time_since_epoch().count() - timings.t0;
+                timings.frame_rate = static_cast<float>(1000000000. / dt);
+            }
+
             if (!capture->result.empty && !capture->result.error) {
                 b_index_ = (b_index_ + 1) % 2; // swap buffers
                 updates_.refresh();
             }
+
+            timings.t0 = std::chrono::high_resolution_clock::now().time_since_epoch().count();
             enqueue(this);
         }
 
@@ -357,6 +361,7 @@ namespace ex::logic::node::camera {
     CameraNode::CameraNode() :
         capture(new capture_t()), // new bruh
         state({}),
+        timings({0, 0}),
         b_index_(0),
         queue_(nullptr),
         enabled(false)

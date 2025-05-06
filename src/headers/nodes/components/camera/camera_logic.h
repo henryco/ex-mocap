@@ -37,6 +37,11 @@ namespace ex::logic::node::camera {
         id_type_16 image_id;
     };
 
+    struct timings_t {
+        unsigned long t0;
+        float frame_rate;
+    };
+
     struct CameraNode final : limbo::graph::BaseNode,
                               limbo::graph::id::name<"camera_node">,
                               limbo::graph::io::out<ocl::img_promise, 1, "Frame image">,
@@ -50,6 +55,7 @@ namespace ex::logic::node::camera {
         capture_t        *capture;
         camera_state      state;
         ocl::ImagePromise promises_[2];
+        timings_t         timings;
         unsigned int      b_index_;
         cl_command_queue  queue_;
         bool              enabled;
