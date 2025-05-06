@@ -17,9 +17,9 @@ namespace ex::logic::node::camera {
     using v_devcap_t  = ex::platform::dev::DeviceCapability;
     using v_control_t = ex::platform::dev::VideoControl;
 
-    struct capture_t;
-
     struct internal_t;
+    struct capture_t;
+    struct result_t;
 
     struct device_t {
         v_device_t  device;
@@ -52,9 +52,12 @@ namespace ex::logic::node::camera {
         ex::data::array<v_devcap_t>  capabilities;
         ex::data::array<v_control_t> controls;
 
+        // ---- internal ----
         internal_t *internal;
         capture_t  *capture;
+        result_t   *result;
 
+        // ---- exposed ----
         camera_state state;
         timings_t    timings;
 
