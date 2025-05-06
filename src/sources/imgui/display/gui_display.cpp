@@ -25,19 +25,17 @@ namespace ex::display::imp::imgui {
         ImVec4(1, 1, 1, 1), // WHITE
         ImVec4(1, 0, 1, 1), // MAGENTA
         ImVec4(0, 1, 0, 1), // GREEN
-        ImVec4(1, 0, 0, 1), // BLUE
-        ImVec4(0, 0, 1, 1), // RED
+        ImVec4(0, 0, 1, 1), // BLUE
+        ImVec4(1, 0, 0, 1), // RED
     };
 
     static void switch_bg_color_(char *idx) {
         if (idx == nullptr) return;
-        if (++(*idx) >= 6) *idx = 0;
+        *idx = ((*idx) + 1) % IM_ARRAYSIZE(BG_COLORS_);
     }
 
     static const ImVec4 &bg_color_(const int idx) {
-        if (idx >= 6)
-            return BG_COLORS_[0];
-        return BG_COLORS_[idx];
+        return BG_COLORS_[idx % IM_ARRAYSIZE(BG_COLORS_)];
     }
 
     static int format_c(const int c) {
