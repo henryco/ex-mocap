@@ -27,7 +27,7 @@ namespace ex::data {
             return true;
         }
 
-        bool lock(int attempts) {
+        bool lock(long attempts) {
             --attempts;
             while (flag_.test_and_set(std::memory_order_acquire)) {
                 if (--attempts < 0)
