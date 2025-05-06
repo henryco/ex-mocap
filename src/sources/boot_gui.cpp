@@ -16,6 +16,52 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+//#define EX_WORKER_LOGIC_ON
+
+#ifdef EX_WORKER_LOGIC_ON
+#include "../../extra/worker/worker.h"
+namespace {
+    namespace lw          = limbo::worker;
+    lw::worker_p  worker  = nullptr;
+    lw::channel_p channel = nullptr;
+
+    void start_worker() {
+        if (worker == nullptr)
+            worker = lw::create_worker(100, 10000);
+        if (channel == nullptr)
+            channel = lw::create_channel(worker);
+    }
+
+    void worker_routine(void *arg) {
+        ex::main::Logic *logic = static_cast<ex::main::Logic *>(arg);
+        logic->run();
+    }
+
+    void enqueue(ex::main::Logic *logic) {
+        lw::enqueue(channel, &worker_routine, logic);
+    }
+
+    void stop_wait() {
+        const lw::status_t status = lw::status(channel);
+        if ((status & lw::status_t::finished) == 0) {
+            lw::stop(channel);
+            while ((lw::status(channel) & lw::status_t::finished) == 0) {
+                ::usleep(100);
+            }
+        }
+    }
+
+    void stop_worker() {
+        if (channel != nullptr)
+            lw::close_channel(channel);
+        if (worker != nullptr)
+            lw::close_worker(worker);
+        channel = nullptr;
+        worker  = nullptr;
+    }
+}
+#endif
+
 namespace ex::boot {
 
 #define DEFAULT_REFRESH_RATE 60
@@ -165,6 +211,12 @@ namespace ex::boot {
 
         log->info("Initialization complete");
 
+#ifdef EX_WORKER_LOGIC_ON
+        start_worker();
+        enqueue(&logic);
+        log->info("Gui worker created");
+#endif
+
         while (true) {
             static ex::time::measure_avg timing = 1000;
             if (state.metrics.timing_enabled)
@@ -176,7 +228,15 @@ namespace ex::boot {
 
             glfwPollEvents();
 
+#ifdef EX_WORKER_LOGIC_ON
+            const lw::status_t status = lw::status(channel);
+            if ((status & lw::status_t::success) != 0) {
+                enqueue(&logic);
+            }
+#else
             logic.run();
+#endif
+
             update_history(state);
             update_title(state);
             update_gui(gui, state, window);
@@ -185,6 +245,11 @@ namespace ex::boot {
             if (state.metrics.timing_enabled && timing.stop())
                 state.metrics.total_duration_ns = timing.result();
         }
+
+#ifdef EX_WORKER_LOGIC_ON
+        stop_wait();
+        stop_worker();
+#endif
 
         if (state.cl.context != nullptr)
             clReleaseContext(state.cl.context);
