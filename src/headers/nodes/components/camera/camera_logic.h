@@ -58,15 +58,21 @@ namespace ex::logic::node::camera {
         camera_state state;
         timings_t    timings;
 
+
+        // ---- mapper properties ----
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
         static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
 
+
+        // ---- camera properties ----
         const ex::data::array<v_devcap_t> &list_capabilities() const;
 
         const ex::data::array<v_control_t> &list_controls(bool refresh = false);
 
         void close();
+
+        void reset();
 
         void open();
 
@@ -82,6 +88,8 @@ namespace ex::logic::node::camera {
 
         void reset_controls();
 
+
+        // ---- node properties ----
         io::byte_array serialize() const override;
 
         void deserialize(const io::byte_array &) override;

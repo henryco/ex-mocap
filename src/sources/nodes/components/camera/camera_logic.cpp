@@ -124,6 +124,7 @@ namespace ex::logic::node::camera {
     const ex::data::array<v_device_t> &list_camera_devices(const bool refresh) {
         static ex::data::array<v_device_t> list = ex::platform::dev::list_devices();
         if (refresh) {
+            list.clean();
             list = ex::platform::dev::list_devices();
         }
         return list;
@@ -178,6 +179,17 @@ namespace ex::logic::node::camera {
         capture->bitmap.release();
         capture->result.error = false;
         capture->result.empty = true;
+    }
+
+    void CameraNode::reset() {
+        list_camera_devices(true);
+
+        capabilities.clean();
+        capabilities = ex::platform::dev::list_capabilities(state.device.device);
+
+        controls.clean();
+        controls = ex::platform::dev::list_controls(state.device.device);
+        open();
     }
 
     void CameraNode::open() {
