@@ -64,6 +64,7 @@ namespace ex::logic::node::camera {
                 return;
             }
 
+            // TODO CAMERA FPS COUNT
 //            const auto t1 = std::chrono::high_resolution_clock::now();
 //            const auto dt = (t1 - t0).count();
 //            std::cout << dt << '\n';
@@ -305,10 +306,12 @@ namespace ex::logic::node::camera {
         if ((status & lw::status_t::success) != 0) {
             if (!capture->result.empty && !capture->result.error) {
                 b_index_ = (b_index_ + 1) % 2; // swap buffers
+                updates_.refresh();
             }
             enqueue(this);
-            return;
         }
+
+        promises_[b_index_].image.header.fresh = updates_.update();
 
         if ((status & lw::status_t::failure) != 0)
             abort_("capture worker error");

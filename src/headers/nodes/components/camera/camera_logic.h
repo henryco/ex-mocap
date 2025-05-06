@@ -44,6 +44,8 @@ namespace ex::logic::node::camera {
         ex::data::array<v_devcap_t>  capabilities;
         ex::data::array<v_control_t> controls;
 
+        limbo::graph::UpdateState updates_;
+
         capture_t        *capture;
         camera_state      state;
         ocl::ImagePromise promises_[2];
