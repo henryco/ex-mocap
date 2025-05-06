@@ -68,7 +68,7 @@ namespace ex::logic::node::camera {
 //            const auto dt = (t1 - t0).count();
 //            std::cout << dt << '\n';
 
-            ex::ocl::ops::from_bytes(capture->bitmap.data, *capture->target);
+            ocl::ops::from_bytes(capture->bitmap.data, *capture->target);
             capture->result.error = false;
             capture->result.empty = false;
         }
@@ -76,7 +76,7 @@ namespace ex::logic::node::camera {
         void start_worker() {
             if (worker != nullptr)
                 return;
-            worker = lw::create_worker(100, 100000);
+            worker = lw::create_worker(100, 1000000);
         }
 
         void stop_wait(CameraNode *that) {
@@ -257,8 +257,8 @@ namespace ex::logic::node::camera {
         promises_[1].image.release();
         promises_[0].queue    = queue_;
         promises_[1].queue    = queue_;
-        promises_[0].image    = ex::ocl::Image2D::allocate(cap.width, cap.height, 3, 1, state_.cl.context);
-        promises_[1].image    = ex::ocl::Image2D::allocate(cap.width, cap.height, 3, 1, state_.cl.context);
+        promises_[0].image    = ocl::Image2D::allocate(cap.width, cap.height, 3, 1, state_.cl.context);
+        promises_[1].image    = ocl::Image2D::allocate(cap.width, cap.height, 3, 1, state_.cl.context);
         promises_[0].image.id = state.image_id;
         promises_[1].image.id = state.image_id;
     }
