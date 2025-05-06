@@ -152,6 +152,12 @@ namespace ex::gui::node::camera {
         ImGui::NewLine();
 
         {
+
+        }
+
+        ImGui::NewLine();
+
+        {
             const auto &mode = state.mode;
 
             ImGui::SeparatorText(strings::node_component_camera_mode);

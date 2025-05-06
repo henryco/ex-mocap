@@ -24,7 +24,8 @@ namespace ex::logic::node::camera {
         bool  error;
     };
 
-    struct capture_t {
+    // 320 bytes
+    struct alignas(64) capture_t {
         cv::Mat            bitmap; //
         cv::VideoCapture   camera; // regularly touched by worker
         ocl::ImagePromise *target; //
@@ -46,6 +47,11 @@ namespace ex::logic::node::camera {
                     name[1],
                     name[2],
                     name[3]);
+        }
+
+        void init_state(camera_state *state) {
+            ::memset(state, 0, sizeof(camera_state));
+            state->buffering = 2; // default - double buffering
         }
 
         void worker_routine(void *arg) {
@@ -186,9 +192,9 @@ namespace ex::logic::node::camera {
             params.push_back(state.mode.mode.refresh_rate);
         }
 
-        if (buffer_size >= 0) {
+        if (state.buffering >= 0) {
             params.push_back(cv::CAP_PROP_BUFFERSIZE);
-            params.push_back(buffer_size);
+            params.push_back(state.buffering);
         }
 
         capture->bitmap.release();
@@ -214,8 +220,9 @@ namespace ex::logic::node::camera {
         state.image_id        = static_cast<id_type_16>(id);
     }
 
-    void CameraNode::set_device_buff(const int buffer_size) {
-        this->buffer_size = buffer_size;
+    void CameraNode::set_device_buff(const short buffer_size) {
+        close();
+        this->state.buffering = buffer_size;
     }
 
     void CameraNode::set_device(const v_device_t &device) {
@@ -239,10 +246,14 @@ namespace ex::logic::node::camera {
         ::memset(&state.mode, 0, sizeof(mode_t));
         controls.clean();
 
+        static char buff_form[5];
+        ::memset(buff_form, '\0', 5);
+        ::memcpy(buff_form, cap.format_4cc, 4);
+
         state.mode.mode     = cap;
         state.mode.selected = true;
         snprintf(state.mode.description, 95,
-            "%s (%s) - %d fps [%d x %d]", cap.description, cap.format_4cc,
+            "%s (%s) - %d fps [%d x %d]", cap.description, buff_form,
                  cap.refresh_rate, cap.width, cap.height);
         state.mode.description[95] = '\0';
 
@@ -345,14 +356,13 @@ namespace ex::logic::node::camera {
     }
 
     CameraNode::CameraNode() :
-        capture(new capture_t()),
+        capture(new capture_t()), // new bruh
         state({}),
         b_index_(0),
         queue_(nullptr),
-        buffer_size(2),
         enabled(false)
     {
-        ::memset(&state, 0, sizeof(camera_state));
+        init_state(&state);
         start_worker();
         capture->result.error = false;
         capture->result.empty = true;

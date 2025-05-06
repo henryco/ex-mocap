@@ -31,9 +31,10 @@ namespace ex::logic::node::camera {
     };
 
     struct camera_state {
-        device_t    device;
-        mode_t      mode;
-        id_type_16  image_id;
+        device_t   device;
+        mode_t     mode;
+        short      buffering;
+        id_type_16 image_id;
     };
 
     struct CameraNode final : limbo::graph::BaseNode,
@@ -51,7 +52,6 @@ namespace ex::logic::node::camera {
         ocl::ImagePromise promises_[2];
         unsigned int      b_index_;
         cl_command_queue  queue_;
-        int               buffer_size;
         bool              enabled;
 
         static limbo::graph::BaseNode *instance(TreeNode *from);
@@ -68,7 +68,7 @@ namespace ex::logic::node::camera {
 
         void set_image_id(id_type_16 id);
 
-        void set_device_buff(int buffer_size);
+        void set_device_buff(short buffer_size);
 
         void set_device_mode(const v_devcap_t &cap);
 
