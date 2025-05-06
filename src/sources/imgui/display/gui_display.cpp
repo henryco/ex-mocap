@@ -141,6 +141,7 @@ namespace ex::display::imp::imgui {
     void remove_output(const unsigned int id) {
         if (!display_map_.contains(id))
             return;
+        lock_.lock();
         const auto &d_ref = display_map_[id];
         if (d_ref.uuid != nullptr)
             delete[] d_ref.uuid;
@@ -149,9 +150,11 @@ namespace ex::display::imp::imgui {
         if (d_ref.txid != 0)
             glDeleteTextures(1, &d_ref.txid);
         display_map_.remove(id);
+        lock_.lock();
     }
 
     void clear(const unsigned int id) {
+        lock_.lock();
         display_window_t &ref = display_map_.at(id);
 //        if (ref.txid != 0)
 //            glDeleteTextures(1, &ref.txid);
@@ -159,6 +162,7 @@ namespace ex::display::imp::imgui {
         ref.data     = nullptr;
         ref.updated  = false;
         ref.to_clear = true;
+        lock_.unlock();
     }
 
     void draw_bytes_bgra_8(const unsigned int id, unsigned char *data, const int w, const int h, const int cn) {
