@@ -17,10 +17,19 @@
 namespace ex::logic::node::camera {
 
     namespace lw = limbo::worker;
+    namespace lg = limbo::graph;
 
     struct result_t {
-        bool  empty;
-        bool  error;
+        bool empty;
+        bool error;
+    };
+
+    struct internal_t {
+        ocl::img_promise promises[2];
+        cl_command_queue queue_p;
+        unsigned int     b_index;
+        lg::UpdateState  updates;
+        bool             enabled;
     };
 
     // 320 bytes
@@ -51,6 +60,20 @@ namespace ex::logic::node::camera {
         void init_state(camera_state *state) {
             ::memset(state, 0, sizeof(camera_state));
             state->buffering = 2; // default - double buffering
+        }
+
+        void init_internal(internal_t *state) {
+            state->queue_p = nullptr;
+            state->enabled = false;
+            state->b_index = 0;
+        }
+
+        void init_capture(capture_t *capture) {
+            capture->result.error = false;
+            capture->result.empty = true;
+            capture->channel = lw::create_channel(worker);
+            if (capture->channel == nullptr)
+                abort_("Cannot create worker channel (not enough slots?)");
         }
 
         void worker_routine(void *arg) {
@@ -92,7 +115,7 @@ namespace ex::logic::node::camera {
         void enqueue(CameraNode *that) {
             that->capture->result.error = false;
             that->capture->result.empty = true;
-            that->capture->target = &(that->promises_[(that->b_index_ + 1) % 2]);
+            that->capture->target = &(that->internal->promises[(that->internal->b_index + 1) % 2]);
             lw::enqueue(that->capture->channel, &worker_routine, that->capture);
         }
 
@@ -142,7 +165,7 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::close() {
-        enabled = false;
+        internal->enabled = false;
         ::memset(&timings, 0, sizeof(timings_t));
         stop_wait(this);
 
@@ -194,14 +217,14 @@ namespace ex::logic::node::camera {
         capture->bitmap.release();
 
         if (params.size() > 0) {
-            enabled = capture->camera.open(platform::dev::get_device_index(state.device.device),
+            internal->enabled = capture->camera.open(platform::dev::get_device_index(state.device.device),
             platform::dev::get_capture_api(), params);
         } else {
-            enabled = capture->camera.open(platform::dev::get_device_index(state.device.device),
+            internal->enabled = capture->camera.open(platform::dev::get_device_index(state.device.device),
                 platform::dev::get_capture_api());
         }
 
-        if (enabled) {
+        if (internal->enabled) {
             enqueue(this);
 
             list_camera_devices(true);
@@ -209,13 +232,13 @@ namespace ex::logic::node::camera {
             controls     = ex::platform::dev::list_controls(state.device.device);
         }
 
-        log->info("Camera device: [{}] open: {}", state.device.device.uuid, enabled);
+        log->info("Camera device: [{}] open: {}", state.device.device.uuid, internal->enabled);
     }
 
     void CameraNode::set_image_id(const id_type_16 id) {
-        promises_[0].image.id = static_cast<id_type_16>(id);
-        promises_[1].image.id = static_cast<id_type_16>(id);
-        state.image_id        = static_cast<id_type_16>(id);
+        internal->promises[0].image.id = static_cast<id_type_16>(id);
+        internal->promises[1].image.id = static_cast<id_type_16>(id);
+        state.image_id                 = static_cast<id_type_16>(id);
     }
 
     void CameraNode::set_device_buff(const short buffer_size) {
@@ -244,8 +267,7 @@ namespace ex::logic::node::camera {
         ::memset(&state.mode, 0, sizeof(mode_t));
         controls.clean();
 
-        static char buff_form[5];
-        ::memset(buff_form, '\0', 5);
+        static char buff_form[5] {};
         ::memcpy(buff_form, cap.format_4cc, 4);
 
         state.mode.mode     = cap;
@@ -258,19 +280,19 @@ namespace ex::logic::node::camera {
         controls = ex::platform::dev::list_controls(state.device.device);
 
         const ex::State &state_ = ex::logic::globals::state();
-        if (queue_ == nullptr) {
-            queue_ = xm::ocl::create_queue_device(state_.cl.context, state_.cl.device, true, false);
+        if (internal->queue_p == nullptr) {
+            internal->queue_p = xm::ocl::create_queue_device(state_.cl.context, state_.cl.device, true, false);
         }
 
-        b_index_ = 0;
-        promises_[0].image.release();
-        promises_[1].image.release();
-        promises_[0].queue    = queue_;
-        promises_[1].queue    = queue_;
-        promises_[0].image    = ocl::Image2D::allocate(cap.width, cap.height, 3, 1, state_.cl.context);
-        promises_[1].image    = ocl::Image2D::allocate(cap.width, cap.height, 3, 1, state_.cl.context);
-        promises_[0].image.id = state.image_id;
-        promises_[1].image.id = state.image_id;
+        internal->b_index = 0;
+        internal->promises[0].image.release();
+        internal->promises[1].image.release();
+        internal->promises[0].queue    = internal->queue_p;
+        internal->promises[1].queue    = internal->queue_p;
+        internal->promises[0].image    = ocl::Image2D::allocate(cap.width, cap.height, 3, 1, state_.cl.context);
+        internal->promises[1].image    = ocl::Image2D::allocate(cap.width, cap.height, 3, 1, state_.cl.context);
+        internal->promises[0].image.id = state.image_id;
+        internal->promises[1].image.id = state.image_id;
     }
 
     void CameraNode::set_control(const unsigned int id, const int value) {
@@ -311,7 +333,7 @@ namespace ex::logic::node::camera {
         set_device_mode(parcel->mode.mode);
         open();
 
-        if (!enabled) {
+        if (!internal->enabled) {
             state = *parcel;
         }
     }
@@ -321,7 +343,7 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::on_update(const int clock_i) {
-        if (!enabled)
+        if (!internal->enabled)
             return;
 
         const lw::status_t status = lw::status(capture->channel);
@@ -335,62 +357,55 @@ namespace ex::logic::node::camera {
             }
 
             if (!capture->result.empty && !capture->result.error) {
-                b_index_ = (b_index_ + 1) % 2; // swap buffers
-                updates_.refresh();
+                internal->b_index = (internal->b_index + 1) % 2; // swap buffers
+                internal->updates.refresh();
             }
 
             timings.t0 = std::chrono::high_resolution_clock::now().time_since_epoch().count();
             enqueue(this);
         }
 
-        promises_[b_index_].image.header.fresh = updates_.update();
+        internal->promises[internal->b_index].image.header.fresh = internal->updates.update();
 
         if ((status & lw::status_t::failure) != 0)
             abort_("capture worker error");
     }
 
     void *CameraNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
-        if (!enabled)
+        if (!internal->enabled)
             return nullptr;
-        return &promises_[b_index_];
+        return &internal->promises[internal->b_index];
     }
 
     CameraNode::~CameraNode() {
-        promises_[0].image.release();
-        promises_[1].image.release();
+        internal->promises[0].image.release();
+        internal->promises[1].image.release();
 
-        if (queue_ != nullptr) {
-            clReleaseCommandQueue(queue_);
-            queue_ = nullptr;
+        if (internal->queue_p != nullptr) {
+            clReleaseCommandQueue(internal->queue_p);
+            internal->queue_p = nullptr;
         }
 
-        if (capture != nullptr) {
-            capture->camera.release();
+        capture->camera.release();
 
-            if (capture->channel != nullptr)
-                lw::close_channel(capture->channel);
-            capture->channel = nullptr;
+        if (capture->channel != nullptr)
+            lw::close_channel(capture->channel);
+        capture->channel = nullptr;
 
-            delete capture;
-            capture = nullptr;
-        }
+        delete &internal;
+        delete &capture;
     }
 
     CameraNode::CameraNode() :
-        capture(new capture_t()), // new bruh
+        internal(new internal_t()), // new bruh
+        capture(new capture_t()),   // new bruh
         state({}),
-        timings({0, 0}),
-        b_index_(0),
-        queue_(nullptr),
-        enabled(false)
+        timings({0, 0})
     {
-        init_state(&state);
         start_worker();
-        capture->result.error = false;
-        capture->result.empty = true;
-        capture->channel = lw::create_channel(worker);
-        if (capture->channel == nullptr)
-            abort_("Cannot create worker channel (not enough slots?)");
+        init_state(&state);
+        init_internal(internal);
+        init_capture(capture);
     }
 
 }

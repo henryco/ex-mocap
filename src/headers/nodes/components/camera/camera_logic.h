@@ -19,6 +19,8 @@ namespace ex::logic::node::camera {
 
     struct capture_t;
 
+    struct internal_t;
+
     struct device_t {
         v_device_t  device;
         bool        selected;
@@ -50,15 +52,11 @@ namespace ex::logic::node::camera {
         ex::data::array<v_devcap_t>  capabilities;
         ex::data::array<v_control_t> controls;
 
-        limbo::graph::UpdateState updates_;
+        internal_t *internal;
+        capture_t  *capture;
 
-        capture_t        *capture;
-        camera_state      state;
-        ocl::ImagePromise promises_[2];
-        timings_t         timings;
-        unsigned int      b_index_;
-        cl_command_queue  queue_;
-        bool              enabled;
+        camera_state state;
+        timings_t    timings;
 
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
