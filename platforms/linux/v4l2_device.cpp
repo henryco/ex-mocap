@@ -31,6 +31,11 @@ namespace ex::platform::dev {
         }
 
         int8_t compare_caps(const DeviceCapability *a, const DeviceCapability *b) {
+            const uint32_t *one = reinterpret_cast<const uint32_t *>(a->format_4cc);
+            const uint32_t *two = reinterpret_cast<const uint32_t *>(b->format_4cc);
+
+            if (const int8_t pre = (*one > *two) - (*one < *two) != 0)
+                return pre;
             return (a->uuid > b->uuid) - (a->uuid < b->uuid);
         }
 

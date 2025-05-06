@@ -165,12 +165,15 @@ namespace ex::gui::node::camera {
                 const auto &caps = cam_node->list_capabilities();
 
                 static char buff_full[192];
+                static char buff_form[5];
                 for (int i = 0; i < caps.size; ++i) {
                     const auto &item = caps[i];
                     const bool is_selected = mode.mode.uuid == item.uuid;
 
                     ::memset(buff_full, '\0', 192);
-                    ::snprintf(buff_full, 191, "%s (%s) - %d fps [%d x %d]", item.description, item.format_4cc,
+                    ::memset(buff_form, '\0', 5);
+                    ::memcpy(buff_form, item.format_4cc, 4);
+                    ::snprintf(buff_full, 191, "%s (%s) - %d fps [%d x %d]", item.description, buff_form,
                                item.refresh_rate, item.width, item.height);
 
                     buff_full[191] = '\0';

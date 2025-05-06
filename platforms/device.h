@@ -28,8 +28,8 @@ namespace ex::platform::dev {
 
     struct DeviceCapability {
         char  description[64];
-        char  format_4cc[4];
         ulong uuid;
+        char  format_4cc[4];
         int   refresh_rate;
         int   width;
         int   height;
