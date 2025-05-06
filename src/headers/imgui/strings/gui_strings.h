@@ -152,10 +152,15 @@ namespace ex::gui::strings {
     constexpr auto node_component_camera_name      = "Camera";
     constexpr auto node_component_camera_mode      = "Device Mode";
     constexpr auto node_component_camera_device    = "Camera Device";
-    constexpr auto node_component_camera_buffering = "Buffering";
     constexpr auto node_component_camera_refresh   = "Refresh";
     constexpr auto node_component_camera_reset     = "Reset";
     constexpr auto node_component_camera_reset_all = " Reset Settings ";
+    constexpr auto node_component_camera_buffering = "Buffering";
+
+    constexpr auto node_component_camera_buffering_0 = "Default";
+    constexpr auto node_component_camera_buffering_1 = "Single (1)";
+    constexpr auto node_component_camera_buffering_2 = "Double (2)";
+    constexpr auto node_component_camera_buffering_3 = "Triple (3)";
 
     constexpr auto node_component_sync_name = "Sync";
 

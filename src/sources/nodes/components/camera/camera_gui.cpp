@@ -18,10 +18,10 @@ namespace ex::gui::node::camera {
 
     namespace {
         const char *buffering_strings[] = {
-            "Default",
-            "Single (1)",
-            "Double (2)",
-            "Triple (3)",
+            strings::node_component_camera_buffering_0,
+            strings::node_component_camera_buffering_1,
+            strings::node_component_camera_buffering_2,
+            strings::node_component_camera_buffering_3,
         };
 
         const char *prev_name_() {
