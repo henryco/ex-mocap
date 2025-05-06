@@ -261,7 +261,6 @@ namespace ex::platform::dev {
 
             const auto split_idx = device_uuid.find(':');
             if (split_idx == std::string::npos) {
-                abort__("invalid device uuid: %s", device_uuid.c_str());
                 return nullptr;
             }
 

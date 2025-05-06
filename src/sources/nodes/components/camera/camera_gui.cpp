@@ -270,6 +270,7 @@ namespace ex::gui::node::camera {
             ImGui::SameLine(pox);
             if (ImGui::Button(ICON_LC_REFRESH_CCW_DOT)) {
                 cam_node->list_controls(true);
+                // TODO UPDATE ALL
                 prev_change.dt = -1;
                 prev_change.nd = -1;
                 prev_change.id = -1;

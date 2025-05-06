@@ -203,6 +203,10 @@ namespace ex::logic::node::camera {
 
         if (enabled) {
             enqueue(this);
+
+            list_camera_devices(true);
+            capabilities = ex::platform::dev::list_capabilities(state.device.device);
+            controls     = ex::platform::dev::list_controls(state.device.device);
         }
 
         log->info("Camera device: [{}] open: {}", state.device.device.uuid, enabled);
@@ -305,8 +309,11 @@ namespace ex::logic::node::camera {
         set_device(parcel->device.device);
         set_device_buff(parcel->buffering);
         set_device_mode(parcel->mode.mode);
-        // TODO EXCEPTION HANDLING
         open();
+
+        if (!enabled) {
+            state = *parcel;
+        }
     }
 
     void CameraNode::on_input(const int in_idx, const int out_idx, const int clock_i, const void *data) {
