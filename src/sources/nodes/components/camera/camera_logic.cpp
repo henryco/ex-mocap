@@ -192,7 +192,7 @@ namespace ex::logic::node::camera {
             params.push_back(state.mode.mode.refresh_rate);
         }
 
-        if (state.buffering >= 0) {
+        if (state.buffering > 0) {
             params.push_back(cv::CAP_PROP_BUFFERSIZE);
             params.push_back(state.buffering);
         }

@@ -17,6 +17,13 @@
 namespace ex::gui::node::camera {
 
     namespace {
+        const char *buffering_strings[] = {
+            "Default",
+            "Single (1)",
+            "Double (2)",
+            "Triple (3)",
+        };
+
         const char *prev_name_() {
             static char out_name[128];
             sprintf(out_name, "%s %s", ICON_LC_CAMERA, strings::node_component_camera_name);
@@ -152,7 +159,37 @@ namespace ex::gui::node::camera {
         ImGui::NewLine();
 
         {
+            const short state_buffering = state.buffering;
+            ImGui::SeparatorText(strings::node_component_camera_buffering);
 
+            const auto input_pos  = ImGui::GetCursorScreenPos();
+            const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
+            ImGui::SetNextItemWidth(input_size.x);
+
+            if (ImGui::BeginCombo("##cam_buffering", buffering_strings[state_buffering], ImGuiComboFlags_HeightRegular)) {
+
+                for (int i = 0; i < IM_ARRAYSIZE(buffering_strings); ++i) {
+                    const bool is_selected = state_buffering == i;
+                    ImGui::PushID(i);
+
+                    if (ImGui::Selectable(buffering_strings[i], is_selected)) {
+                        cam_node->close();
+                        cam_node->set_device_buff(i);
+                        cam_node->open();
+                    }
+
+                    if (is_selected)
+                        ImGui::SetItemDefaultFocus();
+                    ImGui::PopID();
+                }
+
+                ImGui::EndCombo();
+            }
+
+            constexpr float alpha = 1.f;
+            ImGui::GetWindowDrawList()->AddRect(input_pos,
+                                                ImVec2(input_pos.x + input_size.x, input_pos.y + input_size.y),
+                                                IM_COL32(0, 0, 0, 90 * alpha));
         }
 
         ImGui::NewLine();
