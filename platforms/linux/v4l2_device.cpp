@@ -15,34 +15,40 @@
 
 namespace ex::platform::dev {
 
-    static ulong fnv1aHash(const char *str, int size) {
-        constexpr ulong FNV_OFFSET_BASIS = 14695981039346656037ull;
-        constexpr ulong FNV_PRIME        = 1099511628211ull;
+    namespace {
+        ulong fnv1aHash(const char *str, int size) {
+            constexpr ulong FNV_OFFSET_BASIS = 14695981039346656037ull;
+            constexpr ulong FNV_PRIME        = 1099511628211ull;
 
-        ulong hash = FNV_OFFSET_BASIS;
-        while (size > 0) {
-            hash ^= static_cast<ulong>(*str);
-            hash *= FNV_PRIME;
-            ++str;
-            --size;
+            ulong hash = FNV_OFFSET_BASIS;
+            while (size > 0) {
+                hash ^= static_cast<ulong>(*str);
+                hash *= FNV_PRIME;
+                ++str;
+                --size;
+            }
+            return hash;
         }
-        return hash;
-    }
 
-    static void abort__(const char* format, ...) noexcept(true) {
-        const char* prefix = "Error: ";
-        char buffer[256];
+        int8_t compare_caps(const DeviceCapability *a, const DeviceCapability *b) {
+            return (a->uuid > b->uuid) - (a->uuid < b->uuid);
+        }
 
-        size_t prefix_len = strlen(prefix);
-        memcpy(buffer, prefix, prefix_len);
+        void abort__(const char* format, ...) noexcept(true) {
+            const char* prefix = "Error: ";
+            char buffer[256];
 
-        va_list args;
-        va_start(args, format);
-        vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
-        va_end(args);
+            size_t prefix_len = strlen(prefix);
+            memcpy(buffer, prefix, prefix_len);
 
-        fprintf(stderr, "%s\n", buffer);
-        ::abort();
+            va_list args;
+            va_start(args, format);
+            vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
+            va_end(args);
+
+            fprintf(stderr, "%s\n", buffer);
+            ::abort();
+        }
     }
 
     namespace v4l2 {
@@ -308,7 +314,7 @@ namespace ex::platform::dev {
                     // Enumerate frame intervals for each resolution
                     v4l2_frmivalenum frmival;
                     ::memset(&frmival, 0, sizeof(frmival));
-                    frmival.pixel_format = fmt.pixelformat;
+                    frmival.pixel_format = frmsize.pixel_format;
                     frmival.width        = frmsize.discrete.width;
                     frmival.height       = frmsize.discrete.height;
 
@@ -325,7 +331,9 @@ namespace ex::platform::dev {
                                     static_cast<double>(frmival.discrete.denominator) / frmival.discrete.numerator;
                             capability.uuid = 0;
                             capability.uuid = fnv1aHash(reinterpret_cast<const char *>(&capability), sizeof(DeviceCapability));
-                            vec.push(capability);
+
+                            vec.sort_insert_once(capability, &compare_caps);
+//                            vec.push(capability);
                         }
                         frmival.index++;
                     }
