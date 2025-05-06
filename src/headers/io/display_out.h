@@ -15,7 +15,8 @@ namespace ex::display {
         void (*remove_output)(disp_id_t)                                                   = nullptr;
         void (*clear)(disp_id_t)                                                           = nullptr;
         void (*draw_bytes_bgra_8)(disp_id_t id, unsigned char *data, int w, int h, int cn) = nullptr;
-        // TODO
+        // TODO CL_MEM handle ?
+        // TODO INTER-THREAD SYNC?
     };
 
     inline IO io;
