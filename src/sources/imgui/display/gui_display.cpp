@@ -9,8 +9,14 @@
 #include "../../../headers/imgui/gui_globals.h"
 #include "../../../headers/utils/gui_utils.h"
 
+#include "../../../../extra/data/struct/spinlock.h"
+
 #include <imgui_internal.h>
 #include <IconsLucide.h>
+
+namespace {
+    static ex::data::spinlock lock_;
+}
 
 namespace ex::display::imp::imgui {
 
@@ -158,12 +164,16 @@ namespace ex::display::imp::imgui {
     }
 
     void draw_bytes_bgra_8(const unsigned int id, unsigned char *data, const int w, const int h, const int cn) {
+        lock_.lock();
+
         display_window_t &ref = display_map_.at(id);
         ref.data              = data;
         ref.c                 = cn;
         ref.w                 = w;
         ref.h                 = h;
         ref.updated           = true;
+
+        lock_.unlock();
 
         if (w <= 0 || h <= 0)
             abort_("w <= 0 || h <= 0");
@@ -249,6 +259,7 @@ namespace ex::gui::display {
 
                 if (disp.txid != 0 && disp.data != nullptr) {
                     glBindTexture(GL_TEXTURE_2D, disp.txid);
+                    lock_.lock();
                     glTexSubImage2D(GL_TEXTURE_2D,
                                     0,
                                     0,
@@ -258,6 +269,7 @@ namespace ex::gui::display {
                                     ex::display::imp::imgui::format_c(disp.c),
                                     GL_UNSIGNED_BYTE,
                                     disp.data);
+                    lock_.unlock();
                     glBindTexture(GL_TEXTURE_2D, 0);
                 }
             }
