@@ -37,6 +37,18 @@ namespace ex::gui::node::camera {
                 ::free(parcel->data);
             ::free(parcel);
         }
+
+        void push_fps_color(const float fps) {
+            if (static_cast<int>(fps) > 25) {
+                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 127, 0, 127));
+                return;
+            }
+            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(127, 0, 0, 127));
+        }
+
+        void pop_fps_color() {
+            ImGui::PopStyleColor();
+        }
     }
 
     void update_tree_node(const TreeNode *o, TreeNode *n) {
@@ -265,7 +277,9 @@ namespace ex::gui::node::camera {
             }
 
             ImGui::SameLine();
-            ImGui::TextDisabled("%.4f FPS", cam_node->timings.frame_rate);
+            push_fps_color(cam_node->timings.frame_rate);
+            ImGui::TextWrapped("%.4f FPS", cam_node->timings.frame_rate);
+            pop_fps_color();
 
             ImGui::SameLine(pox);
             if (ImGui::Button(ICON_LC_REFRESH_CCW_DOT)) {
