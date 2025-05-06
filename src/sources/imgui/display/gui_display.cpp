@@ -150,7 +150,7 @@ namespace ex::display::imp::imgui {
         if (d_ref.txid != 0)
             glDeleteTextures(1, &d_ref.txid);
         display_map_.remove(id);
-        lock_.lock();
+        lock_.unlock();
     }
 
     void clear(const unsigned int id) {
