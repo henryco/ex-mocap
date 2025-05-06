@@ -49,13 +49,8 @@ namespace ex::logic::node::camera {
         }
 
         void worker_routine(void *arg) {
+//            const auto t0 = std::chrono::high_resolution_clock::now();
             capture_t *capture = static_cast<capture_t *>(arg);
-
-            if (!capture->camera.isOpened()) {
-                capture->result.error = true;
-                capture->result.empty = true;
-                return;
-            }
 
             if (!capture->camera.grab()) {
                 capture->result.error = false;
@@ -69,14 +64,19 @@ namespace ex::logic::node::camera {
                 return;
             }
 
+//            const auto t1 = std::chrono::high_resolution_clock::now();
+//            const auto dt = (t1 - t0).count();
+//            std::cout << dt << '\n';
+
             ex::ocl::ops::from_bytes(capture->bitmap.data, *capture->target);
             capture->result.error = false;
             capture->result.empty = false;
         }
 
         void start_worker() {
-            if (worker == nullptr)
-                worker = lw::create_worker();
+            if (worker != nullptr)
+                return;
+            worker = lw::create_worker(100, 100000);
         }
 
         void stop_wait(CameraNode *that) {
@@ -346,7 +346,7 @@ namespace ex::logic::node::camera {
         state({}),
         b_index_(0),
         queue_(nullptr),
-        buffer_size(1),
+        buffer_size(2),
         enabled(false)
     {
         ::memset(&state, 0, sizeof(camera_state));
