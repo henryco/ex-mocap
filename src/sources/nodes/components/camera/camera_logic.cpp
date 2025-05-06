@@ -290,12 +290,23 @@ namespace ex::logic::node::camera {
     }
 
     io::byte_array CameraNode::serialize() const {
-        // TODO write to bytes
-        return io::byte_array::from(nullptr, 0);
+        unsigned char *bytes = static_cast<unsigned char *>(::malloc(sizeof(camera_state)));
+        ::memcpy(bytes, &state, sizeof(camera_state));
+        return io::byte_array::from(bytes, sizeof(camera_state), &::free);
     }
 
-    void CameraNode::deserialize(const io::byte_array &) {
-        // TODO read from bytes
+    void CameraNode::deserialize(const io::byte_array &array) {
+        if (array.empty())
+            return;
+        list_camera_devices(true);
+
+        camera_state *parcel = reinterpret_cast<camera_state *>(array.data);
+        set_image_id(parcel->image_id);
+        set_device(parcel->device.device);
+        set_device_buff(parcel->buffering);
+        set_device_mode(parcel->mode.mode);
+        // TODO EXCEPTION HANDLING
+        open();
     }
 
     void CameraNode::on_input(const int in_idx, const int out_idx, const int clock_i, const void *data) {
