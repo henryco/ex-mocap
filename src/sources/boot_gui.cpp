@@ -16,7 +16,6 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-//#define EX_WORKER_LOGIC_ON
 
 #ifdef EX_WORKER_LOGIC_ON
 #include "../../extra/worker/worker.h"
