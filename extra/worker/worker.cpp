@@ -98,7 +98,7 @@ namespace limbo::worker {
 
                 workload_t *work = &ctx->jobs;
 
-                if (work->size == 0) {
+                if (unlikely(work->size == 0)) {
                     ctx->spl2.unlock();
                     goto sleepa_sleepa;
                 }
