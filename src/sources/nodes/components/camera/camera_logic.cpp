@@ -95,7 +95,7 @@ namespace ex::logic::node::camera {
                 return const_cast<unsigned *>(&result::READ_FAILURE);
             if (!capture->camera.grab())
                 return const_cast<unsigned *>(&result::READ_PENDING);
-            if (!capture->camera.retrieve(capture->bitmap)) // TODO FIXME ON CLOSE
+            if (!capture->camera.retrieve(capture->bitmap))
                 return const_cast<unsigned *>(&result::READ_PENDING);
 
             ocl::ops::from_bytes(capture->bitmap.data, *capture->target);
@@ -239,6 +239,8 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::destroy(TreeNode *, limbo::graph::BaseNode *node) {
+        if (CameraNode *base = dynamic_cast<CameraNode *>(node))
+            base->close();
         node->detach_all();
         delete node;
     }
