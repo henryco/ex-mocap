@@ -230,7 +230,8 @@ namespace ex::logic::node::camera {
                 controls.clean();
                 return controls;
             }
-            controls = ex::platform::dev::list_controls(state.device.device);
+            if (internal->enabled)
+                controls = ex::platform::dev::list_controls(state.device.device);
         }
         return controls;
     }
@@ -279,8 +280,20 @@ namespace ex::logic::node::camera {
         capabilities.clean();
         capabilities = ex::platform::dev::list_capabilities(state.device.device);
 
-        controls.clean();
-        controls = ex::platform::dev::list_controls(state.device.device);
+        if (internal->enabled) {
+            controls.clean();
+            controls = ex::platform::dev::list_controls(state.device.device);
+            open();
+            return;
+        }
+
+        for (int i = 0; i < controls.size; ++i) {
+            const v_control_t &item = controls[i];
+            if (item.step == 0 || item.min == item.max)
+                continue;
+            set_control(item.id, item.value);
+        }
+
         open();
     }
 
@@ -433,6 +446,8 @@ namespace ex::logic::node::camera {
         serial_parcel_t *serial = reinterpret_cast<serial_parcel_t *>(array.data);
         camera_state    *parcel = &serial->state;
 
+        controls.clean();
+
         set_image_id(parcel->image_id);
         set_device(parcel->device.device);
         set_device_buff(parcel->buffering);
@@ -443,7 +458,8 @@ namespace ex::logic::node::camera {
             const v_control_t &item       = s_controls[i];
             if (item.step == 0 || item.min == item.max)
                 continue;
-            set_control(s_controls[i].id, s_controls[i].value);
+            set_control(item.id, item.value);
+            controls.push(item);
         }
 
         state = *parcel;
