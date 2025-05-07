@@ -5,9 +5,15 @@
 #ifndef EX_LIMBO_WORKER_H
 #define EX_LIMBO_WORKER_H
 
+// ---- Can be redefined if needed ----------
+#ifndef EX_LIMBO_WORKER_CHANNELS_MAX
+#define EX_LIMBO_WORKER_CHANNELS_MAX (127)
+#endif
+// ------------------------------------------
+
 namespace limbo::worker {
 
-#define IDLE_SPIN_DEFAULT (1U << 26)
+#define EX_LIMBO_WORKER_IDLE_SPIN_DEFAULT (1UL << 26)
 
     struct channel_t;
     struct worker_t;
@@ -25,7 +31,7 @@ namespace limbo::worker {
         timeout  = 1U << 5
     };
 
-    worker_p create_worker(unsigned long idle_us = 0, unsigned long idle_after = IDLE_SPIN_DEFAULT);
+    worker_p create_worker(unsigned long idle_us = 0, unsigned long idle_after = EX_LIMBO_WORKER_IDLE_SPIN_DEFAULT);
 
     // blocking operation
     channel_p create_channel(worker_p);

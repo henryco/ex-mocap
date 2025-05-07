@@ -14,6 +14,13 @@
 namespace limbo::worker {
 
     namespace {
+
+#ifndef EX_LIMBO_WORKER_CHANNELS_MAX
+    #define WL_SZ (127)
+#else
+    #define WL_SZ EX_LIMBO_WORKER_CHANNELS_MAX
+#endif
+
         struct command_t;
         struct record_t;
         struct result_t;
@@ -46,7 +53,6 @@ namespace limbo::worker {
         };
 
         struct workload_t {
-            #define WL_SZ 127
             record_t data[WL_SZ];   // stack allocated
             unsigned size;          // < WL_SZ
         };
