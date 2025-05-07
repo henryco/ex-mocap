@@ -460,7 +460,7 @@ namespace ex::logic::node::camera {
         if ((status & lw::status_t::success) != 0) {
 
             const auto t1 = std::chrono::high_resolution_clock::now();
-            if (timings.t0 != 0) {
+            if (timings.t0 != 0 && internal->enabled) {
                 const unsigned long dt = t1.time_since_epoch().count() - timings.t0;
                 timings.frame_rate = static_cast<float>(1000000000. / dt);
             }
