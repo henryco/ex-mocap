@@ -23,12 +23,13 @@ namespace limbo::worker {
 
     enum status_t : unsigned char {
         not_init = 0U,
-        in_queue = 1U << 0,
-        finished = 1U << 1,
-        success  = 1U << 2,
-        aborted  = 1U << 3,
-        failure  = 1U << 4,
-        timeout  = 1U << 5
+        consumed = 1U << 0,
+        in_queue = 1U << 1,
+        finished = 1U << 2,
+        success  = 1U << 3,
+        aborted  = 1U << 4,
+        failure  = 1U << 5,
+        timeout  = 1U << 6
     };
 
     worker_p create_worker(unsigned long idle_us = 0, unsigned long idle_after = EX_LIMBO_WORKER_IDLE_SPIN_DEFAULT);
@@ -47,6 +48,9 @@ namespace limbo::worker {
 
     // sends stop signal
     void stop(channel_p);
+
+    // marks status/result as consumed, generally should be used when channel belongs to and only to one thread
+    void consume(channel_p);
 
     // must use & and | operators to check status
     status_t status(channel_p);

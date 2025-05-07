@@ -32,7 +32,11 @@ namespace ex::logic::node::camera {
         static constexpr unsigned SYNC_PENDING = 1U << 6;
         static constexpr unsigned SYNC_FAILURE = 1U << 7;
         static constexpr unsigned SYNC_BITMASK = SYNC_SUCCESS | SYNC_PENDING | SYNC_FAILURE;
-    }
+
+        unsigned decode(const void *code_ptr) {
+            return code_ptr == nullptr ? 0 : *static_cast<const unsigned *>(code_ptr);
+        }
+    } // namespace result
 
     // 64 bytes touched once, dont care
     struct alignas(64) camera_t {
@@ -311,6 +315,8 @@ namespace ex::logic::node::camera {
         const int index = platform::dev::get_device_index(state.device.device);
         const int api   = platform::dev::get_capture_api();
         open_camera(this, api, index, params);
+
+        log->debug("Enqueued camera open");
     }
 
     void CameraNode::set_image_id(const id_type_16 id) {
@@ -448,8 +454,15 @@ namespace ex::logic::node::camera {
     void CameraNode::on_update(const int clock_i) {
         void              *result = nullptr;
         const lw::status_t status = lw::result(internal->channel, &result);
-        if ((status & lw::status_t::success) != 0) {
-            const unsigned code = *(static_cast<unsigned *>(result));
+
+        if (status & lw::status_t::finished)
+            lw::consume(internal->channel);
+
+        if (status & lw::status_t::failure)
+            abort_("camera worker error");
+
+        if (status & lw::status_t::success) {
+            const unsigned code = result::decode(result);
 
             const auto t1 = std::chrono::high_resolution_clock::now();
             if (timings.t0 != 0 && internal->enabled) {
@@ -473,9 +486,6 @@ namespace ex::logic::node::camera {
         }
 
         internal->promises[internal->b_index].image.header.fresh = internal->updates.update();
-
-        if ((status & lw::status_t::failure) != 0)
-            abort_("capture worker error");
     }
 
     void *CameraNode::on_output(const int in_idx, const int out_idx, const int clock_i) {

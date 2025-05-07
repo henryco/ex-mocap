@@ -59,9 +59,10 @@ namespace limbo::worker {
     }
 
     struct channel_t {
-        worker_t  *worker_ptr;      // allocated outside
-        buffers_t *buffer_ptr;      // allocated outside
-        unsigned   counter;         // used as command id
+        worker_t         *worker;   // allocated outside
+        buffers_t        *buffer;   // allocated outside
+        volatile unsigned counter;  // used as command id
+        volatile unsigned consumed; // used as command id
     };
 
     struct worker_t {
@@ -181,9 +182,10 @@ namespace limbo::worker {
         if (p->spl1.lock()) {
             channel = static_cast<channel_t *>(::malloc(sizeof(channel_t)));
             buffers = static_cast<buffers_t *>(::malloc(sizeof(buffers_t)));
-            channel->buffer_ptr = buffers;
-            channel->worker_ptr = p;
-            channel->counter    = 0;
+            channel->buffer   = buffers;
+            channel->worker   = p;
+            channel->counter  = 0;
+            channel->consumed = 0;
 
             command_buff_t::reset(&buffers->command);
             status_buff_t::reset(&buffers->status);
@@ -211,22 +213,28 @@ namespace limbo::worker {
     }
 
     void enqueue(channel_t *ch_ptr, void *(*fn)(void *), void *arg) {
+        ch_ptr->counter += 1;
         static constexpr result_t temp = { .result = nullptr, .status = status_t::in_queue };
-        const command_t command = { .fn = fn, .args = arg, .counter = ++(ch_ptr->counter), .status = status_t::in_queue };
-        ch_ptr->buffer_ptr->status.store(&temp);
-        ch_ptr->buffer_ptr->command.store(&command);
+        const command_t command = { .fn = fn, .args = arg, .counter = ch_ptr->counter, .status = status_t::in_queue };
+        ch_ptr->buffer->status.store(&temp);
+        ch_ptr->buffer->command.store(&command);
     }
 
     void stop(channel_t *ch_ptr) {
-        const command_t command = { .counter = ++(ch_ptr->counter), .status = status_t::aborted };
-        ch_ptr->buffer_ptr->command.store(&command);
+        ch_ptr->counter += 1;
+        const command_t command = { .counter = ch_ptr->counter, .status = status_t::aborted };
+        ch_ptr->buffer->command.store(&command);
+    }
+
+    void consume(channel_t *ch_ptr) {
+        ch_ptr->consumed = ch_ptr->counter;
     }
 
     void close_channel(channel_t *ch_ptr) {
         if (ch_ptr == nullptr)
             return;
 
-        if (worker_t *wpt = ch_ptr->worker_ptr;
+        if (worker_t *wpt = ch_ptr->worker;
             wpt->spl1.lock()) {
             if (wpt->spl2.lock()) {
 
@@ -286,28 +294,40 @@ namespace limbo::worker {
     }
 
     status_t status(channel_t *ch_ptr) {
+        if (ch_ptr->consumed == ch_ptr->counter)
+            return status_t::consumed;
+
         result_t r;
-        ch_ptr->buffer_ptr->status.load(&r);
+        ch_ptr->buffer->status.load(&r);
         return r.status;
     }
 
     status_t status(channel_t *ch_ptr, const int retries) {
+        if (ch_ptr->consumed == ch_ptr->counter)
+            return status_t::consumed;
+
         result_t r;
-        if (!ch_ptr->buffer_ptr->status.load(&r, retries))
+        if (!ch_ptr->buffer->status.load(&r, retries))
             return status_t::timeout;
         return r.status;
     }
 
     status_t result(channel_t *ch_ptr, void **dst) {
+        if (ch_ptr->consumed == ch_ptr->counter)
+            return status_t::consumed;
+
         result_t r;
-        ch_ptr->buffer_ptr->status.load(&r);
+        ch_ptr->buffer->status.load(&r);
         *dst = r.result;
         return r.status;
     }
 
     status_t result(channel_t *ch_ptr, void **dst, const int retries) {
+        if (ch_ptr->consumed == ch_ptr->counter)
+            return status_t::consumed;
+
         result_t r;
-        if (!ch_ptr->buffer_ptr->status.load(&r, retries))
+        if (!ch_ptr->buffer->status.load(&r, retries))
             return status_t::timeout;
         *dst = r.result;
         return r.status;
