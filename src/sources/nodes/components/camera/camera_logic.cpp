@@ -7,11 +7,10 @@
 
 #include "../../../../headers/nodes/components/camera/camera_logic.h"
 
-#include "../../../../headers/cl/cl_kernel.h"
 #include "../../../../headers/logic/logic_globals.h"
 #include "../../../../headers/logic/logic_nodes.h"
+#include "../../../../headers/cl/cl_kernel.h"
 
-#include "../../../../../platforms/linux/v4l2_device.h"
 #include "../../../../../extra/worker/worker.h"
 
 namespace ex::logic::node::camera {
