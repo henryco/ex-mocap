@@ -62,40 +62,6 @@ namespace ex::logic::node::camera {
 
     namespace {
         lw::worker_p worker = nullptr;
-        const auto   log    = logs::get_logger("node_camera");
-
-        int fourCC(const char *name) {
-            return cv::VideoWriter::fourcc(
-                    name[0],
-                    name[1],
-                    name[2],
-                    name[3]);
-        }
-
-        void init_state(camera_state *state) {
-            ::memset(state, 0, sizeof(camera_state));
-            state->buffering = 2; // default - double buffering
-        }
-
-        void init_internal(internal_t *state) {
-            state->queue_p = nullptr;
-            state->enabled = false;
-            state->b_index = 0;
-
-            state->channel = lw::create_channel(worker);
-            if (state->channel == nullptr)
-                abort_("Cannot create worker channel (not enough slots?)");
-        }
-
-        void init_capture(capture_t *) {
-            // nop
-        }
-
-        void init_result(result_t *result) {
-            result->type  = action_none;
-            result->error = false;
-            result->ready = false;
-        }
 
         void open_routine(void *arg) {
             camera_t *camera = static_cast<camera_t *>(arg);
@@ -176,6 +142,69 @@ namespace ex::logic::node::camera {
             lw::enqueue(that->internal->channel, &worker_routine, that->capture);
         }
 
+    }
+
+    namespace {
+        const auto log = logs::get_logger("node_camera");
+
+        int fourCC(const char *name) {
+            return cv::VideoWriter::fourcc(
+                    name[0],
+                    name[1],
+                    name[2],
+                    name[3]);
+        }
+
+        void init_state(camera_state *state) {
+            ::memset(state, 0, sizeof(camera_state));
+            state->buffering = 2; // default - double buffering
+        }
+
+        void init_internal(internal_t *state) {
+            state->queue_p = nullptr;
+            state->enabled = false;
+            state->b_index = 0;
+
+            state->channel = lw::create_channel(worker);
+            if (state->channel == nullptr)
+                abort_("Cannot create worker channel (not enough slots?)");
+        }
+
+        void init_capture(capture_t *) {
+            // nop
+        }
+
+        void init_result(result_t *result) {
+            result->type  = action_none;
+            result->error = false;
+            result->ready = false;
+        }
+
+        void process_open(CameraNode *that) {
+            if (!that->result->ready || that->result->error) {
+                log->info("Cannot open camera device: {}", that->state.device.device.uuid);
+                return;
+            }
+
+            list_camera_devices(true);
+            that->capabilities      = ex::platform::dev::list_capabilities(that->state.device.device);
+            that->controls          = ex::platform::dev::list_controls(that->state.device.device);
+            that->internal->enabled = true;
+            log->info("Camera device: [{}]", that->state.device.device.uuid);
+        }
+
+        void process_sync(CameraNode *that) {
+            if (!that->result->ready || that->result->error)
+                return;
+            // TODO
+        }
+
+        void process_read(CameraNode *that) {
+            if (!that->result->ready || that->result->error)
+                return;
+            that->internal->b_index = (that->internal->b_index + 1) % 2; // swap buffers
+            that->internal->updates.refresh();
+        }
     }
 
     const ex::data::array<v_device_t> &list_camera_devices(const bool refresh) {
@@ -409,24 +438,15 @@ namespace ex::logic::node::camera {
             }
 
             if (result->type == action_read) {
-                if (result->ready && !result->error) {
-                    internal->b_index = (internal->b_index + 1) % 2; // swap buffers
-                    internal->updates.refresh();
-                }
+                process_read(this);
             }
 
             else if (result->type == action_sync) {
-                // TODO
+                process_sync(this);
             }
 
             else if (result->type == action_open) {
-                if (result->ready && !result->error) {
-                    internal->enabled = true;
-                    list_camera_devices(true);
-                    capabilities = ex::platform::dev::list_capabilities(state.device.device);
-                    controls     = ex::platform::dev::list_controls(state.device.device);
-                }
-                log->info("Camera device: [{}] open: {}", state.device.device.uuid, internal->enabled);
+                process_open(this);
             }
 
             timings.t0 = std::chrono::high_resolution_clock::now().time_since_epoch().count();
