@@ -317,6 +317,11 @@ namespace ex::gui::node::camera {
 
                 ImGui::PushID(i);
                 ImGui::SeparatorText(item.name);
+                if (ImGui::IsItemHovered()) {
+                    ImGui::BeginTooltip();
+                    ImGui::Text("%d", item.id);
+                    ImGui::EndTooltip();
+                }
 
                 constexpr float    button_off  = 5;
                 static const float button_size = ImGui::CalcTextSize(ICON_LC_ROTATE_CCW).x;

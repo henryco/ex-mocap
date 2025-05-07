@@ -443,7 +443,10 @@ namespace ex::platform::dev {
 
     void reset_controls(const char *device_uuid) {
         const auto controls = list_controls(device_uuid);
-        for (const VideoControl &control: controls)
+        for (const VideoControl &control: controls) {
+            if (control.step <= 0 || control.max <= control.min)
+                continue;
             set_control_value(device_uuid, control.id, control.default_value);
+        }
     }
 }

@@ -59,6 +59,11 @@ namespace ex::logic::node::camera {
         bool             enabled;
     };
 
+    struct serial_parcel_t {
+        camera_state  state;
+        unsigned long size;
+    };
+
     namespace {
         lw::worker_p worker = nullptr;
 
@@ -401,9 +406,23 @@ namespace ex::logic::node::camera {
     }
 
     io::byte_array CameraNode::serialize() const {
-        unsigned char *bytes = static_cast<unsigned char *>(::malloc(sizeof(camera_state)));
-        ::memcpy(bytes, &state, sizeof(camera_state));
-        return io::byte_array::from(bytes, sizeof(camera_state), &::free);
+        if (!state.device.selected)
+            return io::byte_array::from(nullptr, 0);
+        if (!state.mode.selected)
+            return io::byte_array::from(nullptr, 0);
+
+        const unsigned long controls_size = controls.size * sizeof(v_control_t);
+        const unsigned long total_size    = sizeof(serial_parcel_t) + controls_size;
+
+        serial_parcel_t parcel;
+        parcel.state = state;
+        parcel.size  = static_cast<unsigned long>(controls.size);
+
+        unsigned char *bytes = static_cast<unsigned char *>(::malloc(total_size));
+        ::memcpy(bytes, &parcel, sizeof(serial_parcel_t));
+        ::memcpy(bytes + sizeof(serial_parcel_t), controls.data, controls_size);
+
+        return io::byte_array::from(bytes, controls_size, &::free);
     }
 
     void CameraNode::deserialize(const io::byte_array &array) {
@@ -411,11 +430,21 @@ namespace ex::logic::node::camera {
             return;
         list_camera_devices(true);
 
-        camera_state *parcel = reinterpret_cast<camera_state *>(array.data);
+        serial_parcel_t *serial = reinterpret_cast<serial_parcel_t *>(array.data);
+        camera_state    *parcel = &serial->state;
+
         set_image_id(parcel->image_id);
         set_device(parcel->device.device);
         set_device_buff(parcel->buffering);
         set_device_mode(parcel->mode.mode);
+
+        for (int i = 0; i < serial->size; ++i) {
+            const v_control_t *s_controls = reinterpret_cast<v_control_t *>(array.data + sizeof(serial_parcel_t));
+            const v_control_t &item       = s_controls[i];
+            if (item.step == 0 || item.min == item.max)
+                continue;
+            set_control(s_controls[i].id, s_controls[i].value);
+        }
 
         state = *parcel;
         open();
