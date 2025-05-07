@@ -36,7 +36,7 @@ namespace ex::logic::node::camera {
         unsigned decode(const void *code_ptr) {
             return code_ptr == nullptr ? 0 : *static_cast<const unsigned *>(code_ptr);
         }
-    } // namespace result
+    }
 
     // 64 bytes touched once, dont care
     struct alignas(64) camera_t {
