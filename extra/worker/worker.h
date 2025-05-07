@@ -35,6 +35,11 @@ namespace limbo::worker {
     worker_p create_worker(unsigned long idle_us = 0, unsigned long idle_after = EX_LIMBO_WORKER_IDLE_SPIN_DEFAULT);
 
     // blocking operation
+    // Operations on channels are generally not thread-safe by design,
+    // but operation between them are, as it is assumed that thread can
+    // have many channels, but channel can belong only to one thread.
+    // Worker guarantee thread-safety for operations on channels (ie enqueue, stop)
+    // as long as channels not being shared between threads.
     channel_p create_channel(worker_p);
 
     // blocking operation
@@ -49,7 +54,7 @@ namespace limbo::worker {
     // sends stop signal
     void stop(channel_p);
 
-    // marks status/result as consumed, generally should be used when channel belongs to and only to one thread
+    // marks current status/result as consumed
     void consume(channel_p);
 
     // must use & and | operators to check status
