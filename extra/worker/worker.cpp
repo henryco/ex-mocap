@@ -28,6 +28,7 @@ namespace limbo::worker {
         using command_buff_t = ex::data::dcas_buffer<command_t>;
         using status_buff_t  = ex::data::dcas_buffer<result_t>;
         using spinlock_t     = ex::data::spinlock;
+        using idle_fn_t      = void (*)(worker_t *);
 
         struct command_t {
             void *(*fn)(void *);
@@ -66,13 +67,13 @@ namespace limbo::worker {
     };
 
     struct worker_t {
-        workload_t    jobs;
-        ::pthread_t   pthr;
-        spinlock_t    spl1;
-        spinlock_t    spl2;
-        unsigned long idle;
-        unsigned long atmp;
-        volatile bool live;
+        workload_t    jobs;         // workload registry
+        idle_fn_t     idle;         // idle function
+        ::pthread_t   pthr;         // pthread handle
+        spinlock_t    spl1;         // channel level spinlock
+        spinlock_t    spl2;         // worker level spinlock
+        unsigned long atmp;         // busy-spins before idle
+        volatile bool live;         // worker keep-alive flag
     };
 
     namespace {
@@ -86,6 +87,10 @@ namespace limbo::worker {
             #define likely(x) (x)
             #define unlikely(x) (x)
         #endif
+
+        void idle_routine(worker_t *) {
+            // nop
+        }
 
         void *worker_routine(void *arg) {
             worker_t *ctx = static_cast<worker_t *>(arg);
@@ -143,14 +148,14 @@ namespace limbo::worker {
 
                 ctx->spl2.unlock();
 
-                if (ctx->atmp == 0 || ctx->idle == 0)
+                if (ctx->atmp == 0)
                     continue;
 
                 if (++attempts < ctx->atmp)
                     continue;
 
                 { sleepa_sleepa:
-                    ::usleep(ctx->idle);
+                    ctx->idle(ctx);
                 }
             }
 
@@ -158,13 +163,13 @@ namespace limbo::worker {
         }
     }
 
-    worker_t *create_worker(const unsigned long idle_us, const unsigned long idle_after) {
+    worker_t *create_worker(const unsigned long idle_after, void (*idle_fn)(worker_t *)) {
         worker_t *instance = static_cast<worker_t *>(::malloc(sizeof(worker_t)));
         ::memset(instance, 0, sizeof(worker_t));
         spinlock_t::reset(&instance->spl1);
         spinlock_t::reset(&instance->spl2);
+        instance->idle = (idle_fn == nullptr) ? &idle_routine : idle_fn;
         instance->atmp = idle_after;
-        instance->idle = idle_us;
         instance->live = true;
 
         ::pthread_t thread;
@@ -202,6 +207,7 @@ namespace limbo::worker {
 
                 p->jobs.data[size].buffers = buffers;
                 p->jobs.data[size].channel = channel;
+                p->jobs.data[size].counter = 0;
                 p->jobs.size++;
 
                 p->spl2.unlock();

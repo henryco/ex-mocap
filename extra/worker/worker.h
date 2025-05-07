@@ -13,8 +13,6 @@
 
 namespace limbo::worker {
 
-#define EX_LIMBO_WORKER_IDLE_SPIN_DEFAULT (1UL << 26)
-
     struct channel_t;
     struct worker_t;
 
@@ -34,13 +32,22 @@ namespace limbo::worker {
 
     // Worker guarantee thread-safety for operations on channels (ie enqueue, stop)
     // as long as channels not being shared between threads.
-    worker_p create_worker(unsigned long idle_us = 0, unsigned long idle_after = EX_LIMBO_WORKER_IDLE_SPIN_DEFAULT);
+    //
+    // [ idle_after ] - # of busy-wait spins before idling
+    // [ idle_fn ]    - idle routine
+    worker_p create_worker(unsigned long idle_after = 0, void (*idle_fn)(worker_p) = nullptr);
 
     // blocking operation
-    // Operations on channels are generally thread-safe,
-    // as long as channels not being shared between threads
-    // as it is assumed that single thread can have many channels,
-    // but single channel can belong only to one thread.
+    // Operations on channels are generally thread-safe
+    // as long as channels not being shared between threads,
+    // as it is assumed that any given thread can have many channels, but not vice versa.
+    //
+    // thread 1 --> channel 1 ----------|
+    // | |_______-> channel 2 --------| |
+    // |_________-> channel 3 ------v v v
+    //                              WORKER --> thread_worker
+    // thread 2 --> channel 4 -------_^ ^
+    // thread N --> channel N ---------_|
     channel_p create_channel(worker_p);
 
     // blocking operation

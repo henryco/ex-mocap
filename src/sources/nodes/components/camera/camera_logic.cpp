@@ -70,6 +70,10 @@ namespace ex::logic::node::camera {
     namespace {
         lw::worker_p worker = nullptr;
 
+        void idle_routine(lw::worker_p) {
+            ::usleep(100);
+        }
+
         void *open_routine(void *arg) {
             camera_t *camera = static_cast<camera_t *>(arg);
 
@@ -101,7 +105,7 @@ namespace ex::logic::node::camera {
         void start_worker() {
             if (worker != nullptr)
                 return;
-            worker = lw::create_worker(100);
+            worker = lw::create_worker((1UL << 26), &idle_routine);
         }
 
         void stop_wait(CameraNode *that) {
