@@ -95,7 +95,7 @@ namespace ex::logic::node::camera {
                 return const_cast<unsigned *>(&result::READ_FAILURE);
             if (!capture->camera.grab())
                 return const_cast<unsigned *>(&result::READ_PENDING);
-            if (!capture->camera.retrieve(capture->bitmap))
+            if (!capture->camera.retrieve(capture->bitmap)) // TODO FIXME ON CLOSE
                 return const_cast<unsigned *>(&result::READ_PENDING);
 
             ocl::ops::from_bytes(capture->bitmap.data, *capture->target);

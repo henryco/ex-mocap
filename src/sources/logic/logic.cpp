@@ -15,12 +15,42 @@
 #include <iostream>
 
 namespace ex::main {
-    static const auto log = logs::get_logger("logic");
+    const auto log = ex::logs::get_logger("logic");
 }
 
-namespace internal_ {
+namespace {
 
-    static ex::data::array_map<std::uint32_t, int> ptr_counter_map(10);
+    struct simple_list {
+        ex::TreeNode *node = nullptr;
+        simple_list  *next = nullptr;
+
+        ~simple_list() {
+            // hopefully it will not end up with stack overflow :/
+            if (next != nullptr) {
+                delete next;
+                next = nullptr;
+            }
+        }
+
+        static simple_list *get_head_(simple_list *node) {
+            if (node == nullptr)
+                return nullptr;
+            simple_list *head = node;
+            while (true) {
+                if (head->next == nullptr)
+                    return head;
+                head = head->next;
+            }
+        }
+    };
+
+    void abort__(const char *msg) {
+        ex::main::log->error(msg);
+        std::cerr << msg << std::endl;
+        ::abort();
+    }
+
+    ex::data::array_map<std::uint32_t, int> ptr_counter_map(10);
 
     void cleanup_nodes() {
         ex::main::log->debug("start node gc");
@@ -52,37 +82,6 @@ namespace ex::main {
         logic.initialize();
         return logic;
     }
-
-    void abort__(const char *msg) {
-        log->error(msg);
-        std::cerr << msg << std::endl;
-        ::abort();
-    }
-
-    struct simple_list {
-        TreeNode    *node = nullptr;
-        simple_list *next = nullptr;
-
-        ~simple_list() {
-            // hopefully it will not end up with stack overflow :/
-            if (next != nullptr) {
-                delete next;
-                next = nullptr;
-            }
-        }
-
-        static simple_list *get_head_(simple_list *node) {
-            if (node == nullptr)
-                return nullptr;
-            simple_list *head = node;
-            while (true) {
-                if (head->next == nullptr)
-                    return head;
-                head = head->next;
-            }
-        }
-    };
-
 
     // == INTERNAL METHODS ==
 
@@ -130,6 +129,7 @@ namespace ex::main {
         if (state.project.should_create) {
             state.project.should_create = false;
             create_new_();
+            state.project.has_changes = true;
             return;
         }
 
@@ -137,6 +137,7 @@ namespace ex::main {
             state.project.should_open = false;
             deserialize_();
             process_();
+            state.project.has_changes = true;
             return;
         }
 
@@ -151,6 +152,7 @@ namespace ex::main {
         if (state.project.should_save) {
             state.project.should_save = false;
             serialize_();
+            state.project.has_changes = true;
         }
     }
 
@@ -189,6 +191,8 @@ namespace ex::main {
     }
 
     void Logic::deserialize_() {
+        reset_internal_state_();
+
         static State &state = ex::logic::globals::state();
 
         log->info("deserialization start: {}", state.project.project_path);
@@ -248,6 +252,10 @@ namespace ex::main {
         limbo::graph::Clock &clock = ex::logic::state::get_clock();
         clock.reset();
 
+        for (const auto &node : ex::logic::state::node_storage())
+            node.val->detach_all();
+        cleanup_nodes();
+
         ex::entity::reset_entities();
         TreeNode *root = ex::entity::create(0);
         root->state    = node_state::group;
@@ -278,7 +286,7 @@ namespace ex::main {
 
         traverse_(root_node);
         rewire_(logic);
-        internal_::cleanup_nodes();
+        cleanup_nodes();
     }
 
     bool connect_nodes_(TreeNode *from, TreeNode *to) {
@@ -393,7 +401,7 @@ namespace ex::main {
                 ex::logic::state::store_node(node->id_node, mappers.instance(node));
             }
 
-            internal_::ptr_counter_map[node->id_node]++;
+            ptr_counter_map[node->id_node]++;
         }
 
         const auto children = ex::entity::children(node->id_node);
