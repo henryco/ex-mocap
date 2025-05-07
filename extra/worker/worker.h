@@ -32,14 +32,15 @@ namespace limbo::worker {
         timeout  = 1U << 6
     };
 
+    // Worker guarantee thread-safety for operations on channels (ie enqueue, stop)
+    // as long as channels not being shared between threads.
     worker_p create_worker(unsigned long idle_us = 0, unsigned long idle_after = EX_LIMBO_WORKER_IDLE_SPIN_DEFAULT);
 
     // blocking operation
-    // Operations on channels are generally not thread-safe by design,
-    // but operation between them are, as it is assumed that thread can
-    // have many channels, but channel can belong only to one thread.
-    // Worker guarantee thread-safety for operations on channels (ie enqueue, stop)
-    // as long as channels not being shared between threads.
+    // Operations on channels are generally thread-safe,
+    // as long as channels not being shared between threads
+    // as it is assumed that single thread can have many channels,
+    // but single channel can belong only to one thread.
     channel_p create_channel(worker_p);
 
     // blocking operation
