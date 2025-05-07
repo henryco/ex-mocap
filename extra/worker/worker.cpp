@@ -63,8 +63,8 @@ namespace limbo::worker {
         ::pthread_t   pthr;
         spinlock_t    spl1;
         spinlock_t    spl2;
-        unsigned      idle;
-        unsigned      atmp;
+        unsigned long idle;
+        unsigned long atmp;
         volatile bool live;
     };
 
@@ -90,6 +90,12 @@ namespace limbo::worker {
                 ctx->spl2.lock();
 
                 workload_t *work = &ctx->jobs;
+
+                if (work->size == 0) {
+                    ctx->spl2.unlock();
+                    goto sleepa_sleepa;
+                }
+
                 for (int i = 0; i < work->size; ++i) {
 
                     record_t *job = &work->data[i];
@@ -123,8 +129,7 @@ namespace limbo::worker {
                         continue;
                     }
 
-                    {
-                    point_of_failure:
+                    { point_of_failure:
                         job->buffers->status.store(&r_fail);
                     }
                 }
@@ -134,15 +139,19 @@ namespace limbo::worker {
                 if (ctx->atmp == 0 || ctx->idle == 0)
                     continue;
 
-                if (attempts++ > ctx->atmp)
+                if (++attempts < ctx->atmp)
+                    continue;
+
+                { sleepa_sleepa:
                     ::usleep(ctx->idle);
+                }
             }
 
             return nullptr;
         }
     }
 
-    worker_t *create_worker(const unsigned idle_us, const unsigned idle_after) {
+    worker_t *create_worker(const unsigned long idle_us, const unsigned long idle_after) {
         worker_t *instance = static_cast<worker_t *>(::malloc(sizeof(worker_t)));
         ::memset(instance, 0, sizeof(worker_t));
         spinlock_t::reset(&instance->spl1);

@@ -7,6 +7,8 @@
 
 namespace limbo::worker {
 
+#define IDLE_SPIN_DEFAULT (1U << 26)
+
     struct channel_t;
     struct worker_t;
 
@@ -14,16 +16,16 @@ namespace limbo::worker {
     using worker_p  = worker_t *;
 
     enum status_t : unsigned char {
-        not_init = 0,
-        in_queue = 1 << 0,
-        finished = 1 << 1,
-        success  = 1 << 2,
-        aborted  = 1 << 3,
-        failure  = 1 << 4,
-        timeout  = 1 << 5
+        not_init = 0U,
+        in_queue = 1U << 0,
+        finished = 1U << 1,
+        success  = 1U << 2,
+        aborted  = 1U << 3,
+        failure  = 1U << 4,
+        timeout  = 1U << 5
     };
 
-    worker_p create_worker(unsigned idle_us = 0, unsigned idle_after = 0);
+    worker_p create_worker(unsigned long idle_us = 0, unsigned long idle_after = IDLE_SPIN_DEFAULT);
 
     // blocking operation
     channel_p create_channel(worker_p);

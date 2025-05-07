@@ -18,26 +18,26 @@ namespace ex::logic::node::camera {
     namespace lw = limbo::worker;
     namespace lg = limbo::graph;
 
-    enum action_t: unsigned char {
-        action_none = 0,
-        action_open = 1 << 0,
-        action_read = 1 << 1,
-        action_sync = 1 << 2,
-    };
+    namespace result {
+        static constexpr unsigned OPEN_SUCCESS = 1U << 0;
+        static constexpr unsigned OPEN_FAILURE = 1U << 1;
+        static constexpr unsigned OPEN_BITMASK = OPEN_SUCCESS | OPEN_FAILURE;
 
-    // touched by host and worker,
-    // but never ever at the same time (guarantee)
-    struct alignas(64) result_t {
-        action_t type;
-        bool     ready;
-        bool     error;
-    };
+        static constexpr unsigned READ_SUCCESS = 1U << 2;
+        static constexpr unsigned READ_PENDING = 1U << 3;
+        static constexpr unsigned READ_FAILURE = 1U << 4;
+        static constexpr unsigned READ_BITMASK = READ_SUCCESS | READ_PENDING | READ_FAILURE;
+
+        static constexpr unsigned SYNC_SUCCESS = 1U << 5;
+        static constexpr unsigned SYNC_PENDING = 1U << 6;
+        static constexpr unsigned SYNC_FAILURE = 1U << 7;
+        static constexpr unsigned SYNC_BITMASK = SYNC_SUCCESS | SYNC_PENDING | SYNC_FAILURE;
+    }
 
     // 64 bytes touched once, dont care
     struct alignas(64) camera_t {
         std::vector<int>  params;
         cv::VideoCapture *camera;
-        result_t         *result;
         const unsigned    index;
         const unsigned    api;
     };
@@ -47,7 +47,6 @@ namespace ex::logic::node::camera {
         cv::Mat            bitmap;
         cv::VideoCapture   camera;
         ocl::ImagePromise *target;
-        result_t          *result;
     };
 
     struct internal_t {
@@ -76,41 +75,29 @@ namespace ex::logic::node::camera {
             else
                 success = camera->camera->open(camera->index, camera->api);
 
-            camera->result->type  = action_open;
-            camera->result->ready = success;
-            camera->result->error = !success;
-
-            camera->result = nullptr;
             delete camera;
 
-            return nullptr;
+            return const_cast<unsigned *>(success ? &result::OPEN_SUCCESS : &result::OPEN_FAILURE);
         }
 
         void *worker_routine(void *arg) {
             capture_t *capture = static_cast<capture_t *>(arg);
 
-            if (!capture->camera.grab()) {
-                capture->result->error = false;
-                capture->result->ready = false;
-                return nullptr;
-            }
-
-            if (!capture->camera.retrieve(capture->bitmap)) {
-                capture->result->error = false;
-                capture->result->ready = false;
-                return nullptr;
-            }
+            if (!capture->camera.isOpened())
+                return const_cast<unsigned *>(&result::READ_FAILURE);
+            if (!capture->camera.grab())
+                return const_cast<unsigned *>(&result::READ_PENDING);
+            if (!capture->camera.retrieve(capture->bitmap))
+                return const_cast<unsigned *>(&result::READ_PENDING);
 
             ocl::ops::from_bytes(capture->bitmap.data, *capture->target);
-            capture->result->error = false;
-            capture->result->ready = true;
-            return nullptr;
+            return const_cast<unsigned *>(&result::READ_SUCCESS);
         }
 
         void start_worker() {
             if (worker != nullptr)
                 return;
-            worker = lw::create_worker(100, 1000000);
+            worker = lw::create_worker(100);
         }
 
         void stop_wait(CameraNode *that) {
@@ -124,14 +111,9 @@ namespace ex::logic::node::camera {
         }
 
         void open_camera(CameraNode *that, const int api, const int index, const std::vector<int> &params) {
-            that->result->type  = action_open;
-            that->result->error = false;
-            that->result->ready = false;
-
             camera_t *payload = new camera_t {
                 params,
                 &that->capture->camera,
-                that->result,
                 static_cast<unsigned>(index),
                 static_cast<unsigned>(api)
             };
@@ -140,11 +122,6 @@ namespace ex::logic::node::camera {
         }
 
         void enqueue(CameraNode *that) {
-            that->result->type  = action_read;
-            that->result->error = false;
-            that->result->ready = false;
-
-            that->capture->result = that->result;
             that->capture->target = &(that->internal->promises[(that->internal->b_index + 1) % 2]);
             lw::enqueue(that->internal->channel, &worker_routine, that->capture);
         }
@@ -181,14 +158,8 @@ namespace ex::logic::node::camera {
             // nop
         }
 
-        void init_result(result_t *result) {
-            result->type  = action_none;
-            result->error = false;
-            result->ready = false;
-        }
-
-        void process_open(CameraNode *that) {
-            if (!that->result->ready || that->result->error) {
+        void process_open(CameraNode *that, const unsigned status) {
+            if (status & result::OPEN_FAILURE) {
                 log->info("Cannot open camera device: {}", that->state.device.device.uuid);
                 return;
             }
@@ -198,19 +169,24 @@ namespace ex::logic::node::camera {
             that->controls          = ex::platform::dev::list_controls(that->state.device.device);
             that->internal->enabled = true;
             log->info("Camera device: [{}]", that->state.device.device.uuid);
+
+            enqueue(that);
         }
 
-        void process_sync(CameraNode *that) {
-            if (!that->result->ready || that->result->error)
-                return;
-            // TODO
+        void process_sync(CameraNode *that, const unsigned status) {
+            // TODO result process
         }
 
-        void process_read(CameraNode *that) {
-            if (!that->result->ready || that->result->error)
+        void process_read(CameraNode *that, const unsigned status) {
+            if (status & result::READ_FAILURE)
                 return;
+            if (status & result::READ_PENDING) {
+                enqueue(that);
+                return;
+            }
             that->internal->b_index = (that->internal->b_index + 1) % 2; // swap buffers
             that->internal->updates.refresh();
+            enqueue(that);
         }
     }
 
@@ -271,10 +247,6 @@ namespace ex::logic::node::camera {
             capture->camera.release();
 
         capture->bitmap.release();
-
-        result->type  = action_none;
-        result->error = false;
-        result->ready = false;
     }
 
     void CameraNode::reset() {
@@ -474,9 +446,10 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::on_update(const int clock_i) {
-
-        const lw::status_t status = lw::status(internal->channel);
+        void              *result = nullptr;
+        const lw::status_t status = lw::result(internal->channel, &result);
         if ((status & lw::status_t::success) != 0) {
+            const unsigned code = *(static_cast<unsigned *>(result));
 
             const auto t1 = std::chrono::high_resolution_clock::now();
             if (timings.t0 != 0 && internal->enabled) {
@@ -484,20 +457,19 @@ namespace ex::logic::node::camera {
                 timings.frame_rate = static_cast<float>(1000000000. / dt);
             }
 
-            if (result->type == action_read) {
-                process_read(this);
+            if (code & result::READ_BITMASK) {
+                process_read(this, code);
             }
 
-            else if (result->type == action_sync) {
-                process_sync(this);
+            else if (code & result::SYNC_BITMASK) {
+                process_sync(this, code);
             }
 
-            else if (result->type == action_open) {
-                process_open(this);
+            else if (code & result::OPEN_BITMASK) {
+                process_open(this, code);
             }
 
             timings.t0 = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-            enqueue(this);
         }
 
         internal->promises[internal->b_index].image.header.fresh = internal->updates.update();
@@ -531,17 +503,14 @@ namespace ex::logic::node::camera {
 
         delete internal;
         delete capture;
-        delete result;
 
         internal = nullptr;
         capture  = nullptr;
-        result   = nullptr;
     }
 
     CameraNode::CameraNode() :
         internal(new internal_t()), // new bruh
         capture(new capture_t()),   // new bruh
-        result(new result_t()),     // new bruh
         state({}),
         timings({0, 0})
     {
@@ -549,7 +518,6 @@ namespace ex::logic::node::camera {
         init_state(&state);
         init_internal(internal);
         init_capture(capture);
-        init_result(result);
     }
 
 }
