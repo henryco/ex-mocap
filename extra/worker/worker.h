@@ -49,10 +49,10 @@ namespace limbo::worker {
     void stop(channel_p);
 
     // must use & and | operators to check status
-    status_t status(channel_p, int retries);
+    status_t status(channel_p);
 
     // must use & and | operators to check status
-    status_t status(channel_p);
+    status_t status(channel_p, int retries);
 
     // must use & and | operators to check status
     status_t result(channel_p, void **dst);
