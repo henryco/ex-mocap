@@ -35,7 +35,7 @@ namespace limbo::worker {
     void close_worker(worker_p, bool force = false);
 
     // memory under *arg* is expected to be managed outside of worker
-    void enqueue(channel_p, void(*)(void *), void *arg = nullptr);
+    void enqueue(channel_p, void *(*) (void *), void *arg = nullptr);
 
     // sends stop signal
     void stop(channel_p);
@@ -45,6 +45,12 @@ namespace limbo::worker {
 
     // must use & and | operators to check status
     status_t status(channel_p);
+
+    // must use & and | operators to check status
+    status_t result(channel_p, void **dst);
+
+    // must use & and | operators to check status
+    status_t result(channel_p, void **dst, int retries);
 
     /** OR */
     constexpr status_t operator | (const status_t lhs, const status_t rhs) {

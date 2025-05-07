@@ -67,7 +67,7 @@ namespace ex::logic::node::camera {
     namespace {
         lw::worker_p worker = nullptr;
 
-        void open_routine(void *arg) {
+        void *open_routine(void *arg) {
             camera_t *camera = static_cast<camera_t *>(arg);
 
             bool success = false;
@@ -82,26 +82,29 @@ namespace ex::logic::node::camera {
 
             camera->result = nullptr;
             delete camera;
+
+            return nullptr;
         }
 
-        void worker_routine(void *arg) {
+        void *worker_routine(void *arg) {
             capture_t *capture = static_cast<capture_t *>(arg);
 
             if (!capture->camera.grab()) {
                 capture->result->error = false;
                 capture->result->ready = false;
-                return;
+                return nullptr;
             }
 
             if (!capture->camera.retrieve(capture->bitmap)) {
                 capture->result->error = false;
                 capture->result->ready = false;
-                return;
+                return nullptr;
             }
 
             ocl::ops::from_bytes(capture->bitmap.data, *capture->target);
             capture->result->error = false;
             capture->result->ready = true;
+            return nullptr;
         }
 
         void start_worker() {
