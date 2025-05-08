@@ -145,7 +145,6 @@ namespace limbo::graph {
 
             ex::data::array<Description> in_descriptions_  = { DATA_INIT_CAP, memory::allocator };
             ex::data::array<Description> out_descriptions_ = { DATA_INIT_CAP, memory::allocator };
-            bool                         freeze_ = false;
 
             ~port_dispatcher() override = default;
 
