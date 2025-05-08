@@ -53,7 +53,7 @@ namespace ex::gui::tree {
 
         const auto rf = ex::gui::window_reset_flags(gui.view.reset, true);
         ImGui::Begin("Node inspector", &inspection_open, rf);
-        ImGui::Text("%s: [%u] [%s]", inspected_node->name, inspected_node->id_node, inspected_base->get_node_name());
+        ImGui::Text("%s: [%u] [%s]", inspected_node->name, inspected_node->id_node, inspected_base->get_type_name());
 
         ImGui::TextDisabled("");
 
@@ -85,11 +85,11 @@ namespace ex::gui::tree {
         const auto connections = inspected_base->connections_;
         for (int i = 0; i < connections.size; ++i) {
             auto &head = connections[i];
-            const auto io = dynamic_cast<limbo::graph::IO *>(head.node_ptr);
+            const auto io = dynamic_cast<limbo::graph::NodeType *>(head.node_ptr);
             if (io != nullptr) {
-                ImGui::Text("* %d -> %d [%lu] [%s]", head.index_in, head.index_out, head.node_ptr->get_id(), io->get_node_name());
+                ImGui::Text("* %d -> %d [%lu] [%s]", head.index_in, head.index_out, head.node_ptr->get_node_id(), io->get_type_name());
             } else {
-                ImGui::Text("* %d -> %d [%lu] [-]", head.index_in, head.index_out, head.node_ptr->get_id());
+                ImGui::Text("* %d -> %d [%lu] [-]", head.index_in, head.index_out, head.node_ptr->get_node_id());
             }
         }
 

@@ -49,7 +49,7 @@ namespace ex::gui::node::image {
     }
 
     unsigned long int get_node_type_id() {
-        return logic::node::image::ImageNode::get_node_id();
+        return logic::node::image::ImageNode::get_static_type_id();
     }
 
     bool draw_tree_node(TreeNode *n, const bool nested, const bool selected, const bool collapse, const bool expand) {
@@ -107,7 +107,7 @@ namespace ex::gui::node::image {
         static ex::State &state = ex::logic::globals::state();
 
         imgn::ImageNode *img_node = dynamic_cast<imgn::ImageNode *>(ex::logic::state::get_node(window->node->id_node));
-        if (img_node == nullptr || img_node->get_id() != window->node->id_node)
+        if (img_node == nullptr || img_node->get_node_id() != window->node->id_node)
             return true;
 
         {

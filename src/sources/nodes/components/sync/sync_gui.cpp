@@ -25,7 +25,7 @@ namespace ex::gui::node::sync {
     }
 
     unsigned long int get_node_type_id() {
-        return ex::logic::node::sync::SyncNode::get_node_id();
+        return ex::logic::node::sync::SyncNode::get_static_type_id();
     }
 
     bool draw_tree_node(TreeNode *n, const bool nested, const bool selected, const bool collapse, const bool expand) {

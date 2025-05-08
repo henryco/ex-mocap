@@ -66,7 +66,7 @@ namespace ex::gui::node::camera {
     }
 
     unsigned long int get_node_type_id() {
-        return ex::logic::node::camera::CameraNode::get_node_id();
+        return ex::logic::node::camera::CameraNode::get_static_type_id();
     }
 
     const char *get_node_name() {
@@ -87,7 +87,7 @@ namespace ex::gui::node::camera {
     bool draw_node_window(GuiNodeWindow *window) {
 
         auto *cam_node = dynamic_cast<ex::logic::node::camera::CameraNode *>(ex::logic::state::get_node(window->node->id_node));
-        if (cam_node == nullptr || cam_node->get_id() != window->node->id_node)
+        if (cam_node == nullptr || cam_node->get_node_id() != window->node->id_node)
             return true;
 
         const auto &state = cam_node->state;
@@ -334,14 +334,14 @@ namespace ex::gui::node::camera {
                     const auto input_size = ImVec2(total_w - button_pad - button_off, ImGui::GetFrameHeight());
                     ImGui::SetNextItemWidth(input_size.x);
 
-                    if (cam_node->get_id() == prev_change.nd && item.id == prev_change.id)
+                    if (cam_node->get_node_id() == prev_change.nd && item.id == prev_change.id)
                         value = prev_change.val;
 
                     ImGui::SliderInt("##drag_value", &value, item.min, item.max);
 
                     if (value != item.value) {
 
-                        if (cam_node->get_id() == prev_change.nd) {
+                        if (cam_node->get_node_id() == prev_change.nd) {
                             if (item.id != prev_change.id) {
                                 cam_node->set_control(prev_change.id, prev_change.val);
                                 cam_node->list_controls(true);
@@ -356,7 +356,7 @@ namespace ex::gui::node::camera {
                             prev_change.dt = ImGui::GetTime();
                         }
 
-                        prev_change.nd  = cam_node->get_id();
+                        prev_change.nd  = cam_node->get_node_id();
                         prev_change.id  = item.id;
                         prev_change.val = value;
                     }

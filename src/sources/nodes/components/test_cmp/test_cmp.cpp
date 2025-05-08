@@ -42,7 +42,7 @@ namespace ex::gui::test::one {
 
     limbo::graph::BaseNode *instance(TreeNode *from) {
         const auto node = new NodeOne();
-        node->set_id(from->id_node);
+        node->set_node_id(from->id_node);
         return node;
     }
 
@@ -90,7 +90,7 @@ namespace ex::gui::test::two {
 
     limbo::graph::BaseNode *instance(TreeNode *from) {
         const auto node = new NodeTwo();
-        node->set_id(from->id_node);
+        node->set_node_id(from->id_node);
         return node;
     }
 
@@ -140,7 +140,7 @@ namespace ex::gui::test::tri {
 
     limbo::graph::BaseNode *instance(TreeNode *from) {
         const auto node = new NodeTri();
-        node->set_id(from->id_node);
+        node->set_node_id(from->id_node);
         return node;
     }
 

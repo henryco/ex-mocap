@@ -9,7 +9,7 @@ namespace ex::logic::node::sync {
 
     limbo::graph::BaseNode *SyncNode::instance(TreeNode *from) {
         SyncNode *node = new SyncNode();
-        node->set_id(from->id_node);
+        node->set_node_id(from->id_node);
         return node;
     }
 

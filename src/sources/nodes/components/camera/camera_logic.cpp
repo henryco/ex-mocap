@@ -229,7 +229,7 @@ namespace ex::logic::node::camera {
 
     limbo::graph::BaseNode *CameraNode::instance(TreeNode *from) {
         CameraNode *ptr = new CameraNode();
-        ptr->set_id(from->id_node);
+        ptr->set_node_id(from->id_node);
         ptr->set_image_id(from->id_node);
         return ptr;
     }
