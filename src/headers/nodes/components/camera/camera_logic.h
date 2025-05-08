@@ -67,6 +67,10 @@ namespace ex::logic::node::camera {
         static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
 
 
+        // ---- global properties ----
+        static const ex::data::array<v_device_t> &list_camera_devices(bool refresh = false);
+
+
         // ---- camera properties ----
         const ex::data::array<v_devcap_t> &list_capabilities() const;
 
@@ -106,8 +110,6 @@ namespace ex::logic::node::camera {
 
         CameraNode();
     };
-
-    const ex::data::array<v_device_t> &list_camera_devices(bool refresh = false);
 
 }
 

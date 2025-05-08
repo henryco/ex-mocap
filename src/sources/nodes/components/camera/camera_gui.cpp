@@ -131,7 +131,7 @@ namespace ex::gui::node::camera {
             ImGui::SetNextItemWidth(input_size.x);
 
             if (ImGui::BeginCombo("##cam_device_list", device.device.name, ImGuiComboFlags_HeightRegular)) {
-                const auto &list = ex::logic::node::camera::list_camera_devices(closed);
+                const auto &list = ex::logic::node::camera::CameraNode::list_camera_devices(closed);
                 static char buff_full[192];
                 for (int i = 0; i < list.size; ++i) {
                     const auto &item = list[i];

@@ -177,7 +177,7 @@ namespace ex::logic::node::camera {
                 return;
             }
 
-            list_camera_devices(true);
+            CameraNode::list_camera_devices(true);
             that->capabilities      = ex::platform::dev::list_capabilities(that->state.device.device);
             that->controls          = ex::platform::dev::list_controls(that->state.device.device);
             that->internal->enabled = true;
@@ -203,7 +203,7 @@ namespace ex::logic::node::camera {
         }
     }
 
-    const ex::data::array<v_device_t> &list_camera_devices(const bool refresh) {
+    const ex::data::array<v_device_t> &CameraNode::list_camera_devices(const bool refresh) {
         static ex::data::array<v_device_t> list = ex::platform::dev::list_devices();
         if (refresh) {
             list.clean();
