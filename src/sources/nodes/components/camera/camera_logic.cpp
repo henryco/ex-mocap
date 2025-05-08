@@ -440,13 +440,16 @@ namespace ex::logic::node::camera {
         set_device_buff(parcel->buffering);
         set_device_mode(parcel->mode.mode);
 
-        for (int i = 0; i < serial->size; ++i) {
-            const v_control_t *s_controls = reinterpret_cast<v_control_t *>(array.data + sizeof(serial_parcel_t));
-            const v_control_t &item       = s_controls[i];
-            if (item.step == 0 || item.min == item.max)
-                continue;
-            set_control(item.id, item.value);
-            controls.push(item);
+        // sanity check
+        if (serial->size < 1024) {
+            for (int i = 0; i < serial->size; ++i) {
+                const v_control_t *s_controls = reinterpret_cast<v_control_t *>(array.data + sizeof(serial_parcel_t));
+                const v_control_t &item       = s_controls[i];
+                if (item.step == 0 || item.min == item.max)
+                    continue;
+                set_control(item.id, item.value);
+                controls.push(item);
+            }
         }
 
         state = *parcel;
