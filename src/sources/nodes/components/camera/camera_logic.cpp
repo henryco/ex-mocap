@@ -13,6 +13,23 @@
 
 #include "../../../../../extra/worker/worker.h"
 
+namespace {
+    namespace lw = limbo::worker;
+    namespace lg = limbo::graph;
+
+    lw::worker_p worker = nullptr;
+
+    void idle_routine(lw::worker_p) {
+        ::usleep(100);
+    }
+
+    void start_worker() {
+        if (worker != nullptr)
+            return;
+        worker = lw::create_worker((1UL << 26), &idle_routine);
+    }
+}
+
 namespace ex::logic::node::sync {
 
     using cam_ref_t = camera::CameraNode *;
@@ -40,9 +57,6 @@ namespace ex::logic::node::sync {
 }
 
 namespace ex::logic::node::camera {
-
-    namespace lw = limbo::worker;
-    namespace lg = limbo::graph;
 
     namespace result {
         static constexpr unsigned OPEN_SUCCESS = 1U << 0;
@@ -94,11 +108,6 @@ namespace ex::logic::node::camera {
     };
 
     namespace {
-        lw::worker_p worker = nullptr;
-
-        void idle_routine(lw::worker_p) {
-            ::usleep(100);
-        }
 
         void *open_routine(void *arg) {
             camera_t *camera = static_cast<camera_t *>(arg);
@@ -131,22 +140,6 @@ namespace ex::logic::node::camera {
 
             ocl::ops::from_bytes(capture->bitmap.data, *capture->target);
             return const_cast<unsigned *>(&result::READ_SUCCESS);
-        }
-
-        void start_worker() {
-            if (worker != nullptr)
-                return;
-            worker = lw::create_worker((1UL << 26), &idle_routine);
-        }
-
-        void stop_wait(CameraNode *that) {
-            const lw::status_t status = lw::status(that->internal->channel);
-            if ((status & lw::status_t::finished) == 0) {
-                lw::stop(that->internal->channel);
-                while ((lw::status(that->internal->channel) & lw::status_t::finished) == 0) {
-                    ::usleep(100);
-                }
-            }
         }
 
         void open_camera(CameraNode *that, const int api, const int index, const std::vector<int> &params) {
@@ -279,7 +272,16 @@ namespace ex::logic::node::camera {
     void CameraNode::close() {
         internal->enabled = false;
         ::memset(&timings, 0, sizeof(timings_t));
-        stop_wait(this);
+
+        {
+            const lw::status_t status = lw::status(internal->channel);
+            if ((status & lw::status_t::finished) == 0) {
+                lw::stop(internal->channel);
+                while ((lw::status(internal->channel) & lw::status_t::finished) == 0) {
+                    ::usleep(100);
+                }
+            }
+        }
 
         if (!capture)
             return;
