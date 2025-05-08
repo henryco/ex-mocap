@@ -90,6 +90,7 @@ namespace ex::logic::node::camera {
 
         void *sync_routine(void *arg) {
             // TODO
+            return nullptr;
         }
 
         void *read_routine(void *arg) {

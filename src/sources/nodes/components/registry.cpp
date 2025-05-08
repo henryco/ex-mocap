@@ -14,8 +14,8 @@
 #include "../../../headers/nodes/components/camera/camera_gui.h"
 #include "../../../headers/nodes/components/camera/camera_logic.h"
 
-#include "../../../headers/nodes/components/sync/sync_gui.h"
-#include "../../../headers/nodes/components/sync/sync_logic.h"
+#include "../../../headers/nodes/components/camera/sync_gui.h"
+#include "../../../headers/nodes/components/camera/sync_logic.h"
 
 namespace ex::nodes::mappers {
 

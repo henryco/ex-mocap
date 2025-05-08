@@ -2,7 +2,7 @@
 // Created by xd on 5/2/25.
 //
 
-#include "../../../../headers/nodes/components/sync/sync_logic.h"
+#include "../../../../headers/nodes/components/camera/sync_logic.h"
 #include "../../../../headers/logic/logic_nodes.h"
 
 namespace ex::logic::node::sync {
