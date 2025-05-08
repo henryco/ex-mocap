@@ -14,6 +14,7 @@
 #include "../../../../../extra/worker/worker.h"
 
 namespace {
+    // MAYBE MOVE WORKER OUT INTO GLOBAL REGISTRY ?
     namespace lw = limbo::worker;
     namespace lg = limbo::graph;
 
