@@ -88,7 +88,11 @@ namespace ex::logic::node::camera {
             return const_cast<unsigned *>(success ? &result::OPEN_SUCCESS : &result::OPEN_FAILURE);
         }
 
-        void *worker_routine(void *arg) {
+        void *sync_routine(void *arg) {
+            // TODO
+        }
+
+        void *read_routine(void *arg) {
             capture_t *capture = static_cast<capture_t *>(arg);
 
             if (!capture->camera.isOpened())
@@ -131,7 +135,7 @@ namespace ex::logic::node::camera {
 
         void enqueue(CameraNode *that) {
             that->capture->target = &(that->internal->promises[(that->internal->b_index + 1) % 2]);
-            lw::enqueue(that->internal->channel, &worker_routine, that->capture);
+            lw::enqueue(that->internal->channel, &read_routine, that->capture);
         }
 
     }
