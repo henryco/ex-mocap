@@ -107,6 +107,15 @@ namespace limbo::graph {
                      .aux     = aux };
         }
 
+        template<typename T, int index, string_literal name, bool aux = false>
+        constexpr Description describe_io() {
+            constexpr auto name_ = name.value;
+            return { .name    = static_cast<const char *>(name_),
+                     .type_id = typeid(T).hash_code(),
+                     .index   = static_cast<unsigned int>(index),
+                     .aux     = aux };
+        }
+
         struct InputDescriptor {
 
             virtual ~InputDescriptor() = default;
@@ -213,11 +222,10 @@ namespace limbo::graph {
         struct descriptor : virtual port_dispatcher {
 
             descriptor() {
-                constexpr auto name_ = name.value;
                 if (input)
-                    register_in_descriptor(describe_io<T>(index, static_cast<const char *>(name_), aux));
+                    register_in_descriptor(describe_io<T, index, name, aux>());
                 else
-                    register_out_descriptor(describe_io<T>(index, static_cast<const char *>(name_), aux));
+                    register_out_descriptor(describe_io<T, index, name, aux>());
             }
 
             ~descriptor() override = default;
