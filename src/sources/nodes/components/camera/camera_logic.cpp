@@ -578,6 +578,10 @@ namespace ex::logic::node::camera {
 // SYNC NODE
 namespace ex::logic::node::sync {
 
+    struct sync_serial_t {
+        sync_id_t node_id;
+    };
+
     limbo::graph::BaseNode *SyncNode::instance(TreeNode *from) {
         SyncNode *node = new SyncNode();
         node->set_node_id(from->id_node);
@@ -594,14 +598,22 @@ namespace ex::logic::node::sync {
     }
 
     io::byte_array SyncNode::serialize() const {
-        // TODO
-        return io::byte_array::from(nullptr, 0);
+        constexpr long total_size = sizeof(sync_serial_t);
+        sync_serial_t parcel;
+        parcel.node_id = synchronizer->node_id;
+
+        unsigned char *bytes = static_cast<unsigned char *>(::malloc(total_size));
+        ::memcpy(bytes, &parcel, sizeof(sync_serial_t));
+
+        return io::byte_array::from(bytes, total_size, &::free);
     }
 
     void SyncNode::deserialize(const io::byte_array &array) {
         if (array.empty())
             return;
-        // TODO
+
+        const sync_serial_t *parcel = reinterpret_cast<sync_serial_t *>(array.data);
+        synchronizer->node_id = parcel->node_id;
     }
 
     void SyncNode::on_input(int, int, int, const void *) {
