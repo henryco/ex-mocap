@@ -550,6 +550,10 @@ namespace ex::logic::node::camera {
 // SYNC NODE
 namespace ex::logic::node::sync {
 
+    struct sync_t {
+
+    };
+
     limbo::graph::BaseNode *SyncNode::instance(TreeNode *from) {
         SyncNode *node = new SyncNode();
         node->set_node_id(from->id_node);

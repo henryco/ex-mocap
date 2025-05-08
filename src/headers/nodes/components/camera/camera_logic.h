@@ -11,6 +11,32 @@
 
 #include "../../../../platforms/device.h"
 
+namespace ex::logic::node::sync {
+
+    struct sync_t;
+
+    using sync_p = sync_t *;
+
+    struct SyncNode final : limbo::graph::BaseNode,
+                            limbo::graph::id::name<"sync_node">,
+                            limbo::graph::io::out<sync_p, 1, "Synchronizer">
+    {
+        static limbo::graph::BaseNode *instance(TreeNode *from);
+        static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
+        static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
+
+        void on_input(int in_idx, int out_idx, int clock_i, const void *data) override;
+
+        void on_update(int clock_i) override;
+
+        void *on_output(int in_idx, int out_idx, int clock_i) override;
+
+        ~SyncNode() override;
+
+        SyncNode();
+    };
+}
+
 namespace ex::logic::node::camera {
 
     using v_device_t  = ex::platform::dev::VideoDevice;
@@ -45,6 +71,7 @@ namespace ex::logic::node::camera {
 
     struct CameraNode final : limbo::graph::BaseNode,
                               limbo::graph::id::name<"camera_node">,
+                              limbo::graph::io::in<sync::sync_p, 1, "Synchronizer">,
                               limbo::graph::io::out<ocl::img_promise, 1, "Frame image">,
                               ex::io::bytes::serializable
     {
@@ -111,28 +138,6 @@ namespace ex::logic::node::camera {
         CameraNode();
     };
 
-}
-
-namespace ex::logic::node::sync {
-    struct SyncNode final : limbo::graph::BaseNode,
-                            limbo::graph::id::name<"sync_node">,
-                            limbo::graph::io::out<int, 1, "Sync">
-    {
-
-        static limbo::graph::BaseNode *instance(TreeNode *from);
-        static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
-        static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
-
-        void on_input(int in_idx, int out_idx, int clock_i, const void *data) override;
-
-        void on_update(int clock_i) override;
-
-        void *on_output(int in_idx, int out_idx, int clock_i) override;
-
-        ~SyncNode() override;
-
-        SyncNode();
-    };
 }
 
 #endif //EX_NODES_CMP_CAMERA_LOGIC_H
