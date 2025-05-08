@@ -13,6 +13,32 @@
 
 #include "../../../../../extra/worker/worker.h"
 
+namespace ex::logic::node::sync {
+
+    using cam_ref_t = camera::CameraNode *;
+    using sync_id_t = limbo::uid64_t;
+
+    struct sync_t {
+        sync_id_t node_id;
+        cam_ref_t camera[254];
+        unsigned  clock_i;
+        unsigned  size;
+    };
+
+    sync_t *create_sync() {
+        sync_t *instance = static_cast<sync_t *>(::malloc(sizeof(sync_t)));
+        ::memset(instance, 0, sizeof(sync_t));
+        return instance;
+    }
+
+    void free_sync(sync_t *ptr) {
+        if (ptr == nullptr)
+            return;
+        ::free(ptr);
+    }
+
+}
+
 namespace ex::logic::node::camera {
 
     namespace lw = limbo::worker;
@@ -550,10 +576,6 @@ namespace ex::logic::node::camera {
 // SYNC NODE
 namespace ex::logic::node::sync {
 
-    struct sync_t {
-
-    };
-
     limbo::graph::BaseNode *SyncNode::instance(TreeNode *from) {
         SyncNode *node = new SyncNode();
         node->set_node_id(from->id_node);
@@ -569,23 +591,35 @@ namespace ex::logic::node::sync {
         delete node;
     }
 
-    void SyncNode::on_input(int in_idx, int out_idx, int clock_i, const void *data) {
-
+    io::byte_array SyncNode::serialize() const {
+        // TODO
+        return io::byte_array::from(nullptr, 0);
     }
 
-    void SyncNode::on_update(int clock_i) {
-
+    void SyncNode::deserialize(const io::byte_array &array) {
+        if (array.empty())
+            return;
+        // TODO
     }
 
-    void *SyncNode::on_output(int in_idx, int out_idx, int clock_i) {
-        return nullptr;
+    void SyncNode::on_input(int, int, int, const void *) {
+    }
+
+    void SyncNode::on_update(const int clock_i) {
+        synchronizer->node_id = get_node_id();
+        synchronizer->clock_i = clock_i;
+    }
+
+    void *SyncNode::on_output(int, int, int) {
+        return &synchronizer;
     }
 
     SyncNode::~SyncNode() {
-
+        free_sync(synchronizer);
+        synchronizer = nullptr;
     }
 
-    SyncNode::SyncNode() {
-
+    SyncNode::SyncNode():
+        synchronizer(create_sync()) {
     }
 }
