@@ -124,11 +124,6 @@ namespace ex::logic::node::camera {
             return const_cast<unsigned *>(success ? &result::OPEN_SUCCESS : &result::OPEN_FAILURE);
         }
 
-        void *sync_routine(void *arg) {
-            // TODO
-            return nullptr;
-        }
-
         void *read_routine(void *arg) {
             capture_t *capture = static_cast<capture_t *>(arg);
 
@@ -517,10 +512,6 @@ namespace ex::logic::node::camera {
                 process_read(this, code);
             }
 
-            else if (code & result::SYNC_BITMASK) {
-                process_sync(this, code);
-            }
-
             else if (code & result::OPEN_BITMASK) {
                 process_open(this, code);
             }
@@ -623,6 +614,8 @@ namespace ex::logic::node::sync {
     void SyncNode::on_update(const int clock_i) {
         synchronizer->node_id = get_node_id();
         synchronizer->clock_i = clock_i;
+
+        // TODO
     }
 
     void *SyncNode::on_output(int, int, int) {
