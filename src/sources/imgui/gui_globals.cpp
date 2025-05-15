@@ -7,6 +7,18 @@
 
 namespace ex::gui {
 
+    namespace {
+        bool dirty_state = false;
+    }
+
+    bool is_dirty() {
+        return dirty_state;
+    }
+
+    void set_dirty(const bool is) {
+        dirty_state = is;
+    }
+
     GuiState &state() {
         static GuiState state;
         return state;

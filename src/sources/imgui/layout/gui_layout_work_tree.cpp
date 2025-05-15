@@ -428,7 +428,7 @@ namespace ex::gui {
             if (disabled || disabled_ || dimmed)
                 ImGui::PopStyleVar();
 
-            if (ex::entity::is_dirty()) {
+            if (ex::gui::is_dirty()) {
                 if (open) {
                     ImGui::TreePop();
                 }
@@ -553,7 +553,7 @@ namespace ex::gui {
                 tree::show_context_menu_group();
             }
 
-            if (ex::entity::is_dirty()) {
+            if (ex::gui::is_dirty()) {
                 if (has_opened)
                     ImGui::TreePop();
                 ImGui::PopID();
@@ -705,7 +705,7 @@ namespace ex::gui {
                     tree::show_context_menu_group();
                 }
 
-                if (ex::entity::is_dirty()) {
+                if (ex::gui::is_dirty()) {
                     ImGui::PopID();
                     brackets_end(outer_start, 0, disabled_ ? 0.5f : 1.f);
                     return counter_i;

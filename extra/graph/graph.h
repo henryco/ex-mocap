@@ -259,6 +259,12 @@ namespace limbo::graph {
 
     struct BaseNode : virtual NodeType, virtual io::IODescriptor {
 
+//        static int8_t default_comparator(const io_node *node_a, const io_node *node_b) {
+//            const unsigned long a = reinterpret_cast<unsigned long>(node_a->node_ptr);
+//            const unsigned long b = reinterpret_cast<unsigned long>(node_b->node_ptr);
+//            return (a > b) - (a < b);
+//        }
+
 #define NODE_INIT_CAP 8
 
         virtual void on_input(int in_idx,int out_idx, int clock_i, const void *data) = 0;
@@ -267,9 +273,8 @@ namespace limbo::graph {
 
         virtual void *on_output(int in_idx, int out_idx, int clock_i) = 0;
 
-        virtual void *data_ptr() { return nullptr; }
-
-        ex::data::array<io_node> connections_ = { NODE_INIT_CAP, memory::allocator };
+        ex::data::array<io_node> inputs_  = { NODE_INIT_CAP, memory::allocator };
+        ex::data::array<io_node> outputs_ = { NODE_INIT_CAP, memory::allocator };
         uid64_t                  id_          = 0;
         unsigned int             clock_i_     = 0;
 
@@ -285,6 +290,7 @@ namespace limbo::graph {
             return id_;
         }
 
+        // Attaches output of a given node to current inputs at a given input_index
         bool attach(BaseNode *node, const int this_index_in, const int other_index_out) {
             if (node == this)
                 abort_("Self reference attachment");
@@ -295,54 +301,69 @@ namespace limbo::graph {
             if (input == nullptr)
                 return false;
 
-            const io_node input_node = { node, static_cast<unsigned short>(other_index_out),
+            const io_node output_node = { node, static_cast<unsigned short>(other_index_out),
                                          static_cast<unsigned short>(this_index_in) };
-            connections_.push(input_node);
+            outputs_.push(output_node);
+
+            const io_node input_node = { this, static_cast<unsigned short>(other_index_out),
+                                         static_cast<unsigned short>(this_index_in) };
+            node->inputs_.push(input_node);
             return true;
         }
 
+        // Detaches output of given node from current inputs at a given input_index
         void detach(const BaseNode *node, const int index_in, const int index_out) {
-            for (int i = 0; i < connections_.size; ++i) {
-                if (const io_node &ref = connections_[i];
-                    ref.node_ptr == node && ref.index_in == index_in && ref.index_out == index_out)
-                    connections_.swap_remove(i--);
+            for (int i = 0; i < outputs_.size; ++i) {
+                if (const io_node &ref = outputs_[i];
+                    ref.node_ptr == node && ref.index_in == index_in && ref.index_out == index_out) {
+
+                    auto &ref_outs = ref.node_ptr->inputs_;
+                    for (int k = 0; k < ref_outs.size; ++k) {
+                        if (ref_outs[k].node_ptr == this && ref_outs[k].index_in == index_in && ref_outs[k].index_out == index_out)
+                            ref_outs.swap_remove(k--);
+                    }
+
+                    outputs_.swap_remove(i--);
+                }
             }
         }
 
+        // Detaches given node from current inputs
         void detach_node(const BaseNode *node) {
-            for (int i = 0; i < connections_.size; ++i) {
-                if (const io_node &ref = connections_[i]; ref.node_ptr == node)
-                    connections_.swap_remove(i--);
-            }
-        }
+            for (int i = 0; i < outputs_.size; ++i) {
+                if (const io_node &ref = outputs_[i]; ref.node_ptr == node) {
 
-        void detach_inputs(const int index_in) {
-            for (int i = 0; i < connections_.size; ++i) {
-                if (const io_node &ref = connections_[i]; ref.index_in == index_in)
-                    connections_.swap_remove(i--);
-            }
-        }
+                    auto &ref_outs = ref.node_ptr->inputs_;
+                    for (int k = 0; k < ref_outs.size; ++k) {
+                        if (ref_outs[k].node_ptr == this && ref_outs[k].index_in)
+                            ref_outs.swap_remove(k--);
+                    }
 
-        void detach_outputs(const int index_out) {
-            for (int i = 0; i < connections_.size; ++i) {
-                if (const io_node &ref = connections_[i]; ref.index_out == index_out)
-                    connections_.swap_remove(i--);
+                    outputs_.swap_remove(i--);
+                }
             }
         }
 
         void detach_rec() {
-            for (int i = 0; i < connections_.size; ++i) {
-                const io_node &ref = connections_[i];
+            for (int i = 0; i < outputs_.size; ++i) {
+                const io_node &ref = outputs_[i];
                 ref.node_ptr->detach_rec();
-                connections_.swap_remove(i--);
             }
-            connections_.clean();
-            connections_.reserve(NODE_INIT_CAP);
+            detach_all();
         }
 
         void detach_all() {
-            connections_.clean();
-            connections_.reserve(NODE_INIT_CAP);
+            for (int i = 0; i < outputs_.size; ++i) {
+                const io_node &ref = outputs_[i];
+                auto &ref_outs = ref.node_ptr->inputs_;
+                for (int k = 0; k < ref_outs.size; ++k) {
+                    if (ref_outs[k].node_ptr == this)
+                        ref_outs.swap_remove(k--);
+                }
+            }
+
+            outputs_.clean();
+            outputs_.reserve(NODE_INIT_CAP);
         }
 
         void out(const int in_idx, const int out_idx, const int clock_i, void **data) {
@@ -353,9 +374,9 @@ namespace limbo::graph {
                 return;
             }
 
-            for (int i = 0; i < connections_.size; ++i) {
+            for (int i = 0; i < outputs_.size; ++i) {
                 void          *stack_ptr  = nullptr;
-                const io_node &connection = connections_[i];
+                const io_node &connection = outputs_[i];
                 connection.node_ptr->out(connection.index_in, connection.index_out, clock_i, &stack_ptr);
                 on_input(connection.index_in, connection.index_out, clock_i, stack_ptr);
             }

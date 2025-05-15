@@ -16,6 +16,14 @@ namespace ex::gui {
 
     using id_type  = std::uint64_t;
 
+    // should use this for gui purposes
+    // instead of ex::entity::is_dirty()
+    bool is_dirty();
+
+    // should use this for gui purposes
+    // instead of ex::entity::set_dirty()
+    void set_dirty(bool);
+
     GuiState &state();
 
     logs::logger &logger();
