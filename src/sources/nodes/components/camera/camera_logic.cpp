@@ -43,18 +43,6 @@ namespace ex::logic::node::sync {
         unsigned  size;
     };
 
-    sync_t *create_sync() {
-        sync_t *instance = static_cast<sync_t *>(::malloc(sizeof(sync_t)));
-        ::memset(instance, 0, sizeof(sync_t));
-        return instance;
-    }
-
-    void free_sync(sync_t *ptr) {
-        if (ptr == nullptr)
-            return;
-        ::free(ptr);
-    }
-
 }
 
 namespace ex::logic::node::camera {
@@ -570,9 +558,25 @@ namespace ex::logic::node::camera {
 // SYNC NODE
 namespace ex::logic::node::sync {
 
-    struct sync_serial_t {
-        sync_id_t node_id;
+    struct internal_t {
+        sync_t sync;
     };
+
+    struct sync_serial_t {
+        // fields ?
+    };
+
+    internal_t *create_internal() {
+        internal_t *mem = static_cast<internal_t *>(::malloc(sizeof(internal_t)));
+        ::memset(mem, 0, sizeof(internal_t));
+        return mem;
+    }
+
+    void free_internal(internal_t *ptr) {
+        if (ptr == nullptr)
+            return;
+        ::free(ptr);
+    }
 
     limbo::graph::BaseNode *SyncNode::instance(TreeNode *from) {
         SyncNode *node = new SyncNode();
@@ -592,7 +596,10 @@ namespace ex::logic::node::sync {
     io::byte_array SyncNode::serialize() const {
         constexpr long total_size = sizeof(sync_serial_t);
         sync_serial_t parcel;
-        parcel.node_id = synchronizer->node_id;
+
+        // serial fields here
+        // serial fields here
+        // serial fields here
 
         unsigned char *bytes = static_cast<unsigned char *>(::malloc(total_size));
         ::memcpy(bytes, &parcel, sizeof(sync_serial_t));
@@ -605,29 +612,28 @@ namespace ex::logic::node::sync {
             return;
 
         const sync_serial_t *parcel = reinterpret_cast<sync_serial_t *>(array.data);
-        synchronizer->node_id = parcel->node_id;
+        // serial fields here
+        // serial fields here
+        // serial fields here
     }
 
     void SyncNode::on_input(int, int, int, const void *) {
     }
 
     void SyncNode::on_update(const int clock_i) {
-        synchronizer->node_id = get_node_id();
-        synchronizer->clock_i = clock_i;
-
         // TODO
     }
 
     void *SyncNode::on_output(int, int, int) {
-        return &synchronizer;
+        return &internal->sync;
     }
 
     SyncNode::~SyncNode() {
-        free_sync(synchronizer);
-        synchronizer = nullptr;
+        free_internal(internal);
+        internal = nullptr;
     }
 
     SyncNode::SyncNode():
-        synchronizer(create_sync()) {
+        internal(create_internal()) {
     }
 }

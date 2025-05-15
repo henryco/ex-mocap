@@ -22,12 +22,15 @@ namespace ex::logic::node::sync {
                             limbo::graph::io::out<sync_p, 1, "Synchronizer">,
                             ex::io::bytes::serializable
     {
-        sync_p synchronizer;
+        // ---- internal ----
+        struct internal_t *internal;
 
+        // ---- mapper properties ----
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
         static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
 
+        // ---- node properties ----
         io::byte_array serialize() const override;
 
         void deserialize(const io::byte_array &) override;
