@@ -43,6 +43,8 @@ namespace ex::logic::node::sync {
         unsigned  size;
     };
 
+    using sync_p = const sync_t *;
+
 }
 
 namespace ex::logic::node::camera {
@@ -86,6 +88,7 @@ namespace ex::logic::node::camera {
         ocl::img_promise promises[2];
         cl_command_queue queue_p;
         lw::channel_p    channel;
+        sync::sync_p     synchro;
         unsigned int     b_index;
         lg::UpdateState  updates;
         bool             enabled;
@@ -162,6 +165,7 @@ namespace ex::logic::node::camera {
 
         void init_internal(internal_t *state) {
             state->queue_p = nullptr;
+            state->synchro = nullptr;
             state->enabled = false;
             state->b_index = 0;
 
@@ -187,10 +191,6 @@ namespace ex::logic::node::camera {
             log->info("Camera device: [{}]", that->state.device.device.uuid);
 
             enqueue(that);
-        }
-
-        void process_sync(CameraNode *that, const unsigned status) {
-            // TODO result process
         }
 
         void process_read(CameraNode *that, const unsigned status) {
@@ -474,10 +474,21 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::on_input(const int in_idx, const int out_idx, const int clock_i, const void *data) {
-        // TODO process synchronizer
+        if (in_idx == 1) {
+            internal->synchro = static_cast<const sync::sync_t *>(data);
+        }
     }
 
     void CameraNode::on_update(const int clock_i) {
+
+        if (internal->synchro != nullptr) {
+
+            // TODO access synchronizer to pull data
+
+            internal->synchro = nullptr;
+            return;
+        }
+
         void              *result = nullptr;
         const lw::status_t status = lw::result(internal->channel, &result);
 
@@ -621,7 +632,7 @@ namespace ex::logic::node::sync {
     }
 
     void SyncNode::on_update(const int clock_i) {
-        // TODO
+        // TODO enqueue / pull worker
     }
 
     void *SyncNode::on_output(int, int, int) {

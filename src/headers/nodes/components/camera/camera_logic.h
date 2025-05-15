@@ -15,11 +15,9 @@ namespace ex::logic::node::sync {
 
     struct sync_t;
 
-    using sync_p = sync_t *;
-
     struct SyncNode final : limbo::graph::BaseNode,
                             limbo::graph::id::name<"sync_node">,
-                            limbo::graph::io::out<sync_p, 1, "Synchronizer">,
+                            limbo::graph::io::out<sync_t, 1, "Synchronizer">,
                             ex::io::bytes::serializable
     {
         // ---- internal ----
@@ -81,7 +79,7 @@ namespace ex::logic::node::camera {
 
     struct CameraNode final : limbo::graph::BaseNode,
                               limbo::graph::id::name<"camera_node">,
-                              limbo::graph::io::in<sync::sync_p, 1, "Synchronizer">,
+                              limbo::graph::io::in<sync::sync_t, 1, "Synchronizer">,
                               limbo::graph::io::out<ocl::img_promise, 1, "Frame image">,
                               ex::io::bytes::serializable
     {
