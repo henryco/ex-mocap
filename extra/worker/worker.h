@@ -22,12 +22,11 @@ namespace limbo::worker {
     enum status_t : unsigned char {
         not_init = 0U,
         consumed = 1U << 0,
-        in_queue = 1U << 1,
-        finished = 1U << 2,
-        success  = 1U << 3,
-        aborted  = 1U << 4,
-        failure  = 1U << 5,
-        timeout  = 1U << 6
+        finished = 1U << 1,
+        success  = 1U << 2,
+        aborted  = 1U << 3,
+        failure  = 1U << 4,
+        timeout  = 1U << 5
     };
 
     // Worker guarantee thread-safety for operations on channels (ie enqueue, stop)
@@ -62,30 +61,23 @@ namespace limbo::worker {
     // sends stop signal
     void stop(channel_p);
 
-    // marks current status/result as consumed
-    void consume(channel_p);
-
-    // must use & and | operators to check status
+    // must use '&' and '|' operators in order to check status
     status_t status(channel_p);
 
-    // must use & and | operators to check status
+    // must use '&' and '|' operators in order to check status
     status_t status(channel_p, int retries);
 
-    // must use & and | operators to check status
+    // must use '&' and '|' operators in order to check status
     status_t result(channel_p, void **dst);
 
-    // must use & and | operators to check status
+    // must use '&' and '|' operators in order to check status
     status_t result(channel_p, void **dst, int retries);
 
-    /** OR */
-    constexpr status_t operator | (const status_t lhs, const status_t rhs) {
-        return static_cast<status_t>(static_cast<unsigned char>(lhs) | static_cast<unsigned char>(rhs));
-    }
+    // status OR
+    status_t operator | (status_t lhs, status_t rhs);
 
-    /** AND */
-    constexpr status_t operator & (const status_t lhs, const status_t rhs) {
-        return static_cast<status_t>(static_cast<unsigned char>(lhs) & static_cast<unsigned char>(rhs));
-    }
+    // status AND
+    status_t operator & (status_t lhs, status_t rhs);
 }
 
 #endif //EX_LIMBO_WORKER_H

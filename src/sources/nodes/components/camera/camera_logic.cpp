@@ -539,9 +539,6 @@ namespace ex::logic::node::camera {
         void              *result = nullptr;
         const lw::status_t status = lw::result(internal->channel, &result);
 
-        if (status & lw::status_t::finished)
-            lw::consume(internal->channel);
-
         if (status & lw::status_t::failure)
             abort_("camera worker error");
 
@@ -697,9 +694,6 @@ namespace ex::logic::node::sync {
         void              *result = nullptr;
         const lw::status_t status = lw::result(internal->channel, &result);
 
-        if (status & lw::status_t::finished)
-            lw::consume(internal->channel);
-
         if (status & lw::status_t::failure)
             abort_("camera worker error");
 
@@ -711,9 +705,9 @@ namespace ex::logic::node::sync {
             }
         }
 
-        internal->synchro.size    = 0;
-        for (int i = 0; i < outputs_.size; ++i) {
-            internal->synchro.camera[i] = static_cast<eln::camera::CameraNode *>(outputs_[i].node_ptr);
+        internal->synchro.size = 0;
+        for (int i = 0; i < inputs_.size; ++i) {
+            internal->synchro.camera[i] = static_cast<eln::camera::CameraNode *>(inputs_[i].node_ptr);
             internal->synchro.size++;
         }
 

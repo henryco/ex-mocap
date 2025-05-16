@@ -30,15 +30,21 @@ namespace limbo::worker {
         using spinlock_t     = ex::data::spinlock;
         using idle_fn_t      = void (*)(worker_t *);
 
+        enum query_t : unsigned char {
+            enqueue  = 1U << 0,
+            abort    = 1U << 1,
+        };
+
         struct command_t {
             void *(*fn)(void *);
             void    *args;          // managed outside
             unsigned counter;       // from channel ctr
-            status_t status;
+            query_t  query;
         };
 
         struct result_t {
             void    *result;        // managed outside
+            unsigned counter;       // from command ctr
             status_t status;
         };
 
@@ -76,9 +82,22 @@ namespace limbo::worker {
         volatile bool live;         // worker keep-alive flag
     };
 
+    status_t operator | (const status_t lhs, const status_t rhs) {
+        return static_cast<status_t>(static_cast<unsigned char>(lhs) | static_cast<unsigned char>(rhs));
+    }
+
+    status_t operator & (const status_t lhs, const status_t rhs) {
+        return static_cast<status_t>(static_cast<unsigned char>(lhs) & static_cast<unsigned char>(rhs));
+    }
+
     namespace {
-        constexpr result_t r_abort = { .result = nullptr, .status = status_t::finished | status_t::aborted };
-        constexpr result_t r_fail  = { .result = nullptr, .status = status_t::finished | status_t::failure };
+        constexpr query_t operator & (const query_t lhs, const query_t rhs) {
+            return static_cast<query_t>(static_cast<unsigned char>(lhs) & static_cast<unsigned char>(rhs));
+        }
+
+        const status_t s_success = status_t::finished | status_t::success;
+        const status_t s_abort = status_t::finished | status_t::aborted;
+        const status_t s_fail = status_t::finished | status_t::failure;
 
         #if defined(__GNUC__) || defined(__clang__)
             #define likely(x)   __builtin_expect(!!(x), 1)
@@ -122,27 +141,40 @@ namespace limbo::worker {
 
                     job->counter = command_in.counter;
 
-                    if (likely(command_in.status & status_t::in_queue)) {
+                    if (likely(command_in.query & query_t::enqueue)) {
 
                         if (unlikely(command_in.fn == nullptr))
                             goto point_of_failure;
 
                         const result_t result = {
-                            .result = command_in.fn(command_in.args),
-                            .status = status_t::finished | status_t::success
+                            .result  = command_in.fn(command_in.args),
+                            .counter = command_in.counter,
+                            .status  = s_success
                         };
 
                         job->buffers->status.store(&result);
                         continue;
                     }
 
-                    if (unlikely(command_in.status & status_t::aborted)) {
-                        job->buffers->status.store(&r_abort);
+                    if (unlikely(command_in.query & query_t::abort)) {
+                        const result_t result = {
+                            .result  = nullptr,
+                            .counter = command_in.counter,
+                            .status  = s_abort
+                        };
+
+                        job->buffers->status.store(&result);
                         continue;
                     }
 
                     { point_of_failure:
-                        job->buffers->status.store(&r_fail);
+                        const result_t result = {
+                            .result  = nullptr,
+                            .counter = command_in.counter,
+                            .status  = s_fail
+                        };
+
+                        job->buffers->status.store(&result);
                     }
                 }
 
@@ -220,20 +252,14 @@ namespace limbo::worker {
 
     void enqueue(channel_t *ch_ptr, void *(*fn)(void *), void *arg) {
         ch_ptr->counter += 1;
-        static constexpr result_t temp = { .result = nullptr, .status = status_t::in_queue };
-        const command_t command = { .fn = fn, .args = arg, .counter = ch_ptr->counter, .status = status_t::in_queue };
-        ch_ptr->buffer->status.store(&temp);
+        const command_t command = { .fn = fn, .args = arg, .counter = ch_ptr->counter, .query = query_t::enqueue };
         ch_ptr->buffer->command.store(&command);
     }
 
     void stop(channel_t *ch_ptr) {
         ch_ptr->counter += 1;
-        const command_t command = { .counter = ch_ptr->counter, .status = status_t::aborted };
+        const command_t command = { .counter = ch_ptr->counter, .query = query_t::abort };
         ch_ptr->buffer->command.store(&command);
-    }
-
-    void consume(channel_t *ch_ptr) {
-        ch_ptr->consumed = ch_ptr->counter;
     }
 
     void close_channel(channel_t *ch_ptr) {
@@ -305,6 +331,11 @@ namespace limbo::worker {
 
         result_t r;
         ch_ptr->buffer->status.load(&r);
+
+        if (ch_ptr->consumed == r.counter)
+            return status_t::consumed;
+        ch_ptr->consumed = r.counter;
+
         return r.status;
     }
 
@@ -315,6 +346,11 @@ namespace limbo::worker {
         result_t r;
         if (!ch_ptr->buffer->status.load(&r, retries))
             return status_t::timeout;
+
+        if (ch_ptr->consumed == r.counter)
+            return status_t::consumed;
+        ch_ptr->consumed = r.counter;
+
         return r.status;
     }
 
@@ -324,6 +360,11 @@ namespace limbo::worker {
 
         result_t r;
         ch_ptr->buffer->status.load(&r);
+
+        if (ch_ptr->consumed == r.counter)
+            return status_t::consumed;
+        ch_ptr->consumed = r.counter;
+
         *dst = r.result;
         return r.status;
     }
@@ -335,6 +376,11 @@ namespace limbo::worker {
         result_t r;
         if (!ch_ptr->buffer->status.load(&r, retries))
             return status_t::timeout;
+
+        if (ch_ptr->consumed == r.counter)
+            return status_t::consumed;
+        ch_ptr->consumed = r.counter;
+
         *dst = r.result;
         return r.status;
     }
