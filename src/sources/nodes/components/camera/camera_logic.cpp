@@ -703,6 +703,7 @@ namespace ex::logic::node::sync {
             }
         }
 
+        // TODO: problem is here probably...
         internal->synchro.size = 0;
         for (int i = 0; i < inputs_.size; ++i) {
             internal->synchro.camera[i] = static_cast<eln::camera::CameraNode *>(inputs_[i].node_ptr);
