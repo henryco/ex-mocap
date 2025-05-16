@@ -15,8 +15,9 @@
 
 namespace {
     // MAYBE MOVE WORKER OUT INTO GLOBAL REGISTRY ?
-    namespace lw = limbo::worker;
-    namespace lg = limbo::graph;
+    namespace lw  = limbo::worker;
+    namespace lg  = limbo::graph;
+    namespace eln = ex::logic::node;
 
     lw::worker_p worker = nullptr;
 
@@ -31,8 +32,27 @@ namespace {
     }
 }
 
-namespace ex::logic::node::sync {
+namespace result {
+    static constexpr unsigned OPEN_SUCCESS = 1U << 0;
+    static constexpr unsigned OPEN_FAILURE = 1U << 1;
+    static constexpr unsigned OPEN_BITMASK = OPEN_SUCCESS | OPEN_FAILURE;
 
+    static constexpr unsigned READ_SUCCESS = 1U << 2;
+    static constexpr unsigned READ_PENDING = 1U << 3;
+    static constexpr unsigned READ_FAILURE = 1U << 4;
+    static constexpr unsigned READ_BITMASK = READ_SUCCESS | READ_PENDING | READ_FAILURE;
+
+    static constexpr unsigned SYNC_SUCCESS = 1U << 5;
+    static constexpr unsigned SYNC_PENDING = 1U << 6;
+    static constexpr unsigned SYNC_FAILURE = 1U << 7;
+    static constexpr unsigned SYNC_BITMASK = SYNC_SUCCESS | SYNC_PENDING | SYNC_FAILURE;
+
+    static unsigned decode(const void *code_ptr) {
+        return code_ptr == nullptr ? 0 : *static_cast<const unsigned *>(code_ptr);
+    }
+}
+
+namespace ex::logic::node::sync {
     using cam_ref_t = camera::CameraNode *;
     using sync_id_t = limbo::uid64_t;
 
@@ -45,30 +65,17 @@ namespace ex::logic::node::sync {
 
     using sync_p = const sync_t *;
 
+    struct internal_t {
+        sync_t        synchro;
+        lw::channel_p channel;
+    };
+
+    struct sync_serial_t {
+        // fields ?
+    };
 }
 
 namespace ex::logic::node::camera {
-
-    namespace result {
-        static constexpr unsigned OPEN_SUCCESS = 1U << 0;
-        static constexpr unsigned OPEN_FAILURE = 1U << 1;
-        static constexpr unsigned OPEN_BITMASK = OPEN_SUCCESS | OPEN_FAILURE;
-
-        static constexpr unsigned READ_SUCCESS = 1U << 2;
-        static constexpr unsigned READ_PENDING = 1U << 3;
-        static constexpr unsigned READ_FAILURE = 1U << 4;
-        static constexpr unsigned READ_BITMASK = READ_SUCCESS | READ_PENDING | READ_FAILURE;
-
-        static constexpr unsigned SYNC_SUCCESS = 1U << 5;
-        static constexpr unsigned SYNC_PENDING = 1U << 6;
-        static constexpr unsigned SYNC_FAILURE = 1U << 7;
-        static constexpr unsigned SYNC_BITMASK = SYNC_SUCCESS | SYNC_PENDING | SYNC_FAILURE;
-
-        unsigned decode(const void *code_ptr) {
-            return code_ptr == nullptr ? 0 : *static_cast<const unsigned *>(code_ptr);
-        }
-    }
-
     // 64 bytes touched once, dont care
     struct alignas(64) camera_t {
         std::vector<int>  params;
@@ -98,112 +105,117 @@ namespace ex::logic::node::camera {
         camera_state  state;
         unsigned long size;
     };
+}
 
-    namespace {
+namespace {
+    void *open_routine(void *arg) {
+        eln::camera::camera_t *camera = static_cast<eln::camera::camera_t *>(arg);
 
-        void *open_routine(void *arg) {
-            camera_t *camera = static_cast<camera_t *>(arg);
+        bool success = false;
+        if (camera->params.size() > 0)
+            success = camera->camera->open(camera->index, camera->api, camera->params);
+        else
+            success = camera->camera->open(camera->index, camera->api);
 
-            bool success = false;
-            if (camera->params.size() > 0)
-                success = camera->camera->open(camera->index, camera->api, camera->params);
-            else
-                success = camera->camera->open(camera->index, camera->api);
+        delete camera;
 
-            delete camera;
-
-            return const_cast<unsigned *>(success ? &result::OPEN_SUCCESS : &result::OPEN_FAILURE);
-        }
-
-        void *read_routine(void *arg) {
-            capture_t *capture = static_cast<capture_t *>(arg);
-
-            if (!capture->camera.isOpened())
-                return const_cast<unsigned *>(&result::READ_FAILURE);
-            if (!capture->camera.grab())
-                return const_cast<unsigned *>(&result::READ_PENDING);
-            if (!capture->camera.retrieve(capture->bitmap))
-                return const_cast<unsigned *>(&result::READ_PENDING);
-
-            ocl::ops::from_bytes(capture->bitmap.data, *capture->target);
-            return const_cast<unsigned *>(&result::READ_SUCCESS);
-        }
-
-        void open_camera(CameraNode *that, const int api, const int index, const std::vector<int> &params) {
-            camera_t *payload = new camera_t {
-                params,
-                &that->capture->camera,
-                static_cast<unsigned>(index),
-                static_cast<unsigned>(api)
-            };
-
-            lw::enqueue(that->internal->channel, &open_routine, payload);
-        }
-
-        void enqueue(CameraNode *that) {
-            that->capture->target = &(that->internal->promises[(that->internal->b_index + 1) % 2]);
-            lw::enqueue(that->internal->channel, &read_routine, that->capture);
-        }
-
+        return const_cast<unsigned *>(success ? &result::OPEN_SUCCESS : &result::OPEN_FAILURE);
     }
 
-    namespace {
-        const auto log = logs::get_logger("node_camera");
+    void *read_routine(void *arg) {
+        eln::camera::capture_t *capture = static_cast<eln::camera::capture_t *>(arg);
 
-        int fourCC(const char *name) {
-            return cv::VideoWriter::fourcc(
-                    name[0],
-                    name[1],
-                    name[2],
-                    name[3]);
+        if (!capture->camera.isOpened())
+            return const_cast<unsigned *>(&result::READ_FAILURE);
+        if (!capture->camera.grab())
+            return const_cast<unsigned *>(&result::READ_PENDING);
+        if (!capture->camera.retrieve(capture->bitmap))
+            return const_cast<unsigned *>(&result::READ_PENDING);
+
+        ex::ocl::ops::from_bytes(capture->bitmap.data, *capture->target);
+        return const_cast<unsigned *>(&result::READ_SUCCESS);
+    }
+
+    void open_camera(eln::camera::CameraNode *that, const int api, const int index, const std::vector<int> &params) {
+        eln::camera::camera_t *payload = new eln::camera::camera_t {
+            params,
+            &that->capture->camera,
+            static_cast<unsigned>(index),
+            static_cast<unsigned>(api)
+        };
+
+        lw::enqueue(that->internal->channel, &open_routine, payload);
+    }
+
+    void enqueue_solo(eln::camera::CameraNode *that) {
+        if (that->internal->synchro != nullptr)
+            return;
+        that->capture->target = &(that->internal->promises[(that->internal->b_index + 1) % 2]);
+        lw::enqueue(that->internal->channel, &read_routine, that->capture);
+    }
+
+    void enqueue_sync(eln::sync::SyncNode *that) {
+        // TODO
+    }
+}
+
+namespace ex::logic::node::camera {
+
+    static const auto log = logs::get_logger("node_camera");
+
+    static int fourCC(const char *name) {
+        return cv::VideoWriter::fourcc(
+                name[0],
+                name[1],
+                name[2],
+                name[3]);
+    }
+
+    static void init_state(camera_state *state) {
+        ::memset(state, 0, sizeof(camera_state));
+        state->buffering = 2; // default - double buffering
+    }
+
+    static void init_internal(internal_t *state) {
+        state->queue_p = nullptr;
+        state->synchro = nullptr;
+        state->enabled = false;
+        state->b_index = 0;
+
+        state->channel = lw::create_channel(worker);
+        if (state->channel == nullptr)
+            abort_("Cannot create worker channel (not enough slots?)");
+    }
+
+    static void init_capture(capture_t *) {
+        // nop
+    }
+
+    static void process_open(CameraNode *that, const unsigned status) {
+        if (status & result::OPEN_FAILURE) {
+            log->info("Cannot open camera device: {}", that->state.device.device.uuid);
+            return;
         }
 
-        void init_state(camera_state *state) {
-            ::memset(state, 0, sizeof(camera_state));
-            state->buffering = 2; // default - double buffering
+        CameraNode::list_camera_devices(true);
+        that->capabilities      = ex::platform::dev::list_capabilities(that->state.device.device);
+        that->controls          = ex::platform::dev::list_controls(that->state.device.device);
+        that->internal->enabled = true;
+        log->info("Camera device: [{}]", that->state.device.device.uuid);
+
+        enqueue_solo(that);
+    }
+
+    static void process_read(CameraNode *that, const unsigned status) {
+        if (status & result::READ_FAILURE)
+            return;
+        if (status & result::READ_PENDING) {
+            enqueue_solo(that);
+            return;
         }
-
-        void init_internal(internal_t *state) {
-            state->queue_p = nullptr;
-            state->synchro = nullptr;
-            state->enabled = false;
-            state->b_index = 0;
-
-            state->channel = lw::create_channel(worker);
-            if (state->channel == nullptr)
-                abort_("Cannot create worker channel (not enough slots?)");
-        }
-
-        void init_capture(capture_t *) {
-            // nop
-        }
-
-        void process_open(CameraNode *that, const unsigned status) {
-            if (status & result::OPEN_FAILURE) {
-                log->info("Cannot open camera device: {}", that->state.device.device.uuid);
-                return;
-            }
-
-            CameraNode::list_camera_devices(true);
-            that->capabilities      = ex::platform::dev::list_capabilities(that->state.device.device);
-            that->controls          = ex::platform::dev::list_controls(that->state.device.device);
-            that->internal->enabled = true;
-            log->info("Camera device: [{}]", that->state.device.device.uuid);
-
-            enqueue(that);
-        }
-
-        void process_read(CameraNode *that, const unsigned status) {
-            if (status & result::READ_FAILURE)
-                return;
-            if (status & result::READ_PENDING) {
-                enqueue(that);
-                return;
-            }
-            that->internal->b_index = (that->internal->b_index + 1) % 2; // swap buffers
-            that->internal->updates.refresh();
-            enqueue(that);
-        }
+        that->internal->b_index = (that->internal->b_index + 1) % 2; // swap buffers
+        that->internal->updates.refresh();
+        enqueue_solo(that);
     }
 
     const ex::data::array<v_device_t> &CameraNode::list_camera_devices(const bool refresh) {
@@ -480,15 +492,6 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::on_update(const int clock_i) {
-
-        if (internal->synchro != nullptr) {
-
-            // TODO access synchronizer to pull data
-
-            internal->synchro = nullptr;
-            return;
-        }
-
         void              *result = nullptr;
         const lw::status_t status = lw::result(internal->channel, &result);
 
@@ -519,6 +522,7 @@ namespace ex::logic::node::camera {
         }
 
         internal->promises[internal->b_index].image.header.fresh = internal->updates.update();
+        internal->synchro = nullptr;
     }
 
     void *CameraNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
@@ -562,31 +566,44 @@ namespace ex::logic::node::camera {
         init_internal(internal);
         init_capture(capture);
     }
-
 }
 
 
 // SYNC NODE
 namespace ex::logic::node::sync {
 
-    struct internal_t {
-        sync_t sync;
-    };
+    static internal_t *create_internal() {
+        start_worker();
+        internal_t *instance = static_cast<internal_t *>(::malloc(sizeof(internal_t)));
+        ::memset(instance, 0, sizeof(internal_t));
 
-    struct sync_serial_t {
-        // fields ?
-    };
+        instance->channel = lw::create_channel(worker);
+        if (instance->channel == nullptr)
+            abort_("Cannot create worker channel (not enough slots?)");
 
-    internal_t *create_internal() {
-        internal_t *mem = static_cast<internal_t *>(::malloc(sizeof(internal_t)));
-        ::memset(mem, 0, sizeof(internal_t));
-        return mem;
+        return instance;
     }
 
-    void free_internal(internal_t *ptr) {
+    static void free_internal(internal_t *ptr) {
         if (ptr == nullptr)
             return;
+
+        if (ptr->channel != nullptr) {
+            lw::close_channel(ptr->channel);
+            ptr->channel = nullptr;
+        }
+
         ::free(ptr);
+    }
+
+    static void process_sync(SyncNode *that, const unsigned status) {
+        if (status & result::READ_FAILURE)
+            return;
+        if (status & result::READ_PENDING) {
+            enqueue_sync(that);
+            return;
+        }
+        // TODO
     }
 
     limbo::graph::BaseNode *SyncNode::instance(TreeNode *from) {
@@ -633,10 +650,27 @@ namespace ex::logic::node::sync {
 
     void SyncNode::on_update(const int clock_i) {
         // TODO enqueue / pull worker
+
+        void              *result = nullptr;
+        const lw::status_t status = lw::result(internal->channel, &result);
+
+        if (status & lw::status_t::finished)
+            lw::consume(internal->channel);
+
+        if (status & lw::status_t::failure)
+            abort_("camera worker error");
+
+        if (status & lw::status_t::success) {
+            const unsigned code = result::decode(result);
+
+            if (code & result::SYNC_BITMASK) {
+                process_sync(this, code);
+            }
+        }
     }
 
     void *SyncNode::on_output(int, int, int) {
-        return &internal->sync;
+        return &internal->synchro;
     }
 
     SyncNode::~SyncNode() {
