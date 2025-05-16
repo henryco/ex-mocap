@@ -466,4 +466,18 @@ namespace ex::gui::node::sync {
         return strings::node_component_sync_name;
     }
 
+    void update_tree_node(const TreeNode *o, TreeNode *n) {
+        if (!(o->state >>= node_state::disabled) &&
+            (n->state >>= node_state::disabled)) {
+            if (const auto base = dynamic_cast<ex::logic::node::sync::SyncNode *>(ex::logic::state::get_node(n->id_node)))
+                base->disable();
+            return;
+        }
+        if ((o->state >>= node_state::disabled) &&
+            !(n->state >>= node_state::disabled)) {
+            if (const auto base = dynamic_cast<ex::logic::node::sync::SyncNode *>(ex::logic::state::get_node(n->id_node)))
+                base->enable();
+        }
+    }
+
 }

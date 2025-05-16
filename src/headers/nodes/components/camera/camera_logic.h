@@ -29,9 +29,17 @@ namespace ex::logic::node::sync {
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
         static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
 
+        // ---- sync properties ----
+
+        void restart();
+
+        void enable();
+
+        void disable();
+
         // ---- node properties ----
 
-        void on_input(int in_idx, int out_idx, int clock_i, const void *data) override;
+        void on_input(int in_idx, int out_idx, int clock_i, void *data) override;
 
         void on_update(int clock_i) override;
 
@@ -139,7 +147,7 @@ namespace ex::logic::node::camera {
 
         void deserialize(const io::byte_array &) override;
 
-        void on_input(int in_idx, int out_idx, int clock_i, const void *data) override;
+        void on_input(int in_idx, int out_idx, int clock_i, void *data) override;
 
         void on_update(int clock_i) override;
 

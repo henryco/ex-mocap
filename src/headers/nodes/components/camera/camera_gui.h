@@ -40,6 +40,7 @@ namespace ex::gui::node::sync {
     bool draw_tree_node(TreeNode *node, bool nested, bool selected, bool collapse, bool expand);
     const char *get_node_preview();
     const char *get_node_name();
+    void update_tree_node(const TreeNode *before, TreeNode *after);
 
     static constexpr GuiNodeMapper gui_mappers = {
         &get_node_name,
@@ -47,7 +48,7 @@ namespace ex::gui::node::sync {
         &draw_tree_node,
         nullptr,
         nullptr,
-        nullptr,
+        &update_tree_node,
         nullptr,
         nullptr,
         nullptr

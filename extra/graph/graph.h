@@ -259,15 +259,9 @@ namespace limbo::graph {
 
     struct BaseNode : virtual NodeType, virtual io::IODescriptor {
 
-//        static int8_t default_comparator(const io_node *node_a, const io_node *node_b) {
-//            const unsigned long a = reinterpret_cast<unsigned long>(node_a->node_ptr);
-//            const unsigned long b = reinterpret_cast<unsigned long>(node_b->node_ptr);
-//            return (a > b) - (a < b);
-//        }
-
 #define NODE_INIT_CAP 8
 
-        virtual void on_input(int in_idx,int out_idx, int clock_i, const void *data) = 0;
+        virtual void on_input(int in_idx,int out_idx, int clock_i, void *data) = 0;
 
         virtual void on_update(int clock_i) = 0;
 

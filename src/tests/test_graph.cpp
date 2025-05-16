@@ -26,7 +26,7 @@ struct node_test_one final : limbo::graph::BaseNode,
 
     }
 
-    void on_input(int in_idx, int out_idx, int clock_i, const void *data) override {
+    void on_input(int in_idx, int out_idx, int clock_i, void *data) override {
 
     }
 
@@ -53,7 +53,7 @@ struct node_test_two final : limbo::graph::BaseNode,
     short out_short = 0;
     float out_float = 0;
 
-    void on_input(int in_idx, int out_idx, int clock_i, const void *data) override {
+    void on_input(int in_idx, int out_idx, int clock_i, void *data) override {
 
     }
 
@@ -84,7 +84,7 @@ struct node_test_tri final : limbo::graph::BaseNode,
     short out_short = 0;
     float out_float = 0;
 
-    void on_input(int in_idx, int out_idx, int clock_i, const void *data) override {
+    void on_input(int in_idx, int out_idx, int clock_i, void *data) override {
 
     }
 

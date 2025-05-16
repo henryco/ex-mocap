@@ -147,7 +147,7 @@ namespace ex::logic::node::image {
         updates_.refresh();
     }
 
-    void ImageNode::on_input(int, int, int, const void *) {
+    void ImageNode::on_input(int, int, int, void *) {
     }
 
     void *ImageNode::on_output(const int in_idx, const int out_idx, const int clock_i) {

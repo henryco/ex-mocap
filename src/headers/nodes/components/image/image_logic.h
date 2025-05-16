@@ -50,7 +50,7 @@ namespace ex::logic::node::image {
 
         void deserialize(const io::byte_array &) override;
 
-        void on_input(int in_idx, int out_idx, int clock_i, const void *data) override;
+        void on_input(int in_idx, int out_idx, int clock_i, void *data) override;
 
         void *on_output(int in_idx, int out_idx, int clock_i) override;
 

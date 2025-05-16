@@ -58,13 +58,14 @@ namespace ex::logic::node::sync {
     struct sync_t {
         cam_ref_t camera[MAX_CAMS];
         unsigned  size;
+        SyncNode *node;
     };
-
-    using sync_p = const sync_t *;
 
     struct internal_t {
         sync_t        synchro;
         lw::channel_p channel;
+        bool          enabled;
+        bool          enqueued;
     };
 }
 
@@ -90,7 +91,7 @@ namespace ex::logic::node::camera {
         ocl::img_promise promises[2];
         cl_command_queue queue_p;
         lw::channel_p    channel;
-        sync::sync_p     synchro;
+        sync::sync_t    *synchro;
         unsigned int     b_index;
         lg::UpdateState  updates;
         bool             enabled;
@@ -189,6 +190,7 @@ namespace {
     void enqueue_solo(eln::camera::CameraNode *that) {
         if (that->internal->synchro != nullptr)
             return;
+
         that->capture->target = &(that->internal->promises[(that->internal->b_index + 1) % 2]);
         lw::enqueue(that->internal->channel, &read_routine, that->capture);
     }
@@ -247,6 +249,10 @@ namespace ex::logic::node::camera {
         that->internal->enabled = true;
         log->info("Camera device: [{}]", that->state.device.device.uuid);
 
+        if (that->internal->synchro != nullptr) {
+            that->internal->synchro->node->restart(); // re-enqueue
+        }
+
         enqueue_solo(that);
     }
 
@@ -303,8 +309,9 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::destroy(TreeNode *, limbo::graph::BaseNode *node) {
-        if (CameraNode *base = static_cast<CameraNode *>(node))
-            base->close();
+        if (!node)
+            return;
+        static_cast<CameraNode *>(node)->close();
         node->detach_all();
         delete node;
     }
@@ -529,9 +536,9 @@ namespace ex::logic::node::camera {
         open();
     }
 
-    void CameraNode::on_input(const int in_idx, const int out_idx, const int clock_i, const void *data) {
+    void CameraNode::on_input(const int in_idx, const int out_idx, const int clock_i, void *data) {
         if (in_idx == 1) {
-            internal->synchro = static_cast<const sync::sync_t *>(data);
+            internal->synchro = static_cast<sync::sync_t *>(data);
         }
     }
 
@@ -649,10 +656,13 @@ namespace ex::logic::node::sync {
     }
 
     static void process_sync(SyncNode *that, const unsigned status) {
-        if (status & result::SYNC_FAILURE)
-            return;
         if (status & result::SYNC_PENDING)
             return;
+
+        if (status & result::SYNC_FAILURE) {
+            that->restart(); // re-enqueue
+            return;
+        }
 
         eln::sync::sync_t &sync = that->internal->synchro;
         for (int i = 0; i < sync.size; ++i) {
@@ -667,27 +677,45 @@ namespace ex::logic::node::sync {
             thot->internal->b_index = (thot->internal->b_index + 1) % 2; // swap buffers
             thot->internal->updates.refresh();
         }
+
+        that->restart(); // re-enqueue
     }
 
     limbo::graph::BaseNode *SyncNode::instance(TreeNode *from) {
         SyncNode *node = new SyncNode();
         node->set_node_id(from->id_node);
+        node->enable();
         return node;
     }
 
     limbo::graph::BaseNode *SyncNode::relocate(TreeNode *, limbo::graph::BaseNode *node) {
+        static_cast<SyncNode *>(node)->restart();
         return node;
     }
 
     void SyncNode::destroy(TreeNode *, limbo::graph::BaseNode *node) {
+        static_cast<SyncNode *>(node)->disable();
         node->detach_all();
         delete node;
     }
 
-    void SyncNode::on_input(int, int, int, const void *) {
+    void SyncNode::restart() {
+        internal->enqueued = false;
+    }
+
+    void SyncNode::enable() {
+        internal->enqueued = false;
+        internal->enabled  = true;
+    }
+
+    void SyncNode::disable() {
+        internal->enqueued = false;
+        internal->enabled  = false;
     }
 
     void SyncNode::on_update(const int clock_i) {
+        if (!internal->enabled)
+            return;
 
         void              *result = nullptr;
         const lw::status_t status = lw::result(internal->channel, &result);
@@ -703,19 +731,26 @@ namespace ex::logic::node::sync {
             }
         }
 
-        // TODO: problem is here probably...
+        if (internal->enqueued)
+            return;
+
         internal->synchro.size = 0;
         for (int i = 0; i < inputs_.size; ++i) {
             internal->synchro.camera[i] = static_cast<eln::camera::CameraNode *>(inputs_[i].node_ptr);
             internal->synchro.size++;
         }
 
-        if (at_least_one(this))
+        if (at_least_one(this)) {
             enqueue_sync(this);
+            internal->enqueued = true;
+        }
     }
 
     void *SyncNode::on_output(int, int, int) {
         return &internal->synchro;
+    }
+
+    void SyncNode::on_input(int, int, int, void *) {
     }
 
     SyncNode::~SyncNode() {
@@ -725,5 +760,6 @@ namespace ex::logic::node::sync {
 
     SyncNode::SyncNode():
         internal(create_internal()) {
+        internal->synchro.node = this;
     }
 }

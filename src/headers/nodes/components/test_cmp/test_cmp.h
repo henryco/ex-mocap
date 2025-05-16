@@ -37,7 +37,7 @@ namespace ex::gui::test {
             std::cout << "DSTR 1: " << id_ << std::endl;
         }
 
-        void on_input(int in_idx, int out_idx, int clock_i, const void *data) override {
+        void on_input(int in_idx, int out_idx, int clock_i, void *data) override {
 //            std::cout << "in1: " << id_ << std::endl;
         }
 
@@ -75,7 +75,7 @@ namespace ex::gui::test {
             std::cout << "DSTR 2: " << id_ << std::endl;
         }
 
-        void on_input(int in_idx, int out_idx, int clock_i, const void *data) override {
+        void on_input(int in_idx, int out_idx, int clock_i, void *data) override {
 //            std::cout << "in2: " << id_ << std::endl;
         }
 
@@ -113,7 +113,7 @@ namespace ex::gui::test {
             std::cout << "DSTR 3: " << id_ << std::endl;
         }
 
-        void on_input(int in_idx, int out_idx, int clock_i, const void *data) override {
+        void on_input(int in_idx, int out_idx, int clock_i, void *data) override {
 //            std::cout << "in3: " << id_ << std::endl;
         }
 
