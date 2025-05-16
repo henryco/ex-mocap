@@ -643,8 +643,6 @@ namespace ex::logic::node::sync {
             eln::camera::CameraNode *thot = sync.camera[i];
             if (!thot->internal->enabled)
                 continue;
-            if (!thot->capture->camera.isOpened())
-                continue;
             return true;
         }
         return false;
