@@ -13,12 +13,11 @@
 
 #include "../../../../../extra/worker/worker.h"
 
+#define MAX_CAMS (254)
+
 namespace {
     // MAYBE MOVE WORKER OUT INTO GLOBAL REGISTRY ?
-    namespace lw  = limbo::worker;
-    namespace lg  = limbo::graph;
-    namespace eln = ex::logic::node;
-
+    namespace lw        = limbo::worker;
     lw::worker_p worker = nullptr;
 
     void idle_routine(lw::worker_p) {
@@ -57,9 +56,7 @@ namespace ex::logic::node::sync {
     using sync_id_t = limbo::uid64_t;
 
     struct sync_t {
-        sync_id_t node_id;
-        cam_ref_t camera[254];
-        unsigned  clock_i;
+        cam_ref_t camera[MAX_CAMS];
         unsigned  size;
     };
 
@@ -69,13 +66,11 @@ namespace ex::logic::node::sync {
         sync_t        synchro;
         lw::channel_p channel;
     };
-
-    struct sync_serial_t {
-        // fields ?
-    };
 }
 
 namespace ex::logic::node::camera {
+    namespace lg  = limbo::graph;
+
     // 64 bytes touched once, dont care
     struct alignas(64) camera_t {
         std::vector<int>  params;
@@ -108,6 +103,8 @@ namespace ex::logic::node::camera {
 }
 
 namespace {
+    namespace eln = ex::logic::node;
+
     void *open_routine(void *arg) {
         eln::camera::camera_t *camera = static_cast<eln::camera::camera_t *>(arg);
 
@@ -136,6 +133,48 @@ namespace {
         return const_cast<unsigned *>(&result::READ_SUCCESS);
     }
 
+    void *sync_routine(void *arg) {
+        static bool inter_results[MAX_CAMS] = {};
+
+        eln::sync::sync_t *sync = static_cast<eln::sync::sync_t *>(arg);
+        for (int i = 0; i < sync->size; ++i) {
+            inter_results[i] = false;
+
+            eln::camera::CameraNode *that = sync->camera[i];
+            if (!that->internal->enabled)
+                continue;
+            if (!that->capture->camera.isOpened())
+                continue;
+            if (!that->capture->camera.grab())
+                return const_cast<unsigned *>(&result::SYNC_PENDING);
+
+            inter_results[i] = true;
+        }
+
+        for (int i = 0; i < sync->size; ++i) {
+            if (!inter_results[i])
+                continue;
+
+            inter_results[i] = false;
+
+            eln::camera::CameraNode *that = sync->camera[i];
+            if (!that->capture->camera.retrieve(that->capture->bitmap))
+                continue; // error?
+
+            inter_results[i] = true;
+        }
+
+        for (int i = 0; i < sync->size; ++i) {
+            if (!inter_results[i])
+                continue; // error?
+
+            eln::camera::CameraNode *that = sync->camera[i];
+            ex::ocl::ops::from_bytes(that->capture->bitmap.data, *that->capture->target);
+        }
+
+        return const_cast<unsigned *>(&result::SYNC_SUCCESS);
+    }
+
     void open_camera(eln::camera::CameraNode *that, const int api, const int index, const std::vector<int> &params) {
         eln::camera::camera_t *payload = new eln::camera::camera_t {
             params,
@@ -155,7 +194,12 @@ namespace {
     }
 
     void enqueue_sync(eln::sync::SyncNode *that) {
-        // TODO
+        eln::sync::sync_t &sync = that->internal->synchro;
+        for (int i = 0; i < sync.size; ++i) {
+            eln::camera::CameraNode *thot = sync.camera[i];
+            thot->capture->target = &(thot->internal->promises[(thot->internal->b_index + 1) % 2]);
+        }
+        lw::enqueue(that->internal->channel, &sync_routine, &sync);
     }
 }
 
@@ -259,7 +303,7 @@ namespace ex::logic::node::camera {
     }
 
     void CameraNode::destroy(TreeNode *, limbo::graph::BaseNode *node) {
-        if (CameraNode *base = dynamic_cast<CameraNode *>(node))
+        if (CameraNode *base = static_cast<CameraNode *>(node))
             base->close();
         node->detach_all();
         delete node;
@@ -596,14 +640,38 @@ namespace ex::logic::node::sync {
         ::free(ptr);
     }
 
-    static void process_sync(SyncNode *that, const unsigned status) {
-        if (status & result::READ_FAILURE)
-            return;
-        if (status & result::READ_PENDING) {
-            enqueue_sync(that);
-            return;
+    static bool at_least_one(const SyncNode *that) {
+        eln::sync::sync_t &sync = that->internal->synchro;
+        for (int i = 0; i < sync.size; ++i) {
+            eln::camera::CameraNode *thot = sync.camera[i];
+            if (!thot->internal->enabled)
+                continue;
+            if (!thot->capture->camera.isOpened())
+                continue;
+            return true;
         }
-        // TODO
+        return false;
+    }
+
+    static void process_sync(SyncNode *that, const unsigned status) {
+        if (status & result::SYNC_FAILURE)
+            return;
+        if (status & result::SYNC_PENDING)
+            return;
+
+        eln::sync::sync_t &sync = that->internal->synchro;
+        for (int i = 0; i < sync.size; ++i) {
+            eln::camera::CameraNode *thot = sync.camera[i];
+
+            if (!thot->internal->enabled)
+                continue;
+
+            if (!thot->capture->camera.isOpened())
+                continue;
+
+            thot->internal->b_index = (thot->internal->b_index + 1) % 2; // swap buffers
+            thot->internal->updates.refresh();
+        }
     }
 
     limbo::graph::BaseNode *SyncNode::instance(TreeNode *from) {
@@ -621,35 +689,10 @@ namespace ex::logic::node::sync {
         delete node;
     }
 
-    io::byte_array SyncNode::serialize() const {
-        constexpr long total_size = sizeof(sync_serial_t);
-        sync_serial_t parcel;
-
-        // serial fields here
-        // serial fields here
-        // serial fields here
-
-        unsigned char *bytes = static_cast<unsigned char *>(::malloc(total_size));
-        ::memcpy(bytes, &parcel, sizeof(sync_serial_t));
-
-        return io::byte_array::from(bytes, total_size, &::free);
-    }
-
-    void SyncNode::deserialize(const io::byte_array &array) {
-        if (array.empty())
-            return;
-
-        const sync_serial_t *parcel = reinterpret_cast<sync_serial_t *>(array.data);
-        // serial fields here
-        // serial fields here
-        // serial fields here
-    }
-
     void SyncNode::on_input(int, int, int, const void *) {
     }
 
     void SyncNode::on_update(const int clock_i) {
-        // TODO enqueue / pull worker
 
         void              *result = nullptr;
         const lw::status_t status = lw::result(internal->channel, &result);
@@ -667,6 +710,15 @@ namespace ex::logic::node::sync {
                 process_sync(this, code);
             }
         }
+
+        internal->synchro.size    = 0;
+        for (int i = 0; i < outputs_.size; ++i) {
+            internal->synchro.camera[i] = static_cast<eln::camera::CameraNode *>(outputs_[i].node_ptr);
+            internal->synchro.size++;
+        }
+
+        if (at_least_one(this))
+            enqueue_sync(this);
     }
 
     void *SyncNode::on_output(int, int, int) {

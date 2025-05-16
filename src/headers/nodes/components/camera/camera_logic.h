@@ -17,21 +17,19 @@ namespace ex::logic::node::sync {
 
     struct SyncNode final : limbo::graph::BaseNode,
                             limbo::graph::id::name<"sync_node">,
-                            limbo::graph::io::out<sync_t, 1, "Synchronizer">,
-                            ex::io::bytes::serializable
+                            limbo::graph::io::out<sync_t, 1, "Synchronizer">
     {
         // ---- internal ----
+
         struct internal_t *internal;
 
         // ---- mapper properties ----
+
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
         static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
 
         // ---- node properties ----
-        io::byte_array serialize() const override;
-
-        void deserialize(const io::byte_array &) override;
 
         void on_input(int in_idx, int out_idx, int clock_i, const void *data) override;
 
@@ -87,26 +85,31 @@ namespace ex::logic::node::camera {
         ex::data::array<v_control_t> controls;
 
         // ---- internal ----
+
         internal_t *internal;
         capture_t  *capture;
 
 
         // ---- exposed ----
+
         camera_state state;
         timings_t    timings;
 
 
         // ---- mapper properties ----
+
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
         static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
 
 
         // ---- global properties ----
+
         static const ex::data::array<v_device_t> &list_camera_devices(bool refresh = false);
 
 
         // ---- camera properties ----
+
         const ex::data::array<v_devcap_t> &list_capabilities() const;
 
         const ex::data::array<v_control_t> &list_controls(bool refresh = false);
@@ -131,6 +134,7 @@ namespace ex::logic::node::camera {
 
 
         // ---- node properties ----
+
         io::byte_array serialize() const override;
 
         void deserialize(const io::byte_array &) override;
