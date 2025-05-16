@@ -64,6 +64,7 @@ namespace ex::logic::node::sync {
     struct internal_t {
         sync_t        synchro;
         lw::channel_p channel;
+        unsigned long time_t0;
         bool          enabled;
         bool          enqueued;
     };
@@ -734,6 +735,15 @@ namespace ex::logic::node::sync {
         if (internal->enqueued)
             return;
 
+        const auto t1 = std::chrono::high_resolution_clock::now();
+
+        if (internal->time_t0 != 0) {
+            const unsigned long dt = t1.time_since_epoch().count() - internal->time_t0;
+            const float frame_rate = static_cast<float>(1000000000. / dt);
+            for (int i = 0; i < internal->synchro.size; ++i)
+                internal->synchro.camera[i]->timings.frame_rate = frame_rate;
+        }
+
         internal->synchro.size = 0;
         for (int i = 0; i < inputs_.size; ++i) {
             internal->synchro.camera[i] = static_cast<eln::camera::CameraNode *>(inputs_[i].node_ptr);
@@ -744,6 +754,8 @@ namespace ex::logic::node::sync {
             enqueue_sync(this);
             internal->enqueued = true;
         }
+
+        internal->time_t0 = std::chrono::high_resolution_clock::now().time_since_epoch().count();
     }
 
     void *SyncNode::on_output(int, int, int) {
