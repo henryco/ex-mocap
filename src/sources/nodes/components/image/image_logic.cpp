@@ -16,7 +16,7 @@ namespace ex::logic::node::image {
 
     limbo::graph::BaseNode *ImageNode::instance(TreeNode *node) {
         ImageNode *ptr = new ImageNode();
-        ptr->set_id(node->id_node);
+        ptr->set_node_id(node->id_node);
         ptr->set_image_id(node->id_node);
         return ptr;
     }
@@ -147,7 +147,7 @@ namespace ex::logic::node::image {
         updates_.refresh();
     }
 
-    void ImageNode::on_input(int, int, int, const void *) {
+    void ImageNode::on_input(int, int, int, void *) {
     }
 
     void *ImageNode::on_output(const int in_idx, const int out_idx, const int clock_i) {

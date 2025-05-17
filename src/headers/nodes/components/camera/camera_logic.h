@@ -11,6 +11,46 @@
 
 #include "../../../../platforms/device.h"
 
+namespace ex::logic::node::sync {
+
+    struct sync_t;
+
+    struct SyncNode final : limbo::graph::BaseNode,
+                            limbo::graph::id::name<"sync_node">,
+                            limbo::graph::io::out<sync_t, 1, "Synchronizer">
+    {
+        // ---- internal ----
+
+        struct internal_t *internal;
+
+        // ---- mapper properties ----
+
+        static limbo::graph::BaseNode *instance(TreeNode *from);
+        static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
+        static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
+
+        // ---- sync properties ----
+
+        void restart();
+
+        void enable();
+
+        void disable();
+
+        // ---- node properties ----
+
+        void on_input(int in_idx, int out_idx, int clock_i, void *data) override;
+
+        void on_update(int clock_i) override;
+
+        void *on_output(int in_idx, int out_idx, int clock_i) override;
+
+        ~SyncNode() override;
+
+        SyncNode();
+    };
+}
+
 namespace ex::logic::node::camera {
 
     using v_device_t  = ex::platform::dev::VideoDevice;
@@ -45,6 +85,7 @@ namespace ex::logic::node::camera {
 
     struct CameraNode final : limbo::graph::BaseNode,
                               limbo::graph::id::name<"camera_node">,
+                              limbo::graph::io::in<sync::sync_t, 1, "Synchronizer">,
                               limbo::graph::io::out<ocl::img_promise, 1, "Frame image">,
                               ex::io::bytes::serializable
     {
@@ -52,22 +93,31 @@ namespace ex::logic::node::camera {
         ex::data::array<v_control_t> controls;
 
         // ---- internal ----
+
         internal_t *internal;
         capture_t  *capture;
 
 
         // ---- exposed ----
+
         camera_state state;
         timings_t    timings;
 
 
         // ---- mapper properties ----
+
         static limbo::graph::BaseNode *instance(TreeNode *from);
         static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
         static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
 
 
+        // ---- global properties ----
+
+        static const ex::data::array<v_device_t> &list_camera_devices(bool refresh = false);
+
+
         // ---- camera properties ----
+
         const ex::data::array<v_devcap_t> &list_capabilities() const;
 
         const ex::data::array<v_control_t> &list_controls(bool refresh = false);
@@ -92,11 +142,12 @@ namespace ex::logic::node::camera {
 
 
         // ---- node properties ----
+
         io::byte_array serialize() const override;
 
         void deserialize(const io::byte_array &) override;
 
-        void on_input(int in_idx, int out_idx, int clock_i, const void *data) override;
+        void on_input(int in_idx, int out_idx, int clock_i, void *data) override;
 
         void on_update(int clock_i) override;
 
@@ -106,8 +157,6 @@ namespace ex::logic::node::camera {
 
         CameraNode();
     };
-
-    const ex::data::array<v_device_t> &list_camera_devices(bool refresh = false);
 
 }
 

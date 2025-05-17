@@ -14,8 +14,6 @@
 #include "../../../headers/nodes/components/camera/camera_gui.h"
 #include "../../../headers/nodes/components/camera/camera_logic.h"
 
-#include "../../../headers/nodes/components/sync/sync_gui.h"
-#include "../../../headers/nodes/components/sync/sync_logic.h"
 
 namespace ex::nodes::mappers {
 
@@ -23,15 +21,15 @@ namespace ex::nodes::mappers {
         static data::array_map<id_type, Mapper> registry;
 
         { // TODO REMOVE
-            registry.put(ex::gui::test::NodeOne::get_node_id(), {
+            registry.put(ex::gui::test::NodeOne::get_static_type_id(), {
                 .gui = ex::gui::test::one::gui_mappers,
                 .logic = ex::gui::test::one::data_mappers
             });
-            registry.put(ex::gui::test::NodeTwo::get_node_id(), {
+            registry.put(ex::gui::test::NodeTwo::get_static_type_id(), {
                 .gui = ex::gui::test::two::gui_mappers,
                 .logic = ex::gui::test::two::data_mappers
             });
-            registry.put(ex::gui::test::NodeTri::get_node_id(), {
+            registry.put(ex::gui::test::NodeTri::get_static_type_id(), {
                 .gui = ex::gui::test::tri::gui_mappers,
                 .logic = ex::gui::test::tri::data_mappers
             });

@@ -27,7 +27,7 @@ namespace ex::nodes {
 
     template<typename T>
     id_type id_from_struct_() {
-        return T::get_node_id();
+        return T::get_static_type_id();
     }
 
     template<typename T>

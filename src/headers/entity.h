@@ -71,8 +71,14 @@ namespace ex::entity {
     void      remove(id_type_32 id_node);
     void      rename(id_type_32 id_node, const char *name);
 
+    // avoid using this in gui parts of the code,
+    // use ex::gui::set_dirty(bool) instead
     void set_dirty(bool dirty);
+
+    // avoid using this in gui parts of the code,
+    // use ex::gui::is_dirty() instead
     bool is_dirty();
+
     void reset_entities();
 
     snapshot store_entities();

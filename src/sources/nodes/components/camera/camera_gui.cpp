@@ -66,7 +66,7 @@ namespace ex::gui::node::camera {
     }
 
     unsigned long int get_node_type_id() {
-        return ex::logic::node::camera::CameraNode::get_node_id();
+        return ex::logic::node::camera::CameraNode::get_static_type_id();
     }
 
     const char *get_node_name() {
@@ -87,7 +87,7 @@ namespace ex::gui::node::camera {
     bool draw_node_window(GuiNodeWindow *window) {
 
         auto *cam_node = dynamic_cast<ex::logic::node::camera::CameraNode *>(ex::logic::state::get_node(window->node->id_node));
-        if (cam_node == nullptr || cam_node->get_id() != window->node->id_node)
+        if (cam_node == nullptr || cam_node->get_node_id() != window->node->id_node)
             return true;
 
         const auto &state = cam_node->state;
@@ -131,7 +131,7 @@ namespace ex::gui::node::camera {
             ImGui::SetNextItemWidth(input_size.x);
 
             if (ImGui::BeginCombo("##cam_device_list", device.device.name, ImGuiComboFlags_HeightRegular)) {
-                const auto &list = ex::logic::node::camera::list_camera_devices(closed);
+                const auto &list = ex::logic::node::camera::CameraNode::list_camera_devices(closed);
                 static char buff_full[192];
                 for (int i = 0; i < list.size; ++i) {
                     const auto &item = list[i];
@@ -334,14 +334,14 @@ namespace ex::gui::node::camera {
                     const auto input_size = ImVec2(total_w - button_pad - button_off, ImGui::GetFrameHeight());
                     ImGui::SetNextItemWidth(input_size.x);
 
-                    if (cam_node->get_id() == prev_change.nd && item.id == prev_change.id)
+                    if (cam_node->get_node_id() == prev_change.nd && item.id == prev_change.id)
                         value = prev_change.val;
 
                     ImGui::SliderInt("##drag_value", &value, item.min, item.max);
 
                     if (value != item.value) {
 
-                        if (cam_node->get_id() == prev_change.nd) {
+                        if (cam_node->get_node_id() == prev_change.nd) {
                             if (item.id != prev_change.id) {
                                 cam_node->set_control(prev_change.id, prev_change.val);
                                 cam_node->list_controls(true);
@@ -356,7 +356,7 @@ namespace ex::gui::node::camera {
                             prev_change.dt = ImGui::GetTime();
                         }
 
-                        prev_change.nd  = cam_node->get_id();
+                        prev_change.nd  = cam_node->get_node_id();
                         prev_change.id  = item.id;
                         prev_change.val = value;
                     }
@@ -435,4 +435,49 @@ namespace ex::gui::node::camera {
 
         abort_("Invalid node mapper type");
     }
+}
+
+namespace ex::gui::node::sync {
+
+    namespace {
+        const char *prev_name_() {
+            static char out_name[128];
+            sprintf(out_name, "%s %s", ICON_LC_COMBINE, strings::node_component_sync_name);
+            return out_name;
+        }
+    }
+
+    unsigned long int get_node_type_id() {
+        return ex::logic::node::sync::SyncNode::get_static_type_id();
+    }
+
+    bool draw_tree_node(TreeNode *n, const bool nested, const bool selected, const bool collapse, const bool expand) {
+        static char out_name[128]{};
+        sprintf(out_name, "%s %s", ICON_LC_COMBINE, n->name);
+        return generic_node(out_name, false, selected, nested, expand, collapse);
+    }
+
+    const char *get_node_preview() {
+        static const char *name = prev_name_();
+        return name;
+    }
+
+    const char *get_node_name() {
+        return strings::node_component_sync_name;
+    }
+
+    void update_tree_node(const TreeNode *o, TreeNode *n) {
+        if (!(o->state >>= node_state::disabled) &&
+            (n->state >>= node_state::disabled)) {
+            if (const auto base = dynamic_cast<ex::logic::node::sync::SyncNode *>(ex::logic::state::get_node(n->id_node)))
+                base->disable();
+            return;
+        }
+        if ((o->state >>= node_state::disabled) &&
+            !(n->state >>= node_state::disabled)) {
+            if (const auto base = dynamic_cast<ex::logic::node::sync::SyncNode *>(ex::logic::state::get_node(n->id_node)))
+                base->enable();
+        }
+    }
+
 }

@@ -33,7 +33,7 @@ namespace ex::logic::node::out {
 
     ln::BaseNode *DisplayOutputNode::instance(TreeNode *n) {
         const auto node = new DisplayOutputNode();
-        node->set_id(n->id_node);
+        node->set_node_id(n->id_node);
         node->register_image(n->name);
         return node;
     }
@@ -75,7 +75,7 @@ namespace ex::logic::node::out {
         updates_.refresh();
     }
 
-    void DisplayOutputNode::on_input(const int in_idx, const int out_idx, const int clock_i, const void *data) {
+    void DisplayOutputNode::on_input(const int in_idx, const int out_idx, const int clock_i, void *data) {
         const static ex::State &state = ex::logic::globals::state();
 
         if (!enabled)

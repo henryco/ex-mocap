@@ -28,7 +28,7 @@ namespace ex::gui::tree {
             return;
         }
 
-        if (ex::entity::is_dirty() && inspection_id >= 0) {
+        if (ex::gui::is_dirty() && inspection_id >= 0) {
             TreeNode *new_node = ex::entity::find(inspection_id);
             if (new_node == nullptr) {
                 inspection_open = false;
@@ -53,7 +53,7 @@ namespace ex::gui::tree {
 
         const auto rf = ex::gui::window_reset_flags(gui.view.reset, true);
         ImGui::Begin("Node inspector", &inspection_open, rf);
-        ImGui::Text("%s: [%u] [%s]", inspected_node->name, inspected_node->id_node, inspected_base->get_node_name());
+        ImGui::Text("%s: [%u] [%s]", inspected_node->name, inspected_node->id_node, inspected_base->get_type_name());
 
         ImGui::TextDisabled("");
 
@@ -64,13 +64,13 @@ namespace ex::gui::tree {
         const auto outputs = inspected_base->describe_outputs(&outputs_size);
 
         for (int i = 0; i < inputs_size; i++) {
-            ImGui::Text("input  [%d]: %s (%s)", inputs[i].index, inputs[i].name, inputs[i].aux ? "aux" : "reg");
+            ImGui::Text("input  (# %d): %s (%s)", inputs[i].index, inputs[i].name, inputs[i].aux ? "aux" : "reg");
         }
 
         ImGui::TextDisabled("");
 
         for (int i = 0; i < outputs_size; i++) {
-            ImGui::Text("output [%d]: %s (%s)", outputs[i].index, outputs[i].name, outputs[i].aux ? "aux" : "reg");
+            ImGui::Text("output (# %d): %s (%s)", outputs[i].index, outputs[i].name, outputs[i].aux ? "aux" : "reg");
         }
 
         ImGui::TextDisabled("");
@@ -82,14 +82,25 @@ namespace ex::gui::tree {
             return;
         }
 
-        const auto connections = inspected_base->connections_;
-        for (int i = 0; i < connections.size; ++i) {
-            auto &head = connections[i];
-            const auto io = dynamic_cast<limbo::graph::IO *>(head.node_ptr);
+        const auto outputs_ = inspected_base->outputs_;
+        for (int i = 0; i < outputs_.size; ++i) {
+            auto &head = outputs_[i];
+            const auto io = dynamic_cast<limbo::graph::NodeType *>(head.node_ptr);
             if (io != nullptr) {
-                ImGui::Text("* %d -> %d [%lu] [%s]", head.index_in, head.index_out, head.node_ptr->get_id(), io->get_node_name());
+                ImGui::Text("* i(# %d) <- o(# %d) [%lu] [%s]", head.index_in, head.index_out, head.node_ptr->get_node_id(), io->get_type_name());
             } else {
-                ImGui::Text("* %d -> %d [%lu] [-]", head.index_in, head.index_out, head.node_ptr->get_id());
+                ImGui::Text("* i(# %d) <- o(# %d) [%lu] [-]", head.index_in, head.index_out, head.node_ptr->get_node_id());
+            }
+        }
+
+        const auto inputs_ = inspected_base->inputs_;
+        for (int i = 0; i < inputs_.size; ++i) {
+            auto &head = inputs_[i];
+            const auto io = dynamic_cast<limbo::graph::NodeType *>(head.node_ptr);
+            if (io != nullptr) {
+                ImGui::Text("* o(# %d) -> i(# %d) [%lu] [%s]", head.index_out, head.index_in, head.node_ptr->get_node_id(), io->get_type_name());
+            } else {
+                ImGui::Text("* o(# %d) -> i(# %d) [%lu] [-]", head.index_out, head.index_in, head.node_ptr->get_node_id());
             }
         }
 

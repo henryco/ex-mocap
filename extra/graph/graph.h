@@ -6,21 +6,43 @@
 #define EX_MOTION_GRAPH_H
 
 #include "../data/struct/array.h"
-#include <typeinfo>
 
 namespace limbo {
-    static constexpr ::size_t fnv1aHash(const char *str) {
-        constexpr ::size_t FNV_OFFSET_BASIS = (sizeof(::size_t) == 4) ? 2166136261u : 14695981039346656037ull;
-        constexpr ::size_t FNV_PRIME = (sizeof(::size_t) == 4) ? 16777619u : 1099511628211ull;
 
-        ::size_t hash = FNV_OFFSET_BASIS;
+    // --- sanity check ---
+    static_assert(sizeof(unsigned long int) == 8);
+    static_assert(sizeof(unsigned short) == 2);
+    static_assert(sizeof(unsigned char) == 1);
+    static_assert(sizeof(unsigned int) == 4);
+    static_assert(sizeof(void *) == 8);
+    // --- sanity check ---
+
+    using uid64_t = unsigned long int;
+
+    static constexpr uid64_t fnv1aHash(const char *str) {
+        constexpr uid64_t FNV_OFFSET_BASIS = 14695981039346656037ull;
+        uid64_t hash = FNV_OFFSET_BASIS;
         while (*str) {
-            hash ^= static_cast<::size_t>(*str);
+            constexpr uid64_t FNV_PRIME = 1099511628211ull;
+            hash ^= static_cast<uid64_t>(*str);
             hash *= FNV_PRIME;
             ++str;
         }
         return hash;
     }
+
+    template<long N>
+    struct string_literal {
+
+        char value[N]{};
+        long size;
+
+        constexpr string_literal(const char (&str)[N]) {
+            for (int i = 0; i < N; i++)
+                value[i] = str[i];
+            size = sizeof(value);
+        }
+    };
 }
 
 namespace limbo::graph {
@@ -36,36 +58,43 @@ namespace limbo::graph {
 
     struct Clock;
 
-    struct IO {
-        virtual ~IO() = default;
+    struct NodeType {
+        virtual ~NodeType() = default;
 
-        virtual const std::size_t get_id() const = 0;
+        virtual const uid64_t get_type_id() const = 0;
 
-        virtual const std::size_t get_type_id() const = 0;
-
-        virtual const char *get_node_name() const = 0;
-
-        virtual void out(int in_idx, int out_idx, int clock_i, void **data) = 0;
+        virtual const char *get_type_name() const = 0;
     };
 
-    template<std::size_t N>
-    struct string_literal {
+    namespace id {
 
-        char        value[N]{};
-        std::size_t size;
+        template<string_literal name_>
+        struct name : virtual NodeType {
 
-        constexpr string_literal(const char (&str)[N]) {
-            for (int i = 0; i < N; i++)
-                value[i] = str[i];
-            size = sizeof(value);
-        }
-    };
+            ~name() override = default;
+
+            static constexpr uid64_t get_static_type_id() {
+                constexpr uid64_t id_ = fnv1aHash(static_cast<const char *>(name_.value));
+                return id_;
+            }
+
+            const uid64_t get_type_id() const final {
+                return get_static_type_id();
+            }
+
+            const char *get_type_name() const final {
+                constexpr auto name__ = name_.value;
+                static auto    str    = static_cast<const char *>(name__);
+                return str;
+            }
+        };
+    }
 
     namespace io {
 
         struct Description {
             const char  *name;
-            std::size_t  type_id;
+            uid64_t      type_id;
             unsigned int index;
             bool         aux;
         };
@@ -73,6 +102,15 @@ namespace limbo::graph {
         template<typename T>
         Description describe_io(const int index, const char *name, const bool aux = false) {
             return { .name    = name,
+                     .type_id = typeid(T).hash_code(),
+                     .index   = static_cast<unsigned int>(index),
+                     .aux     = aux };
+        }
+
+        template<typename T, int index, string_literal name, bool aux = false>
+        constexpr Description describe_io() {
+            constexpr auto name_ = name.value;
+            return { .name    = static_cast<const char *>(name_),
                      .type_id = typeid(T).hash_code(),
                      .index   = static_cast<unsigned int>(index),
                      .aux     = aux };
@@ -116,7 +154,6 @@ namespace limbo::graph {
 
             ex::data::array<Description> in_descriptions_  = { DATA_INIT_CAP, memory::allocator };
             ex::data::array<Description> out_descriptions_ = { DATA_INIT_CAP, memory::allocator };
-            bool                         freeze_ = false;
 
             ~port_dispatcher() override = default;
 
@@ -138,8 +175,8 @@ namespace limbo::graph {
 
             void register_in_descriptor(const Description &descriptor) {
                 // O(n^2) time, but its often very small array (<10)
-                const std::size_t type_ = descriptor.type_id;
-                const int         index = descriptor.index;
+                const uid64_t type_ = descriptor.type_id;
+                const int     index = descriptor.index;
                 for (int i = in_descriptions_.size - 1; i >= 0; i--) {
                     if (in_descriptions_[i].type_id < type_) {
                         in_descriptions_.insert(i + 1, descriptor);
@@ -155,8 +192,8 @@ namespace limbo::graph {
 
             void register_out_descriptor(const Description &descriptor) {
                 // O(n^2) time, but its often very small array (<10)
-                const std::size_t type_ = descriptor.type_id;
-                const int         index = descriptor.index;
+                const uid64_t type_ = descriptor.type_id;
+                const int     index = descriptor.index;
                 for (int i = out_descriptions_.size - 1; i >= 0; i--) {
                     if (out_descriptions_[i].type_id < type_) {
                         out_descriptions_.insert(i + 1, descriptor);
@@ -185,11 +222,10 @@ namespace limbo::graph {
         struct descriptor : virtual port_dispatcher {
 
             descriptor() {
-                constexpr auto name_ = name.value;
                 if (input)
-                    register_in_descriptor(describe_io<T>(index, static_cast<const char *>(name_), aux));
+                    register_in_descriptor(describe_io<T, index, name, aux>());
                 else
-                    register_out_descriptor(describe_io<T>(index, static_cast<const char *>(name_), aux));
+                    register_out_descriptor(describe_io<T, index, name, aux>());
             }
 
             ~descriptor() override = default;
@@ -207,34 +243,8 @@ namespace limbo::graph {
 
             template<typename T, int index, string_literal name>
             struct out : virtual descriptor<T, index, false, true, name> {};
-        } // namespace aux
-
-    } // namespace io
-
-    namespace id {
-
-        template<string_literal name_>
-        struct name : virtual IO {
-
-            ~name() override = default;
-
-            static constexpr std::size_t get_node_id() {
-                constexpr std::size_t id_ = fnv1aHash(static_cast<const char *>(name_.value));
-                return id_;
-            }
-
-            const std::size_t get_type_id() const final {
-                return get_node_id();
-            }
-
-            const char *get_node_name() const final {
-                constexpr auto name__ = name_.value;
-                static auto    str    = static_cast<const char *>(name__);
-                return str;
-            }
-        };
-
-    } // namespace id
+        }
+    }
 
     struct io_node {
         BaseNode      *node_ptr;
@@ -247,26 +257,34 @@ namespace limbo::graph {
         unsigned int data_size;
     };
 
-    struct BaseNode : virtual IO, virtual io::IODescriptor {
+    struct BaseNode : virtual NodeType, virtual io::IODescriptor {
 
 #define NODE_INIT_CAP 8
 
-        virtual void on_input(int in_idx,int out_idx, int clock_i, const void *data) = 0;
+        virtual void on_input(int in_idx,int out_idx, int clock_i, void *data) = 0;
 
         virtual void on_update(int clock_i) = 0;
 
         virtual void *on_output(int in_idx, int out_idx, int clock_i) = 0;
 
-        virtual void *data_ptr() { return nullptr; }
-
-        ex::data::array<io_node> connections_ = { NODE_INIT_CAP, memory::allocator };
-        std::size_t              id_          = 0;
+        ex::data::array<io_node> inputs_  = { NODE_INIT_CAP, memory::allocator };
+        ex::data::array<io_node> outputs_ = { NODE_INIT_CAP, memory::allocator };
+        uid64_t                  id_          = 0;
         unsigned int             clock_i_     = 0;
 
         ~BaseNode() override = default;
 
         BaseNode() = default;
 
+        void set_node_id(const uid64_t id) {
+            id_ = id;
+        }
+
+        uid64_t get_node_id() const {
+            return id_;
+        }
+
+        // Attaches output of a given node to current inputs at a given input_index
         bool attach(BaseNode *node, const int this_index_in, const int other_index_out) {
             if (node == this)
                 abort_("Self reference attachment");
@@ -277,65 +295,72 @@ namespace limbo::graph {
             if (input == nullptr)
                 return false;
 
-            const io_node input_node = { node, static_cast<unsigned short>(other_index_out),
+            const io_node output_node = { node, static_cast<unsigned short>(other_index_out),
                                          static_cast<unsigned short>(this_index_in) };
-            connections_.push(input_node);
+            outputs_.push(output_node);
+
+            const io_node input_node = { this, static_cast<unsigned short>(other_index_out),
+                                         static_cast<unsigned short>(this_index_in) };
+            node->inputs_.push(input_node);
             return true;
         }
 
+        // Detaches output of given node from current inputs at a given input_index
         void detach(const BaseNode *node, const int index_in, const int index_out) {
-            for (int i = 0; i < connections_.size; ++i) {
-                if (const io_node &ref = connections_[i];
-                    ref.node_ptr == node && ref.index_in == index_in && ref.index_out == index_out)
-                    connections_.swap_remove(i--);
+            for (int i = 0; i < outputs_.size; ++i) {
+                if (const io_node &ref = outputs_[i];
+                    ref.node_ptr == node && ref.index_in == index_in && ref.index_out == index_out) {
+
+                    auto &ref_outs = ref.node_ptr->inputs_;
+                    for (int k = 0; k < ref_outs.size; ++k) {
+                        if (ref_outs[k].node_ptr == this && ref_outs[k].index_in == index_in && ref_outs[k].index_out == index_out)
+                            ref_outs.swap_remove(k--);
+                    }
+
+                    outputs_.swap_remove(i--);
+                }
             }
         }
 
+        // Detaches given node from current inputs
         void detach_node(const BaseNode *node) {
-            for (int i = 0; i < connections_.size; ++i) {
-                if (const io_node &ref = connections_[i]; ref.node_ptr == node)
-                    connections_.swap_remove(i--);
-            }
-        }
+            for (int i = 0; i < outputs_.size; ++i) {
+                if (const io_node &ref = outputs_[i]; ref.node_ptr == node) {
 
-        void detach_inputs(const int index_in) {
-            for (int i = 0; i < connections_.size; ++i) {
-                if (const io_node &ref = connections_[i]; ref.index_in == index_in)
-                    connections_.swap_remove(i--);
-            }
-        }
+                    auto &ref_outs = ref.node_ptr->inputs_;
+                    for (int k = 0; k < ref_outs.size; ++k) {
+                        if (ref_outs[k].node_ptr == this && ref_outs[k].index_in)
+                            ref_outs.swap_remove(k--);
+                    }
 
-        void detach_outputs(const int index_out) {
-            for (int i = 0; i < connections_.size; ++i) {
-                if (const io_node &ref = connections_[i]; ref.index_out == index_out)
-                    connections_.swap_remove(i--);
+                    outputs_.swap_remove(i--);
+                }
             }
         }
 
         void detach_rec() {
-            for (int i = 0; i < connections_.size; ++i) {
-                const io_node &ref = connections_[i];
+            for (int i = 0; i < outputs_.size; ++i) {
+                const io_node &ref = outputs_[i];
                 ref.node_ptr->detach_rec();
-                connections_.swap_remove(i--);
             }
-            connections_.clean();
-            connections_.reserve(NODE_INIT_CAP);
+            detach_all();
         }
 
         void detach_all() {
-            connections_.clean();
-            connections_.reserve(NODE_INIT_CAP);
+            for (int i = 0; i < outputs_.size; ++i) {
+                const io_node &ref = outputs_[i];
+                auto &ref_outs = ref.node_ptr->inputs_;
+                for (int k = 0; k < ref_outs.size; ++k) {
+                    if (ref_outs[k].node_ptr == this)
+                        ref_outs.swap_remove(k--);
+                }
+            }
+
+            outputs_.clean();
+            outputs_.reserve(NODE_INIT_CAP);
         }
 
-        void set_id(const std::size_t id) {
-            id_ = id;
-        }
-
-        const std::size_t get_id() const final {
-            return id_;
-        }
-
-        void out(const int in_idx, const int out_idx, const int clock_i, void **data) final {
+        void out(const int in_idx, const int out_idx, const int clock_i, void **data) {
             if (this->clock_i_ == clock_i) {
                 if (data == GRAPH_SKIP)
                     return;
@@ -343,9 +368,9 @@ namespace limbo::graph {
                 return;
             }
 
-            for (int i = 0; i < connections_.size; ++i) {
+            for (int i = 0; i < outputs_.size; ++i) {
                 void          *stack_ptr  = nullptr;
-                const io_node &connection = connections_[i];
+                const io_node &connection = outputs_[i];
                 connection.node_ptr->out(connection.index_in, connection.index_out, clock_i, &stack_ptr);
                 on_input(connection.index_in, connection.index_out, clock_i, stack_ptr);
             }
@@ -360,30 +385,11 @@ namespace limbo::graph {
         }
     };
 
-    struct Clock final : virtual IO {
+    struct Clock final {
 #define CLOCK_INIT_CAP 2
 
         ex::data::array<BaseNode *> connections_ = { CLOCK_INIT_CAP, memory::allocator };
         unsigned int                clock_i_     = 0;
-
-        ~Clock() override = default;
-
-        const std::size_t get_id() const override {
-            return 0;
-        }
-
-        const std::size_t get_type_id() const override {
-            return 0;
-        }
-
-        const char *get_node_name() const override {
-            return "clock";
-        }
-
-        void out(int, int, const int clock_i, void **) override {
-            this->clock_i_ = clock_i;
-            pull();
-        }
 
         void reset() {
             detach_rec();
@@ -424,6 +430,11 @@ namespace limbo::graph {
             for (int i = 0; i < connections_.size; ++i)
                 connections_[i]->out(-1, -1, clock_i_, GRAPH_SKIP);
             ++clock_i_;
+        }
+
+        void pull(const int clock_i) {
+            this->clock_i_ = clock_i;
+            pull();
         }
     };
 

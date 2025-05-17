@@ -16,7 +16,7 @@ namespace ex::gui::node::out::display {
 
     unsigned long int get_node_type_id() {
         namespace elno = ex::logic::node::out;
-        return elno::DisplayOutputNode::get_node_id();
+        return elno::DisplayOutputNode::get_static_type_id();
     }
 
     bool draw_tree_node(TreeNode *n, const bool nested, const bool selected, const bool collapse, const bool expand) {

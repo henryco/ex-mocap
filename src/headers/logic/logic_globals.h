@@ -10,7 +10,7 @@
 
 namespace ex::logic::globals {
 
-    using id_type  = std::uint64_t;
+    using id_type = unsigned long int;
 
     State &state();
 

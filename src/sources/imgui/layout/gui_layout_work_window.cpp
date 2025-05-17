@@ -183,7 +183,7 @@ namespace ex::gui {
 
         static ex::data::array<Box> windows_(5);
 
-        const bool dirty_state = ex::entity::is_dirty();
+        const bool dirty_state = ex::gui::is_dirty();
         TreeNode  *active_node = ex::entity::find(state.logic.active_node);
 
         const Box *active_one = nullptr;

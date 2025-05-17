@@ -43,7 +43,7 @@ namespace ex::data {
 
         void store(const T *value) {
             uint32_t s = tag_.load(std::memory_order_relaxed);
-            tag_.store(s + 1, std::memory_order_relaxed);
+            tag_.store(s + 1, std::memory_order_release);
             val_ = *value;
             tag_.store(s + 2, std::memory_order_release);
         }
@@ -55,7 +55,9 @@ namespace ex::data {
                 if (before & 1)
                     continue;
 
+                //std::atomic_thread_fence(std::memory_order_acquire);
                 *out = val_;
+                //std::atomic_thread_fence(std::memory_order_acquire);
 
                 const uint32_t after = tag_.load(std::memory_order_acquire);
 

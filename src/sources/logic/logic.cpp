@@ -393,7 +393,7 @@ namespace ex::main {
         if (!should_skip) {
             const logic::NodeMapper &mappers = ex::logic::node_mappers()[node->id_type];
             if (const auto node_ptr = ex::logic::state::get_node(node->id_node)) {
-                if (node_ptr->get_id() != node->id_node) {
+                if (node_ptr->get_node_id() != node->id_node) {
                     mappers.destroy(node, node_ptr);
                     ex::logic::state::replace_node(node->id_node, mappers.instance(node));
                 }
@@ -433,7 +433,7 @@ namespace ex::main {
 
             if (clock.attach(base_node)) {
                 log->debug("Node {} [{}][{}] (main) attached to clock",
-                    base_node->get_node_name(), node->id_node, output.index);
+                    base_node->get_type_name(), node->id_node, output.index);
                 return true;
             }
         }
@@ -445,7 +445,7 @@ namespace ex::main {
 
             if (clock.attach(base_node)) {
                 log->debug("Node {} [{}][{}] (aux) attached to clock",
-                    base_node->get_node_name(), node->id_node, output.index);
+                    base_node->get_type_name(), node->id_node, output.index);
                 return true;
             }
         }
@@ -525,7 +525,7 @@ namespace ex::main {
             } else {
                 if (clock.attach(base_node)) {
                     log->debug("Node {} [{}] attached to clock",
-                        base_node->get_node_name(), node->id_node);
+                        base_node->get_type_name(), node->id_node);
                 }
             }
         }
