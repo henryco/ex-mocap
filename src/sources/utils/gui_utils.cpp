@@ -199,7 +199,8 @@ namespace ex::gui {
         if (expand)   ImGui::SetNextItemOpen(true, ImGuiCond_Always);
         if (collapse) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
 
-        constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
+        constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns | ImGuiTreeNodeFlags_OpenOnDoubleClick |
+                                         ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen;
         const auto c_flag = tree_node_flags | (selected ? ImGuiTreeNodeFlags_Selected : 0);
 
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.2f, 0.3f, 0.4f, 0.25f));       // Normal
@@ -217,7 +218,8 @@ namespace ex::gui {
         if (collapse) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
 
         constexpr auto tree_bull_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-        constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
+        constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns | ImGuiTreeNodeFlags_OpenOnDoubleClick |
+                                         ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen;
         const auto c_flag = tree_node_flags | (selected ? ImGuiTreeNodeFlags_Selected : 0);
 
         auto c_bullet = nested ? 0 : tree_bull_flags;
@@ -234,7 +236,8 @@ namespace ex::gui {
         if (collapse) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
 
         constexpr auto tree_bull_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-        constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns;
+        constexpr auto tree_node_flags = ImGuiTreeNodeFlags_SpanAllColumns | ImGuiTreeNodeFlags_OpenOnDoubleClick |
+                                         ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen;
         const auto c_flag = tree_node_flags | (selected ? ImGuiTreeNodeFlags_Selected : 0);
 
         auto c_bullet = nested ? 0 : tree_bull_flags;
