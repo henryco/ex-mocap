@@ -49,7 +49,7 @@ namespace ex::logic::node::transform {
     };
 
     struct TransformNode final : limbo::graph::BaseNode,
-                                 limbo::graph::id::name<"camera_node">,
+                                 limbo::graph::id::name<"transform_node">,
                                  limbo::graph::io::in<ocl::img_promise, 1, "Frame input">,
                                  limbo::graph::io::out<ocl::img_promise, 1, "Frame output">,
                                  ex::io::bytes::serializable

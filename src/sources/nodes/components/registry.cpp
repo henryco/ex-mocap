@@ -46,7 +46,12 @@ namespace ex::nodes::mappers {
         }
 
         { // Transform component
-
+            namespace transform_node_n = ex::gui::node::transform;
+            using transform_node_t     = ex::logic::node::transform::TransformNode;
+            registry.put(id_from_struct_<transform_node_t>(), {
+                .gui = transform_node_n::gui_mappers,
+                .logic = logic_from_struct_<transform_node_t>()
+            });
         }
 
         return registry;

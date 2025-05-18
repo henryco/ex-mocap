@@ -46,7 +46,7 @@ namespace ex::logic::node::transform {
         return io::byte_array::from(nullptr, 0);
     }
 
-    void TransformNode::deserialize(const io::byte_array &) {
+    void TransformNode::deserialize(const io::byte_array &array) {
         // TODO
     }
 

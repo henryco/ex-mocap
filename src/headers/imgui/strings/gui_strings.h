@@ -164,6 +164,9 @@ namespace ex::gui::strings {
 
     constexpr auto node_component_sync_name = "Sync";
 
+    constexpr auto node_component_transform_id   = "Image ID";
+    constexpr auto node_component_transform_name = "Transform";
+
 }
 
 #endif //GUI_STRINGS_H
