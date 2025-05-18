@@ -243,6 +243,8 @@ set(SOURCE_FILES
         src/sources/nodes/outputs/display/display_logic.cpp
         src/sources/nodes/components/camera/camera_gui.cpp
         src/sources/nodes/components/camera/camera_logic.cpp
+        src/sources/nodes/components/transform/transform_gui.cpp
+        src/sources/nodes/components/transform/transform_logic.cpp
 )
 
 # =================== OpenCL kernels generation =====================

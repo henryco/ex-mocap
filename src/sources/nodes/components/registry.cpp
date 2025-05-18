@@ -45,6 +45,10 @@ namespace ex::nodes::mappers {
             });
         }
 
+        { // Transform component
+
+        }
+
         return registry;
     }
 
