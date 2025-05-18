@@ -62,7 +62,19 @@ namespace ex::gui::node::transform {
         return true;
     }
 
-    void update_tree_node(const TreeNode *, TreeNode *) {
+    void update_tree_node(const TreeNode *before, TreeNode *after) {
+        if (!(before->state >>= node_state::disabled) &&
+            (after->state >>= node_state::disabled)) {
+            if (const auto base = dynamic_cast<logic::node::transform::TransformNode *>(logic::state::get_node(after->id_node)))
+                base->disable();
+            return;
+        }
+
+        if ((before->state >>= node_state::disabled) &&
+            !(after->state >>= node_state::disabled)) {
+            if (const auto base = dynamic_cast<logic::node::transform::TransformNode *>(logic::state::get_node(after->id_node)))
+                base->enable();
+        }
     }
 
     GuiNodeParcel *store(const TreeNode *node) {

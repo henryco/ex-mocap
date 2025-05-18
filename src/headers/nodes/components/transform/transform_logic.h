@@ -75,6 +75,12 @@ namespace ex::logic::node::transform {
 
         // ---- node properties ----
 
+        void enable();
+
+        void disable();
+
+        void reset();
+
         io::byte_array serialize() const override;
 
         void deserialize(const io::byte_array &) override;

@@ -11,7 +11,10 @@ namespace ex::logic::node::transform {
 
     struct internal_t {
         config_t         state;
+        ocl::NBPromise   nb_promise;
         cl_command_queue queue_p;
+
+        bool enabled;
     };
 
     struct serial_t {
@@ -44,6 +47,19 @@ namespace ex::logic::node::transform {
         delete node;
     }
 
+    void TransformNode::enable() {
+        internal->enabled = true;
+    }
+
+    void TransformNode::disable() {
+        internal->enabled = false;
+        reset();
+    }
+
+    void TransformNode::reset() {
+
+    }
+
     io::byte_array TransformNode::serialize() const {
         constexpr int total_size = sizeof(serial_t);
 
@@ -65,14 +81,20 @@ namespace ex::logic::node::transform {
     }
 
     void TransformNode::on_input(const int in_idx, const int out_idx, const int clock_i, void *data) {
+        if (!internal->enabled)
+            return;
         // TODO
     }
 
     void TransformNode::on_update(const int clock_i) {
+        if (!internal->enabled)
+            return;
         // TODO
     }
 
     void *TransformNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
+        if (!internal->enabled)
+            return nullptr;
         // TODO
         return nullptr;
     }
