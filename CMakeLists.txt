@@ -183,11 +183,12 @@ set(HEADER_FILES
         src/headers/nodes/node_registry.h
         src/headers/nodes/components/image/image_gui.h
         src/headers/nodes/components/image/image_logic.h
-        src/headers/nodes/components/test_cmp/test_cmp.h
         src/headers/nodes/outputs/display/display_gui.h
         src/headers/nodes/outputs/display/display_logic.h
         src/headers/nodes/components/camera/camera_gui.h
         src/headers/nodes/components/camera/camera_logic.h
+        src/headers/nodes/components/transform/transform_logic.h
+        src/headers/nodes/components/transform/transform_gui.h
 )
 
 set(SOURCE_FILES
@@ -238,7 +239,6 @@ set(SOURCE_FILES
         src/sources/nodes/components/registry.cpp
         src/sources/nodes/components/image/image_gui.cpp
         src/sources/nodes/components/image/image_logic.cpp
-        src/sources/nodes/components/test_cmp/test_cmp.cpp
         src/sources/nodes/outputs/display/display_gui.cpp
         src/sources/nodes/outputs/display/display_logic.cpp
         src/sources/nodes/components/camera/camera_gui.cpp
