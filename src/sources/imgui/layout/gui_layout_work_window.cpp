@@ -101,7 +101,7 @@ namespace ex::gui {
 
     void gen_uuid(GuiNodeWindow &window) {
         const auto buffer = static_cast<char *>(::malloc(strlen(window.node->name) + 64));
-        sprintf(buffer, "%s##window/%lu/%u", window.node->name, window.node->id_type, window.node->id_node);
+        sprintf(buffer, "%s###window/%lu/%u", window.node->name, window.node->id_type, window.node->id_node);
         if (window.uuid != nullptr)
             ::free((void *) window.uuid);
         window.uuid = buffer;

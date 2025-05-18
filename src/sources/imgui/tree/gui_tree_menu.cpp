@@ -438,7 +438,7 @@ namespace ex::gui::tree {
             ImGui::SetNextItemWidth(input_size.x);
             if (rename_popup)
                 ImGui::SetKeyboardFocusHere();
-            ImGui::InputText("##edit", name_buffer, IM_ARRAYSIZE(name_buffer));
+            ImGui::InputText("###edit", name_buffer, IM_ARRAYSIZE(name_buffer));
 
             constexpr float alpha = 1.f;
             ImGui::GetWindowDrawList()->AddRect(input_pos,

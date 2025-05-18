@@ -108,7 +108,7 @@ namespace ex::gui::node::camera {
             const auto input_pos  = ImGui::GetCursorScreenPos();
             const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
             ImGui::SetNextItemWidth(input_size.x);
-            if (ImGui::InputText("##CameraID", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+            if (ImGui::InputText("###CameraID", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
                 cam_node->set_image_id(::atoi(buff));
             }
 
@@ -130,7 +130,7 @@ namespace ex::gui::node::camera {
             const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
             ImGui::SetNextItemWidth(input_size.x);
 
-            if (ImGui::BeginCombo("##cam_device_list", device.device.name, ImGuiComboFlags_HeightRegular)) {
+            if (ImGui::BeginCombo("###cam_device_list", device.device.name, ImGuiComboFlags_HeightRegular)) {
                 const auto &list = ex::logic::node::camera::CameraNode::list_camera_devices(closed);
                 static char buff_full[192];
                 for (int i = 0; i < list.size; ++i) {
@@ -178,7 +178,7 @@ namespace ex::gui::node::camera {
             const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
             ImGui::SetNextItemWidth(input_size.x);
 
-            if (ImGui::BeginCombo("##cam_buffering", buffering_strings[state_buffering], ImGuiComboFlags_HeightRegular)) {
+            if (ImGui::BeginCombo("###cam_buffering", buffering_strings[state_buffering], ImGuiComboFlags_HeightRegular)) {
 
                 for (int i = 0; i < IM_ARRAYSIZE(buffering_strings); ++i) {
                     const bool is_selected = state_buffering == i;
@@ -215,7 +215,7 @@ namespace ex::gui::node::camera {
             const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
             ImGui::SetNextItemWidth(input_size.x);
 
-            if (ImGui::BeginCombo("##cam_cap_list", mode.description, ImGuiComboFlags_HeightRegular)) {
+            if (ImGui::BeginCombo("###cam_cap_list", mode.description, ImGuiComboFlags_HeightRegular)) {
 
                 const auto &caps = cam_node->list_capabilities();
 
@@ -337,7 +337,7 @@ namespace ex::gui::node::camera {
                     if (cam_node->get_node_id() == prev_change.nd && item.id == prev_change.id)
                         value = prev_change.val;
 
-                    ImGui::SliderInt("##drag_value", &value, item.min, item.max);
+                    ImGui::SliderInt("###drag_value", &value, item.min, item.max);
 
                     if (value != item.value) {
 

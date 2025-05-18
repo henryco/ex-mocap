@@ -108,7 +108,7 @@ namespace ex::display::imp::imgui {
         const auto uuid   = new char[strlen(name) + 24];
         const auto label  = new char[strlen(name) + 1];
 
-        sprintf(uuid, "%s##display/%d", name, new_id);
+        sprintf(uuid, "%s###display%d", name, new_id);
         strcpy(label, name);
 
         display_map_.put(new_id, { label, uuid, nullptr, 0, 0, 0, 0, 0, true, false });
@@ -119,13 +119,12 @@ namespace ex::display::imp::imgui {
         if (!display_map_.contains(id))
             return;
 
-        const auto &d_ref = display_map_[id];
-        const auto  d_cpy = d_ref;
+        auto &d_ref = display_map_[id];
 
         const auto uuid  = new char[strlen(name) + 24];
         const auto label = new char[strlen(name) +  1];
 
-        sprintf(uuid, "%s##display/%d", name, id);
+        sprintf(uuid, "%s###display%d", name, id);
         strcpy(label, name);
 
         if (d_ref.uuid != nullptr)
@@ -133,9 +132,8 @@ namespace ex::display::imp::imgui {
         if (d_ref.name != nullptr)
             delete[] d_ref.name;
 
-        display_map_.remove(id);
-        display_map_.put(id, { label, uuid, d_cpy.data, d_cpy.txid, d_cpy.w, d_cpy.h, d_cpy.c, d_cpy.bg_color,
-                               d_cpy.updated, d_cpy.to_clear });
+        d_ref.name = label;
+        d_ref.uuid = uuid;
     }
 
     void remove_output(const unsigned int id) {
