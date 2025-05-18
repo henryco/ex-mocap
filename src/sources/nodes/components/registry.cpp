@@ -5,7 +5,7 @@
 #include "../../../headers/nodes/node_registry.h"
 
 // TODO REMOVE
-#include "../../../headers/nodes/components/test_cmp/test_cmp.h"
+//#include "../../../headers/nodes/components/test_cmp/test_cmp.h"
 // TODO REMOVE
 
 #include "../../../headers/nodes/components/image/image_gui.h"
@@ -20,20 +20,20 @@ namespace ex::nodes::mappers {
     const data::array_map<id_type, Mapper> &cmp_registry_() {
         static data::array_map<id_type, Mapper> registry;
 
-        { // TODO REMOVE
-            registry.put(ex::gui::test::NodeOne::get_static_type_id(), {
-                .gui = ex::gui::test::one::gui_mappers,
-                .logic = ex::gui::test::one::data_mappers
-            });
-            registry.put(ex::gui::test::NodeTwo::get_static_type_id(), {
-                .gui = ex::gui::test::two::gui_mappers,
-                .logic = ex::gui::test::two::data_mappers
-            });
-            registry.put(ex::gui::test::NodeTri::get_static_type_id(), {
-                .gui = ex::gui::test::tri::gui_mappers,
-                .logic = ex::gui::test::tri::data_mappers
-            });
-        } // TODO REMOVE
+//        { // TODO REMOVE
+//            registry.put(ex::gui::test::NodeOne::get_static_type_id(), {
+//                .gui = ex::gui::test::one::gui_mappers,
+//                .logic = ex::gui::test::one::data_mappers
+//            });
+//            registry.put(ex::gui::test::NodeTwo::get_static_type_id(), {
+//                .gui = ex::gui::test::two::gui_mappers,
+//                .logic = ex::gui::test::two::data_mappers
+//            });
+//            registry.put(ex::gui::test::NodeTri::get_static_type_id(), {
+//                .gui = ex::gui::test::tri::gui_mappers,
+//                .logic = ex::gui::test::tri::data_mappers
+//            });
+//        } // TODO REMOVE
 
         { // Camera component
             namespace camera_node_n = ex::gui::node::camera;
