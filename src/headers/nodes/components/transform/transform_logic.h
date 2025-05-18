@@ -12,10 +12,8 @@
 namespace ex::logic::node::transform {
 
     enum class rotate_e: unsigned char {
-        NONE = 0, //   0º
-        CW_1 = 1, //  90º
-        CW_2 = 2, // 180º
-        CW_3 = 3, // 270º
+        NONE = 0U, //  0º
+        CW_1 = 1U, // 90º
     };
 
     struct flip_t {
@@ -37,13 +35,13 @@ namespace ex::logic::node::transform {
 
     struct config_t {
         crop_t   crop;
-        // |
+        // │
         // V
         resize_t resize;
-        // |
+        // │
         // V
         flip_t   flip;
-        // |
+        // │
         // V
         rotate_e rotate;
     };

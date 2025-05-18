@@ -41,12 +41,12 @@ namespace limbo::worker {
     // as long as channels not being shared between threads,
     // as it is assumed that any given thread can have many channels, but not vice versa.
     //
-    // thread 1 --> channel 1 ----------|
-    // | |_______-> channel 2 --------| |
-    // |_________-> channel 3 ------v v v
-    //                              WORKER --> thread_worker
-    // thread 2 --> channel 4 -------_^ ^
-    // thread N --> channel N ---------_|
+    // thread 1 ──> channel 1 ──────────┐
+    // │ └────────> channel 2 ────────┐ │
+    // └──────────> channel 3 ──────v v v
+    //                              WORKER ──> thread_worker
+    // thread 2 ──> channel 4 ────────^ ^
+    // thread N ──> channel N ──────────┘
     channel_p create_channel(worker_p);
 
     // blocking operation

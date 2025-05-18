@@ -62,8 +62,7 @@ namespace ex::gui::node::transform {
         return true;
     }
 
-    void update_tree_node(const TreeNode *before, TreeNode *after) {
-        // TODO
+    void update_tree_node(const TreeNode *, TreeNode *) {
     }
 
     GuiNodeParcel *store(const TreeNode *node) {
