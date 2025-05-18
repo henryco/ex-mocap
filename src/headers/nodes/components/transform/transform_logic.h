@@ -54,10 +54,10 @@ namespace ex::logic::node::transform {
     {
         // ---- exposed ----
 
-        //  crop
-        //    └─> resize
-        //          └─> flip
-        //                └─> rotate
+        //  crop ─┐
+        //   └─> resize ─┐
+        //        └─> flip ─┐
+        //             └─> rotate
         config_t config;
 
 

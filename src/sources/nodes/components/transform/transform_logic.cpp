@@ -14,6 +14,10 @@ namespace ex::logic::node::transform {
         cl_command_queue queue_p;
     };
 
+    struct serial_t {
+        config_t config;
+    };
+
     static internal_t *create_internal() {
         internal_t *instance = static_cast<internal_t *>(::malloc(sizeof(internal_t)));
         ::memset(instance, 0, sizeof(internal_t));
@@ -35,19 +39,29 @@ namespace ex::logic::node::transform {
         return node;
     }
 
-    void TransformNode::destroy(TreeNode *tree, limbo::graph::BaseNode *node) {
-        // TODO
+    void TransformNode::destroy(TreeNode *, limbo::graph::BaseNode *node) {
         node->detach_all();
         delete node;
     }
 
     io::byte_array TransformNode::serialize() const {
-        // TODO
-        return io::byte_array::from(nullptr, 0);
+        constexpr int total_size = sizeof(serial_t);
+
+        serial_t parcel;
+        parcel.config = config;
+
+        unsigned char *bytes = static_cast<unsigned char *>(::malloc(total_size));
+        ::memcpy(bytes, &parcel, total_size);
+
+        return io::byte_array::from(bytes, total_size, &::free);
     }
 
     void TransformNode::deserialize(const io::byte_array &array) {
-        // TODO
+        if (array.empty())
+            return;
+
+        const serial_t *serial = reinterpret_cast<serial_t *>(array.data);
+        memcpy(&config, &serial->config, sizeof(serial_t));
     }
 
     void TransformNode::on_input(const int in_idx, const int out_idx, const int clock_i, void *data) {
