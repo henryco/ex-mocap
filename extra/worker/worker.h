@@ -73,10 +73,10 @@ namespace limbo::worker {
     // must use '&' and '|' operators in order to check status
     status_t result(channel_p, void **dst, int retries);
 
-    // status OR
+    // status OR, works just as you expect
     status_t operator | (status_t lhs, status_t rhs);
 
-    // status AND
+    // status AND, works just as you expect
     status_t operator & (status_t lhs, status_t rhs);
 }
 
