@@ -32,7 +32,7 @@ namespace ex::data {
 
         uint32_t open() const {
             uint32_t s = tag_.load(std::memory_order_relaxed);
-            tag_.store(s + 1, std::memory_order_relaxed);
+            tag_.store(s + 1, std::memory_order_release);
             return s;
         }
 
