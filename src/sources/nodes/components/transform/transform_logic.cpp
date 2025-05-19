@@ -9,6 +9,43 @@
 
 namespace ex::logic::node::transform {
 
+    namespace {
+        struct kernels_t {
+            cl_program program;
+            cl_kernel  kernel;
+            unsigned   size_g;
+            unsigned   size_l;
+            unsigned   counter;
+        };
+
+        kernels_t *kernel = nullptr;
+
+        void create_kernel() {
+            if (kernel == nullptr) {
+                kernel = static_cast<kernels_t *>(::malloc(sizeof(kernels_t)));
+
+                // TODO
+
+                kernel->counter = 0;
+            }
+            kernel->counter++;
+        }
+
+        void release_kernel() {
+            if (kernel == nullptr)
+                return;
+            if (--kernel->counter > 0)
+                return;
+            if (kernel->kernel != nullptr)
+                ::clReleaseKernel(kernel->kernel);
+            if (kernel->program != nullptr)
+                ::clReleaseProgram(kernel->program);
+            ::memset(kernel, 0, sizeof(kernels_t));
+            ::free(kernel);
+            kernel = nullptr;
+        }
+    }
+
     struct updates_t {
         limbo::graph::UpdateState state;
     };
@@ -42,7 +79,19 @@ namespace ex::logic::node::transform {
     static void destroy_internal(internal_t *ptr) {
         if (!ptr)
             return;
+
         ptr->buffers.image.release();
+
+//        if (ptr->kernels.kernel != nullptr) {
+//            ::clReleaseKernel(ptr->kernels.kernel);
+//            ptr->kernels.kernel = nullptr;
+//        }
+//
+//        if (ptr->kernels.program != nullptr) {
+//            ::clReleaseProgram(ptr->kernels.program);
+//            ptr->kernels.program = nullptr;
+//        }
+
         ::free(ptr);
     }
 
@@ -181,11 +230,13 @@ namespace ex::logic::node::transform {
     TransformNode::~TransformNode() {
         destroy_internal(internal);
         internal = nullptr;
+        release_kernel();
     }
 
     TransformNode::TransformNode() :
         internal(create_internal()) {
         ::memcpy(&config, &internal->state, sizeof(config_t));
+        create_kernel();
         reset();
     }
 }
