@@ -17,7 +17,6 @@ namespace ex::logic::node::transform {
         ocl::img_promise input;   // managed outside
         ocl::img_promise output;  // managed by none
         ocl::image2d_t   image;   // managed by this
-        cl_command_queue queue_p; // managed by this
     };
 
     struct internal_t {
@@ -41,15 +40,9 @@ namespace ex::logic::node::transform {
     }
 
     static void destroy_internal(internal_t *ptr) {
-        if (!ptr) return;
-
+        if (!ptr)
+            return;
         ptr->buffers.image.release();
-
-        if (ptr->buffers.queue_p != nullptr) {
-            clReleaseCommandQueue(ptr->buffers.queue_p);
-            ptr->buffers.queue_p = nullptr;
-        }
-
         ::free(ptr);
     }
 
@@ -61,6 +54,8 @@ namespace ex::logic::node::transform {
     }
 
     limbo::graph::BaseNode *TransformNode::relocate(TreeNode *, limbo::graph::BaseNode *node) {
+        if (auto *t = dynamic_cast<TransformNode *>(node))
+            t->reset();
         return node;
     }
 
@@ -190,9 +185,6 @@ namespace ex::logic::node::transform {
     TransformNode::TransformNode() :
         internal(create_internal()) {
         ::memcpy(&config, &internal->state, sizeof(config_t));
-
-        static const ex::State &state = ex::logic::globals::state();
-        internal->buffers.queue_p = xm::ocl::create_queue_device(state.cl.context, state.cl.device, true, false);
         reset();
     }
 }
