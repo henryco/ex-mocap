@@ -9,6 +9,10 @@
 
 namespace ex::logic::node::transform {
 
+    struct updates_t {
+        limbo::graph::UpdateState state;
+    };
+
     struct buffers_t {
         ocl::img_promise input;   // managed outside
         ocl::img_promise output;  // managed by none
@@ -20,6 +24,7 @@ namespace ex::logic::node::transform {
         buffers_t  buffers;
         config_t   state;
         id_type_16 image_id;
+        updates_t  updates;
         bool       enabled;
     };
 
@@ -74,6 +79,7 @@ namespace ex::logic::node::transform {
 
     void TransformNode::enable() {
         internal->enabled = true;
+        reset();
     }
 
     void TransformNode::disable() {
@@ -84,6 +90,7 @@ namespace ex::logic::node::transform {
     void TransformNode::reset() {
         internal->buffers.image.release();
         internal->buffers.output.image = internal->buffers.image;
+        internal->updates.state.refresh();
     }
 
     io::byte_array TransformNode::serialize() const {
@@ -135,18 +142,29 @@ namespace ex::logic::node::transform {
 
         static const ex::State &state = ex::logic::globals::state();
 
-        ocl::img_promise *input  = &internal->buffers.input;
-        ocl::image2d_t   *image  = &internal->buffers.image;
+        ocl::img_promise *input = &internal->buffers.input;
+        ocl::image2d_t   *image = &internal->buffers.image;
 
         if (input->empty()) {
             reset();
             return;
         }
 
-        if (input->image.size() != image->size() || image->detached() || image->empty()) {
-            internal->buffers.image.release();
-            internal->buffers.image = ex::ocl::Image2D::allocate_like(input->image, state.cl.context);
+        if (input->image.header.fresh || image->detached())
+            internal->updates.state.refresh();
+
+        if (!internal->updates.state.fresh()) {
+            image->header.fresh = false;
+            return;
         }
+
+        if (input->image.size() != image->size() || image->detached() || image->empty()) {
+            image->release();
+            *image = ex::ocl::Image2D::allocate_like(input->image, state.cl.context);
+        }
+
+        image->header.fresh = true;
+
         // TODO
     }
 
@@ -170,5 +188,6 @@ namespace ex::logic::node::transform {
 
         static const ex::State &state = ex::logic::globals::state();
         internal->buffers.queue_p = xm::ocl::create_queue_device(state.cl.context, state.cl.device, true, false);
+        reset();
     }
 }
