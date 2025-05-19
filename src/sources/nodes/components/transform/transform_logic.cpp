@@ -10,20 +10,15 @@
 namespace ex::logic::node::transform {
 
     struct buffers_t {
-        ocl::Image2D buffer[2];
-        unsigned     index;
-    };
-
-    struct worker_t {
-        ocl::NBPromise   nb_promise;
-        cl_command_queue queue_p;
+        ocl::img_promise input;   // managed outside
+        ocl::img_promise output;  // managed by none
+        ocl::image2d_t   image;   // managed by this
+        cl_command_queue queue_p; // managed by this
     };
 
     struct internal_t {
-        buffers_t  input;
-        buffers_t  output;
+        buffers_t  buffers;
         config_t   state;
-        worker_t   worker;
         id_type_16 image_id;
         bool       enabled;
     };
@@ -31,17 +26,8 @@ namespace ex::logic::node::transform {
     struct serial_t {
         config_t   config;
         id_type_16 id;
+        bool       on;
     };
-
-    static void buffers_swap(buffers_t *b) {
-        b->index = (b->index + 1) % 2;
-    }
-
-    static void buffers_release(buffers_t *b) {
-        b->buffer[0].release();
-        b->buffer[1].release();
-        b->index = 0;
-    }
 
     static internal_t *create_internal() {
         internal_t *instance = static_cast<internal_t *>(::malloc(sizeof(internal_t)));
@@ -52,14 +38,11 @@ namespace ex::logic::node::transform {
     static void destroy_internal(internal_t *ptr) {
         if (!ptr) return;
 
-        buffers_release(&ptr->input);
-        buffers_release(&ptr->output);
+        ptr->buffers.image.release();
 
-        ptr->worker.nb_promise.release();
-
-        if (ptr->worker.queue_p != nullptr) {
-            clReleaseCommandQueue(ptr->worker.queue_p);
-            ptr->worker.queue_p = nullptr;
+        if (ptr->buffers.queue_p != nullptr) {
+            clReleaseCommandQueue(ptr->buffers.queue_p);
+            ptr->buffers.queue_p = nullptr;
         }
 
         ::free(ptr);
@@ -83,7 +66,6 @@ namespace ex::logic::node::transform {
 
     void TransformNode::set_image_id(const id_type_16 id) {
         internal->image_id = id;
-        // TODO
     }
 
     id_type_16 TransformNode::get_image_id() const {
@@ -100,7 +82,8 @@ namespace ex::logic::node::transform {
     }
 
     void TransformNode::reset() {
-        // TODO
+        internal->buffers.image.release();
+        internal->buffers.output.image = internal->buffers.image;
     }
 
     io::byte_array TransformNode::serialize() const {
@@ -108,6 +91,7 @@ namespace ex::logic::node::transform {
 
         serial_t parcel;
         parcel.id     = internal->image_id;
+        parcel.on     = internal->enabled;
         parcel.config = config;
 
         unsigned char *bytes = static_cast<unsigned char *>(::malloc(total_size));
@@ -123,25 +107,56 @@ namespace ex::logic::node::transform {
         const serial_t *serial = reinterpret_cast<serial_t *>(array.data);
         ::memcpy(&internal->image_id, &serial->id, sizeof(id_type_16));
         ::memcpy(&config, &serial->config, sizeof(serial_t));
+
+        if (serial->on) {
+            enable();
+            reset();
+        } else {
+            disable();
+        }
     }
 
     void TransformNode::on_input(const int in_idx, const int out_idx, const int clock_i, void *data) {
         if (!internal->enabled)
             return;
-        // TODO
+
+        const ocl::img_promise *promise = static_cast<const ocl::img_promise *>(data);
+        if (promise == nullptr) {
+            reset();
+            return;
+        }
+
+        internal->buffers.input = *promise;
     }
 
     void TransformNode::on_update(const int clock_i) {
         if (!internal->enabled)
             return;
+
+        static const ex::State &state = ex::logic::globals::state();
+
+        ocl::img_promise *input  = &internal->buffers.input;
+        ocl::image2d_t   *image  = &internal->buffers.image;
+
+        if (input->empty()) {
+            reset();
+            return;
+        }
+
+        if (input->image.size() != image->size() || image->detached() || image->empty()) {
+            internal->buffers.image.release();
+            internal->buffers.image = ex::ocl::Image2D::allocate_like(input->image, state.cl.context);
+        }
         // TODO
     }
 
     void *TransformNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
         if (!internal->enabled)
             return nullptr;
-        // TODO
-        return nullptr;
+
+        ocl::img_promise *target = &internal->buffers.output;
+        target->image.id         = internal->image_id;
+        return target;
     }
 
     TransformNode::~TransformNode() {
@@ -152,5 +167,8 @@ namespace ex::logic::node::transform {
     TransformNode::TransformNode() :
         internal(create_internal()) {
         ::memcpy(&config, &internal->state, sizeof(config_t));
+
+        static const ex::State &state = ex::logic::globals::state();
+        internal->buffers.queue_p = xm::ocl::create_queue_device(state.cl.context, state.cl.device, true, false);
     }
 }

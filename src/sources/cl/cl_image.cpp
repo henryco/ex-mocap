@@ -20,9 +20,8 @@ namespace ex::ocl {
     }
 
     void Image2D::release() {
-        if (handle == nullptr)
-            return;
-        clReleaseMemObject(handle);
+        if (handle != nullptr)
+            clReleaseMemObject(handle);
         handle = nullptr;
         cols = 0;
         rows = 0;
