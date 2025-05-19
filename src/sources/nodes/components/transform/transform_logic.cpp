@@ -153,8 +153,8 @@ namespace ex::logic::node::transform {
         if (input->image.header.fresh || image->detached())
             internal->updates.state.refresh();
 
-        if (!internal->updates.state.fresh()) {
-            image->header.fresh = false;
+        if (!internal->updates.state.update()) {
+            internal->buffers.output.image.header.fresh = false;
             return;
         }
 
@@ -163,9 +163,14 @@ namespace ex::logic::node::transform {
             *image = ex::ocl::Image2D::allocate_like(input->image, state.cl.context);
         }
 
-        image->header.fresh = true;
-
-        // TODO
+        {
+            // TODO REPLACE WITH KERNELS
+            ocl::promise_t promise = ex::ocl::ops::copy_data(*input, *image);
+            internal->buffers.output.image              = *image;
+            internal->buffers.output.queue              = promise.queue;
+            internal->buffers.output.image.header.fresh = true;
+            // TODO REPLACE WITH KERNELS
+        }
     }
 
     void *TransformNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
