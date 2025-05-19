@@ -50,6 +50,7 @@ namespace ex::logic::node::transform {
         auto *instance = new TransformNode();
         instance->set_node_id(from->id_node);
         instance->set_image_id(from->id_node);
+        instance->enable();
         return instance;
     }
 
