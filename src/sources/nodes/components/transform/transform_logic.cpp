@@ -2,6 +2,8 @@
 // Created by xd on 18/05/25.
 //
 
+#include "../../../../../kernels/transform.h"
+
 #include "../../../../headers/nodes/components/transform/transform_logic.h"
 #include "../../../../headers/logic/logic_globals.h"
 #include "../../../../headers/logic/logic_nodes.h"
@@ -13,7 +15,6 @@ namespace ex::logic::node::transform {
         struct kernels_t {
             cl_program program;
             cl_kernel  kernel;
-            unsigned   size_g;
             unsigned   size_l;
             unsigned   counter;
         };
@@ -23,9 +24,12 @@ namespace ex::logic::node::transform {
         void create_kernel() {
             if (kernel == nullptr) {
                 kernel = static_cast<kernels_t *>(::malloc(sizeof(kernels_t)));
-
-                // TODO
-
+                const ex::State &state = ex::logic::globals::state();
+                kernel->program = xm::ocl::build_program(
+                    state.cl.context, state.cl.device, ocl_kernel_transform_data,
+                    ocl_kernel_transform_data_size, "transform.cl");
+                kernel->kernel = xm::ocl::build_kernel(kernel->program, "kernel_transform");
+                kernel->size_l = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel);
                 kernel->counter = 0;
             }
             kernel->counter++;
@@ -79,19 +83,7 @@ namespace ex::logic::node::transform {
     static void destroy_internal(internal_t *ptr) {
         if (!ptr)
             return;
-
         ptr->buffers.image.release();
-
-//        if (ptr->kernels.kernel != nullptr) {
-//            ::clReleaseKernel(ptr->kernels.kernel);
-//            ptr->kernels.kernel = nullptr;
-//        }
-//
-//        if (ptr->kernels.program != nullptr) {
-//            ::clReleaseProgram(ptr->kernels.program);
-//            ptr->kernels.program = nullptr;
-//        }
-
         ::free(ptr);
     }
 

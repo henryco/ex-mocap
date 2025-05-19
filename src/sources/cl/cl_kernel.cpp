@@ -3,8 +3,9 @@
 //
 
 #include "../../headers/cl/cl_kernel.h"
-#include "../../headers/utils/err_utils.h"
 #include <chrono>
+#include <cstring>
+#include "../../headers/utils/err_utils.h"
 
 namespace xm::ocl {
 
@@ -83,43 +84,49 @@ namespace xm::ocl {
                : preferred_workgroup_size_multiple;
     }
 
-    cl_program build_program(cl_context context, cl_device_id device, const char *source, size_t source_size, const std::string &name, const std::string &options) {
-        return build_program(context, device, std::string(source, source_size), name, options);
-    }
+    static cl_program build_program(cl_context context, cl_device_id device, const char *kernel_source, const char *name, const char *options) {
 
-    cl_program build_program(cl_context context, cl_device_id device, const std::string &kernel_source, const std::string &name, const std::string &options) {
-        const char *o = options.empty() ? nullptr : options.c_str();
-        const char *s = kernel_source.c_str();
+        const char *o = (options == nullptr || ::strlen(options) == 0) ? nullptr : options;
+        const char *s = kernel_source;
 
         cl_int err;
         cl_program program = clCreateProgramWithSource(context, 1, &s, nullptr, &err);
         if (err != CL_SUCCESS)
-            abort__("Cannot create cl_program from source [%s]: %d", name.c_str(), err);
+            abort__("Cannot create cl_program from source [%s]: %d", name, err);
 
         err = clBuildProgram(program, 1, &device, o, nullptr, nullptr);
         if (err != CL_SUCCESS) {
             size_t log_size;
             err = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
             if (err != CL_SUCCESS)
-                abort__("Error getting build log size [%s]: %d", name.c_str(), err);
+                abort__("Error getting build log size [%s]: %d", name, err);
 
             auto log = new char[log_size];
             err = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, log_size, log, NULL);
             if (err != CL_SUCCESS) {
                 delete[] log;
-                abort__("Error getting error build log [%s]: %d", name.c_str(), err);
+                abort__("Error getting error build log [%s]: %d", name, err);
             }
-            abort__("Cannot build cl_program [%s]: %s%d", name.c_str(), log, log_size);
+            abort__("Cannot build cl_program [%s]: %s%d", name, log, log_size);
         }
 
         return program;
     }
 
-    cl_kernel build_kernel(cl_program program, const std::string &name) {
+    cl_program build_program(cl_context context, cl_device_id device, const char *source, size_t source_size, const char *name, const char *options) {
+        char *buffer = static_cast<char *>(::malloc(source_size + 1));
+        ::strncpy(buffer, source, source_size);
+        buffer[source_size] = '\0';
+        cl_program program  = build_program(context, device, buffer, name, options);
+        ::free(buffer);
+        return program;
+    }
+
+    cl_kernel build_kernel(cl_program program, const char *name) {
         cl_int err;
-        cl_kernel kernel = clCreateKernel(program, name.c_str(), &err);
+        cl_kernel kernel = clCreateKernel(program, name, &err);
         if (err != CL_SUCCESS)
-            abort__("Cannot build cl_kernel [%d]: %s", err, name.c_str());
+            abort__("Cannot build cl_kernel [%d]: %s", err, name);
         return kernel;
     }
 
@@ -271,7 +278,7 @@ namespace xm::ocl {
             clReleaseEvent(event);
     }
 
-    bool check_extension(const std::string &ext_name, cl_device_id dev_id) {
+    bool check_extension(const char *ext_name, cl_device_id dev_id) {
         cl_int err;
 
         cl_uint platform_count;

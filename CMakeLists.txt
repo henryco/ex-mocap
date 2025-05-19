@@ -134,6 +134,7 @@ set(KERNEL_FILES
         kernels/color_space.h
         kernels/filter_conv.h
         kernels/letter_box.h
+        kernels/transform.h
 )
 
 set(HEADER_FILES

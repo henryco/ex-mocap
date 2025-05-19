@@ -6,7 +6,6 @@
 #define XMOTION_CL_KERNEL_H
 
 #include <CL/cl.h>
-#include <string>
 
 namespace xm::ocl {
 
@@ -43,11 +42,9 @@ kernel.run(2, g_size, l_size, true)
      */
     cl_device_id find_gpu_device();
 
-    cl_program build_program(cl_context context, cl_device_id device, const std::string &kernel_source, const std::string &name, const std::string &options = "");
+    cl_program build_program(cl_context context, cl_device_id device, const char *source, size_t source_size, const char *name, const char *options = "");
 
-    cl_program build_program(cl_context context, cl_device_id device, const char *source, size_t source_size, const std::string &name, const std::string &options = "");
-
-    cl_kernel build_kernel(cl_program program, const std::string &name);
+    cl_kernel build_kernel(cl_program program, const char *name);
 
     cl_command_queue create_queue_device(cl_context context, cl_device_id device, bool order, bool profile);
 
@@ -108,7 +105,7 @@ kernel.run(2, g_size, l_size, true)
      * @param ext_name CL extension name, ie: "cl_khr_gl_sharing"
      * @param dev_id device id, optional
      */
-    bool check_extension(const std::string &ext_name, cl_device_id dev_id = nullptr);
+    bool check_extension(const char *ext_name, cl_device_id dev_id = nullptr);
 
     /**
      * @return reference count for given memory object
