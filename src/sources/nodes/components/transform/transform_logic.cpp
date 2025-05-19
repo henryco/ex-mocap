@@ -11,6 +11,8 @@
 
 namespace ex::logic::node::transform {
 
+    static const auto log = logs::get_logger("node_transform");
+
     namespace {
         struct kernels_t {
             cl_program program;
@@ -23,6 +25,7 @@ namespace ex::logic::node::transform {
 
         void create_kernel() {
             if (kernel == nullptr) {
+                log->debug("create transform cl kernels");
                 kernel = static_cast<kernels_t *>(::malloc(sizeof(kernels_t)));
                 const ex::State &state = ex::logic::globals::state();
                 kernel->program = xm::ocl::build_program(
@@ -31,6 +34,7 @@ namespace ex::logic::node::transform {
                 kernel->kernel = xm::ocl::build_kernel(kernel->program, "kernel_transform");
                 kernel->size_l = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel);
                 kernel->counter = 0;
+                log->debug("transform cl kernels created");
             }
             kernel->counter++;
         }
@@ -40,6 +44,8 @@ namespace ex::logic::node::transform {
                 return;
             if (--kernel->counter > 0)
                 return;
+
+            log->debug("release transform cl kernels");
             if (kernel->kernel != nullptr)
                 ::clReleaseKernel(kernel->kernel);
             if (kernel->program != nullptr)
@@ -47,6 +53,7 @@ namespace ex::logic::node::transform {
             ::memset(kernel, 0, sizeof(kernels_t));
             ::free(kernel);
             kernel = nullptr;
+            log->debug("transform cl kernels released");
         }
     }
 
@@ -220,9 +227,12 @@ namespace ex::logic::node::transform {
     }
 
     TransformNode::~TransformNode() {
+        log->debug("destroying transform node");
+        internal->buffers.output.finalize(true);
         destroy_internal(internal);
         internal = nullptr;
         release_kernel();
+        log->debug("transform node destroyed");
     }
 
     TransformNode::TransformNode() :
@@ -230,5 +240,6 @@ namespace ex::logic::node::transform {
         ::memcpy(&config, &internal->state, sizeof(config_t));
         create_kernel();
         reset();
+        log->debug("transform node created");
     }
 }
