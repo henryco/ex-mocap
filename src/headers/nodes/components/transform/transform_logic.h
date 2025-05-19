@@ -73,13 +73,19 @@ namespace ex::logic::node::transform {
         static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
 
 
-        // ---- node properties ----
+        // ---- component properties ----
 
-        void enable();
+        void set_image_id(id_type_16 id);
+
+        id_type_16 get_image_id() const;
 
         void disable();
 
+        void enable();
+
         void reset();
+
+        // ---- node properties ----
 
         io::byte_array serialize() const override;
 
