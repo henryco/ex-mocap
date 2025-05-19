@@ -13,50 +13,6 @@ namespace ex::logic::node::transform {
 
     static const auto log = logs::get_logger("node_transform");
 
-    namespace {
-        struct kernels_t {
-            cl_program program;
-            cl_kernel  kernel;
-            unsigned   size_l;
-            unsigned   counter;
-        };
-
-        kernels_t *kernel = nullptr;
-
-        void create_kernel() {
-            if (kernel == nullptr) {
-                log->debug("create transform cl kernels");
-                kernel = static_cast<kernels_t *>(::malloc(sizeof(kernels_t)));
-                const ex::State &state = ex::logic::globals::state();
-                kernel->program = xm::ocl::build_program(
-                    state.cl.context, state.cl.device, ocl_kernel_transform_data,
-                    ocl_kernel_transform_data_size, "transform.cl");
-                kernel->kernel = xm::ocl::build_kernel(kernel->program, "kernel_transform");
-                kernel->size_l = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel);
-                kernel->counter = 0;
-                log->debug("transform cl kernels created");
-            }
-            kernel->counter++;
-        }
-
-        void release_kernel() {
-            if (kernel == nullptr)
-                return;
-            if (--kernel->counter > 0)
-                return;
-
-            log->debug("release transform cl kernels");
-            if (kernel->kernel != nullptr)
-                ::clReleaseKernel(kernel->kernel);
-            if (kernel->program != nullptr)
-                ::clReleaseProgram(kernel->program);
-            ::memset(kernel, 0, sizeof(kernels_t));
-            ::free(kernel);
-            kernel = nullptr;
-            log->debug("transform cl kernels released");
-        }
-    }
-
     struct updates_t {
         limbo::graph::UpdateState state;
     };
@@ -67,9 +23,16 @@ namespace ex::logic::node::transform {
         ocl::image2d_t   image;   // managed by this
     };
 
+    struct kernels_t {
+        cl_program program;
+        cl_kernel  kernel;
+        ::size_t   size_l;
+    };
+
     struct internal_t {
         buffers_t  buffers;
         config_t   state;
+        kernels_t  kernels;
         id_type_16 image_id;
         updates_t  updates;
         bool       enabled;
@@ -81,17 +44,61 @@ namespace ex::logic::node::transform {
         bool       on;
     };
 
+    static void create_kernels(kernels_t *kernel) {
+        const ex::State &state = ex::logic::globals::state();
+        log->debug("create transform cl kernels");
+
+        kernel->program = xm::ocl::build_program(
+            state.cl.context,
+            state.cl.device,
+            ocl_kernel_transform_data,
+            ocl_kernel_transform_data_size,
+            "transform.cl");
+        kernel->kernel = xm::ocl::build_kernel(kernel->program, "kernel_transform");
+        kernel->size_l = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel);
+
+        log->debug("transform cl kernels created");
+    }
+
+    static void release_kernels(kernels_t *kernel) {
+        if (kernel == nullptr)
+            return;
+
+        log->debug("release transform cl kernels");
+
+        if (kernel->kernel != nullptr)
+            ::clReleaseKernel(kernel->kernel);
+        if (kernel->program != nullptr)
+            ::clReleaseProgram(kernel->program);
+        ::memset(kernel, 0, sizeof(kernels_t));
+
+        log->debug("transform cl kernels released");
+    }
+
     static internal_t *create_internal() {
+        log->debug("create transform node");
+
         internal_t *instance = static_cast<internal_t *>(::malloc(sizeof(internal_t)));
+        if (instance == nullptr)
+            abort_("cannot create transform node instance, nullptr");
+
         ::memset(instance, 0, sizeof(internal_t));
+        create_kernels(&instance->kernels);
+
+        log->debug("transform node created");
         return instance;
     }
 
     static void destroy_internal(internal_t *ptr) {
         if (!ptr)
             return;
+
+        log->debug("destroying transform node");
+        ptr->buffers.output.finalize(true);
         ptr->buffers.image.release();
+        release_kernels(&ptr->kernels);
         ::free(ptr);
+        log->debug("transform node destroyed");
     }
 
     limbo::graph::BaseNode *TransformNode::instance(TreeNode *from) {
@@ -227,19 +234,13 @@ namespace ex::logic::node::transform {
     }
 
     TransformNode::~TransformNode() {
-        log->debug("destroying transform node");
-        internal->buffers.output.finalize(true);
         destroy_internal(internal);
         internal = nullptr;
-        release_kernel();
-        log->debug("transform node destroyed");
     }
 
     TransformNode::TransformNode() :
         internal(create_internal()) {
         ::memcpy(&config, &internal->state, sizeof(config_t));
-        create_kernel();
         reset();
-        log->debug("transform node created");
     }
 }
