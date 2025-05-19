@@ -9,12 +9,20 @@
 
 namespace ex::logic::node::transform {
 
-    struct internal_t {
-        config_t         state;
-        ocl::NBPromise   nb_promise;
-        cl_command_queue queue_p;
+    using queue_t = cl_command_queue;
 
-        bool enabled;
+    struct buffers_t {
+        ocl::Image2D buffer[2];
+        unsigned     index;
+    };
+
+    struct internal_t {
+        buffers_t      input;
+        buffers_t      output;
+        config_t       state;
+        ocl::NBPromise nb_promise;
+        queue_t        queue_p;
+        bool           enabled;
     };
 
     struct serial_t {
@@ -30,6 +38,10 @@ namespace ex::logic::node::transform {
     static void destroy_internal(internal_t *ptr) {
         if (!ptr) return;
         ::free(ptr);
+    }
+
+    static void buffer_swap(buffers_t *b) {
+        b->index = (b->index + 1) % 2;
     }
 
     limbo::graph::BaseNode *TransformNode::instance(TreeNode *from) {
