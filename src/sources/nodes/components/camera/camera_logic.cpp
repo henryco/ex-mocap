@@ -4,6 +4,7 @@
 
 #include <pthread.h>
 #include <opencv2/videoio.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "../../../../headers/nodes/components/camera/camera_logic.h"
 
@@ -81,9 +82,10 @@ namespace ex::logic::node::camera {
         const unsigned    api;
     };
 
-    // 192 bytes regularly touched by worker
+    // 256 bytes regularly touched by worker
     struct alignas(64) capture_t {
         cv::Mat            bitmap;
+        cv::Mat            frame_;
         cv::VideoCapture   camera;
         ocl::ImagePromise *target;
     };
@@ -131,7 +133,8 @@ namespace {
         if (!capture->camera.retrieve(capture->bitmap))
             return const_cast<unsigned *>(&result::READ_PENDING);
 
-        ex::ocl::ops::from_bytes(capture->bitmap.data, *capture->target);
+        cv::cvtColor(capture->bitmap, capture->frame_, cv::COLOR_BGR2BGRA, 4);
+        ex::ocl::ops::from_bytes(capture->frame_.data, *capture->target);
         return const_cast<unsigned *>(&result::READ_SUCCESS);
     }
 
@@ -171,7 +174,8 @@ namespace {
                 continue; // error?
 
             eln::camera::CameraNode *that = sync->camera[i];
-            ex::ocl::ops::from_bytes(that->capture->bitmap.data, *that->capture->target);
+            cv::cvtColor(that->capture->bitmap, that->capture->frame_, cv::COLOR_BGR2BGRA, 4);
+            ex::ocl::ops::from_bytes(that->capture->frame_.data, *that->capture->target);
         }
 
         return const_cast<unsigned *>(&result::SYNC_SUCCESS);
@@ -234,8 +238,8 @@ namespace ex::logic::node::camera {
             abort_("Cannot create worker channel (not enough slots?)");
     }
 
-    static void init_capture(capture_t *) {
-        // nop
+    static void init_capture(capture_t *capture) {
+        capture->target = nullptr;
     }
 
     static void process_open(CameraNode *that, const unsigned status) {
@@ -338,6 +342,7 @@ namespace ex::logic::node::camera {
             capture->camera.release();
 
         capture->bitmap.release();
+        capture->frame_.release();
     }
 
     void CameraNode::reset() {
@@ -385,6 +390,8 @@ namespace ex::logic::node::camera {
 
             params.push_back(cv::CAP_PROP_FRAME_HEIGHT);
             params.push_back(state.mode.mode.height);
+        } else {
+            abort_("camera mode (width x height) <= 0");
         }
 
         if (state.mode.mode.refresh_rate > 0) {
@@ -398,6 +405,7 @@ namespace ex::logic::node::camera {
         }
 
         capture->bitmap.release();
+        capture->frame_.release();
 
         const int index = platform::dev::get_device_index(state.device.device);
         const int api   = platform::dev::get_capture_api();
@@ -460,8 +468,8 @@ namespace ex::logic::node::camera {
         internal->promises[1].image.release();
         internal->promises[0].queue    = internal->queue_p;
         internal->promises[1].queue    = internal->queue_p;
-        internal->promises[0].image    = ocl::Image2D::allocate(cap.width, cap.height, 3, 1, state_.cl.context);
-        internal->promises[1].image    = ocl::Image2D::allocate(cap.width, cap.height, 3, 1, state_.cl.context);
+        internal->promises[0].image    = ocl::Image2D::allocate(cap.width, cap.height, 4, 1, state_.cl.context);
+        internal->promises[1].image    = ocl::Image2D::allocate(cap.width, cap.height, 4, 1, state_.cl.context);
         internal->promises[0].image.id = state.image_id;
         internal->promises[1].image.id = state.image_id;
     }

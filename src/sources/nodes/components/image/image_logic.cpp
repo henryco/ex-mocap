@@ -120,7 +120,7 @@ namespace ex::logic::node::image {
 
         // RGBA
         int w_, h_, c_;
-        source_.data_ptr = stbi_load(image_path, &w_, &h_, &c_, 0);
+        source_.data_ptr = stbi_load(image_path, &w_, &h_, &c_, 4);
         source_.width    = w_;
         source_.height   = h_;
         source_.channels = c_;
