@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.30)
-project(ex_motion VERSION 0.2.2 LANGUAGES CXX)
+project(ex_motion VERSION 0.2.2 LANGUAGES CXX C)
 
 #set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto -funroll-loops -DNDEBUG" CACHE STRING "Release flags" FORCE)
 #set(CMAKE_C_FLAGS_RELEASE   "-O3 -flto -funroll-loops -DNDEBUG" CACHE STRING "Release flags" FORCE)
@@ -271,6 +271,16 @@ configure_file(
 target_include_directories(cmake_generated INTERFACE
         ${CMAKE_BINARY_DIR}/exmotion_files/generated/include)
 # ===================================================================
+file(GLOB OPENCL_KERNELS "${PROJECT_SOURCE_DIR}/kernels/cl/*.cl")
+add_library(opencl_kernels_dummy STATIC ${OPENCL_KERNELS})
+foreach(cl_file ${OPENCL_KERNELS})
+    set_source_files_properties(${cl_file} PROPERTIES
+            LANGUAGE C
+            COMPILE_FLAGS "-x cl -cl-std=CL1.2")
+endforeach()
+target_include_directories(opencl_kernels_dummy PRIVATE
+        ${PROJECT_SOURCE_DIR}/kernels/cl)
+# ===================================================================
 
 set(COMP_TARGET)
 
@@ -318,8 +328,7 @@ set(RESULT_SOURCES
         ${PLATFORM_FILES}
         ${HEADER_FILES}
         ${SOURCE_FILES}
-        ${EXTRA_FILES}
-)
+        ${EXTRA_FILES})
 
 add_executable(ex_motion
         src/main.cpp
