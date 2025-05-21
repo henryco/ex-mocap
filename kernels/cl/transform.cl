@@ -1,5 +1,29 @@
+#define USE_ROTATE
+#define USE_FLIP
+#define USE_FLIP_X
+#define USE_FLIP_Y
 #define USE_DOWNSCALE
-#define USE_LINEAR
+#define USE_DOWNSCALE_LIN
+
+
+#ifdef USE_ROTATE
+inline void rotate(const ushort2 size_xy, int *pix_x, int *pix_y) {
+    const int tmp = *pix_x;
+    *pix_x = size_xy.y - (*pix_y) - 1;
+    *pix_y = tmp;
+}
+#endif
+
+#ifdef USE_FLIP
+inline void flip(const ushort2 size_xy, int *pix_x, int *pix_y) {
+    #ifdef USE_FLIP_X
+    *pix_x = size_xy.x - *pix_x - 1;
+    #endif
+    #ifdef USE_FLIP_Y
+    *pix_y = size_xy.y - *pix_y - 1;
+    #endif
+}
+#endif
 
 #ifdef USE_DOWNSCALE
 inline void downscale(
@@ -12,7 +36,7 @@ inline void downscale(
              const int    pix_x,       // to
              const int    pix_y        // to
 ) {
-    #ifndef USE_LINEAR
+    #ifndef USE_DOWNSCALE_LIN
 
     const int img_x = clamp((int) (pix_x * scale_w), (int) 0, (int) (img_w - 1));
     const int img_y = clamp((int) (pix_y * scale_h), (int) 0, (int) (img_h - 1));
@@ -54,10 +78,24 @@ inline void downscale(
 }
 #endif
 
-
 __kernel void kernel_transform(
     __global const uchar4 *input,
-    __global       uchar4 *output
+    __global       uchar4 *output,
+             const ushort2 size_img,
+             const ushort2 size_og
 ) {
+    int x = get_global_id(0);
+    int y = get_global_id(1);
+
+    if (x >= size_img.x || y >= size_img.y)
+        return;
+
+    #ifdef USE_ROTATE
+    rotate(size_img,  &x, &y);
+    #endif
+
+    #ifdef USE_FLIP
+    flip(size_img, &x, &y);
+    #endif
     // TODO
 }
