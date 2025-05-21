@@ -52,12 +52,131 @@ namespace ex::gui::node::transform {
     }
 
     bool draw_node_window(GuiNodeWindow *window) {
-        auto *trs_node = dynamic_cast<logic::node::transform::TransformNode *>(
+        namespace lnt  = logic::node::transform;
+        auto *trs_node = dynamic_cast<lnt::TransformNode *>(
                 ex::logic::state::get_node(window->node->id_node));
         if (trs_node == nullptr || trs_node->get_node_id() != window->node->id_node)
             return true;
 
-        // TODO
+        static struct {
+            lnt::config_t config;
+            unsigned      node;
+            double        dt;
+        } dt_state; // TODO
+
+        {
+            dt_state.config = trs_node->config;
+        }
+
+        {
+            ImGui::SeparatorText(strings::node_component_transform_id);
+
+            static char buff[8] = "";
+            ::snprintf(buff, 7, "%u", trs_node->get_image_id());
+
+            const auto input_pos  = ImGui::GetCursorScreenPos();
+            const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
+            ImGui::SetNextItemWidth(input_size.x);
+            if (ImGui::InputText("###TransformId", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+                trs_node->set_image_id(::atoi(buff));
+            }
+
+            constexpr float alpha = 1.f;
+            ImGui::GetWindowDrawList()->AddRect(input_pos,
+                                                ImVec2(input_pos.x + input_size.x, input_pos.y + input_size.y),
+                                                IM_COL32(0, 0, 0, 90 * alpha));
+        }
+
+        ImGui::NewLine();
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        if (ImGui::CollapsingHeader("Region", ImGuiTreeNodeFlags_Framed)) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
+            { // x0
+                static char buff[8] = "";
+                if (ImGui::InputText("x0##r_xo", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+
+                }
+            }
+
+            { // y0
+                static char buff[8] = "";
+                if (ImGui::InputText("y0##r_y0", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+
+                }
+            }
+
+            { // w
+                static char buff[8] = "";
+                if (ImGui::InputText("width##r_w", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+
+                }
+            }
+
+            { // h
+                static char buff[8] = "";
+                if (ImGui::InputText("height##r_h", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+
+                }
+            }
+            ImGui::PopStyleColor();
+            ImGui::PopStyleVar();
+            ImGui::NewLine();
+        }
+
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        if (ImGui::CollapsingHeader("Resize", ImGuiTreeNodeFlags_Framed)) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
+            { // w
+                static char buff[8] = "";
+                if (ImGui::InputText("width##e_w", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+
+                }
+            }
+
+            { // h
+                static char buff[8] = "";
+                if (ImGui::InputText("height##e_h", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+
+                }
+            }
+
+            ImGui::Checkbox("Linear interpolation", &dt_state.config.resize.linear);
+
+            ImGui::PopStyleColor();
+            ImGui::PopStyleVar();
+            ImGui::NewLine();
+        }
+
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        if (ImGui::CollapsingHeader("Mirror", ImGuiTreeNodeFlags_Framed)) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
+
+            ImGui::Checkbox("Horizontally", &dt_state.config.flip.flip_h);
+
+            ImGui::Checkbox("Vertically", &dt_state.config.flip.flip_v);
+
+            ImGui::PopStyleColor();
+            ImGui::PopStyleVar();
+            ImGui::NewLine();
+        }
+
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        if (ImGui::CollapsingHeader("Rotate", ImGuiTreeNodeFlags_Framed)) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
+
+            int op = static_cast<int>(dt_state.config.rotate);
+
+            ImGui::RadioButton("None", &op, static_cast<int>(lnt::rotate_e::NONE));
+            ImGui::RadioButton("Clockwise 90º", &op, static_cast<int>(lnt::rotate_e::CW_1));
+
+            ImGui::PopStyleColor();
+            ImGui::PopStyleVar();
+            ImGui::NewLine();
+        }
 
         return true;
     }

@@ -242,4 +242,12 @@ namespace ex::logic::node::transform {
         ::memcpy(&config, &internal->state, sizeof(config_t));
         reset();
     }
+
+    unsigned TransformNode::get_image_w() const {
+        return internal->buffers.input.image.cols;
+    }
+
+    unsigned TransformNode::get_image_h() const {
+        return internal->buffers.input.image.rows;
+    }
 }

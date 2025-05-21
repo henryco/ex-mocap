@@ -29,8 +29,9 @@ namespace ex::logic::node::transform {
     };
 
     struct resize_t {
-        unsigned w;
-        unsigned h;
+        unsigned width;
+        unsigned height;
+        bool     linear;
     };
 
     struct config_t {
@@ -84,6 +85,10 @@ namespace ex::logic::node::transform {
         void enable();
 
         void reset();
+
+        unsigned get_image_w() const;
+
+        unsigned get_image_h() const;
 
         // ---- node properties ----
 
