@@ -6,7 +6,6 @@
 
 #include "../../../../headers/nodes/components/transform/transform_logic.h"
 #include "../../../../headers/logic/logic_globals.h"
-#include "../../../../headers/logic/logic_nodes.h"
 #include "../../../../headers/cl/cl_kernel.h"
 
 namespace ex::logic::node::transform {
