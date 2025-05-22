@@ -21,7 +21,7 @@ namespace ex::gui::node::transform {
 
         void fn_apply(const unsigned node, const lnt::config_t &data) {
             if (auto *instance = dynamic_cast<lnt::TransformNode *>(logic::state::get_node(node)))
-                instance->update(data);
+                instance->set_config(data);
         }
 
         // 1KB debounce queue

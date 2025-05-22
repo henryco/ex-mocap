@@ -78,21 +78,20 @@ namespace ex::logic::node::transform {
 
         // ---- component properties ----
 
+        void set_config(const config_t &);
+
         void set_image_id(id_type_16 id);
 
         id_type_16 get_image_id() const;
-
-        void disable();
-
-        void enable();
-
-        void reset();
 
         unsigned get_image_w() const;
 
         unsigned get_image_h() const;
 
-        void update(const config_t &);
+        void disable();
+
+        void enable();
+
 
         // ---- node properties ----
 

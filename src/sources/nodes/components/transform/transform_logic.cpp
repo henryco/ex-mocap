@@ -124,6 +124,12 @@ namespace ex::logic::node::transform {
         log->debug("transform node destroyed");
     }
 
+    static void reset(internal_t *internal) {
+        internal->buffers.image.release();
+        internal->buffers.output.image = internal->buffers.image;
+        internal->updates.state.refresh();
+    }
+
     limbo::graph::BaseNode *TransformNode::instance(TreeNode *from) {
         auto *instance = new TransformNode();
         instance->set_node_id(from->id_node);
@@ -134,7 +140,7 @@ namespace ex::logic::node::transform {
 
     limbo::graph::BaseNode *TransformNode::relocate(TreeNode *, limbo::graph::BaseNode *node) {
         if (auto *t = dynamic_cast<TransformNode *>(node))
-            t->reset();
+            reset(t->internal);
         return node;
     }
 
@@ -152,22 +158,16 @@ namespace ex::logic::node::transform {
     }
 
     void TransformNode::enable() {
+        reset(internal);
         internal->enabled = true;
-        reset();
     }
 
     void TransformNode::disable() {
         internal->enabled = false;
-        reset();
+        reset(internal);
     }
 
-    void TransformNode::reset() {
-        internal->buffers.image.release();
-        internal->buffers.output.image = internal->buffers.image;
-        internal->updates.state.refresh();
-    }
-
-    void TransformNode::update(const config_t &conf) {
+    void TransformNode::set_config(const config_t &conf) {
         config_t copy;
         ::memcpy(&copy, &conf, sizeof(config_t));
         if (copy.resize.width == get_image_w())
@@ -212,7 +212,6 @@ namespace ex::logic::node::transform {
 
         if (serial->on) {
             enable();
-            reset();
         } else {
             disable();
         }
@@ -224,7 +223,7 @@ namespace ex::logic::node::transform {
 
         const ocl::img_promise *promise = static_cast<const ocl::img_promise *>(data);
         if (promise == nullptr) {
-            reset();
+            reset(internal);
             return;
         }
 
@@ -241,7 +240,7 @@ namespace ex::logic::node::transform {
         ocl::image2d_t   *image = &internal->buffers.image;
 
         if (input->empty()) {
-            reset();
+            reset(internal);
             return;
         }
 
@@ -285,7 +284,7 @@ namespace ex::logic::node::transform {
     TransformNode::TransformNode() :
         internal(create_internal()) {
         ::memcpy(&config, &internal->state, sizeof(config_t));
-        reset();
+        reset(internal);
     }
 
     unsigned TransformNode::get_image_w() const {
