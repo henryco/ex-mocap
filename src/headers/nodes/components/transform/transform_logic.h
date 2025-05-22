@@ -59,7 +59,8 @@ namespace ex::logic::node::transform {
         //   └─> resize ─┐
         //        └─> flip ─┐
         //             └─> rotate
-        // read only
+        //
+        // read only, writes changes nothing
         config_t config;
 
 
