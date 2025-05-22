@@ -120,18 +120,18 @@ namespace ex::gui::node::transform {
 
             { // w
                 static char buff[8] = "";
-                ::sprintf(buff, "%hu", config.crop.end_x > 0 ? config.crop.end_x : trs_node->get_image_w());
+                ::sprintf(buff, "%hu", config.crop.width > 0 ? config.crop.width : trs_node->get_image_w());
                 if (ImGui::InputText(strings::node_component_transform_region_w, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
-                    config.crop.end_x = ::atoi(buff);
+                    config.crop.width = ::atoi(buff);
                     time_stack.push(time_now, node_id, config);
                 }
             }
 
             { // h
                 static char buff[8] = "";
-                ::sprintf(buff, "%hu", config.crop.end_y > 0 ? config.crop.end_y : trs_node->get_image_h());
+                ::sprintf(buff, "%hu", config.crop.height > 0 ? config.crop.height : trs_node->get_image_h());
                 if (ImGui::InputText(strings::node_component_transform_region_h, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
-                    config.crop.end_y = ::atoi(buff);
+                    config.crop.height = ::atoi(buff);
                     time_stack.push(time_now, node_id, config);
                 }
             }

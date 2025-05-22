@@ -24,8 +24,8 @@ namespace ex::logic::node::transform {
     struct crop_t {
         unsigned start_x;
         unsigned start_y;
-        unsigned end_x;
-        unsigned end_y;
+        unsigned width;
+        unsigned height;
     };
 
     struct resize_t {

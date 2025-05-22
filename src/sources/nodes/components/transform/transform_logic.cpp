@@ -26,6 +26,7 @@ namespace ex::logic::node::transform {
         cl_program program;
         cl_kernel  kernel;
         ::size_t   size_l;
+        bool       enabled;
     };
 
     struct internal_t {
@@ -53,31 +54,148 @@ namespace ex::logic::node::transform {
             ocl_kernel_transform_data,
             ocl_kernel_transform_data_size,
             "transform.cl");
-        kernel->kernel = xm::ocl::build_kernel(kernel->program, "kernel_transform");
-        kernel->size_l = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel);
+        kernel->enabled = false;
 
         log->debug("transform cl kernels created");
     }
 
-    static void update_kernels(kernels_t *kernel) {
+    static void update_kernels(internal_t *internal) {
         const ex::State &state = ex::logic::globals::state();
         log->debug("update transform cl kernels");
 
-        if (kernel->program == nullptr) {
-            kernel->program = xm::ocl::build_program(
-                    state.cl.context,
-                    state.cl.device,
-                    ocl_kernel_transform_data,
-                    ocl_kernel_transform_data_size,
-                    "transform.cl");
+        kernels_t *kernel = &internal->kernels;
+        config_t *config  = &internal->state;
+
+        if (kernel->kernel != nullptr) {
+            ::clReleaseKernel(kernel->kernel);
+            kernel->kernel = nullptr;
         }
 
-        if (kernel->kernel != nullptr)
-            ::clReleaseKernel(kernel->kernel);
+        if (kernel->program != nullptr) {
+            ::clReleaseProgram(kernel->program);
+            kernel->program = nullptr;
+        }
 
-        // TODO PARAMETERS
+        kernel->enabled = false;
+
+        int         buff_l = 0;
+        static char buff[1024];
+        ::memset(buff, 0, 1024);
+
+        {
+            const unsigned short iw = internal->buffers.input.image.cols;
+            const unsigned short ih = internal->buffers.input.image.rows;
+            buff_l += sprintf(buff + buff_l, " -DUSE_IW=%hu ", iw);
+            buff_l += sprintf(buff + buff_l, " -DUSE_IH=%hu ", ih);
+        }
+
+        if (config->rotate == rotate_e::CW_1) {
+            kernel->enabled = true;
+            buff_l += sprintf(buff + buff_l, " -DUSE_ROTATE=1 ");
+        }
+
+        if (config->flip.flip_h) {
+            kernel->enabled = true;
+            buff_l += sprintf(buff + buff_l, " -DUSE_FLIP_X=1 ");
+        }
+
+        if (config->flip.flip_v) {
+            kernel->enabled = true;
+            buff_l += sprintf(buff + buff_l, " -DUSE_FLIP_Y=1 ");
+        }
+
+        const float scale_w = 1.f,
+                    scale_h = 1.f;
+
+        // TODO SCALE PARAMS
+
+        if (config->crop.start_x > 0) {
+            kernel->enabled = true;
+            const unsigned short tx = config->crop.start_x * (scale_w > 1.f ? 1.f : scale_w);
+            buff_l += sprintf(buff + buff_l, " -DUSE_TRANSLATE_X=%hu ", tx);
+        }
+
+        if (config->crop.start_y > 0) {
+            kernel->enabled = true;
+            const unsigned short ty = config->crop.start_y * (scale_h > 1.f ? 1.f : scale_h);
+            buff_l += sprintf(buff + buff_l, " -DUSE_TRANSLATE_Y=%hu ", ty);
+        }
+
+        if (config->crop.width > 0) {
+            kernel->enabled = true;
+            const unsigned short dw = config->crop.width * (scale_w > 1.f ? 1.f : scale_w);
+            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_X=%hu ", dw);
+
+            if (config->rotate != rotate_e::CW_1) {
+                const unsigned short ow = config->crop.width * scale_w;
+                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", ow);
+            }
+        } else {
+            const unsigned short dw = internal->buffers.input.image.cols * (scale_w > 1.f ? 1.f : scale_w);
+            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_X=%hu ", dw);
+
+            if (config->rotate != rotate_e::CW_1) {
+                const unsigned short ow = internal->buffers.input.image.cols * scale_w;
+                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", ow);
+            }
+        }
+
+        if (config->crop.height > 0) {
+            kernel->enabled = true;
+            const unsigned short dh = config->crop.height * (scale_h > 1.f ? 1.f : scale_h);
+            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_Y=%hu ", dh);
+
+            if (config->rotate == rotate_e::CW_1) {
+                const unsigned short ow = config->crop.height * scale_h;
+                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", ow);
+            }
+        } else {
+            const unsigned short dh = internal->buffers.input.image.rows * (scale_h > 1.f ? 1.f : scale_h);
+            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_Y=%hu ", dh);
+
+            if (config->rotate == rotate_e::CW_1) {
+                const unsigned short ow = internal->buffers.input.image.rows * scale_h;
+                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", ow);
+            }
+        }
+
+        buff[buff_l + 1] = '\0';
+
+        unsigned int output_size_w = 0,
+                     output_size_h = 0;
+
+        if (config->rotate == rotate_e::CW_1) {
+            output_size_w = internal->buffers.input.image.rows * scale_h;
+            output_size_h = internal->buffers.input.image.cols * scale_w;
+        } else {
+            output_size_w = internal->buffers.input.image.cols * scale_w;
+            output_size_h = internal->buffers.input.image.rows * scale_h;
+        }
+
+        std::cout << '\n' << "buff: " << buff << '\n' << '\n';
+
+        ocl::image2d_t *image = &internal->buffers.image;
+        image->release();
+        *image = ex::ocl::Image2D::allocate(
+                output_size_w,
+                output_size_h,
+                4,
+                1,
+                state.cl.context);
+
+        if (!kernel->enabled) {
+            log->debug("transform cl kernels disabled (skip)");
+            return;
+        }
+
+        kernel->program = xm::ocl::build_program(
+                state.cl.context,
+                state.cl.device,
+                ocl_kernel_transform_data,
+                ocl_kernel_transform_data_size,
+                "transform.cl",
+                buff);
         kernel->kernel = xm::ocl::build_kernel(kernel->program, "kernel_transform");
-
         kernel->size_l = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel);
 
         log->debug("transform cl kernels updated");
@@ -175,17 +293,17 @@ namespace ex::logic::node::transform {
         if (copy.resize.height == get_image_h())
             copy.resize.height = 0;
 
-        if (copy.crop.end_x == get_image_w())
-            copy.crop.end_x = 0;
-        if (copy.crop.end_y == get_image_h())
-            copy.crop.end_y = 0;
+        if (copy.crop.width == get_image_w())
+            copy.crop.width = 0;
+        if (copy.crop.height == get_image_h())
+            copy.crop.height = 0;
 
         if (0 == ::memcmp(&copy, &internal->state, sizeof(config_t)))
             return;
 
         ::memcpy(&internal->state, &copy, sizeof(config_t));
-        update_kernels(&internal->kernels);
-        ::memcpy(&config, &internal->state, sizeof(config_t));
+        ::memcpy(&config, &copy, sizeof(config_t));
+        reset(internal);
     }
 
     io::byte_array TransformNode::serialize() const {
@@ -252,19 +370,20 @@ namespace ex::logic::node::transform {
             return;
         }
 
-        if (input->image.size() != image->size() || image->detached() || image->empty()) {
-            image->release();
-            *image = ex::ocl::Image2D::allocate_like(input->image, state.cl.context);
+        if (image->detached() || image->empty()) {
+            update_kernels(internal);
+            // TODO FIX ?
+            ::memcpy(&config, &internal->state, sizeof(config_t));
         }
 
-        {
-            // TODO REPLACE WITH KERNELS
-            ocl::promise_t promise = ex::ocl::ops::copy_data(*input, *image);
-            internal->buffers.output.image              = *image;
-            internal->buffers.output.queue              = promise.queue;
-            internal->buffers.output.image.header.fresh = true;
-            // TODO REPLACE WITH KERNELS
-        }
+//        {
+//            // TODO REPLACE WITH KERNELS
+//            ocl::promise_t promise = ex::ocl::ops::copy_data(*input, *image);
+//            internal->buffers.output.image              = *image;
+//            internal->buffers.output.queue              = promise.queue;
+//            internal->buffers.output.image.header.fresh = true;
+//            // TODO REPLACE WITH KERNELS
+//        }
     }
 
     void *TransformNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
