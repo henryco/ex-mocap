@@ -102,29 +102,37 @@ namespace ex::gui::node::transform {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
             { // x0
                 static char buff[8] = "";
+                ::sprintf(buff, "%hu", config.crop.start_x);
                 if (ImGui::InputText(strings::node_component_transform_region_x0, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
-
+                    config.crop.start_x = ::atoi(buff);
+                    time_stack.push(time_now, node_id, config);
                 }
             }
 
             { // y0
                 static char buff[8] = "";
+                ::sprintf(buff, "%hu", config.crop.start_y);
                 if (ImGui::InputText(strings::node_component_transform_region_y0, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
-
+                    config.crop.start_y = ::atoi(buff);
+                    time_stack.push(time_now, node_id, config);
                 }
             }
 
             { // w
                 static char buff[8] = "";
+                ::sprintf(buff, "%hu", config.crop.end_x > 0 ? config.crop.end_x : trs_node->get_image_w());
                 if (ImGui::InputText(strings::node_component_transform_region_w, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
-
+                    config.crop.end_x = ::atoi(buff);
+                    time_stack.push(time_now, node_id, config);
                 }
             }
 
             { // h
                 static char buff[8] = "";
+                ::sprintf(buff, "%hu", config.crop.end_y > 0 ? config.crop.end_y : trs_node->get_image_h());
                 if (ImGui::InputText(strings::node_component_transform_region_h, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
-
+                    config.crop.end_y = ::atoi(buff);
+                    time_stack.push(time_now, node_id, config);
                 }
             }
             ImGui::PopStyleColor();
@@ -138,15 +146,19 @@ namespace ex::gui::node::transform {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
             { // w
                 static char buff[8] = "";
+                ::sprintf(buff, "%hu", config.resize.width > 0 ? config.resize.width : trs_node->get_image_w());
                 if (ImGui::InputText(strings::node_component_transform_resize_w, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
-
+                    config.resize.width = ::atoi(buff);
+                    time_stack.push(time_now, node_id, config);
                 }
             }
 
             { // h
                 static char buff[8] = "";
+                ::sprintf(buff, "%hu", config.resize.height > 0 ? config.resize.height : trs_node->get_image_h());
                 if (ImGui::InputText(strings::node_component_transform_resize_h, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
-
+                    config.resize.height = ::atoi(buff);
+                    time_stack.push(time_now, node_id, config);
                 }
             }
 
@@ -179,13 +191,17 @@ namespace ex::gui::node::transform {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
 
-            int *op = reinterpret_cast<int *>(&config.rotate);
+            int op = static_cast<int>(config.rotate);
 
-            if (ImGui::RadioButton(strings::node_component_transform_rotate_0, op, static_cast<int>(lnt::rotate_e::NONE)))
+            if (ImGui::RadioButton(strings::node_component_transform_rotate_0, &op, static_cast<int>(lnt::rotate_e::NONE))) {
+                config.rotate = static_cast<lnt::rotate_e>(op);
                 time_stack.push(time_now, node_id, config);
+            }
 
-            if (ImGui::RadioButton(strings::node_component_transform_rotate_90, op, static_cast<int>(lnt::rotate_e::CW_1)))
+            if (ImGui::RadioButton(strings::node_component_transform_rotate_90, &op, static_cast<int>(lnt::rotate_e::CW_1))) {
+                config.rotate = static_cast<lnt::rotate_e>(op);
                 time_stack.push(time_now, node_id, config);
+            }
 
             ImGui::PopStyleColor();
             ImGui::PopStyleVar();

@@ -144,6 +144,7 @@ namespace ex::logic::node::transform {
     }
 
     void TransformNode::update(const config_t &conf) {
+        log-> debug("update transform kernel");
         // todo recompile kerne;
     }
 
