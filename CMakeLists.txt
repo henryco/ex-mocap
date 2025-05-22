@@ -115,6 +115,7 @@ set(EXTRA_FILES
         extra/worker/worker.cpp
         extra/data/struct/dcas_buffer.h
         extra/data/struct/spinlock.h
+        extra/data/struct/time_stack.h
 )
 
 set(PLATFORM_FILES

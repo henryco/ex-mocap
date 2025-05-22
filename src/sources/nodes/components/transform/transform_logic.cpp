@@ -143,6 +143,10 @@ namespace ex::logic::node::transform {
         internal->updates.state.refresh();
     }
 
+    void TransformNode::update(const config_t &conf) {
+        // todo recompile kerne;
+    }
+
     io::byte_array TransformNode::serialize() const {
         constexpr int total_size = sizeof(serial_t);
 

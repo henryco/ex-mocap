@@ -2,10 +2,10 @@
 // Created by xd on 18/05/25.
 //
 
+#include "../../../../../extra/data/struct/time_stack.h"
 #include "../../../../headers/nodes/components/transform/transform_gui.h"
 #include "../../../../headers/nodes/components/transform/transform_logic.h"
 #include "../../../../headers/imgui/strings/gui_strings.h"
-#include "../../../../headers/logic/logic_globals.h"
 #include "../../../../headers/logic/logic_mappers.h"
 #include "../../../../headers/logic/logic_state.h"
 #include "../../../../headers/utils/gui_utils.h"
@@ -17,6 +17,16 @@
 namespace ex::gui::node::transform {
 
     namespace {
+        namespace lnt = logic::node::transform;
+
+        void fn_apply(const unsigned node, const lnt::config_t &data) {
+            if (auto *instance = dynamic_cast<lnt::TransformNode *>(logic::state::get_node(node)))
+                instance->update(data);
+        }
+
+        // 1KB
+        data::time_stack<23, id_type_32, lnt::config_t, &fn_apply> time_stack;
+
         const char *prev_name_() {
             static char out_name[128];
             sprintf(out_name, "%s %s", ICON_LC_SCALING, strings::node_component_transform_name);
@@ -52,21 +62,19 @@ namespace ex::gui::node::transform {
     }
 
     bool draw_node_window(GuiNodeWindow *window) {
-        namespace lnt  = logic::node::transform;
-        auto *trs_node = dynamic_cast<lnt::TransformNode *>(
-                ex::logic::state::get_node(window->node->id_node));
-        if (trs_node == nullptr || trs_node->get_node_id() != window->node->id_node)
+        const id_type_32 node_id = window->node->id_node;
+
+        auto *trs_node = dynamic_cast<lnt::TransformNode *>(logic::state::get_node(node_id));
+        if (trs_node == nullptr || trs_node->get_node_id() != node_id)
             return true;
 
-        static struct {
-            lnt::config_t config;
-            unsigned      node;
-            double        dt;
-        } dt_state; // TODO
+        const double time_now = ImGui::GetTime();
 
-        {
-            dt_state.config = trs_node->config;
-        }
+        lnt::config_t config;
+        if (const lnt::config_t *state = time_stack.retrieve_consume(node_id, time_now, .25))
+            ::memcpy(&config, state, sizeof(lnt::config_t));
+        else
+            ::memcpy(&config, &trs_node->config, sizeof(lnt::config_t));
 
         {
             ImGui::SeparatorText(strings::node_component_transform_id);
@@ -142,7 +150,8 @@ namespace ex::gui::node::transform {
                 }
             }
 
-            ImGui::Checkbox("Linear interpolation", &dt_state.config.resize.linear);
+            if (ImGui::Checkbox("Linear interpolation", &config.resize.linear))
+                time_stack.push(time_now, node_id, config);
 
             ImGui::PopStyleColor();
             ImGui::PopStyleVar();
@@ -154,9 +163,11 @@ namespace ex::gui::node::transform {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
 
-            ImGui::Checkbox("Horizontally", &dt_state.config.flip.flip_h);
+            if (ImGui::Checkbox("Horizontally", &config.flip.flip_h))
+                time_stack.push(time_now, node_id, config);
 
-            ImGui::Checkbox("Vertically", &dt_state.config.flip.flip_v);
+            if (ImGui::Checkbox("Vertically", &config.flip.flip_v))
+                time_stack.push(time_now, node_id, config);
 
             ImGui::PopStyleColor();
             ImGui::PopStyleVar();
@@ -168,10 +179,12 @@ namespace ex::gui::node::transform {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
 
-            int op = static_cast<int>(dt_state.config.rotate);
+            int *op = reinterpret_cast<int *>(&config.rotate);
 
-            ImGui::RadioButton("None", &op, static_cast<int>(lnt::rotate_e::NONE));
-            ImGui::RadioButton("Clockwise 90º", &op, static_cast<int>(lnt::rotate_e::CW_1));
+            if (ImGui::RadioButton("None", op, static_cast<int>(lnt::rotate_e::NONE)))
+                time_stack.push(time_now, node_id, config);
+            if (ImGui::RadioButton("Clockwise 90º", op, static_cast<int>(lnt::rotate_e::CW_1)))
+                time_stack.push(time_now, node_id, config);
 
             ImGui::PopStyleColor();
             ImGui::PopStyleVar();

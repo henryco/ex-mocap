@@ -59,6 +59,7 @@ namespace ex::logic::node::transform {
         //   └─> resize ─┐
         //        └─> flip ─┐
         //             └─> rotate
+        // read only
         config_t config;
 
 
@@ -89,6 +90,8 @@ namespace ex::logic::node::transform {
         unsigned get_image_w() const;
 
         unsigned get_image_h() const;
+
+        void update(const config_t &);
 
         // ---- node properties ----
 
