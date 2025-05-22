@@ -71,7 +71,7 @@ namespace ex::gui::node::transform {
         const double time_now = ImGui::GetTime();
 
         lnt::config_t config;
-        if (const lnt::config_t *state = time_stack.retrieve_consume(node_id, time_now, .25))
+        if (const lnt::config_t *state = time_stack.retrieve_consume(node_id, time_now, .5))
             ::memcpy(&config, state, sizeof(lnt::config_t));
         else
             ::memcpy(&config, &trs_node->config, sizeof(lnt::config_t));
@@ -97,33 +97,33 @@ namespace ex::gui::node::transform {
 
         ImGui::NewLine();
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-        if (ImGui::CollapsingHeader("Region" "##reg", ImGuiTreeNodeFlags_Framed)) {
+        if (ImGui::CollapsingHeader(strings::node_component_transform_region, ImGuiTreeNodeFlags_Framed)) {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
             { // x0
                 static char buff[8] = "";
-                if (ImGui::InputText("x0" "##r_xo", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+                if (ImGui::InputText(strings::node_component_transform_region_x0, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
 
                 }
             }
 
             { // y0
                 static char buff[8] = "";
-                if (ImGui::InputText("y0" "##r_y0", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+                if (ImGui::InputText(strings::node_component_transform_region_y0, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
 
                 }
             }
 
             { // w
                 static char buff[8] = "";
-                if (ImGui::InputText("width" "##r_w", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+                if (ImGui::InputText(strings::node_component_transform_region_w, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
 
                 }
             }
 
             { // h
                 static char buff[8] = "";
-                if (ImGui::InputText("height" "##r_h", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+                if (ImGui::InputText(strings::node_component_transform_region_h, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
 
                 }
             }
@@ -133,24 +133,24 @@ namespace ex::gui::node::transform {
         }
 
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-        if (ImGui::CollapsingHeader("Resize " "##res", ImGuiTreeNodeFlags_Framed)) {
+        if (ImGui::CollapsingHeader(strings::node_component_transform_resize, ImGuiTreeNodeFlags_Framed)) {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
             { // w
                 static char buff[8] = "";
-                if (ImGui::InputText("width" "##e_w", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+                if (ImGui::InputText(strings::node_component_transform_resize_w, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
 
                 }
             }
 
             { // h
                 static char buff[8] = "";
-                if (ImGui::InputText("height" "##e_h", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+                if (ImGui::InputText(strings::node_component_transform_resize_h, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
 
                 }
             }
 
-            if (ImGui::Checkbox("Linear interpolation" "##e_l", &config.resize.linear))
+            if (ImGui::Checkbox(strings::node_component_transform_resize_l, &config.resize.linear))
                 time_stack.push(time_now, node_id, config);
 
             ImGui::PopStyleColor();
@@ -159,14 +159,14 @@ namespace ex::gui::node::transform {
         }
 
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-        if (ImGui::CollapsingHeader("Mirror" "##irr", ImGuiTreeNodeFlags_Framed)) {
+        if (ImGui::CollapsingHeader(strings::node_component_transform_mirror, ImGuiTreeNodeFlags_Framed)) {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
 
-            if (ImGui::Checkbox("Horizontally" "##hor", &config.flip.flip_h))
+            if (ImGui::Checkbox(strings::node_component_transform_mirror_h, &config.flip.flip_h))
                 time_stack.push(time_now, node_id, config);
 
-            if (ImGui::Checkbox("Vertically" "##ver", &config.flip.flip_v))
+            if (ImGui::Checkbox(strings::node_component_transform_mirror_v, &config.flip.flip_v))
                 time_stack.push(time_now, node_id, config);
 
             ImGui::PopStyleColor();
@@ -175,16 +175,16 @@ namespace ex::gui::node::transform {
         }
 
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-        if (ImGui::CollapsingHeader("Rotate" "##rot", ImGuiTreeNodeFlags_Framed)) {
+        if (ImGui::CollapsingHeader(strings::node_component_transform_rotate, ImGuiTreeNodeFlags_Framed)) {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
 
             int *op = reinterpret_cast<int *>(&config.rotate);
 
-            if (ImGui::RadioButton("None" "##non", op, static_cast<int>(lnt::rotate_e::NONE)))
+            if (ImGui::RadioButton(strings::node_component_transform_rotate_0, op, static_cast<int>(lnt::rotate_e::NONE)))
                 time_stack.push(time_now, node_id, config);
 
-            if (ImGui::RadioButton("Clockwise 90º" "##cw90", op, static_cast<int>(lnt::rotate_e::CW_1)))
+            if (ImGui::RadioButton(strings::node_component_transform_rotate_90, op, static_cast<int>(lnt::rotate_e::CW_1)))
                 time_stack.push(time_now, node_id, config);
 
             ImGui::PopStyleColor();
