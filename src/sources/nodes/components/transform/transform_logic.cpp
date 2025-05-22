@@ -59,6 +59,30 @@ namespace ex::logic::node::transform {
         log->debug("transform cl kernels created");
     }
 
+    static void update_kernels(kernels_t *kernel) {
+        const ex::State &state = ex::logic::globals::state();
+        log->debug("update transform cl kernels");
+
+        if (kernel->program == nullptr) {
+            kernel->program = xm::ocl::build_program(
+                    state.cl.context,
+                    state.cl.device,
+                    ocl_kernel_transform_data,
+                    ocl_kernel_transform_data_size,
+                    "transform.cl");
+        }
+
+        if (kernel->kernel != nullptr)
+            ::clReleaseKernel(kernel->kernel);
+
+        // TODO PARAMETERS
+        kernel->kernel = xm::ocl::build_kernel(kernel->program, "kernel_transform");
+
+        kernel->size_l = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel);
+
+        log->debug("transform cl kernels updated");
+    }
+
     static void release_kernels(kernels_t *kernel) {
         if (kernel == nullptr)
             return;
@@ -144,8 +168,24 @@ namespace ex::logic::node::transform {
     }
 
     void TransformNode::update(const config_t &conf) {
-        log-> debug("update transform kernel");
-        // todo recompile kerne;
+        config_t copy;
+        ::memcpy(&copy, &conf, sizeof(config_t));
+        if (copy.resize.width == get_image_w())
+            copy.resize.width = 0;
+        if (copy.resize.height == get_image_h())
+            copy.resize.height = 0;
+
+        if (copy.crop.end_x == get_image_w())
+            copy.crop.end_x = 0;
+        if (copy.crop.end_y == get_image_h())
+            copy.crop.end_y = 0;
+
+        if (0 == ::memcmp(&copy, &internal->state, sizeof(config_t)))
+            return;
+
+        ::memcpy(&internal->state, &copy, sizeof(config_t));
+        update_kernels(&internal->kernels);
+        ::memcpy(&config, &internal->state, sizeof(config_t));
     }
 
     io::byte_array TransformNode::serialize() const {
