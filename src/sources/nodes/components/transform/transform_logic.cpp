@@ -263,8 +263,8 @@ namespace ex::logic::node::transform {
 
     static void reset(internal_t *internal) {
         internal->buffers.image.release();
-        internal->buffers.output.image = internal->buffers.image;
         internal->updates.state.refresh();
+        internal->buffers.output.image = internal->buffers.image;
     }
 
     limbo::graph::BaseNode *TransformNode::instance(TreeNode *from) {
@@ -428,6 +428,7 @@ namespace ex::logic::node::transform {
         if (image->detached() || image->empty()) {
             update_kernels(internal);
             ::memcpy(&config, &internal->state, sizeof(config_t));
+            // TODO FIXME
         }
 
         if (!internal->kernels.enabled) {
