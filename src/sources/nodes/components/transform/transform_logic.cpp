@@ -410,18 +410,31 @@ namespace ex::logic::node::transform {
         }
 
         if (!internal->kernels.enabled) {
-            internal->buffers.output.image = input->image;
-            internal->buffers.output.queue = input->queue;
+            internal->buffers.output.image              = input->image;
+            internal->buffers.output.queue              = input->queue;
+            internal->buffers.output.image.header.fresh = true;
             return;
         }
-//        {
-//            // TODO REPLACE WITH KERNELS
-//            ocl::promise_t promise = ex::ocl::ops::copy_data(*input, *image);
-//            internal->buffers.output.image              = *image;
-//            internal->buffers.output.queue              = promise.queue;
-//            internal->buffers.output.image.header.fresh = true;
-//            // TODO REPLACE WITH KERNELS
-//        }
+
+        const ::size_t pref_size = internal->kernels.size_l;
+        ::size_t       l_size[2] = { pref_size, pref_size };
+        ::size_t       g_size[2] = { xm::ocl::optimal_global_size(input->image.cols, pref_size),
+                                     xm::ocl::optimal_global_size(input->image.rows, pref_size) };
+
+        cl_mem buffer_in  = input->image.handle;
+        cl_mem buffer_out = image->handle;
+
+        xm::ocl::set_kernel_arg(internal->kernels.kernel, 0, sizeof(cl_mem), &buffer_in);
+        xm::ocl::set_kernel_arg(internal->kernels.kernel, 1, sizeof(cl_mem), &buffer_out);
+
+        xm::ocl::enqueue_kernel_fast(
+                input->queue, internal->kernels.kernel,
+                2,
+                g_size,
+                l_size);
+
+        internal->buffers.output = { *image, input->queue, false };
+        internal->buffers.output.image.header.fresh = true;
     }
 
     void *TransformNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
