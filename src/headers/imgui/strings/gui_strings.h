@@ -152,6 +152,7 @@ namespace ex::gui::strings {
     constexpr auto node_component_camera_name      = "Camera";
     constexpr auto node_component_camera_mode      = "Device Mode";
     constexpr auto node_component_camera_device    = "Camera Device";
+    constexpr auto node_component_camera_controls  = "Camera Controls";
     constexpr auto node_component_camera_refresh   = "Refresh";
     constexpr auto node_component_camera_reset     = "Reset";
     constexpr auto node_component_camera_reset_all = " Reset Settings ";

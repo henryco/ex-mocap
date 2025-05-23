@@ -5,7 +5,6 @@
 #include "../../../../headers/nodes/components/camera/camera_gui.h"
 #include "../../../../headers/nodes/components/camera/camera_logic.h"
 #include "../../../../headers/imgui/strings/gui_strings.h"
-#include "../../../../headers/logic/logic_globals.h"
 #include "../../../../headers/logic/logic_mappers.h"
 #include "../../../../headers/logic/logic_state.h"
 #include "../../../../headers/utils/gui_utils.h"
@@ -295,8 +294,10 @@ namespace ex::gui::node::camera {
         }
 
         ImGui::NewLine();
+        ImGui::NewLine();
 
-        {
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        if (ImGui::CollapsingHeader(strings::node_component_camera_controls, ImGuiTreeNodeFlags_Framed)) {
             if (prev_change.id != -1 && prev_change.dt != -1) {
                 const double dt = ImGui::GetTime() - prev_change.dt;
                 if (dt >= 0.25) {
@@ -315,8 +316,6 @@ namespace ex::gui::node::camera {
                     continue;
 
                 int value = item.value;
-
-                ImGui::NewLine();
 
                 ImGui::PushID(i);
                 ImGui::SeparatorText(item.name);
@@ -391,6 +390,7 @@ namespace ex::gui::node::camera {
                 }
 
                 ImGui::PopID();
+                ImGui::NewLine();
             }
         }
 
