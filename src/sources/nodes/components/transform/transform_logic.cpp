@@ -105,6 +105,9 @@ namespace ex::logic::node::transform {
         const float scale_w = 1.f,
                     scale_h = 1.f;
 
+        unsigned int output_size_w = 0,
+                     output_size_h = 0;
+
         if (config->resize.linear) {
             buff_l += sprintf(buff + buff_l, " -DUSE_DOWNSCALE_LIN=1 ");
         }
@@ -129,20 +132,27 @@ namespace ex::logic::node::transform {
             const unsigned short dw = config->crop.end_x * clamp(scale_w, 1.f);
             buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_X=%hu ", (dw - tx));
 
+            const unsigned short ox = config->crop.start_x * scale_w;
+            const unsigned short ow = config->crop.end_x * scale_w;
             if (config->rotate != rotate_e::CW_1) {
-                const unsigned short ox = config->crop.start_x * scale_w;
-                const unsigned short ow = config->crop.end_x * scale_w;
-                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", (ow - ox));
+                output_size_w = ow - ox;
+                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", output_size_w);
+            } else {
+                output_size_h = ow - ox;
             }
+
         } else {
             const unsigned short tx = config->crop.start_x * clamp(scale_w, 1.f);
             const unsigned short dw = internal->buffers.input.image.cols * clamp(scale_w, 1.f);
             buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_X=%hu ", (dw - tx));
 
+            const unsigned short ox = config->crop.start_x * scale_w;
+            const unsigned short ow = internal->buffers.input.image.cols * scale_w;
             if (config->rotate != rotate_e::CW_1) {
-                const unsigned short ox = config->crop.start_x * scale_w;
-                const unsigned short ow = internal->buffers.input.image.cols * scale_w;
-                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", (ow - ox));
+                output_size_w = ow - ox;
+                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", output_size_w);
+            } else {
+                output_size_h = ow - ox;
             }
         }
 
@@ -152,37 +162,34 @@ namespace ex::logic::node::transform {
             const unsigned short dh = config->crop.end_y * clamp(scale_h, 1.f);
             buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_Y=%hu ", (dh - ty));
 
+            const unsigned short ox = config->crop.start_y * scale_h;
+            const unsigned short ow = config->crop.end_y * scale_h;
             if (config->rotate == rotate_e::CW_1) {
-                const unsigned short ox = config->crop.start_y * scale_h;
-                const unsigned short ow = config->crop.end_y * scale_h;
-                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", (ow - ox));
+                output_size_w = ow - ox;
+                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", output_size_w);
             }
+            else {
+                output_size_h = ow - ox;
+            }
+
         } else {
             const unsigned short ty = config->crop.start_y * clamp(scale_h, 1.f);
             const unsigned short dh = internal->buffers.input.image.rows * clamp(scale_h, 1.f);
             buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_Y=%hu ", (dh - ty));
 
+            const unsigned short ox = config->crop.start_y * scale_h;
+            const unsigned short ow = internal->buffers.input.image.rows * scale_h;
             if (config->rotate == rotate_e::CW_1) {
-                const unsigned short ox = config->crop.start_y * scale_h;
-                const unsigned short ow = internal->buffers.input.image.rows * scale_h;
-                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", (ow - ox));
+                output_size_w = ow - ox;
+                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", output_size_w);
+            } else {
+                output_size_h = ow - ox;
             }
         }
 
         buff[buff_l + 1] = '\0';
 
-        unsigned int output_size_w = 0,
-                     output_size_h = 0;
-
-        if (config->rotate == rotate_e::CW_1) {
-            output_size_w = internal->buffers.input.image.rows * scale_h;
-            output_size_h = internal->buffers.input.image.cols * scale_w;
-        } else {
-            output_size_w = internal->buffers.input.image.cols * scale_w;
-            output_size_h = internal->buffers.input.image.rows * scale_h;
-        }
-
-        std::cout << '\n' << "buff: " << buff << '\n' << '\n';
+        log->debug("Transform cl kernel parameters: {}", buff);
 
         ocl::image2d_t *image = &internal->buffers.image;
         image->release();
