@@ -13,6 +13,7 @@ namespace ex::logic::node::transform {
     static const auto log = logs::get_logger("node_transform");
 
     struct updates_t {
+        void                     *prev_h; // prev input handle
         limbo::graph::UpdateState state;
         limbo::graph::UpdateState input;
     };
@@ -342,7 +343,7 @@ namespace ex::logic::node::transform {
         serial_t parcel;
         parcel.id     = internal->image_id;
         parcel.on     = internal->enabled;
-        parcel.config = config;
+        parcel.config = internal->state;
 
         unsigned char *bytes = static_cast<unsigned char *>(::malloc(total_size));
         ::memcpy(bytes, &parcel, total_size);
@@ -356,7 +357,8 @@ namespace ex::logic::node::transform {
 
         const serial_t *serial = reinterpret_cast<serial_t *>(array.data);
         ::memcpy(&internal->image_id, &serial->id, sizeof(id_type_16));
-        ::memcpy(&config, &serial->config, sizeof(serial_t));
+        ::memcpy(&internal->state, &serial->config, sizeof(config_t));
+        ::memcpy(&config, &serial->config, sizeof(config_t));
 
         if (serial->on) {
             enable();
@@ -380,12 +382,15 @@ namespace ex::logic::node::transform {
             return;
         }
 
-        internal->updates.input.refresh();
-
         if (internal->buffers.input.image.cols != promise->image.cols ||
-            internal->buffers.input.image.rows != promise->image.rows) {
+            internal->buffers.input.image.rows != promise->image.rows ||
+            internal->updates.prev_h != promise->image.handle) {
+
+            internal->updates.prev_h  = promise->image.handle;
             internal->buffers.input = *promise;
+
             if (!promise->empty()) {
+                internal->updates.input.refresh();
                 internal->updates.state.refresh();
                 update_kernels(internal);
                 ::memcpy(&config, &internal->state, sizeof(config_t));
@@ -393,6 +398,7 @@ namespace ex::logic::node::transform {
             return;
         }
 
+        internal->updates.input.refresh();
         internal->buffers.input = *promise;
     }
 
@@ -460,17 +466,6 @@ namespace ex::logic::node::transform {
         return target;
     }
 
-    TransformNode::~TransformNode() {
-        destroy_internal(internal);
-        internal = nullptr;
-    }
-
-    TransformNode::TransformNode() :
-        internal(create_internal()) {
-        ::memcpy(&config, &internal->state, sizeof(config_t));
-        reset(internal);
-    }
-
     unsigned TransformNode::get_input_w() const {
         return internal->buffers.input.image.cols;
     }
@@ -485,5 +480,16 @@ namespace ex::logic::node::transform {
 
     unsigned TransformNode::get_output_h() const {
         return internal->buffers.image.rows;
+    }
+
+    TransformNode::~TransformNode() {
+        destroy_internal(internal);
+        internal = nullptr;
+    }
+
+    TransformNode::TransformNode() :
+        internal(create_internal()) {
+        ::memcpy(&config, &internal->state, sizeof(config_t));
+        reset(internal);
     }
 }
