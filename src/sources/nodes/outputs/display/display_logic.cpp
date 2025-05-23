@@ -99,16 +99,21 @@ namespace ex::logic::node::out {
         if (!promise_worker_.completed())
             return;
 
-        if (img.header.fresh || img.handle != prev_ || image_.detached())
+        if (img.header.fresh || img.id != prev_ || image_.detached())
             updates_.refresh();
 
         if (!updates_.fresh())
             return;
 
-        if (img.handle != prev_ || img.size() != image_.size() || image_.detached()) {
+        if (img.id != prev_ ||
+            img.size() != image_.size() ||
+            img.cols != image_.cols ||
+            img.rows != image_.rows ||
+            image_.detached())
+        {
             image_.release();
             image_ = ex::ocl::Image2D::allocate_like(img, state.cl.context);
-            prev_  = img.handle;
+            prev_  = img.id;
         }
 
         // copy to internal cl_mem buffer

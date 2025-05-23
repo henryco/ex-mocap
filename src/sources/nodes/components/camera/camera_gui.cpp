@@ -107,10 +107,13 @@ namespace ex::gui::node::camera {
 
             const auto input_pos  = ImGui::GetCursorScreenPos();
             const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
+
+            ImGui::BeginDisabled(true);
             ImGui::SetNextItemWidth(input_size.x);
             if (ImGui::InputText("###CameraID", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
                 cam_node->set_image_id(::atoi(buff));
             }
+            ImGui::EndDisabled();
 
             constexpr float alpha = 1.f;
             ImGui::GetWindowDrawList()->AddRect(input_pos,

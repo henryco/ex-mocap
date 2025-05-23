@@ -13,7 +13,7 @@ namespace ex::logic::node::transform {
     static const auto log = logs::get_logger("node_transform");
 
     struct updates_t {
-        void                     *prev_h; // prev input handle
+        id_type_16                prev_h;
         limbo::graph::UpdateState state;
         limbo::graph::UpdateState input;
     };
@@ -385,9 +385,9 @@ namespace ex::logic::node::transform {
 
         if (internal->buffers.input.image.cols != promise->image.cols ||
             internal->buffers.input.image.rows != promise->image.rows ||
-            internal->updates.prev_h != promise->image.handle) {
+            internal->updates.prev_h != promise->image.id) {
 
-            internal->updates.prev_h  = promise->image.handle;
+            internal->updates.prev_h  = promise->image.id;
             internal->buffers.input = *promise;
 
             if (!promise->empty()) {
@@ -428,7 +428,6 @@ namespace ex::logic::node::transform {
         if (image->detached() || image->empty()) {
             update_kernels(internal);
             ::memcpy(&config, &internal->state, sizeof(config_t));
-            // TODO FIXME
         }
 
         if (!internal->kernels.enabled) {

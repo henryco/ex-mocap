@@ -18,7 +18,7 @@ namespace ex::logic::node::out {
         const char   *display_n = nullptr;
         unsigned int  display_i = 0;
 
-        void *prev_ = nullptr;
+        id_type_32 prev_ = 0;
 
         // GL/CL/ETC interop internal
         unsigned char   *data_ = nullptr;
