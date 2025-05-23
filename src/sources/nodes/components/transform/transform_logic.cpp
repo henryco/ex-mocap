@@ -45,17 +45,10 @@ namespace ex::logic::node::transform {
     };
 
     static void create_kernels(kernels_t *kernel) {
-        const ex::State &state = ex::logic::globals::state();
         log->debug("create transform cl kernels");
-
-        kernel->program = xm::ocl::build_program(
-            state.cl.context,
-            state.cl.device,
-            ocl_kernel_transform_data,
-            ocl_kernel_transform_data_size,
-            "transform.cl");
+        kernel->kernel  = nullptr;
+        kernel->program = nullptr;
         kernel->enabled = false;
-
         log->debug("transform cl kernels created");
     }
 
@@ -345,6 +338,17 @@ namespace ex::logic::node::transform {
             return;
         }
 
+        if (internal->buffers.input.image.cols != promise->image.cols ||
+            internal->buffers.input.image.rows != promise->image.rows) {
+            internal->buffers.input = *promise;
+            if (!promise->empty()) {
+                internal->updates.state.refresh();
+                update_kernels(internal);
+                ::memcpy(&config, &internal->state, sizeof(config_t));
+            }
+            return;
+        }
+
         internal->buffers.input = *promise;
     }
 
@@ -372,7 +376,6 @@ namespace ex::logic::node::transform {
 
         if (image->detached() || image->empty()) {
             update_kernels(internal);
-            // TODO FIX ?
             ::memcpy(&config, &internal->state, sizeof(config_t));
         }
 
