@@ -31,6 +31,8 @@ namespace ex::logic::node::sync {
 
         // ---- sync properties ----
 
+        float get_fps() const;
+
         void restart();
 
         void enable();

@@ -41,13 +41,14 @@ namespace ex::gui::node::sync {
     const char *get_node_preview();
     const char *get_node_name();
     void update_tree_node(const TreeNode *before, TreeNode *after);
+    bool draw_node_window(GuiNodeWindow *window);
 
     static constexpr GuiNodeMapper gui_mappers = {
         &get_node_name,
         &get_node_preview,
         &draw_tree_node,
         nullptr,
-        nullptr,
+        &draw_node_window,
         &update_tree_node,
         nullptr,
         nullptr,

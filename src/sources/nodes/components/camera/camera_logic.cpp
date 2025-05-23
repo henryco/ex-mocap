@@ -66,6 +66,7 @@ namespace ex::logic::node::sync {
         sync_t        synchro;
         lw::channel_p channel;
         unsigned long time_t0;
+        float         fps;
         bool          enabled;
         bool          enqueued;
     };
@@ -722,6 +723,10 @@ namespace ex::logic::node::sync {
         internal->enabled  = false;
     }
 
+    float SyncNode::get_fps() const {
+        return internal->fps;
+    }
+
     void SyncNode::on_update(const int clock_i) {
         if (!internal->enabled)
             return;
@@ -748,6 +753,7 @@ namespace ex::logic::node::sync {
         if (internal->time_t0 != 0) {
             const unsigned long dt = t1.time_since_epoch().count() - internal->time_t0;
             const float frame_rate = static_cast<float>(1000000000. / dt);
+            internal->fps = frame_rate;
             for (int i = 0; i < internal->synchro.size; ++i)
                 internal->synchro.camera[i]->timings.frame_rate = frame_rate;
         }

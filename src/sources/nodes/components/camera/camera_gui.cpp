@@ -13,6 +13,20 @@
 #include <simpfp.h>
 #include "imgui.h"
 
+namespace {
+    void push_fps_color(const float fps) {
+        if (static_cast<int>(fps) > 25) {
+            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 127, 0, 127));
+            return;
+        }
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(127, 0, 0, 127));
+    }
+
+    void pop_fps_color() {
+        ImGui::PopStyleColor();
+    }
+}
+
 namespace ex::gui::node::camera {
 
     namespace {
@@ -35,18 +49,6 @@ namespace ex::gui::node::camera {
             if (parcel->data != nullptr)
                 ::free(parcel->data);
             ::free(parcel);
-        }
-
-        void push_fps_color(const float fps) {
-            if (static_cast<int>(fps) > 25) {
-                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 127, 0, 127));
-                return;
-            }
-            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(127, 0, 0, 127));
-        }
-
-        void pop_fps_color() {
-            ImGui::PopStyleColor();
         }
     }
 
@@ -481,6 +483,34 @@ namespace ex::gui::node::sync {
             if (const auto base = dynamic_cast<ex::logic::node::sync::SyncNode *>(ex::logic::state::get_node(n->id_node)))
                 base->enable();
         }
+    }
+
+    bool draw_node_window(GuiNodeWindow *window) {
+        const id_type_32 id = window->node->id_node;
+        auto *sync_node = dynamic_cast<logic::node::sync::SyncNode *>(logic::state::get_node(id));
+        if (sync_node == nullptr)
+            return false;
+
+        const float fps = sync_node->inputs_.empty() ? 0.f : sync_node->get_fps();
+
+        push_fps_color(fps);
+        ImGui::TextWrapped("%s: %.4f FPS", strings::node_component_sync_fps, fps);
+        pop_fps_color();
+
+        ImGui::NewLine();
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        if (ImGui::CollapsingHeader(strings::node_component_sync_nodes, ImGuiTreeNodeFlags_Framed)) {
+            ImGui::Indent();
+            ImGui::BeginDisabled(true);
+            for (int i = 0; i < sync_node->inputs_.size; ++i) {
+                ImGui::BulletText("ID: %lu", sync_node->inputs_[i].node_ptr->get_node_id());
+            }
+            ImGui::EndDisabled();
+            ImGui::Unindent();
+            ImGui::NewLine();
+        }
+
+        return true;
     }
 
 }
