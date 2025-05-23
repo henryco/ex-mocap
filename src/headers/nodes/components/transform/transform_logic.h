@@ -84,6 +84,8 @@ namespace ex::logic::node::transform {
 
         id_type_16 get_image_id() const;
 
+        id_type_16 get_input_id() const;
+
         // actual width of input image
         unsigned get_input_w() const;
 

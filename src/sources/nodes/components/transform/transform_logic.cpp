@@ -294,6 +294,10 @@ namespace ex::logic::node::transform {
         return internal->image_id;
     }
 
+    id_type_16 TransformNode::get_input_id() const {
+        return internal->buffers.input.image.id;
+    }
+
     void TransformNode::enable() {
         reset(internal);
         internal->enabled = true;

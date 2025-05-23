@@ -18,12 +18,12 @@ namespace ex::gui::node::out::display {
     const char *get_node_name();
 
     static constexpr GuiNodeMapper gui_mappers = {
-        get_node_name,
-        get_node_preview,
-        draw_tree_node,
+        &get_node_name,
+        &get_node_preview,
+        &draw_tree_node,
         nullptr,
-        nullptr,
-        update_tree_node,
+        &draw_node_window,
+        &update_tree_node,
         nullptr
     };
 

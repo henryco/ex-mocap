@@ -99,6 +99,7 @@ namespace ex::gui::node::transform {
         }
 
         {
+            ImGui::TextDisabled("Input ID: %u", trs_node->get_input_id());
             ImGui::TextDisabled("Input  W: %u", trs_node->get_input_w());
             ImGui::TextDisabled("Input  H: %u", trs_node->get_input_h());
             ImGui::TextDisabled("Output W: %u", trs_node->get_output_w());

@@ -14,6 +14,8 @@
 
 namespace ex::gui::node::out::display {
 
+    namespace elno = ex::logic::node::out;
+
     unsigned long int get_node_type_id() {
         namespace elno = ex::logic::node::out;
         return elno::DisplayOutputNode::get_static_type_id();
@@ -26,10 +28,8 @@ namespace ex::gui::node::out::display {
     }
 
     void update_tree_node(const TreeNode *before, TreeNode *after) {
-        if (before == nullptr && after == nullptr)
+        if (before == nullptr || after == nullptr)
             return;
-
-        namespace elno = ex::logic::node::out;
 
         if (!(before->state >>= node_state::disabled) &&
             (after->state >>= node_state::disabled)) {
@@ -51,8 +51,18 @@ namespace ex::gui::node::out::display {
     }
 
     bool draw_node_window(GuiNodeWindow *window) {
-        const GuiState &gui = ex::gui::state();
-        ImGui::Text("Display: %d | %d | %d", window->docked, window->pinned, gui.view.docking);
+
+        const id_type_32 id = window->node->id_node;
+        auto *trs_node = dynamic_cast<elno::DisplayOutputNode *>(logic::state::get_node(id));
+        if (trs_node == nullptr || trs_node->get_node_id() != id)
+            return true;
+        {
+            ImGui::TextDisabled("Input ID: %u", trs_node->get_input_id());
+            ImGui::TextDisabled("Input  W: %u", trs_node->get_input_w());
+            ImGui::TextDisabled("Input  H: %u", trs_node->get_input_h());
+            ImGui::NewLine();
+        }
+
         return true;
     }
 
