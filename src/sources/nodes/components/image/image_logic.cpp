@@ -147,6 +147,14 @@ namespace ex::logic::node::image {
         updates_.refresh();
     }
 
+    unsigned ImageNode::get_image_w() const {
+        return image_.cols;
+    }
+
+    unsigned ImageNode::get_image_h() const {
+        return image_.rows;
+    }
+
     void ImageNode::on_input(int, int, int, void *) {
     }
 

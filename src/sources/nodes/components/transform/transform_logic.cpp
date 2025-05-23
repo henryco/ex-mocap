@@ -309,6 +309,11 @@ namespace ex::logic::node::transform {
         if (copy.resize.height == get_input_h())
             copy.resize.height = 0;
 
+        if (copy.crop.end_x == get_input_w())
+            copy.crop.end_x = 0;
+        if (copy.crop.end_y == get_input_h())
+            copy.crop.end_y = 0;
+
         if (0 == ::memcmp(&copy, &internal->state, sizeof(config_t)))
             return;
 

@@ -46,6 +46,10 @@ namespace ex::logic::node::image {
 
         void set_image(const char *image_path);
 
+        unsigned get_image_w() const;
+
+        unsigned get_image_h() const;
+
         io::byte_array serialize() const override;
 
         void deserialize(const io::byte_array &) override;

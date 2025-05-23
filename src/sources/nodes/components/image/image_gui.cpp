@@ -131,6 +131,12 @@ namespace ex::gui::node::image {
 
         ImGui::NewLine();
 
+        {
+            ImGui::TextDisabled("Width : %u", img_node->get_image_w());
+            ImGui::TextDisabled("Height: %u", img_node->get_image_h());
+            ImGui::NewLine();
+        }
+
         const char *source_file = nullptr;
         if (img_node->state.selected) {
             source_file = img_node->state.source;

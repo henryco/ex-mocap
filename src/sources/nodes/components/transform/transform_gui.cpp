@@ -97,8 +97,10 @@ namespace ex::gui::node::transform {
         }
 
         {
-            ImGui::TextDisabled("Width : %u", trs_node->get_input_w());
-            ImGui::TextDisabled("Height: %u", trs_node->get_input_h());
+            ImGui::TextDisabled("Input  W: %u", trs_node->get_input_w());
+            ImGui::TextDisabled("Input  H: %u", trs_node->get_input_h());
+            ImGui::TextDisabled("Output W: %u", trs_node->get_output_w());
+            ImGui::TextDisabled("Output H: %u", trs_node->get_output_h());
             ImGui::NewLine();
         }
 
