@@ -24,8 +24,8 @@ namespace ex::logic::node::transform {
     struct crop_t {
         unsigned start_x;
         unsigned start_y;
-        unsigned width;
-        unsigned height;
+        unsigned end_x;
+        unsigned end_y;
     };
 
     struct resize_t {
@@ -35,10 +35,10 @@ namespace ex::logic::node::transform {
     };
 
     struct config_t {
-        crop_t   crop;
+        resize_t resize;
         // │
         // V
-        resize_t resize;
+        crop_t   crop;
         // │
         // V
         flip_t   flip;
@@ -55,8 +55,8 @@ namespace ex::logic::node::transform {
     {
         // ---- exposed ----
 
-        //  crop ─┐
-        //   └─> resize ─┐
+        //  resize ─┐
+        //   └─> crop ─┐
         //        └─> flip ─┐
         //             └─> rotate
         //
@@ -84,9 +84,13 @@ namespace ex::logic::node::transform {
 
         id_type_16 get_image_id() const;
 
-        unsigned get_image_w() const;
+        unsigned get_input_w() const;
 
-        unsigned get_image_h() const;
+        unsigned get_input_h() const;
+
+        unsigned get_output_w() const;
+
+        unsigned get_output_h() const;
 
         void disable();
 

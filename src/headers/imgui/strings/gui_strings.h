@@ -164,23 +164,23 @@ namespace ex::gui::strings {
 
     constexpr auto node_component_sync_name = "Sync";
 
-    constexpr auto node_component_transform_id         = "Image ID";
-    constexpr auto node_component_transform_name       = "Transform";
-    constexpr auto node_component_transform_region     = "Region";
-    constexpr auto node_component_transform_region_x0  = "x0";
-    constexpr auto node_component_transform_region_y0  = "y0";
-    constexpr auto node_component_transform_region_w   = "width##region";
-    constexpr auto node_component_transform_region_h   = "height##region";
-    constexpr auto node_component_transform_resize     = "Resize";
-    constexpr auto node_component_transform_resize_w   = "width##resize";
-    constexpr auto node_component_transform_resize_h   = "height##resize";
-    constexpr auto node_component_transform_resize_l   = "Linear interpolation";
-    constexpr auto node_component_transform_mirror     = "Mirror";
-    constexpr auto node_component_transform_mirror_h   = "Horizontally";
-    constexpr auto node_component_transform_mirror_v   = "Vertically";
-    constexpr auto node_component_transform_rotate     = "Rotate";
-    constexpr auto node_component_transform_rotate_0   = "None";
-    constexpr auto node_component_transform_rotate_90  = "Clockwise 90º";
+    constexpr auto node_component_transform_id        = "Image ID";
+    constexpr auto node_component_transform_name      = "Transform";
+    constexpr auto node_component_transform_region    = "Region";
+    constexpr auto node_component_transform_region_x0 = "x0";
+    constexpr auto node_component_transform_region_y0 = "y0";
+    constexpr auto node_component_transform_region_x1 = "x1";
+    constexpr auto node_component_transform_region_y1 = "y1";
+    constexpr auto node_component_transform_resize    = "Resize";
+    constexpr auto node_component_transform_resize_w  = "width##resize";
+    constexpr auto node_component_transform_resize_h  = "height##resize";
+    constexpr auto node_component_transform_resize_l  = "Linear interpolation";
+    constexpr auto node_component_transform_mirror    = "Mirror";
+    constexpr auto node_component_transform_mirror_h  = "Horizontally";
+    constexpr auto node_component_transform_mirror_v  = "Vertically";
+    constexpr auto node_component_transform_rotate    = "Rotate";
+    constexpr auto node_component_transform_rotate_0  = "None";
+    constexpr auto node_component_transform_rotate_90 = "Clockwise 90º";
 
 }
 

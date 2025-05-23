@@ -44,6 +44,11 @@ namespace ex::logic::node::transform {
         bool       on;
     };
 
+    template<typename T>
+    static T clamp(const T v, const T m) {
+        return v > m ? m : v;
+    }
+
     static void create_kernels(kernels_t *kernel) {
         log->debug("create transform cl kernels");
         kernel->kernel  = nullptr;
@@ -100,55 +105,67 @@ namespace ex::logic::node::transform {
         const float scale_w = 1.f,
                     scale_h = 1.f;
 
+        if (config->resize.linear) {
+            buff_l += sprintf(buff + buff_l, " -DUSE_DOWNSCALE_LIN=1 ");
+        }
+
         // TODO SCALE PARAMS
 
         if (config->crop.start_x > 0) {
             kernel->enabled = true;
-            const unsigned short tx = config->crop.start_x * (scale_w > 1.f ? 1.f : scale_w);
+            const unsigned short tx = config->crop.start_x * clamp(scale_w, 1.f);
             buff_l += sprintf(buff + buff_l, " -DUSE_TRANSLATE_X=%hu ", tx);
         }
 
         if (config->crop.start_y > 0) {
             kernel->enabled = true;
-            const unsigned short ty = config->crop.start_y * (scale_h > 1.f ? 1.f : scale_h);
+            const unsigned short ty = config->crop.start_y * clamp(scale_h, 1.f);
             buff_l += sprintf(buff + buff_l, " -DUSE_TRANSLATE_Y=%hu ", ty);
         }
 
-        if (config->crop.width > 0) {
+        if (config->crop.end_x > 0) {
             kernel->enabled = true;
-            const unsigned short dw = config->crop.width * (scale_w > 1.f ? 1.f : scale_w);
-            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_X=%hu ", dw);
+            const unsigned short tx = config->crop.start_x * clamp(scale_w, 1.f);
+            const unsigned short dw = config->crop.end_x * clamp(scale_w, 1.f);
+            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_X=%hu ", (dw - tx));
 
             if (config->rotate != rotate_e::CW_1) {
-                const unsigned short ow = config->crop.width * scale_w;
-                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", ow);
+                const unsigned short ox = config->crop.start_x * scale_w;
+                const unsigned short ow = config->crop.end_x * scale_w;
+                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", (ow - ox));
             }
         } else {
-            const unsigned short dw = internal->buffers.input.image.cols * (scale_w > 1.f ? 1.f : scale_w);
-            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_X=%hu ", dw);
+            const unsigned short tx = config->crop.start_x * clamp(scale_w, 1.f);
+            const unsigned short dw = internal->buffers.input.image.cols * clamp(scale_w, 1.f);
+            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_X=%hu ", (dw - tx));
 
             if (config->rotate != rotate_e::CW_1) {
+                const unsigned short ox = config->crop.start_x * scale_w;
                 const unsigned short ow = internal->buffers.input.image.cols * scale_w;
-                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", ow);
+                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", (ow - ox));
             }
         }
 
-        if (config->crop.height > 0) {
+        if (config->crop.end_y > 0) {
             kernel->enabled = true;
-            const unsigned short dh = config->crop.height * (scale_h > 1.f ? 1.f : scale_h);
-            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_Y=%hu ", dh);
+            const unsigned short ty = config->crop.start_y * clamp(scale_h, 1.f);
+            const unsigned short dh = config->crop.end_y * clamp(scale_h, 1.f);
+            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_Y=%hu ", (dh - ty));
 
             if (config->rotate == rotate_e::CW_1) {
-                const unsigned short ow = config->crop.height * scale_h;
-                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", ow);
+                const unsigned short ox = config->crop.start_y * scale_h;
+                const unsigned short ow = config->crop.end_y * scale_h;
+                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", (ow - ox));
             }
         } else {
-            const unsigned short dh = internal->buffers.input.image.rows * (scale_h > 1.f ? 1.f : scale_h);
-            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_Y=%hu ", dh);
+            const unsigned short ty = config->crop.start_y * clamp(scale_h, 1.f);
+            const unsigned short dh = internal->buffers.input.image.rows * clamp(scale_h, 1.f);
+            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_Y=%hu ", (dh - ty));
 
             if (config->rotate == rotate_e::CW_1) {
+                const unsigned short ox = config->crop.start_y * scale_h;
                 const unsigned short ow = internal->buffers.input.image.rows * scale_h;
-                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", ow);
+                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", (ow - ox));
             }
         }
 
@@ -281,15 +298,16 @@ namespace ex::logic::node::transform {
     void TransformNode::set_config(const config_t &conf) {
         config_t copy;
         ::memcpy(&copy, &conf, sizeof(config_t));
-        if (copy.resize.width == get_image_w())
-            copy.resize.width = 0;
-        if (copy.resize.height == get_image_h())
-            copy.resize.height = 0;
 
-        if (copy.crop.width == get_image_w())
-            copy.crop.width = 0;
-        if (copy.crop.height == get_image_h())
-            copy.crop.height = 0;
+        if (copy.crop.end_x == copy.resize.width)
+            copy.crop.end_x = 0;
+        if (copy.crop.end_y == copy.resize.height)
+            copy.crop.end_y = 0;
+
+        if (copy.resize.width == get_input_w())
+            copy.resize.width = 0;
+        if (copy.resize.height == get_input_h())
+            copy.resize.height = 0;
 
         if (0 == ::memcmp(&copy, &internal->state, sizeof(config_t)))
             return;
@@ -379,6 +397,11 @@ namespace ex::logic::node::transform {
             ::memcpy(&config, &internal->state, sizeof(config_t));
         }
 
+        if (!internal->kernels.enabled) {
+            internal->buffers.output.image = input->image;
+            internal->buffers.output.queue = input->queue;
+            return;
+        }
 //        {
 //            // TODO REPLACE WITH KERNELS
 //            ocl::promise_t promise = ex::ocl::ops::copy_data(*input, *image);
@@ -409,11 +432,19 @@ namespace ex::logic::node::transform {
         reset(internal);
     }
 
-    unsigned TransformNode::get_image_w() const {
+    unsigned TransformNode::get_input_w() const {
         return internal->buffers.input.image.cols;
     }
 
-    unsigned TransformNode::get_image_h() const {
+    unsigned TransformNode::get_input_h() const {
         return internal->buffers.input.image.rows;
+    }
+
+    unsigned TransformNode::get_output_w() const {
+        return internal->buffers.image.cols;
+    }
+
+    unsigned TransformNode::get_output_h() const {
+        return internal->buffers.image.rows;
     }
 }
