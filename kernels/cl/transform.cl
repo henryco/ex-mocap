@@ -188,7 +188,7 @@ __kernel void kernel_transform(
     const uint og_y = y;
     {
         const uint tmp = y;
-        y = USE_DIMENSION_X - x - 1;
+        y = USE_DIMENSION_Y - x - 1;
         x = tmp;
     }
     #else

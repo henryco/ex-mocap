@@ -84,12 +84,16 @@ namespace ex::logic::node::transform {
 
         id_type_16 get_image_id() const;
 
+        // actual width of input image
         unsigned get_input_w() const;
 
+        // actual height of input image
         unsigned get_input_h() const;
 
+        // actual width of output image
         unsigned get_output_w() const;
 
+        // actual height of output image
         unsigned get_output_h() const;
 
         void disable();

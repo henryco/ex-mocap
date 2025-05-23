@@ -310,6 +310,7 @@ namespace ex::logic::node::transform {
 
         if (copy.resize.width == get_input_w())
             copy.resize.width = 0;
+
         if (copy.resize.height == get_input_h())
             copy.resize.height = 0;
 
@@ -371,7 +372,7 @@ namespace ex::logic::node::transform {
         if (!internal->enabled)
             return;
 
-        const ocl::img_promise *promise = static_cast<const ocl::img_promise *>(data);
+        ocl::img_promise *promise = static_cast<ocl::img_promise *>(data);
         if (promise == nullptr) {
             reset(internal);
             return;
@@ -438,8 +439,8 @@ namespace ex::logic::node::transform {
 
         const ::size_t pref_size = internal->kernels.size_l;
         ::size_t       l_size[2] = { pref_size, pref_size };
-        ::size_t       g_size[2] = { xm::ocl::optimal_global_size(input->image.cols, pref_size),
-                                     xm::ocl::optimal_global_size(input->image.rows, pref_size) };
+        ::size_t       g_size[2] = { xm::ocl::optimal_global_size(image->cols, pref_size),
+                                     xm::ocl::optimal_global_size(image->rows, pref_size) };
 
         cl_mem buffer_in  = input->image.handle;
         cl_mem buffer_out = image->handle;
