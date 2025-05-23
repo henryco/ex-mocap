@@ -14,6 +14,7 @@ namespace ex::logic::node::transform {
 
     struct updates_t {
         limbo::graph::UpdateState state;
+        limbo::graph::UpdateState input;
     };
 
     struct buffers_t {
@@ -374,6 +375,13 @@ namespace ex::logic::node::transform {
             return;
         }
 
+        if (promise->empty()) {
+            reset(internal);
+            return;
+        }
+
+        internal->updates.input.refresh();
+
         if (internal->buffers.input.image.cols != promise->image.cols ||
             internal->buffers.input.image.rows != promise->image.rows) {
             internal->buffers.input = *promise;
@@ -392,15 +400,15 @@ namespace ex::logic::node::transform {
         if (!internal->enabled)
             return;
 
+        if (!internal->updates.input.update()) {
+            reset(internal);
+            return;
+        }
+
         static const ex::State &state = ex::logic::globals::state();
 
         ocl::img_promise *input = &internal->buffers.input;
         ocl::image2d_t   *image = &internal->buffers.image;
-
-        if (input->empty()) {
-            reset(internal);
-            return;
-        }
 
         if (input->image.header.fresh || image->detached())
             internal->updates.state.refresh();
