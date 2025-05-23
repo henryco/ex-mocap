@@ -132,8 +132,9 @@ namespace ex::gui::node::image {
         ImGui::NewLine();
 
         {
-            ImGui::TextDisabled("Width : %u", img_node->get_image_w());
-            ImGui::TextDisabled("Height: %u", img_node->get_image_h());
+            ImGui::TextDisabled("Width   : %u", img_node->get_image_w());
+            ImGui::TextDisabled("Height  : %u", img_node->get_image_h());
+            ImGui::TextDisabled("Channels: %u", img_node->get_image_c());
             ImGui::NewLine();
         }
 

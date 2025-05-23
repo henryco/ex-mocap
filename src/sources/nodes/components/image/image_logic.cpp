@@ -4,7 +4,6 @@
 
 #include "../../../../headers/nodes/components/image/image_logic.h"
 #include "../../../../headers/logic/logic_globals.h"
-#include "../../../../headers/logic/logic_nodes.h"
 #include "../../../../headers/cl/cl_kernel.h"
 
 // STB INCLUDES ---------------------------------
@@ -120,12 +119,43 @@ namespace ex::logic::node::image {
 
         // RGBA
         int w_, h_, c_;
-        source_.data_ptr = stbi_load(image_path, &w_, &h_, &c_, 4);
+        source_.data_ptr = stbi_load(image_path, &w_, &h_, &c_, 0);
         source_.width    = w_;
         source_.height   = h_;
         source_.channels = c_;
 
-        if (source_.channels > 1) {
+        if (source_.channels == 1) {
+            const int new_size = source_.width * source_.height * 4;
+            unsigned char *data = static_cast<unsigned char *>(::malloc(new_size));
+
+            for (int i = 0; i < source_.width * source_.height; ++i) {
+                unsigned char pix = source_.data_ptr[i];
+                data[(i * 4) + 0] = pix;
+                data[(i * 4) + 1] = pix;
+                data[(i * 4) + 2] = pix;
+                data[(i * 4) + 4] = 255;
+            }
+
+            stbi_image_free(source_.data_ptr);
+            source_.data_ptr = data;
+            source_.channels = 4;
+        }
+
+        else if (source_.channels == 3) {
+            const int new_size = source_.width * source_.height * 4;
+            unsigned char *data = static_cast<unsigned char *>(::malloc(new_size));
+            for (int i = 0; i < source_.width * source_.height; ++i) {
+                data[(i * 4) + 0] = source_.data_ptr[(i * 3) + 2];
+                data[(i * 4) + 1] = source_.data_ptr[(i * 3) + 1];
+                data[(i * 4) + 2] = source_.data_ptr[(i * 3) + 0];
+                data[(i * 4) + 3] = 255;
+            }
+            stbi_image_free(source_.data_ptr);
+            source_.data_ptr = data;
+            source_.channels = 4;
+        }
+
+        else if (source_.channels == 4) {
             for (int i = 0; i < source_.width * source_.height; ++i) {
                 unsigned char *pix = source_.data_ptr + i * source_.channels;
                 unsigned char  tmp = pix[0];
@@ -153,6 +183,10 @@ namespace ex::logic::node::image {
 
     unsigned ImageNode::get_image_h() const {
         return image_.rows;
+    }
+
+    unsigned ImageNode::get_image_c() const {
+        return image_.header.channels;
     }
 
     void ImageNode::on_input(int, int, int, void *) {
