@@ -2,6 +2,8 @@
 // Created by xd on 2/23/25.
 //
 
+#include <GL/glew.h>
+
 #include "../../../extra/data/struct/array_map.h"
 #include "../../../headers/imgui/strings/gui_strings.h"
 #include "../../../headers/imgui/display/gui_display.h"
@@ -56,29 +58,33 @@ namespace ex::display::imp::imgui {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // or GL_NEAREST
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // or GL_NEAREST
 
-        GLint format_e, format_i;
+        GLint //format_e,
+                format_i;
+
         if (channels == 1) {
-            format_e = GL_SINGLE_COLOR;
+//            format_e = GL_SINGLE_COLOR;
             format_i = GL_SINGLE_COLOR;
         } else if (channels == 3) {
-            format_e = GL_BGR;
-            format_i = GL_RGB;
+//            format_e = GL_BGR;
+            format_i = GL_RGB8;
         } else if (channels == 4) {
-            format_e = GL_BGRA;
-            format_i = GL_RGBA;
+//            format_e = GL_BGRA;
+            format_i = GL_RGBA8;
         } else {
             abort_("channels number invalid: " << channels);
         }
 
-        glTexImage2D(GL_TEXTURE_2D,
-                     0,
-                     format_i,
-                     width,
-                     height,
-                     0,
-                     format_e,
-                     GL_UNSIGNED_BYTE,
-                     nullptr);
+//        glTexImage2D(GL_TEXTURE_2D,
+//                     0,
+//                     format_i,
+//                     width,
+//                     height,
+//                     0,
+//                     format_e,
+//                     GL_UNSIGNED_BYTE,
+//                     nullptr);
+
+        glTexStorage2D(GL_TEXTURE_2D, 1, format_i, width, height);
 
         glBindTexture(GL_TEXTURE_2D, 0);
 

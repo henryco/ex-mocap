@@ -1,6 +1,7 @@
 //
 // Created by henryco on 23/11/24.
 //
+#include <GL/glew.h>
 
 #include "../headers/boot.h"
 #include "../headers/cl/cl_gl_interop.h"
@@ -55,6 +56,10 @@ namespace ex::boot {
         }
 
         glfwMakeContextCurrent(window);
+
+        glewExperimental = GL_TRUE;
+        glewInit();
+
         glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
         glfwSwapInterval(0);
         log->info("GL context created");
