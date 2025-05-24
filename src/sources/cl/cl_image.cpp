@@ -486,7 +486,6 @@ namespace ex::ocl {
         void from_bytes(const unsigned char *bytes, ImagePromise &image_dst) {
             cl_command_queue queue  = image_dst.queue;
             cl_mem           handle = image_dst.image.handle;
-//            ::size_t         size   = image_dst.image.size();
 
             ::size_t origin[3] = { 0, 0, 0 };
             ::size_t region[3] = { image_dst.image.cols, image_dst.image.rows, 1 };
