@@ -198,8 +198,8 @@ namespace ex::logic::node::transform {
         *image = ex::ocl::Image2D::allocate(
                 output_size_w,
                 output_size_h,
-                4,
-                1,
+                ocl::C_MODE::BGRA,
+                ocl::C_DEPT::UINT_N8,
                 state.cl.context);
 
         if (!kernel->enabled) {

@@ -209,7 +209,7 @@ namespace ex::logic::node::out {
         if (!internal->image_.empty() && !internal->image_.detached() && internal->data_ != nullptr) {
             ex::display::io.draw_bytes_bgra_8(internal->display_i, internal->data_,
                                               internal->image_.cols, internal->image_.rows,
-                                              internal->image_.header.channels);
+                                              ex::ocl::channel_count(internal->image_.header.channels));
         }
     }
 

@@ -22,6 +22,33 @@ namespace ex::ocl {
     using uint16 = u_int16_t;
     using uchar8 = u_int8_t;
 
+    enum class C_MODE: uchar8 {
+        A    = 0U,
+        R    = 1U,
+        RG   = 2U,
+        RA   = 3U,
+        RGB  = 4U, // not sure about this
+        RGBA = 5U,
+        BGRA = 6U,
+        ARGB = 7U,
+    };
+
+    enum class C_DEPT: uchar8 {
+        UINT_N8  = 0U, // normalized uchar
+        UINT_N16 = 1U, // normalized ushort
+        UINT_8   = 2U, // uchar
+        UINT_16  = 3U, // ushort
+        UINT_32  = 4U, // uint
+        FLOAT_16 = 5U, // half-float
+        FLOAT_32 = 6U, // full-float
+    };
+
+    // number of channels
+    unsigned channel_count(C_MODE cn_mode);
+
+    // size of the channel in bytes
+    unsigned channel_size(C_DEPT cn_dept);
+
     // 16 bytes
     struct Image2D {
 
@@ -37,8 +64,8 @@ namespace ex::ocl {
         };
 
         struct header {
-            uchar8 cn_depth : 3; // 0-8
-            uchar8 channels : 3; // 0/1/3/4
+            C_MODE channels : 3;
+            C_DEPT cn_depth : 3;
             ACCESS access   : 2; // 00/RO/WO/RW
             // -------------
             uchar8 fresh    : 1; // 0/1
@@ -75,8 +102,8 @@ namespace ex::ocl {
 
         static Image2D detached(::size_t cols,
                                 ::size_t rows,
-                                ::size_t channels,
-                                ::size_t channel_size,
+                                C_MODE channels,
+                                C_DEPT channel_size,
                                 ACCESS access = ACCESS::RW);
 
         static void allocate(Image2D &img,
@@ -84,8 +111,8 @@ namespace ex::ocl {
 
         static Image2D allocate(::size_t cols,
                                 ::size_t rows,
-                                ::size_t channels,
-                                ::size_t channel_size,
+                                C_MODE channels,
+                                C_DEPT channel_size,
                                 cl_context context,
                                 ACCESS access = ACCESS::RW);
 
@@ -186,8 +213,8 @@ namespace ex::ocl {
             const unsigned char *bytes,
             ::size_t width,
             ::size_t height,
-            ::size_t channel_n,
-            ::size_t channel_size,
+            C_MODE channel_n,
+            C_DEPT channel_size,
             cl_context context,
             cl_command_queue queue,
             Image2D::ACCESS access = Image2D::ACCESS::RW

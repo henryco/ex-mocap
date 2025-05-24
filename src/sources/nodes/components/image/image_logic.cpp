@@ -91,8 +91,9 @@ namespace ex::logic::node::image {
         image_.release();
 
         ocl::ImagePromise promise = ex::ocl::ops::from_bytes(
-            source_.data_ptr, source_.width, source_.height,
-            source_.channels, 1, state_.cl.context, queue_);
+                source_.data_ptr, source_.width, source_.height,
+                ocl::C_MODE::BGRA, ocl::C_DEPT::UINT_N8,
+                state_.cl.context, queue_);
         promise.finalize();
 
         promise_          = promise;
@@ -167,8 +168,9 @@ namespace ex::logic::node::image {
         image_.release();
 
         ocl::ImagePromise promise = ex::ocl::ops::from_bytes(
-            source_.data_ptr, source_.width, source_.height,
-            source_.channels, 1, state_.cl.context, queue_);
+                source_.data_ptr, source_.width, source_.height,
+                ocl::C_MODE::BGRA, ocl::C_DEPT::UINT_N8,
+                state_.cl.context, queue_);
         promise.finalize();
 
         promise_          = promise;
@@ -186,7 +188,7 @@ namespace ex::logic::node::image {
     }
 
     unsigned ImageNode::get_image_c() const {
-        return image_.header.channels;
+        return ocl::channel_count(image_.header.channels);
     }
 
     void ImageNode::on_input(int, int, int, void *) {
