@@ -163,6 +163,7 @@ namespace ex::gui::strings {
     constexpr auto node_component_camera_buffering_2 = "Double (2)";
     constexpr auto node_component_camera_buffering_3 = "Triple (3)";
 
+    constexpr auto node_component_sync_id = "Sync ID";
     constexpr auto node_component_sync_name = "Sync";
     constexpr auto node_component_sync_fps = "Frame rate";
     constexpr auto node_component_sync_nodes = "Input nodes";
