@@ -88,11 +88,6 @@ namespace ex::ocl {
                              .fresh    = static_cast<uchar8>(1) } };
     }
 
-    Image2D Image2D::copy(const Image2D &source) {
-        Image2D another_one = source;
-        return another_one;
-    }
-
     Image2D Image2D::detached(const ::size_t cols, const ::size_t rows, const C_MODE channels,
                               const C_DEPT channel_size, const ACCESS access) {
         return { .handle = nullptr,
@@ -149,7 +144,7 @@ namespace ex::ocl {
     }
 
     Image2D Image2D::allocate_like(const Image2D &t, const cl_context context, const ACCESS access) {
-        Image2D copy       = Image2D::copy(t);
+        Image2D copy       = t;
         copy.handle        = nullptr;
         copy.header.access = access;
         allocate(copy, context);

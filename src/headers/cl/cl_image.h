@@ -95,11 +95,6 @@ namespace ex::ocl {
 
         static Image2D blank();
 
-        /**
-         * <b> THIS WILL NOT COPY DATA UNDER CL_MEM HANDLE! </b>
-         */
-        static Image2D copy(const Image2D &source);
-
         static Image2D detached(::size_t cols,
                                 ::size_t rows,
                                 C_MODE channels,
