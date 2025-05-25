@@ -11,27 +11,59 @@
 
 namespace ex::logic::node::out {
 
-    struct internal_t {
-        const char   *display_n;
-        unsigned int  display_i;
-        id_type_32    prev_;
+    using control_t = limbo::graph::UpdateState;
 
-        // GL/CL/ETC interop internal
-        unsigned char *data_;
-        unsigned long  size_;
-        unsigned int   i_w_;
-        unsigned int   i_h_ ;
-
-        ocl::Image2D     image_;
-        ocl::NBPromise   promise_worker_;
-        cl_command_queue queue_;
-
-        limbo::graph::UpdateState updates_;
-        limbo::graph::UpdateState supplies_;
-        // GL/CL/ETC interop internal
-
-        bool enabled;
+    #define buffers_n 2
+    struct buffers_t {
+        ocl::Image2D image[buffers_n];
+        unsigned     index;
     };
+
+    struct bytes_t {
+        unsigned char *data;
+        unsigned int   size;
+        unsigned short width;
+        unsigned short height;
+    };
+
+    struct display_t {
+        const char *name;
+        unsigned    id;
+    };
+
+    struct workload_t {
+        ocl::NBPromise   promise;
+        cl_command_queue queue;
+    };
+
+    struct internal_t {
+        buffers_t  buffers;
+        workload_t workload;
+        display_t  display;
+        bytes_t    bytes;
+
+        id_type_32 prev_;
+        control_t  updates_;
+        control_t  supplies_;
+
+        bool       enabled;
+    };
+
+    static void init_buffers(buffers_t *b) {
+        for (int i = 0; i < buffers_n; ++i)
+            b->image[0] = ocl::Image2D::blank();
+        b->index = 0;
+    }
+
+    static void swap_buffers(buffers_t *b) {
+        b->index = (b->index + 1) % buffers_n;
+    }
+
+    static void reset_buffers(buffers_t *b) {
+        for (int i = 0; i < buffers_n; ++i)
+            b->image[0].release();
+        b->index = 0;
+    }
 
     static internal_t *create_internal() {
         const static ex::State &state = ex::logic::globals::state();
@@ -40,46 +72,26 @@ namespace ex::logic::node::out {
         ::memset(mem, 0, sizeof(internal_t));
 
         mem->enabled = true;
-        mem->image_  = ocl::Image2D::blank();
-        mem->queue_  = xm::ocl::create_queue_device(state.cl.context, state.cl.device, true, false);
+        mem->workload.queue = xm::ocl::create_queue_device(state.cl.context, state.cl.device, true, false);
+        init_buffers(&mem->buffers);
 
         return mem;
     }
 
     static void release_internal(internal_t *ptr) {
-        ptr->image_.release();
-        ptr->promise_worker_.release();
-        if (ptr->display_i != 0)
-            ex::display::io.remove_output(ptr->display_i);
-        if (ptr->data_ != nullptr) {
-            ::free(ptr->data_);
-            ptr->data_ = nullptr;
+        reset_buffers(&ptr->buffers);
+        ptr->workload.promise.release();
+        if (ptr->display.id != 0)
+            ex::display::io.remove_output(ptr->display.id);
+        if (ptr->bytes.data != nullptr) {
+            ::free(ptr->bytes.data);
+            ptr->bytes.data = nullptr;
         }
-        if (ptr->queue_ != nullptr) {
-            clReleaseCommandQueue(ptr->queue_);
-            ptr->queue_ = nullptr;
+        if (ptr->workload.queue != nullptr) {
+            clReleaseCommandQueue(ptr->workload.queue);
+            ptr->workload.queue = nullptr;
         }
         ::free(ptr);
-    }
-
-    void enqueue_worker_(DisplayOutputNode &this_) {
-        if (this_.internal->data_ == nullptr ||
-            this_.internal->size_ != this_.internal->image_.size() ||
-            this_.internal->i_w_ != this_.internal->image_.cols ||
-            this_.internal->i_h_ != this_.internal->image_.rows
-        ) {
-            if (this_.internal->data_ != nullptr)
-                ::free(this_.internal->data_);
-            this_.internal->size_ = this_.internal->image_.size();
-            this_.internal->data_ = static_cast<unsigned char *>(::malloc(this_.internal->size_));
-            this_.internal->i_w_  = this_.internal->image_.cols;
-            this_.internal->i_h_  = this_.internal->image_.rows;
-            ex::display::io.clear(this_.internal->display_i);
-        }
-
-        this_.internal->promise_worker_.release();
-        this_.internal->promise_worker_ = ex::ocl::ops::to_bytes(
-                this_.internal->image_, this_.internal->data_, this_.internal->queue_).non_blocking();
     }
 
     ln::BaseNode *DisplayOutputNode::instance(TreeNode *n) {
@@ -99,15 +111,15 @@ namespace ex::logic::node::out {
     }
 
     void DisplayOutputNode::register_image(const char *name) {
-        if (internal->display_i != 0)
-            ex::display::io.remove_output(internal->display_i);
-        internal->display_n = name;
-        internal->display_i = ex::display::io.add_output(internal->display_n);
+        if (internal->display.id != 0)
+            ex::display::io.remove_output(internal->display.id);
+        internal->display.id   = ex::display::io.add_output(internal->display.name);
+        internal->display.name = name;
         internal->updates_.refresh();
     }
 
     void DisplayOutputNode::rename_image(const char *name) {
-        ex::display::io.rename_output(internal->display_i, name);
+        ex::display::io.rename_output(internal->display.id, name);
     }
 
     id_type_16 DisplayOutputNode::get_input_id() const {
@@ -115,17 +127,17 @@ namespace ex::logic::node::out {
     }
 
     unsigned DisplayOutputNode::get_input_w() const {
-        return internal->i_w_;
+        return internal->bytes.width;
     }
 
     unsigned DisplayOutputNode::get_input_h() const {
-        return internal->i_h_;
+        return internal->bytes.width;
     }
 
     void DisplayOutputNode::reset() {
-        ex::display::io.clear(internal->display_i);
-        internal->promise_worker_.release();
-        internal->image_.release();
+        ex::display::io.clear(internal->display.id);
+        internal->workload.promise.release();
+        reset_buffers(&internal->buffers);
     }
 
     void DisplayOutputNode::disable() {
@@ -160,37 +172,37 @@ namespace ex::logic::node::out {
 
         internal->supplies_.refresh();
 
-        if (!internal->promise_worker_.completed())
+        if (!internal->workload.promise.completed())
             return;
 
-        if (img.header.fresh || img.id != internal->prev_ || internal->image_.detached())
+        const unsigned index = internal->buffers.index;
+        ocl::Image2D  &image = internal->buffers.image[index];
+
+        if (img.header.fresh || img.id != internal->prev_ || image.detached())
             internal->updates_.refresh();
 
         if (!internal->updates_.fresh())
             return;
 
         if (img.id != internal->prev_ ||
-            img.size() != internal->image_.size() ||
-            img.cols != internal->image_.cols ||
-            img.rows != internal->image_.rows ||
-            internal->image_.detached())
+            img.size() != image.size() ||
+            img.cols != image.cols ||
+            img.rows != image.rows ||
+            image.detached())
         {
-            internal->image_.release();
-            internal->image_ = ex::ocl::Image2D::allocate_like(img, state.cl.context);
-            internal->prev_  = img.id;
+            image.release();
+            image = ex::ocl::Image2D::allocate_like(img, state.cl.context);
+            internal->prev_ = img.id;
         }
 
-        // copy to internal cl_mem buffer
-        ex::ocl::ops::copy_data(*promise, internal->image_)
-            .finalize();
+        // TODO copy to internal cl_mem buffer
 
         internal->updates_.refresh();
 
-        enqueue_worker_(*this);
+        // TODO UNLOAD DATA TO HOST
     }
 
     void DisplayOutputNode::on_update(const int clock_i) {
-
         if (!internal->enabled)
             return;
 
@@ -201,16 +213,18 @@ namespace ex::logic::node::out {
             return;
         }
 
-        if (internal->promise_worker_.empty() || !internal->promise_worker_.completed())
+        if (internal->workload.promise.empty() || !internal->workload.promise.completed())
             return;
 
-        internal->promise_worker_.release();
+        internal->workload.promise.release();
 
-        if (!internal->image_.empty() && !internal->image_.detached() && internal->data_ != nullptr) {
-            ex::display::io.draw_bytes_bgra_8(internal->display_i, internal->data_,
-                                              internal->image_.cols, internal->image_.rows,
-                                              ex::ocl::channel_count(internal->image_.header.channels));
+        if (internal->bytes.data != nullptr) {
+            const unsigned channels = internal->bytes.size / (internal->bytes.width * internal->bytes.height);
+            ex::display::io.draw_bytes_bgra_8(internal->display.id, internal->bytes.data,
+                                              internal->bytes.width, internal->bytes.height,
+                                              channels);
         }
+        swap_buffers(&internal->buffers);
     }
 
     void *DisplayOutputNode::on_output(const int in_idx, const int out_idx, const int clock_i) {

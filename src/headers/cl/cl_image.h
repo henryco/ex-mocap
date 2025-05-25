@@ -252,6 +252,9 @@ namespace ex::ocl {
 
         // non blocking op
         NBPromise barrier(const NBPromise &, cl_command_queue);
+
+        // non blocking op
+        NBPromise barrier(cl_command_queue);
     }
 
 }

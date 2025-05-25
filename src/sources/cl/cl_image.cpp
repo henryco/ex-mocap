@@ -70,11 +70,11 @@ namespace ex::ocl {
     void Image2D::release() {
         if (handle != nullptr)
             clReleaseMemObject(handle);
-        handle = nullptr;
+        handle          = nullptr;
         header.cn_depth = C_DEPT::UINT_N8;
         header.channels = C_MODE::BGRA;
-        cols = 0;
-        rows = 0;
+        cols            = 0;
+        rows            = 0;
     }
 
     Image2D Image2D::blank() {
@@ -84,7 +84,7 @@ namespace ex::ocl {
                  .rows   = static_cast<uint16>(0),
                  .header = { .channels = C_MODE::BGRA,
                              .cn_depth = C_DEPT::UINT_N8,
-                             .access   = ACCESS::RW ,
+                             .access   = ACCESS::RW,
                              .fresh    = static_cast<uchar8>(1) } };
     }
 
@@ -110,23 +110,27 @@ namespace ex::ocl {
         };
 
         cl_image_desc desc = {
-                .image_type = CL_MEM_OBJECT_IMAGE2D,
-                .image_width = img.cols,
-                .image_height = img.rows,
-                .image_depth = 0,
-                .image_array_size = 0,
-                .image_row_pitch = 0,
-                .image_slice_pitch = 0,
-                .num_mip_levels = 0,
-                .num_samples = 0,
-                .buffer = NULL
+            .image_type        = CL_MEM_OBJECT_IMAGE2D,
+            .image_width       = img.cols,
+            .image_height      = img.rows,
+            .image_depth       = 0,
+            .image_array_size  = 0,
+            .image_row_pitch   = 0,
+            .image_slice_pitch = 0,
+            .num_mip_levels    = 0,
+            .num_samples       = 0,
+            .buffer            = NULL
         };
 
         cl_mem_flags flags;
-        if (img.header.access == ACCESS::RO) flags = CL_MEM_READ_ONLY;
-        else if (img.header.access == ACCESS::WO) flags = CL_MEM_WRITE_ONLY;
-        else if (img.header.access == ACCESS::RW) flags = CL_MEM_READ_WRITE;
-        else abort__("Invalid access modifier: %d", static_cast<int>(img.header.access));
+        if (img.header.access == ACCESS::RO)
+            flags = CL_MEM_READ_ONLY;
+        else if (img.header.access == ACCESS::WO)
+            flags = CL_MEM_WRITE_ONLY;
+        else if (img.header.access == ACCESS::RW)
+            flags = CL_MEM_READ_WRITE;
+        else
+            abort__("Invalid access modifier: %d", static_cast<int>(img.header.access));
 
         cl_int err;
         cl_mem buffer = clCreateImage(context, flags, &format, &desc, nullptr, &err);
@@ -155,14 +159,14 @@ namespace ex::ocl {
         if (img.handle == nullptr)
             return;
         clReleaseMemObject(img.handle);
-        img.handle       = nullptr;
+        img.handle = nullptr;
     }
 
-    Promise::Promise(const cl_command_queue queue):
+    Promise::Promise(const cl_command_queue queue) :
         queue(queue), ready(false) {
     }
 
-    Promise::Promise(const cl_command_queue queue, const bool ready):
+    Promise::Promise(const cl_command_queue queue, const bool ready) :
         queue(queue), ready(ready) {
     }
 
@@ -171,7 +175,7 @@ namespace ex::ocl {
         this->ready = promise.image.header.ready;
     }
 
-    Promise::Promise():
+    Promise::Promise() :
         queue(nullptr), ready(false) {
     }
 
@@ -225,38 +229,38 @@ namespace ex::ocl {
     }
 
     NBPromise::NBPromise(const ImagePromise &promise) {
-        queue = promise.queue;
+        queue  = promise.queue;
         marker = nullptr;
 
         if (queue == nullptr)
             return;
 
         if (cl_int err = clEnqueueMarkerWithWaitList(queue,
-            0,
-            nullptr,
-            &marker);
+                                                     0,
+                                                     nullptr,
+                                                     &marker);
             err != CL_SUCCESS) {
             abort__("clEnqueueMarkerWithWaitList abort");
         }
     }
 
     NBPromise::NBPromise(const Promise &promise) {
-        queue = promise.queue;
+        queue  = promise.queue;
         marker = nullptr;
 
         if (queue == nullptr)
             return;
 
         if (cl_int err = clEnqueueMarkerWithWaitList(queue,
-            0,
-            nullptr,
-            &marker);
+                                                     0,
+                                                     nullptr,
+                                                     &marker);
             err != CL_SUCCESS) {
             abort__("clEnqueueMarkerWithWaitList abort");
         }
     }
 
-    NBPromise::NBPromise():
+    NBPromise::NBPromise() :
         queue(nullptr),
         marker(nullptr) {
     }
@@ -276,7 +280,7 @@ namespace ex::ocl {
         cl_int status;
 
         if (cl_int err = clGetEventInfo(marker, CL_EVENT_COMMAND_EXECUTION_STATUS,
-            sizeof(status), &status, nullptr);
+                                        sizeof(status), &status, nullptr);
             err != CL_SUCCESS) {
             abort__("clGetEventInfo abort");
         }
@@ -314,7 +318,7 @@ namespace ex::ocl {
                 continue;
 
             cl_event event = p.marker;
-            p.marker = nullptr;
+            p.marker       = nullptr;
 
             bool found = false;
             for (int i = 0; i < n; i++) {
@@ -334,16 +338,16 @@ namespace ex::ocl {
         }
     }
 
-    NBPromise::NBPromise(cl_command_queue queue, cl_event event):
+    NBPromise::NBPromise(cl_command_queue queue, cl_event event) :
         queue(queue), marker(event) {
     }
 
-    ImagePromise::ImagePromise(const Image2D &image, const cl_command_queue queue, const bool ready):
+    ImagePromise::ImagePromise(const Image2D &image, const cl_command_queue queue, const bool ready) :
         queue(queue), image(image) {
         this->image.header.ready = ready;
     }
 
-    ImagePromise::ImagePromise(const Image2D &image, const cl_command_queue queue):
+    ImagePromise::ImagePromise(const Image2D &image, const cl_command_queue queue) :
         queue(queue), image(image) {
         this->image.header.ready = false;
     }
@@ -361,7 +365,7 @@ namespace ex::ocl {
     }
 
     void ImagePromise::set_completed(const bool completed) {
-        image.header.ready  = completed;
+        image.header.ready = completed;
     }
 
     bool ImagePromise::completed() const {
@@ -431,7 +435,7 @@ namespace ex::ocl {
         ImagePromise from_bytes(const unsigned char *bytes, const ::size_t width, const ::size_t height,
                                 const C_MODE channel_n, const C_DEPT channel_size, const cl_context context,
                                 const cl_command_queue queue, const Image2D::ACCESS access) {
-            Image2D        image = Image2D::allocate(width, height, channel_n, channel_size, context, access);
+            Image2D image = Image2D::allocate(width, height, channel_n, channel_size, context, access);
 
             ::size_t origin[3] = { 0, 0, 0 };
             ::size_t region[3] = { width, height, 1 };
@@ -485,9 +489,9 @@ namespace ex::ocl {
             ::size_t origin[3] = { 0, 0, 0 };
             ::size_t region[3] = { image_dst.image.cols, image_dst.image.rows, 1 };
 
-            cl_int err = ::clEnqueueWriteImage( queue, handle, CL_FALSE,
-                    origin, region, 0, 0, bytes,
-                    0, nullptr, nullptr);
+            cl_int err = ::clEnqueueWriteImage(queue, handle, CL_FALSE,
+                                               origin, region, 0, 0, bytes,
+                                               0, nullptr, nullptr);
 
             if (err != CL_SUCCESS)
                 abort__("Cannot enqueue copy data to cl buffer: %d", err);
@@ -501,7 +505,7 @@ namespace ex::ocl {
             size_t origin[3] = { 0, 0, 0 };
             size_t region[3] = { image.cols, image.rows, 1 };
 
-            cl_int err =  clEnqueueReadImage(
+            cl_int err = clEnqueueReadImage(
                     queue,
                     image.handle,
                     CL_FALSE,
@@ -575,7 +579,33 @@ namespace ex::ocl {
             if (promise.marker == nullptr)
                 return NBPromise();
             cl_event event;
-            ::clEnqueueBarrierWithWaitList(queue, 1, &promise.marker, &event);
+
+            if (cl_int err = ::clEnqueueBarrierWithWaitList(queue, 1, &promise.marker, &event);
+                err != CL_SUCCESS) {
+                abort__("clEnqueueBarrierWithWaitList abort: %d", err);
+            }
+
+            return NBPromise(queue, event);
+        }
+
+        NBPromise barrier(cl_command_queue queue) {
+            cl_event marker, event;
+            cl_int   err;
+
+            if (err = clEnqueueMarkerWithWaitList(queue,
+                                                  0,
+                                                  nullptr,
+                                                  &marker);
+                err != CL_SUCCESS) {
+                abort__("clEnqueueMarkerWithWaitList abort: %d", err);
+            }
+
+            if (err = ::clEnqueueBarrierWithWaitList(queue,
+                                                            1, &marker, &event);
+                err != CL_SUCCESS) {
+                abort__("clEnqueueBarrierWithWaitList abort: %d", err);
+            }
+
             return NBPromise(queue, event);
         }
     }
