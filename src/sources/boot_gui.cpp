@@ -130,7 +130,7 @@ namespace ex::boot {
         if (!fps_guard.step())
             return;
 
-        static ex::time::measure_avg timing;
+        static ex::time::measure_avg timing = { 10000, 100 };
         if (state.metrics.timing_enabled)
             timing.start();
 
@@ -169,7 +169,7 @@ namespace ex::boot {
         log->info("Initialization complete");
 
         while (true) {
-            static ex::time::measure_avg timing = 1000;
+            static ex::time::measure_avg timing = { 10000, 100 };
             if (state.metrics.timing_enabled)
                 timing.start();
             // ==========================================================
