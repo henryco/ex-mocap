@@ -18,11 +18,8 @@
 
 namespace {
     ex::data::spinlock lock_;
-}
 
-namespace ex::display::imp::imgui {
-
-    static constexpr ImVec4 BG_COLORS_[6] = {
+    constexpr ImVec4 BG_COLORS_[6] = {
         ImVec4(0, 0, 0, 1), // BLACK
         ImVec4(1, 1, 1, 1), // WHITE
         ImVec4(1, 0, 1, 1), // MAGENTA
@@ -31,16 +28,16 @@ namespace ex::display::imp::imgui {
         ImVec4(1, 0, 0, 1), // RED
     };
 
-    static void switch_bg_color_(char *idx) {
+    void switch_bg_color_(char *idx) {
         if (idx == nullptr) return;
         *idx = ((*idx) + 1) % IM_ARRAYSIZE(BG_COLORS_);
     }
 
-    static const ImVec4 &bg_color_(const int idx) {
+    const ImVec4 &bg_color_(const int idx) {
         return BG_COLORS_[idx % IM_ARRAYSIZE(BG_COLORS_)];
     }
 
-    static int format_c(const int c) {
+    int format_c(const int c) {
         if (c == 3)
             return GL_BGR;
         if (c == 4)
@@ -50,60 +47,99 @@ namespace ex::display::imp::imgui {
         abort_("channels number invalid: " << c);
     }
 
-    static GLuint create_texture_bgra(const int width, const int height, const int channels) {
-        GLuint texture_id;
-        glGenTextures(1, &texture_id);
-        glBindTexture(GL_TEXTURE_2D, texture_id);
+    #define PBO_COUNT (3)
+    #define PBO_TIMEOUT (1'000'000)
+    struct pbo_t {
+        void  *pbo_pt[PBO_COUNT];
+        GLsync fences[PBO_COUNT];
+        GLuint pbo_id[PBO_COUNT];
+        GLuint texture;
+        ushort channels;
+        ushort width;
+        ushort height;
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // or GL_NEAREST
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // or GL_NEAREST
-
-        GLint //format_e,
-                format_i;
-
-        if (channels == 1) {
-//            format_e = GL_SINGLE_COLOR;
-            format_i = GL_SINGLE_COLOR;
-        } else if (channels == 3) {
-//            format_e = GL_BGR;
-            format_i = GL_RGB8;
-        } else if (channels == 4) {
-//            format_e = GL_BGRA;
-            format_i = GL_RGBA8;
-        } else {
-            abort_("channels number invalid: " << channels);
-        }
-
-//        glTexImage2D(GL_TEXTURE_2D,
-//                     0,
-//                     format_i,
-//                     width,
-//                     height,
-//                     0,
-//                     format_e,
-//                     GL_UNSIGNED_BYTE,
-//                     nullptr);
-
-        glTexStorage2D(GL_TEXTURE_2D, 1, format_i, width, height);
-
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        return texture_id;
-    }
+        char   index;
+    };
 
     struct display_window_t {
+        pbo_t          pbo;
+        unsigned char *data;
         const char    *name;
         const char    *uuid;
-        unsigned char *data;
-        // todo cl_mem handle
-        GLuint         txid;
-        int            w;
-        int            h;
-        int            c;
         char           bg_color;
         bool           updated;
         bool           to_clear;
     };
+
+    display_window_t rv_display_window(const char *uuid, const char *name) {
+        display_window_t window;
+        ::memset(&window, 0, sizeof(display_window_t));
+        window.updated = true;
+        window.name    = name;
+        window.uuid    = uuid;
+        return window;
+    }
+
+    void init_buffers(pbo_t *buffers) {
+        static constexpr int flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+
+        const unsigned width = buffers->width;
+        const unsigned height = buffers->height;
+        const unsigned channels = buffers->channels;
+        const unsigned size = width * height * channels;
+
+        glGenTextures(1, &buffers->texture);
+        glBindTexture(GL_TEXTURE_2D, buffers->texture);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // or GL_NEAREST
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // or GL_NEAREST
+
+        GLint format_i;
+        if (channels == 1)      format_i = GL_SINGLE_COLOR;
+        else if (channels == 3) format_i = GL_RGB8;
+        else if (channels == 4) format_i = GL_RGBA8;
+        else abort_("channels number invalid: " << channels);
+
+        glTexStorage2D(GL_TEXTURE_2D, 1, format_i, width, height);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        glGenBuffers(PBO_COUNT, buffers->pbo_id);
+        for (int i = 0; i < PBO_COUNT; ++i) {
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, buffers->pbo_id[i]);
+            glBufferStorage(GL_PIXEL_UNPACK_BUFFER, size, nullptr, flags);
+            buffers->pbo_pt[i] = glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, size, flags);
+        }
+    }
+
+    void release_buffers(pbo_t *buffers) {
+        if (buffers->texture == 0)
+            return;
+
+        for (int i = 0; i < PBO_COUNT; ++i) {
+            if (buffers->fences[i]) {
+                glClientWaitSync(buffers->fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, PBO_TIMEOUT);
+                glDeleteSync(buffers->fences[i]);
+                buffers->fences[i] = 0;
+            }
+
+            if (buffers->pbo_pt[i]) {
+                glBindBuffer(GL_PIXEL_UNPACK_BUFFER, buffers->pbo_id[i]);
+                glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+                buffers->pbo_pt[i] = nullptr;
+            }
+        }
+
+        glDeleteBuffers(PBO_COUNT, buffers->pbo_id);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+        ::glDeleteTextures(1, &buffers->texture);
+        ::memset(buffers->pbo_id, 0, sizeof(buffers->pbo_id));
+        buffers->texture = 0;
+        buffers->index   = 0;
+    }
+}
+
+namespace ex::display::imp::imgui {
 
     static ex::data::array_map<unsigned int, display_window_t> display_map_(10);
 
@@ -117,7 +153,7 @@ namespace ex::display::imp::imgui {
         sprintf(uuid, "%s###display%d", name, new_id);
         strcpy(label, name);
 
-        display_map_.put(new_id, { label, uuid, nullptr, 0, 0, 0, 0, 0, true, false });
+        display_map_.put(new_id, rv_display_window(uuid, label));
         return new_id;
     }
 
@@ -146,13 +182,15 @@ namespace ex::display::imp::imgui {
         if (!display_map_.contains(id))
             return;
         lock_.lock();
-        const auto &d_ref = display_map_[id];
+
+        auto &d_ref = display_map_[id];
+        release_buffers(&d_ref.pbo);
+
         if (d_ref.uuid != nullptr)
             delete[] d_ref.uuid;
         if (d_ref.name != nullptr)
             delete[] d_ref.name;
-        if (d_ref.txid != 0)
-            glDeleteTextures(1, &d_ref.txid);
+
         display_map_.remove(id);
         lock_.unlock();
     }
@@ -160,9 +198,6 @@ namespace ex::display::imp::imgui {
     void clear(const unsigned int id) {
         lock_.lock();
         display_window_t &ref = display_map_.at(id);
-//        if (ref.txid != 0)
-//            glDeleteTextures(1, &ref.txid);
-//        ref.txid = 0;
         ref.data     = nullptr;
         ref.updated  = false;
         ref.to_clear = true;
@@ -173,11 +208,12 @@ namespace ex::display::imp::imgui {
         lock_.lock();
 
         display_window_t &ref = display_map_.at(id);
-        ref.data              = data;
-        ref.c                 = cn;
-        ref.w                 = w;
-        ref.h                 = h;
-        ref.updated           = true;
+
+        ref.pbo.width    = w;
+        ref.pbo.height   = h;
+        ref.pbo.channels = cn;
+        ref.updated      = true;
+        ref.data         = data;
 
         lock_.unlock();
 
@@ -239,55 +275,94 @@ namespace ex::gui::display {
         return { n_w, n_h };
     }
 
-    static bool draw_display(const ImGuiWindow *host_window, ex::display::imp::imgui::display_window_t &disp) {
+    static bool draw_display(const ImGuiWindow *host_window, display_window_t &disp) {
         static const GuiState &gui = ex::gui::state();
         ImGui::SetNextWindowClass(&display_dock_host_class_);
         ImGui::SetNextWindowDockID(gui.docking.dock_main_id, gui.view.reset ? ImGuiCond_Always : ImGuiCond_Once);
 
-        const ImVec4 &custom_bg = ex::display::imp::imgui::bg_color_(disp.bg_color);
+        const ImVec4 &custom_bg = bg_color_(disp.bg_color);
         ImGui::PushStyleColor(ImGuiCol_WindowBg, custom_bg);
 
         if (ImGui::Begin(disp.uuid, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
             const float pos_y_0 = ImGui::GetCursorPosY();
 
             if (disp.to_clear == true) {
-                if (disp.txid != 0)
-                    glDeleteTextures(1, &disp.txid);
-                disp.txid      = 0;
+                release_buffers(&disp.pbo);
                 disp.to_clear = false;
             }
 
             else if (disp.updated == true) {
 
-                if (disp.txid == 0 && disp.data != nullptr) {
-                    disp.txid = ex::display::imp::imgui::create_texture_bgra(disp.w, disp.h, disp.c);
+                if (disp.pbo.texture == 0 && disp.data != nullptr) {
+                    init_buffers(&disp.pbo);
                 }
 
-                if (disp.txid != 0 && disp.data != nullptr) {
-                    glBindTexture(GL_TEXTURE_2D, disp.txid);
+                if (disp.pbo.texture != 0 && disp.data != nullptr) {
+
+                    pbo_t &buff  = disp.pbo;
+                    char   index = disp.pbo.index;
+
+                    const unsigned width    = buff.width;
+                    const unsigned height   = buff.height;
+                    const unsigned channels = buff.channels;
+                    const unsigned size     = width * height * channels;
+
                     lock_.lock();
+
+                    // sync
+                    if (buff.fences[index]) {
+                        GLenum result = glClientWaitSync(buff.fences[index], GL_SYNC_FLUSH_COMMANDS_BIT, PBO_TIMEOUT);
+                        if (result == GL_TIMEOUT_EXPIRED) {
+                            // TODO: GPU SLOW?
+                        }
+                        glDeleteSync(buff.fences[index]);
+                        buff.fences[index] = 0;
+                    }
+
+                    // write
+                    // TODO ASYNC WRITE (worker)
+                    ::memcpy(buff.pbo_pt[index], disp.data, size);
+
+                    // update
+                    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, buff.pbo_id[index]);
+                    glBindTexture(GL_TEXTURE_2D, buff.texture);
                     glTexSubImage2D(GL_TEXTURE_2D,
                                     0,
                                     0,
                                     0,
-                                    disp.w,
-                                    disp.h,
-                                    ex::display::imp::imgui::format_c(disp.c),
+                                    width,
+                                    height,
+                                    format_c(channels),
                                     GL_UNSIGNED_BYTE,
-                                    disp.data);
-                    lock_.unlock();
+                                    0
+                    );
+                    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
                     glBindTexture(GL_TEXTURE_2D, 0);
+
+                    // --- Insert fence after upload ---
+                    buff.fences[index] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+
+                    // Advance ring index
+                    disp.pbo.index = (index + 1) % PBO_COUNT;
+
+                    lock_.unlock();
                 }
+
             }
 
             const float window_width  = ImGui::GetContentRegionAvail().x;
             const float window_height = ImGui::GetContentRegionAvail().y;
 
-            if (disp.txid != 0) {
-
+            if (disp.pbo.texture != 0) {
                 constexpr bool should_fit = true; // TODO: MOVE TO SETTINGS
 
-                ImVec2 img_size = img_size_(disp.w, disp.h, window_width, window_height, should_fit);
+                const ImVec2 img_size = img_size_(
+                        disp.pbo.width,
+                        disp.pbo.height,
+                        window_width,
+                        window_height,
+                        should_fit
+                );
 
                 {
                     // CENTERING, TODO: MOVE TO SETTINGS
@@ -299,7 +374,7 @@ namespace ex::gui::display {
                         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + y_offset);
                 }
 
-                ImGui::Image(disp.txid, img_size);
+                ImGui::Image(disp.pbo.texture, img_size);
                 disp.updated = false;
             }
 
@@ -308,7 +383,7 @@ namespace ex::gui::display {
                 ImGui::SetCursorPosX(window_width - ImGui::CalcTextSize(ICON_LC_PALETTE).x);
                 ImGui::SetCursorPosY(pos_y_0);
                 if (switch_button(ICON_LC_PALETTE)) {
-                    ex::display::imp::imgui::switch_bg_color_(&disp.bg_color);
+                    switch_bg_color_(&disp.bg_color);
                 }
                 ex::gui::plain_tooltip(strings::gui_display_button_bg_change);
 
