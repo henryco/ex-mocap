@@ -182,9 +182,11 @@ namespace ex::ocl {
         cl_command_queue queue;
         cl_event         marker;
 
-        NBPromise(const ImagePromise &promise);
+        NBPromise(cl_command_queue, cl_event);
 
-        NBPromise(const Promise &promise);
+        NBPromise(const ImagePromise &);
+
+        NBPromise(const Promise &);
 
         NBPromise();
 
@@ -195,10 +197,10 @@ namespace ex::ocl {
         bool empty() const;
 
         // blocking op
-        void finalize(bool force = false);
+        void finalize();
 
         // blocking op
-        static void finalize_all(NBPromise *arr, int n, bool force = false);
+        static void finalize_all(NBPromise *arr, int n);
     };
 
     namespace ops {
@@ -224,30 +226,32 @@ namespace ex::ocl {
             Image2D::ACCESS access = Image2D::ACCESS::RW
         );
 
-        // === BLOCKING OP ===
-        void from_bytes(const unsigned char *bytes, Image2D &image_dst, cl_command_queue queue);
+        // non blocking op
+        void from_bytes(const unsigned char *bytes, Image2D &image_dst, cl_command_queue);
 
         // non blocking op
         void from_bytes(const unsigned char *bytes, ImagePromise &image_dst);
 
         // non blocking op
-        Promise to_bytes(const Image2D &image, unsigned char *out, cl_command_queue queue);
+        Promise to_bytes(const Image2D &image, unsigned char *out, cl_command_queue);
 
         // non blocking op
         Promise to_bytes(const ImagePromise &promise, unsigned char *out);
 
         // non blocking op
-        ImagePromise copy_data(const Image2D &image, cl_context context, cl_command_queue queue);
+        ImagePromise copy_data(const Image2D &image, cl_context, cl_command_queue);
 
         // non blocking op
-        ImagePromise copy_data(const ImagePromise &promise, cl_context context);
+        ImagePromise copy_data(const ImagePromise &promise, cl_context);
 
         // non blocking op
         Promise copy_data(const ImagePromise &promise_src, Image2D &image_dst);
 
         // non blocking op
-        Promise copy_data(const Image2D &image_src, Image2D &image_dst, cl_command_queue queue);
+        Promise copy_data(const Image2D &image_src, Image2D &image_dst, cl_command_queue);
 
+        // non blocking op
+        NBPromise barrier(const NBPromise &, cl_command_queue);
     }
 
 }

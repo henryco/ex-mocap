@@ -294,48 +294,48 @@ namespace ex::ocl {
         return queue == nullptr && marker == nullptr;
     }
 
-    void NBPromise::finalize(const bool force) {
-        if ((marker == nullptr && !force) || !queue)
-            return;
-        if (cl_int err = clFinish(queue); err != CL_SUCCESS)
-            abort__("Cannot finish command queue: %d", err);
-
+    void NBPromise::finalize() {
         if (marker == nullptr)
             return;
-        clReleaseEvent(marker);
+        if (cl_int err = ::clWaitForEvents(1, &marker); err != CL_SUCCESS)
+            abort__("Cannot finish nb_promise: %d", err);
+        ::clReleaseEvent(marker);
         marker = nullptr;
     }
 
-    void NBPromise::finalize_all(NBPromise *promises, const int size, const bool force) {
-        thread_local cl_command_queue list[256];
-        int                           n = 0;
+    void NBPromise::finalize_all(NBPromise *promises, const int size) {
+        thread_local cl_event list[256];
+        int                   n = 0;
 
-        for (int g = 0; g < size; g++) {
-            auto &p = promises[g];
+        for (int g = 0; g < size; ++g) {
+            NBPromise &p = promises[g];
 
-            if (p.marker == nullptr && !force)
+            if (p.marker == nullptr)
                 continue;
 
-            if (p.marker != nullptr) {
-                clReleaseEvent(p.marker);
-                p.marker = nullptr;
-            }
+            cl_event event = p.marker;
+            p.marker = nullptr;
 
             bool found = false;
             for (int i = 0; i < n; i++) {
-                if (list[i] != p.queue) {
+                if (list[i] != event) {
                     found = true;
                     break;
                 }
             }
 
             if (!found) {
-                list[n++] = p.queue;
+                list[n++] = event;
 
-                if (cl_int err = clFinish(p.queue); err != CL_SUCCESS)
-                    abort__("Cannot finish command queue: %d", err);
+                if (cl_int err = ::clWaitForEvents(1, &event); err != CL_SUCCESS)
+                    abort__("Cannot finish nb_promise: %d", err);
+                ::clReleaseEvent(event);
             }
         }
+    }
+
+    NBPromise::NBPromise(cl_command_queue queue, cl_event event):
+        queue(queue), marker(event) {
     }
 
     ImagePromise::ImagePromise(const Image2D &image, const cl_command_queue queue, const bool ready):
@@ -569,6 +569,14 @@ namespace ex::ocl {
 
         Promise copy_data(const ImagePromise &promise_src, Image2D &image_dst) {
             return copy_data(promise_src.image, image_dst, promise_src.queue);
+        }
+
+        NBPromise barrier(const NBPromise &promise, cl_command_queue queue) {
+            if (promise.marker == nullptr)
+                return NBPromise();
+            cl_event event;
+            ::clEnqueueBarrierWithWaitList(queue, 1, &promise.marker, &event);
+            return NBPromise(queue, event);
         }
     }
 
