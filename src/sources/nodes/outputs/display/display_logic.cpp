@@ -20,7 +20,7 @@ namespace ex::logic::node::out {
     };
 
     struct bytes_t {
-        unsigned char *data;
+        unsigned char *data[buffers_n];
         unsigned int   size;
         unsigned short width;
         unsigned short height;
@@ -33,6 +33,7 @@ namespace ex::logic::node::out {
 
     struct workload_t {
         ocl::NBPromise   promise;
+        ocl::img_promise input;
         cl_command_queue queue;
     };
 
@@ -43,7 +44,6 @@ namespace ex::logic::node::out {
         bytes_t    bytes;
 
         id_type_32 prev_;
-        control_t  updates_;
         control_t  supplies_;
 
         bool       enabled;
@@ -51,17 +51,47 @@ namespace ex::logic::node::out {
 
     static void init_buffers(buffers_t *b) {
         for (int i = 0; i < buffers_n; ++i)
-            b->image[0] = ocl::Image2D::blank();
+            b->image[i] = ocl::Image2D::blank();
         b->index = 0;
     }
 
-    static void swap_buffers(buffers_t *b) {
+    static void alloc_buffers(buffers_t *b, const ocl::Image2D *temp) {
+        const static ex::State &state = ex::logic::globals::state();
+        for (int i = 0; i < buffers_n; ++i) {
+            b->image[i].release();
+            b->image[i] = ocl::Image2D::allocate_like(*temp, state.cl.context);
+        }
+        b->index = 0;
+    }
+
+    static void alloc_bytes(bytes_t *b, const unsigned w, const unsigned h, const unsigned c) {
+        b->size   = w * h * c;
+        b->width  = w;
+        b->height = h;
+
+        for (int i = 0; i < buffers_n; ++i) {
+            if (b->data[i] != nullptr)
+                ::free(b->data[i]);
+            b->data[i] = static_cast<unsigned char *>(::malloc(b->size));
+        }
+    }
+
+    static unsigned swap_buffers(buffers_t *b) {
         b->index = (b->index + 1) % buffers_n;
+        return b->index;
+    }
+
+    static void reset_bytes(bytes_t *b) {
+        for (int i = 0; i < buffers_n; ++i) {
+            if (b->data[i] != nullptr)
+                ::free(b->data[i]);
+            b->data[i] = nullptr;
+        }
     }
 
     static void reset_buffers(buffers_t *b) {
         for (int i = 0; i < buffers_n; ++i)
-            b->image[0].release();
+            b->image[i].release();
         b->index = 0;
     }
 
@@ -80,13 +110,13 @@ namespace ex::logic::node::out {
 
     static void release_internal(internal_t *ptr) {
         reset_buffers(&ptr->buffers);
+        reset_bytes(&ptr->bytes);
+
         ptr->workload.promise.release();
+
         if (ptr->display.id != 0)
             ex::display::io.remove_output(ptr->display.id);
-        if (ptr->bytes.data != nullptr) {
-            ::free(ptr->bytes.data);
-            ptr->bytes.data = nullptr;
-        }
+
         if (ptr->workload.queue != nullptr) {
             clReleaseCommandQueue(ptr->workload.queue);
             ptr->workload.queue = nullptr;
@@ -113,9 +143,8 @@ namespace ex::logic::node::out {
     void DisplayOutputNode::register_image(const char *name) {
         if (internal->display.id != 0)
             ex::display::io.remove_output(internal->display.id);
-        internal->display.id   = ex::display::io.add_output(internal->display.name);
         internal->display.name = name;
-        internal->updates_.refresh();
+        internal->display.id   = ex::display::io.add_output(internal->display.name);
     }
 
     void DisplayOutputNode::rename_image(const char *name) {
@@ -147,7 +176,6 @@ namespace ex::logic::node::out {
 
     void DisplayOutputNode::enable() {
         internal->enabled = true;
-        internal->updates_.refresh();
     }
 
     void DisplayOutputNode::on_input(const int in_idx, const int out_idx, const int clock_i, void *data) {
@@ -157,74 +185,72 @@ namespace ex::logic::node::out {
             return;
 
         const ocl::img_promise *promise = static_cast<const ocl::img_promise *>(data);
-        if (promise == nullptr) {
+        if (promise == nullptr || promise->empty()) {
             reset();
-            internal->updates_.refresh();
             return;
         }
 
-        const ocl::Image2D &img = promise->image;
-        if (img.empty()) {
-            reset();
-            internal->updates_.refresh();
-            return;
-        }
-
+        internal->workload.input = *promise;
         internal->supplies_.refresh();
-
-        if (!internal->workload.promise.completed())
-            return;
-
-        const unsigned index = internal->buffers.index;
-        ocl::Image2D  &image = internal->buffers.image[index];
-
-        if (img.header.fresh || img.id != internal->prev_ || image.detached())
-            internal->updates_.refresh();
-
-        if (!internal->updates_.fresh())
-            return;
-
-        if (img.id != internal->prev_ ||
-            img.size() != image.size() ||
-            img.cols != image.cols ||
-            img.rows != image.rows ||
-            image.detached())
-        {
-            image.release();
-            image = ex::ocl::Image2D::allocate_like(img, state.cl.context);
-            internal->prev_ = img.id;
-        }
-
-        // TODO copy to internal cl_mem buffer
-
-        internal->updates_.refresh();
-
-        // TODO UNLOAD DATA TO HOST
     }
 
     void DisplayOutputNode::on_update(const int clock_i) {
         if (!internal->enabled)
             return;
 
-        internal->updates_.update();
-
         if (!internal->supplies_.update()) {
             reset();
             return;
         }
 
-        if (internal->workload.promise.empty() || !internal->workload.promise.completed())
+        const unsigned   index = internal->buffers.index;
+        ocl::img_promise input = internal->workload.input;
+        ocl::image2d_t   image = internal->buffers.image[index];
+
+        bool should_step = false;
+        if (input.image.header.fresh || input.image.id != internal->prev_ || image.detached())
+            should_step = true;
+
+        if (!internal->workload.promise.empty())
+            should_step = true;
+
+        if (!should_step)
             return;
 
-        internal->workload.promise.release();
+        if (input.image.id != internal->prev_ ||
+            input.image.size() != image.size() ||
+            input.image.cols != image.cols ||
+            input.image.rows != image.rows ||
+            image.detached())
+        {
+            const unsigned channels = ocl::channel_count(input.image.header.channels);
+            const unsigned width = input.image.cols;
+            const unsigned height = input.image.rows;
+            alloc_bytes(&internal->bytes, width, height, channels);
+            alloc_buffers(&internal->buffers, &input.image);
+            internal->prev_ = input.image.id;
+        }
 
-        if (internal->bytes.data != nullptr) {
+        if (!internal->workload.promise.completed())
+            return;
+
+        ocl::image2d_t &curr_image = internal->buffers.image[index];
+        const unsigned  next_index = swap_buffers(&internal->buffers);
+        ocl::image2d_t &next_image = internal->buffers.image[next_index];
+
+        ocl::ops::copy_data(input, next_image);
+
+        internal->workload.promise.release();
+        internal->workload.promise =
+                ocl::ops::to_bytes(curr_image, internal->bytes.data[next_index], internal->workload.queue)
+                        .non_blocking();
+
+        if (internal->bytes.data[index] != nullptr) {
             const unsigned channels = internal->bytes.size / (internal->bytes.width * internal->bytes.height);
-            ex::display::io.draw_bytes_bgra_8(internal->display.id, internal->bytes.data,
+            ex::display::io.draw_bytes_bgra_8(internal->display.id, internal->bytes.data[index],
                                               internal->bytes.width, internal->bytes.height,
                                               channels);
         }
-        swap_buffers(&internal->buffers);
     }
 
     void *DisplayOutputNode::on_output(const int in_idx, const int out_idx, const int clock_i) {

@@ -588,6 +588,19 @@ namespace ex::ocl {
             return NBPromise(queue, event);
         }
 
+        NBPromise barrier(const NBPromise &promise) {
+            if (promise.marker == nullptr)
+                return NBPromise();
+            cl_event event;
+
+            if (cl_int err = ::clEnqueueBarrierWithWaitList(promise.queue, 1, &promise.marker, &event);
+                err != CL_SUCCESS) {
+                abort__("clEnqueueBarrierWithWaitList abort: %d", err);
+            }
+
+            return NBPromise(promise.queue, event);
+        }
+
         NBPromise barrier(cl_command_queue queue) {
             cl_event marker, event;
             cl_int   err;

@@ -233,16 +233,16 @@ namespace ex::ocl {
         void from_bytes(const unsigned char *bytes, ImagePromise &image_dst);
 
         // non blocking op
-        Promise to_bytes(const Image2D &image, unsigned char *out, cl_command_queue);
+        Promise to_bytes(const Image2D &, unsigned char *out, cl_command_queue);
 
         // non blocking op
-        Promise to_bytes(const ImagePromise &promise, unsigned char *out);
+        Promise to_bytes(const ImagePromise &, unsigned char *out);
 
         // non blocking op
-        ImagePromise copy_data(const Image2D &image, cl_context, cl_command_queue);
+        ImagePromise copy_data(const Image2D &, cl_context, cl_command_queue);
 
         // non blocking op
-        ImagePromise copy_data(const ImagePromise &promise, cl_context);
+        ImagePromise copy_data(const ImagePromise &, cl_context);
 
         // non blocking op
         Promise copy_data(const ImagePromise &promise_src, Image2D &image_dst);
@@ -252,6 +252,9 @@ namespace ex::ocl {
 
         // non blocking op
         NBPromise barrier(const NBPromise &, cl_command_queue);
+
+        // non blocking op
+        NBPromise barrier(const NBPromise &);
 
         // non blocking op
         NBPromise barrier(cl_command_queue);
