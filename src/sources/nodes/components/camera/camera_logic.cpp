@@ -766,6 +766,8 @@ namespace ex::logic::node::sync {
         if (at_least_one(this)) {
             enqueue_sync(this);
             internal->enqueued = true;
+        } else {
+            internal->fps = 0;
         }
 
         internal->time_t0 = std::chrono::high_resolution_clock::now().time_since_epoch().count();
