@@ -82,13 +82,6 @@ namespace ex::logic::node::transform {
         static char buff[1024];
         ::memset(buff, 0, 1024);
 
-        {
-            const unsigned short iw = internal->buffers.input.image.cols;
-            const unsigned short ih = internal->buffers.input.image.rows;
-            buff_l += sprintf(buff + buff_l, " -DUSE_IW=%hu ", iw);
-            buff_l += sprintf(buff + buff_l, " -DUSE_IH=%hu ", ih);
-        }
-
         if (config->rotate == rotate_e::CW_1) {
             kernel->enabled = true;
             buff_l += sprintf(buff + buff_l, " -DUSE_ROTATE=1 ");
@@ -104,89 +97,71 @@ namespace ex::logic::node::transform {
             buff_l += sprintf(buff + buff_l, " -DUSE_FLIP_Y=1 ");
         }
 
-        const float scale_w = 1.f,
-                    scale_h = 1.f;
-
         unsigned int output_size_w = 0,
                      output_size_h = 0;
 
-        if (config->resize.linear) {
-            buff_l += sprintf(buff + buff_l, " -DUSE_DOWNSCALE_LIN=1 ");
-        }
-
-        // TODO SCALE PARAMS
+        // TODO RESIZING
 
         if (config->crop.start_x > 0) {
             kernel->enabled = true;
-            const unsigned short tx = config->crop.start_x * clamp(scale_w, 1.f);
-            buff_l += sprintf(buff + buff_l, " -DUSE_TRANSLATE_X=%hu ", tx);
+            buff_l += sprintf(buff + buff_l, " -DUSE_TRANSLATE_X=%hu ", config->crop.start_x);
         }
 
         if (config->crop.start_y > 0) {
             kernel->enabled = true;
-            const unsigned short ty = config->crop.start_y * clamp(scale_h, 1.f);
-            buff_l += sprintf(buff + buff_l, " -DUSE_TRANSLATE_Y=%hu ", ty);
+            buff_l += sprintf(buff + buff_l, " -DUSE_TRANSLATE_Y=%hu ", config->crop.start_y);
         }
 
         if (config->crop.end_x > 0) {
             kernel->enabled = true;
-            const unsigned short tx = config->crop.start_x * clamp(scale_w, 1.f);
-            const unsigned short dw = config->crop.end_x * clamp(scale_w, 1.f);
-            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_X=%hu ", (dw - tx));
+            const unsigned short tx = config->crop.start_x;
+            const unsigned short dw = config->crop.end_x;
+            const unsigned short dd = dw - tx;
 
-            const unsigned short ox = config->crop.start_x * scale_w;
-            const unsigned short ow = config->crop.end_x * scale_w;
-            if (config->rotate != rotate_e::CW_1) {
-                output_size_w = ow - ox;
-                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", output_size_w);
-            } else {
-                output_size_h = ow - ox;
-            }
+            if (config->rotate != rotate_e::CW_1)
+                output_size_w = dd;
+            else
+                output_size_h = dd;
 
-        } else {
-            const unsigned short tx = config->crop.start_x * clamp(scale_w, 1.f);
-            const unsigned short dw = internal->buffers.input.image.cols * clamp(scale_w, 1.f);
-            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_X=%hu ", (dw - tx));
+            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_X=%hu ", dd);
+        }
+        else {
+            const unsigned short tx = config->crop.start_x;
+            const unsigned short dw = internal->buffers.input.image.cols;
+            const unsigned short dd = dw - tx;
 
-            const unsigned short ox = config->crop.start_x * scale_w;
-            const unsigned short ow = internal->buffers.input.image.cols * scale_w;
-            if (config->rotate != rotate_e::CW_1) {
-                output_size_w = ow - ox;
-                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", output_size_w);
-            } else {
-                output_size_h = ow - ox;
-            }
+            if (config->rotate != rotate_e::CW_1)
+                output_size_w = dd;
+            else
+                output_size_h = dd;
+
+            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_X=%hu ", dd);
         }
 
         if (config->crop.end_y > 0) {
             kernel->enabled = true;
-            const unsigned short ty = config->crop.start_y * clamp(scale_h, 1.f);
-            const unsigned short dh = config->crop.end_y * clamp(scale_h, 1.f);
-            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_Y=%hu ", (dh - ty));
+            const unsigned short ty = config->crop.start_y;
+            const unsigned short dh = config->crop.end_y;
+            const unsigned short dd = dh - ty;
 
-            const unsigned short ox = config->crop.start_y * scale_h;
-            const unsigned short ow = config->crop.end_y * scale_h;
-            if (config->rotate == rotate_e::CW_1) {
-                output_size_w = ow - ox;
-                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", output_size_w);
-            }
-            else {
-                output_size_h = ow - ox;
-            }
+            if (config->rotate == rotate_e::CW_1)
+                output_size_w = dd;
+            else
+                output_size_h = dd;
 
-        } else {
-            const unsigned short ty = config->crop.start_y * clamp(scale_h, 1.f);
-            const unsigned short dh = internal->buffers.input.image.rows * clamp(scale_h, 1.f);
-            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_Y=%hu ", (dh - ty));
+            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_Y=%hu ", dd);
+        }
+        else {
+            const unsigned short ty = config->crop.start_y;
+            const unsigned short dh = internal->buffers.input.image.rows;
+            const unsigned short dd = dh - ty;
 
-            const unsigned short ox = config->crop.start_y * scale_h;
-            const unsigned short ow = internal->buffers.input.image.rows * scale_h;
-            if (config->rotate == rotate_e::CW_1) {
-                output_size_w = ow - ox;
-                buff_l += sprintf(buff + buff_l, " -DUSE_OW=%hu ", output_size_w);
-            } else {
-                output_size_h = ow - ox;
-            }
+            if (config->rotate == rotate_e::CW_1)
+                output_size_w = dd;
+            else
+                output_size_h = dd;
+
+            buff_l += sprintf(buff + buff_l, " -DUSE_DIMENSION_Y=%hu ", dd);
         }
 
         buff[buff_l + 1] = '\0';
