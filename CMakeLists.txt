@@ -44,7 +44,10 @@ find_package(OpenCL 3.0 REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(spdlog REQUIRED)
+find_package(GLEW REQUIRED)
 find_package(glfw3 REQUIRED)
+
+pkg_search_module(GLFW REQUIRED glfw3)
 
 if (OpenCL_FOUND)
     add_definitions("-DCL_HPP_TARGET_OPENCL_VERSION=300")
@@ -78,7 +81,9 @@ target_include_directories(imgui PUBLIC
         external/imgui/backends)
 
 target_link_libraries(imgui PUBLIC
-        OpenGL::GL glfw)
+        OpenGL::GL
+        GLEW::GLEW
+        glfw)
 
 set(EXTRA_FILES
         # byte box

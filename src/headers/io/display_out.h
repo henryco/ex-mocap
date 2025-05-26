@@ -10,13 +10,29 @@ namespace ex::display {
     using disp_id_t = unsigned int;
 
     struct IO {
-        disp_id_t (*add_output)(const char *)                                              = nullptr;
-        void (*rename_output)(disp_id_t, const char *)                                     = nullptr;
-        void (*remove_output)(disp_id_t)                                                   = nullptr;
-        void (*clear)(disp_id_t)                                                           = nullptr;
-        void (*draw_bytes_bgra_8)(disp_id_t id, unsigned char *data, int w, int h, int cn) = nullptr;
-        // TODO CL_MEM handle ?
-        // TODO INTER-THREAD SYNC?
+        // create display
+        disp_id_t (*add_output)(const char *)                      = nullptr;
+
+        // rename display
+        void (*rename_output)(disp_id_t, const char *)             = nullptr;
+
+        // remove display
+        void (*remove_output)(disp_id_t)                           = nullptr;
+
+        // clear gl texture
+        void (*clear)(disp_id_t)                                   = nullptr;
+
+        // prepare display canvas
+        void (*prepare_bgra_8)(disp_id_t id, int w, int h, int cn) = nullptr;
+
+        // direct access canvas memory
+        void *(*direct_bgra_8)(disp_id_t id)                       = nullptr;
+
+        // plain old draw
+        bool (*draw_bytes_bgra_8)(disp_id_t id, const void *data)  = nullptr;
+
+        // flush changes canvas
+        bool (*flush_bgra_8)(disp_id_t id)                         = nullptr;
     };
 
     inline IO io;

@@ -140,7 +140,10 @@ namespace ex::gui::strings {
 
     constexpr auto node_section_new_name = "New section";
 
-    constexpr auto node_output_display_name = "Display";
+    constexpr auto node_output_display_name          = "Display";
+    constexpr auto node_output_display_id            = "Display ID";
+    constexpr auto node_output_display_buffer        = "Buffer";
+    constexpr auto node_output_display_buffer_direct = "Direct access";
 
     constexpr auto node_component_image_id         = "Image ID";
     constexpr auto node_component_image_name       = "Image";
@@ -163,6 +166,7 @@ namespace ex::gui::strings {
     constexpr auto node_component_camera_buffering_2 = "Double (2)";
     constexpr auto node_component_camera_buffering_3 = "Triple (3)";
 
+    constexpr auto node_component_sync_id = "Sync ID";
     constexpr auto node_component_sync_name = "Sync";
     constexpr auto node_component_sync_fps = "Frame rate";
     constexpr auto node_component_sync_nodes = "Input nodes";

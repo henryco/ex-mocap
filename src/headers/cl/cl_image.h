@@ -22,6 +22,33 @@ namespace ex::ocl {
     using uint16 = u_int16_t;
     using uchar8 = u_int8_t;
 
+    enum class C_MODE: uchar8 {
+        A    = 0U,
+        R    = 1U,
+        RG   = 2U,
+        RA   = 3U,
+        RGB  = 4U, // not sure about this
+        RGBA = 5U,
+        BGRA = 6U,
+        ARGB = 7U,
+    };
+
+    enum class C_DEPT: uchar8 {
+        UINT_N8  = 0U, // normalized uchar
+        UINT_N16 = 1U, // normalized ushort
+        UINT_8   = 2U, // uchar
+        UINT_16  = 3U, // ushort
+        UINT_32  = 4U, // uint
+        FLOAT_16 = 5U, // half-float
+        FLOAT_32 = 6U, // full-float
+    };
+
+    // number of channels
+    unsigned channel_count(C_MODE cn_mode);
+
+    // size of the channel in bytes
+    unsigned channel_size(C_DEPT cn_dept);
+
     // 16 bytes
     struct Image2D {
 
@@ -37,8 +64,8 @@ namespace ex::ocl {
         };
 
         struct header {
-            uchar8 cn_depth : 3; // 0-8
-            uchar8 channels : 3; // 0/1/3/4
+            C_MODE channels : 3;
+            C_DEPT cn_depth : 3;
             ACCESS access   : 2; // 00/RO/WO/RW
             // -------------
             uchar8 fresh    : 1; // 0/1
@@ -68,15 +95,10 @@ namespace ex::ocl {
 
         static Image2D blank();
 
-        /**
-         * <b> THIS WILL NOT COPY DATA UNDER CL_MEM HANDLE! </b>
-         */
-        static Image2D copy(const Image2D &source);
-
         static Image2D detached(::size_t cols,
                                 ::size_t rows,
-                                ::size_t channels,
-                                ::size_t channel_size,
+                                C_MODE channels,
+                                C_DEPT channel_size,
                                 ACCESS access = ACCESS::RW);
 
         static void allocate(Image2D &img,
@@ -84,8 +106,8 @@ namespace ex::ocl {
 
         static Image2D allocate(::size_t cols,
                                 ::size_t rows,
-                                ::size_t channels,
-                                ::size_t channel_size,
+                                C_MODE channels,
+                                C_DEPT channel_size,
                                 cl_context context,
                                 ACCESS access = ACCESS::RW);
 
@@ -160,9 +182,11 @@ namespace ex::ocl {
         cl_command_queue queue;
         cl_event         marker;
 
-        NBPromise(const ImagePromise &promise);
+        NBPromise(cl_command_queue, cl_event);
 
-        NBPromise(const Promise &promise);
+        NBPromise(const ImagePromise &);
+
+        NBPromise(const Promise &);
 
         NBPromise();
 
@@ -173,10 +197,10 @@ namespace ex::ocl {
         bool empty() const;
 
         // blocking op
-        void finalize(bool force = false);
+        void finalize();
 
         // blocking op
-        static void finalize_all(NBPromise *arr, int n, bool force = false);
+        static void finalize_all(NBPromise *arr, int n);
     };
 
     namespace ops {
@@ -186,8 +210,8 @@ namespace ex::ocl {
             const unsigned char *bytes,
             ::size_t width,
             ::size_t height,
-            ::size_t channel_n,
-            ::size_t channel_size,
+            C_MODE channel_n,
+            C_DEPT channel_size,
             cl_context context,
             cl_command_queue queue,
             Image2D::ACCESS access = Image2D::ACCESS::RW
@@ -202,30 +226,38 @@ namespace ex::ocl {
             Image2D::ACCESS access = Image2D::ACCESS::RW
         );
 
-        // === BLOCKING OP ===
-        void from_bytes(const unsigned char *bytes, Image2D &image_dst, cl_command_queue queue);
+        // non blocking op
+        void from_bytes(const unsigned char *bytes, Image2D &image_dst, cl_command_queue);
 
         // non blocking op
         void from_bytes(const unsigned char *bytes, ImagePromise &image_dst);
 
         // non blocking op
-        Promise to_bytes(const Image2D &image, unsigned char *out, cl_command_queue queue);
+        Promise to_bytes(const Image2D &, void *out, cl_command_queue);
 
         // non blocking op
-        Promise to_bytes(const ImagePromise &promise, unsigned char *out);
+        Promise to_bytes(const ImagePromise &, void *out);
 
         // non blocking op
-        ImagePromise copy_data(const Image2D &image, cl_context context, cl_command_queue queue);
+        ImagePromise copy_data(const Image2D &, cl_context, cl_command_queue);
 
         // non blocking op
-        ImagePromise copy_data(const ImagePromise &promise, cl_context context);
+        ImagePromise copy_data(const ImagePromise &, cl_context);
 
         // non blocking op
         Promise copy_data(const ImagePromise &promise_src, Image2D &image_dst);
 
         // non blocking op
-        Promise copy_data(const Image2D &image_src, Image2D &image_dst, cl_command_queue queue);
+        Promise copy_data(const Image2D &image_src, Image2D &image_dst, cl_command_queue);
 
+        // non blocking op
+        NBPromise barrier(const NBPromise &, cl_command_queue);
+
+        // non blocking op
+        NBPromise barrier(const NBPromise &);
+
+        // non blocking op
+        NBPromise barrier(cl_command_queue);
     }
 
 }

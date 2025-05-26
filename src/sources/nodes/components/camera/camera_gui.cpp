@@ -489,7 +489,27 @@ namespace ex::gui::node::sync {
         const id_type_32 id = window->node->id_node;
         auto *sync_node = dynamic_cast<logic::node::sync::SyncNode *>(logic::state::get_node(id));
         if (sync_node == nullptr)
-            return false;
+            return true;
+
+        {
+            ImGui::SeparatorText(strings::node_component_sync_id);
+            static char buff[8] = "";
+            ::snprintf(buff, 7, "%u", id);
+
+            const auto input_pos  = ImGui::GetCursorScreenPos();
+            const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
+
+            ImGui::BeginDisabled(true);
+            ImGui::SetNextItemWidth(input_size.x);
+            ImGui::InputText("###SyncID", buff, 8, ImGuiInputTextFlags_CharsDecimal);
+            ImGui::EndDisabled();
+
+            constexpr float alpha = 1.f;
+            ImGui::GetWindowDrawList()->AddRect(input_pos,
+                                                ImVec2(input_pos.x + input_size.x, input_pos.y + input_size.y),
+                                                IM_COL32(0, 0, 0, 90 * alpha));
+            ImGui::NewLine();
+        }
 
         const float fps = sync_node->inputs_.empty() ? 0.f : sync_node->get_fps();
 

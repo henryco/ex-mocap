@@ -2,14 +2,12 @@
 // Created by xd on 4/30/25.
 //
 
-#include <pthread.h>
 #include <opencv2/videoio.hpp>
 #include <opencv2/imgproc.hpp>
 
 #include "../../../../headers/nodes/components/camera/camera_logic.h"
 
 #include "../../../../headers/logic/logic_globals.h"
-#include "../../../../headers/logic/logic_nodes.h"
 #include "../../../../headers/cl/cl_kernel.h"
 
 #include "../../../../../extra/worker/worker.h"
@@ -54,7 +52,6 @@ namespace result {
 
 namespace ex::logic::node::sync {
     using cam_ref_t = camera::CameraNode *;
-    using sync_id_t = limbo::uid64_t;
 
     struct sync_t {
         cam_ref_t camera[MAX_CAMS];
@@ -469,8 +466,10 @@ namespace ex::logic::node::camera {
         internal->promises[1].image.release();
         internal->promises[0].queue    = internal->queue_p;
         internal->promises[1].queue    = internal->queue_p;
-        internal->promises[0].image    = ocl::Image2D::allocate(cap.width, cap.height, 4, 1, state_.cl.context);
-        internal->promises[1].image    = ocl::Image2D::allocate(cap.width, cap.height, 4, 1, state_.cl.context);
+        internal->promises[0].image    = ocl::Image2D::allocate(cap.width, cap.height, ocl::C_MODE::BGRA,
+                                                                ocl::C_DEPT::UINT_N8, state_.cl.context);
+        internal->promises[1].image    = ocl::Image2D::allocate(cap.width, cap.height, ocl::C_MODE::BGRA,
+                                                                ocl::C_DEPT::UINT_N8, state_.cl.context);
         internal->promises[0].image.id = state.image_id;
         internal->promises[1].image.id = state.image_id;
     }
@@ -767,6 +766,8 @@ namespace ex::logic::node::sync {
         if (at_least_one(this)) {
             enqueue_sync(this);
             internal->enqueued = true;
+        } else {
+            internal->fps = 0;
         }
 
         internal->time_t0 = std::chrono::high_resolution_clock::now().time_since_epoch().count();
