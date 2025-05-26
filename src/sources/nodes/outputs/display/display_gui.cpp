@@ -108,11 +108,12 @@ namespace ex::gui::node::out::display {
             ImGui::NewLine();
         }
 
-        {
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        if (ImGui::CollapsingHeader(strings::node_output_display_buffer, ImGuiTreeNodeFlags_Framed)) {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
 
-            if (ImGui::Checkbox(strings::node_output_display_direct, &config.direct))
+            if (ImGui::Checkbox(strings::node_output_display_buffer_direct, &config.direct))
                 time_stack.push(time_now, id, config);
 
             ImGui::PopStyleColor();
