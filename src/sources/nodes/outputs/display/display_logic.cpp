@@ -258,6 +258,13 @@ namespace ex::logic::node::out {
         internal->workload.promise =
                 ocl::ops::to_bytes(curr_image, ptr, internal->workload.queue)
                         .non_blocking();
+
+//        internal->workload.promise =
+//                ocl::ops::to_bytes(curr_image, internal->bytes.data[next_index], internal->workload.queue)
+//                        .non_blocking();
+//
+//        if (internal->bytes.data[index])
+//            display::io.draw_bytes_bgra_8(internal->display.id, internal->bytes.data[index]);
     }
 
     void *DisplayOutputNode::on_output(const int in_idx, const int out_idx, const int clock_i) {

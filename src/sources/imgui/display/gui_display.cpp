@@ -44,7 +44,7 @@ namespace {
             GL_BGR,
             GL_BGRA
         };
-        return formats_[c + 1];
+        return formats_[c - 1];
     }
 
     #define PBO_COUNT (3)
