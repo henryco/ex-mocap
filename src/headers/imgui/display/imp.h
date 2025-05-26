@@ -17,6 +17,9 @@ namespace ex::display::imp::imgui {
 
     void draw_bytes_bgra_8(unsigned int id, unsigned char *data, int w, int h, int cn);
 
+    void *direct_bgra_8(unsigned int id, int w, int h, int cn);
+
+    void flush_bgra_8(unsigned int id);
     // TODO
 }
 

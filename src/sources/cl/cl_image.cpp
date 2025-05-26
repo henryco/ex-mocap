@@ -498,7 +498,7 @@ namespace ex::ocl {
             image_dst.set_completed(false);
         }
 
-        Promise to_bytes(const Image2D &image, unsigned char *out, const cl_command_queue queue) {
+        Promise to_bytes(const Image2D &image, void *out, const cl_command_queue queue) {
             if (image.handle == nullptr)
                 abort__("Image cl_mem ptr is null");
 
@@ -523,7 +523,7 @@ namespace ex::ocl {
             return queue;
         }
 
-        Promise to_bytes(const ImagePromise &promise, unsigned char *out) {
+        Promise to_bytes(const ImagePromise &promise, void *out) {
             return to_bytes(promise.image, out, promise.queue);
         }
 

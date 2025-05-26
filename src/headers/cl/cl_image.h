@@ -233,10 +233,10 @@ namespace ex::ocl {
         void from_bytes(const unsigned char *bytes, ImagePromise &image_dst);
 
         // non blocking op
-        Promise to_bytes(const Image2D &, unsigned char *out, cl_command_queue);
+        Promise to_bytes(const Image2D &, void *out, cl_command_queue);
 
         // non blocking op
-        Promise to_bytes(const ImagePromise &, unsigned char *out);
+        Promise to_bytes(const ImagePromise &, void *out);
 
         // non blocking op
         ImagePromise copy_data(const Image2D &, cl_context, cl_command_queue);

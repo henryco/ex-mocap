@@ -230,10 +230,15 @@ namespace ex::logic::node::out {
             internal->prev_ = input.image.id;
         }
 
-        if (!internal->workload.promise.completed()) {
+        const unsigned channels = internal->bytes.size / (internal->bytes.width * internal->bytes.height);
+        void *ptr = display::io.direct_bgra_8(internal->display.id, internal->bytes.width, internal->bytes.height, channels);
+
+        if (!internal->workload.promise.completed() || ptr == nullptr) {
             internal->updates_.refresh();
             return;
         }
+
+        display::io.flush_bgra_8(internal->display.id);
 
         ocl::image2d_t &curr_image = internal->buffers.image[index];
         const unsigned  next_index = swap_buffers(&internal->buffers);
@@ -243,15 +248,8 @@ namespace ex::logic::node::out {
 
         internal->workload.promise.release();
         internal->workload.promise =
-                ocl::ops::to_bytes(curr_image, internal->bytes.data[next_index], internal->workload.queue)
+                ocl::ops::to_bytes(curr_image, ptr, internal->workload.queue)
                         .non_blocking();
-
-        if (internal->bytes.data[index] != nullptr) {
-            const unsigned channels = internal->bytes.size / (internal->bytes.width * internal->bytes.height);
-            ex::display::io.draw_bytes_bgra_8(internal->display.id, internal->bytes.data[index],
-                                              internal->bytes.width, internal->bytes.height,
-                                              channels);
-        }
     }
 
     void *DisplayOutputNode::on_output(const int in_idx, const int out_idx, const int clock_i) {

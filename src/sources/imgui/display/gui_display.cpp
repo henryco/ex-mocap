@@ -69,6 +69,8 @@ namespace {
         char           bg_color;
         bool           updated;
         bool           to_clear;
+        bool           direct;
+        bool           flush;
     };
 
     display_window_t rv_display_window(const char *uuid, const char *name) {
@@ -200,7 +202,10 @@ namespace ex::display::imp::imgui {
         display_window_t &ref = display_map_.at(id);
         ref.data     = nullptr;
         ref.updated  = false;
+        ref.updated  = true;
         ref.to_clear = true;
+        ref.direct   = false;
+        ref.flush     = false;
         lock_.unlock();
     }
 
@@ -213,12 +218,54 @@ namespace ex::display::imp::imgui {
         ref.pbo.height   = h;
         ref.pbo.channels = cn;
         ref.updated      = true;
+        ref.direct       = false;
+        ref.flush        = false;
         ref.data         = data;
 
         lock_.unlock();
 
         if (w <= 0 || h <= 0)
             abort_("w <= 0 || h <= 0");
+    }
+
+    void *direct_bgra_8(unsigned int id, int w, int h, int cn) {
+        lock_.lock();
+
+        display_window_t &ref = display_map_.at(id);
+
+        ref.pbo.width    = w;
+        ref.pbo.height   = h;
+        ref.pbo.channels = cn;
+        ref.updated      = true;
+        ref.direct       = true;
+        ref.flush        = false;
+        ref.data         = nullptr;
+
+        lock_.unlock();
+
+        if (w <= 0 || h <= 0)
+            abort_("w <= 0 || h <= 0");
+
+        if (ref.pbo.texture == 0)
+            return nullptr;
+
+        return ref.pbo.pbo_pt[ref.pbo.index];
+    }
+
+    void flush_bgra_8(unsigned int id) {
+        lock_.lock();
+
+        display_window_t &ref = display_map_.at(id);
+
+        ref.updated      = true;
+        ref.direct       = true;
+        ref.data         = nullptr;
+
+        if (ref.pbo.texture != 0) {
+            ref.flush = true;
+        }
+
+        lock_.unlock();
     }
 }
 
@@ -293,9 +340,61 @@ namespace ex::gui::display {
 
             else if (disp.updated == true) {
 
-                if (disp.pbo.texture == 0 && disp.data != nullptr) {
+
+                if (disp.pbo.texture == 0 && (disp.data != nullptr || disp.direct)) {
                     init_buffers(&disp.pbo);
+                    disp.direct = false;
                 }
+
+
+
+                if (disp.pbo.texture != 0 && disp.direct && disp.flush) {
+                    disp.direct = false;
+                    disp.flush  = false;
+
+                    pbo_t &buff  = disp.pbo;
+                    char   index = disp.pbo.index;
+
+                    const unsigned width    = buff.width;
+                    const unsigned height   = buff.height;
+                    const unsigned channels = buff.channels;
+
+                    lock_.lock();
+
+                    if (buff.fences[index]) {
+                        GLenum result = glClientWaitSync(buff.fences[index], GL_SYNC_FLUSH_COMMANDS_BIT, PBO_TIMEOUT);
+                        if (result == GL_TIMEOUT_EXPIRED) {
+                            // TODO: GPU SLOW?
+                        }
+                        glDeleteSync(buff.fences[index]);
+                        buff.fences[index] = 0;
+                    }
+
+                    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, buff.pbo_id[index]);
+                    glBindTexture(GL_TEXTURE_2D, buff.texture);
+                    glTexSubImage2D(GL_TEXTURE_2D,
+                                    0,
+                                    0,
+                                    0,
+                                    width,
+                                    height,
+                                    format_c(channels),
+                                    GL_UNSIGNED_BYTE,
+                                    0
+                    );
+                    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+                    glBindTexture(GL_TEXTURE_2D, 0);
+
+                    // --- Insert fence after upload ---
+                    buff.fences[index] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+
+                    // Advance ring index
+                    disp.pbo.index = (index + 1) % PBO_COUNT;
+
+                    lock_.unlock();
+                }
+
+
 
                 if (disp.pbo.texture != 0 && disp.data != nullptr) {
 
@@ -345,6 +444,7 @@ namespace ex::gui::display {
                     // Advance ring index
                     disp.pbo.index = (index + 1) % PBO_COUNT;
 
+                    disp.data = nullptr;
                     lock_.unlock();
                 }
 
