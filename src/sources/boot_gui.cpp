@@ -107,6 +107,7 @@ namespace ex::boot {
         ex::display::io.rename_output     = &ex::display::imp::imgui::rename_output;
         ex::display::io.remove_output     = &ex::display::imp::imgui::remove_output;
         ex::display::io.clear             = &ex::display::imp::imgui::clear;
+        ex::display::io.prepare_bgra_8    = &ex::display::imp::imgui::prepare_bgra_8;
         ex::display::io.draw_bytes_bgra_8 = &ex::display::imp::imgui::draw_bytes_bgra_8;
         ex::display::io.direct_bgra_8     = &ex::display::imp::imgui::direct_bgra_8;
         ex::display::io.flush_bgra_8      = &ex::display::imp::imgui::flush_bgra_8;

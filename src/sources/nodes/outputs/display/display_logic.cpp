@@ -224,21 +224,29 @@ namespace ex::logic::node::out {
             const unsigned channels = ocl::channel_count(input.image.header.channels);
             const unsigned width = input.image.cols;
             const unsigned height = input.image.rows;
+
             alloc_bytes(&internal->bytes, width, height, channels);
             alloc_buffers(&internal->buffers, &input.image);
+
             internal->workload.promise.release();
             internal->prev_ = input.image.id;
+
+            display::io.prepare_bgra_8(internal->display.id, internal->bytes.width, internal->bytes.height, channels);
         }
 
-        const unsigned channels = internal->bytes.size / (internal->bytes.width * internal->bytes.height);
-        void *ptr = display::io.direct_bgra_8(internal->display.id, internal->bytes.width, internal->bytes.height, channels);
-
-        if (!internal->workload.promise.completed() || ptr == nullptr) {
-            internal->updates_.refresh();
+        if (!internal->workload.promise.completed()) {
+            internal->updates_.refresh(); // task not completed
             return;
         }
 
-        display::io.flush_bgra_8(internal->display.id);
+        if (!display::io.flush_bgra_8(internal->display.id)) {
+            internal->updates_.refresh(); // display not ready
+            return;
+        }
+
+        void *ptr = display::io.direct_bgra_8(internal->display.id);
+        if (ptr == nullptr)
+            abort_("shouldn't happen: direct_bgra_8 == NULL");
 
         ocl::image2d_t &curr_image = internal->buffers.image[index];
         const unsigned  next_index = swap_buffers(&internal->buffers);
