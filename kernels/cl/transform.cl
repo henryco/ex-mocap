@@ -56,7 +56,7 @@ __kernel void kernel_transform(
     #endif
 
     #ifdef USE_RESIZE
-
+    // TODO
     #else
     const float4 pixel = read_imagef(input_bgra, coord);
     write_imagef(output_bgra, dst_coord, pixel);
