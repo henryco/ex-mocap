@@ -273,7 +273,6 @@ namespace ex::display::imp::imgui {
             return nullptr;
         }
 
-        release_state(&ref.state);
         lock_.unlock();
         return ref.pbo.pbo_pt[ref.pbo.index];
     }
@@ -433,7 +432,7 @@ namespace ex::gui::display {
                 release_state(&disp.state);
 
                 pbo_t &buff  = disp.pbo;
-                char   next  = disp.pbo.index;
+                char   next  = buff.index;
                 char   index = (next - 1 + PBO_COUNT) % PBO_COUNT;
 
                 const unsigned width    = buff.width;
