@@ -48,6 +48,7 @@ namespace ex::logic::node::out {
         control_t  updates_;
 
         bool       enabled;
+        bool       direct;
     };
 
     static void init_buffers(buffers_t *b) {
@@ -102,9 +103,10 @@ namespace ex::logic::node::out {
         internal_t *mem = static_cast<internal_t *>(::malloc(sizeof(internal_t)));
         ::memset(mem, 0, sizeof(internal_t));
 
-        mem->enabled = true;
         mem->workload.queue = xm::ocl::create_queue_device(state.cl.context, state.cl.device, true, false);
         init_buffers(&mem->buffers);
+        mem->enabled = true;
+        mem->direct  = true;
 
         return mem;
     }
@@ -150,6 +152,14 @@ namespace ex::logic::node::out {
 
     void DisplayOutputNode::rename_image(const char *name) {
         ex::display::io.rename_output(internal->display.id, name);
+    }
+
+    void DisplayOutputNode::set_direct(const bool v) const {
+        internal->direct = v;
+    }
+
+    bool DisplayOutputNode::is_direct() const {
+        return internal->direct;
     }
 
     id_type_16 DisplayOutputNode::get_input_id() const {
@@ -239,14 +249,30 @@ namespace ex::logic::node::out {
             return;
         }
 
-        if (!display::io.flush_bgra_8(internal->display.id)) {
-            internal->updates_.refresh(); // display not ready
+        if (internal->direct) {
+
+            if (!display::io.flush_bgra_8(internal->display.id)) {
+                internal->updates_.refresh(); // display not ready
+                return;
+            }
+
+            void *ptr = display::io.direct_bgra_8(internal->display.id);
+            if (ptr == nullptr)
+                abort_("shouldn't happen: direct_bgra_8 == NULL");
+
+            ocl::image2d_t &curr_image = internal->buffers.image[index];
+            const unsigned  next_index = swap_buffers(&internal->buffers);
+            ocl::image2d_t &next_image = internal->buffers.image[next_index];
+
+            ocl::ops::copy_data(input, next_image);
+
+            internal->workload.promise.release();
+            internal->workload.promise =
+                    ocl::ops::to_bytes(curr_image, ptr, internal->workload.queue)
+                            .non_blocking();
+
             return;
         }
-
-        void *ptr = display::io.direct_bgra_8(internal->display.id);
-        if (ptr == nullptr)
-            abort_("shouldn't happen: direct_bgra_8 == NULL");
 
         ocl::image2d_t &curr_image = internal->buffers.image[index];
         const unsigned  next_index = swap_buffers(&internal->buffers);
@@ -254,17 +280,12 @@ namespace ex::logic::node::out {
 
         ocl::ops::copy_data(input, next_image);
 
-        internal->workload.promise.release();
         internal->workload.promise =
-                ocl::ops::to_bytes(curr_image, ptr, internal->workload.queue)
+                ocl::ops::to_bytes(curr_image, internal->bytes.data[next_index], internal->workload.queue)
                         .non_blocking();
 
-//        internal->workload.promise =
-//                ocl::ops::to_bytes(curr_image, internal->bytes.data[next_index], internal->workload.queue)
-//                        .non_blocking();
-//
-//        if (internal->bytes.data[index])
-//            display::io.draw_bytes_bgra_8(internal->display.id, internal->bytes.data[index]);
+        if (internal->bytes.data[index])
+            display::io.draw_bytes_bgra_8(internal->display.id, internal->bytes.data[index]);
     }
 
     void *DisplayOutputNode::on_output(const int in_idx, const int out_idx, const int clock_i) {

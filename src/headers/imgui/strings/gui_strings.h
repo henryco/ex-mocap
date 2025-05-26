@@ -140,7 +140,9 @@ namespace ex::gui::strings {
 
     constexpr auto node_section_new_name = "New section";
 
-    constexpr auto node_output_display_name = "Display";
+    constexpr auto node_output_display_name     = "Display";
+    constexpr auto node_output_display_id       = "Display ID";
+    constexpr auto node_output_display_direct   = "Direct buffer access";
 
     constexpr auto node_component_image_id         = "Image ID";
     constexpr auto node_component_image_name       = "Image";

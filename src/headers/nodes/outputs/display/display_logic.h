@@ -25,6 +25,10 @@ namespace ex::logic::node::out {
 
         void rename_image(const char *name);
 
+        bool is_direct() const;
+
+        void set_direct(bool) const;
+
         id_type_16 get_input_id() const;
 
         unsigned get_input_w() const;
