@@ -16,7 +16,7 @@ namespace ex::time {
         accumulated += elapsed;
         counter += 1;
 
-        if (counter >= measures_n || elapsed >= adaptive_threshold) {
+        if (counter >= measures_n || accumulated >= adaptive_threshold) {
             avg_result = static_cast<double>(accumulated) / static_cast<double>(counter);
             accumulated = elapsed;
             counter = 1;

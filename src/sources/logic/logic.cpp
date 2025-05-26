@@ -270,7 +270,7 @@ namespace ex::main {
         static State &state = ex::logic::globals::state();
         static limbo::graph::Clock &clock = ex::logic::state::get_clock();
 
-        static ex::time::measure_avg timing = 1000;
+        static ex::time::measure_avg timing = { 10000, 100 };
         if (state.metrics.timing_enabled)
             timing.start();
 
