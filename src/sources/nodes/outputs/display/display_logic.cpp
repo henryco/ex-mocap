@@ -45,6 +45,7 @@ namespace ex::logic::node::out {
 
         id_type_32 prev_;
         control_t  supplies_;
+        control_t  updates_;
 
         bool       enabled;
     };
@@ -167,6 +168,7 @@ namespace ex::logic::node::out {
         ex::display::io.clear(internal->display.id);
         internal->workload.promise.release();
         reset_buffers(&internal->buffers);
+        internal->updates_.refresh();
     }
 
     void DisplayOutputNode::disable() {
@@ -207,14 +209,10 @@ namespace ex::logic::node::out {
         ocl::img_promise input = internal->workload.input;
         ocl::image2d_t   image = internal->buffers.image[index];
 
-        bool should_step = false;
         if (input.image.header.fresh || input.image.id != internal->prev_ || image.detached())
-            should_step = true;
+            internal->updates_.refresh();
 
-        if (!internal->workload.promise.empty())
-            should_step = true;
-
-        if (!should_step)
+        if (!internal->updates_.update())
             return;
 
         if (input.image.id != internal->prev_ ||
@@ -228,11 +226,14 @@ namespace ex::logic::node::out {
             const unsigned height = input.image.rows;
             alloc_bytes(&internal->bytes, width, height, channels);
             alloc_buffers(&internal->buffers, &input.image);
+            internal->workload.promise.release();
             internal->prev_ = input.image.id;
         }
 
-        if (!internal->workload.promise.completed())
+        if (!internal->workload.promise.completed()) {
+            internal->updates_.refresh();
             return;
+        }
 
         ocl::image2d_t &curr_image = internal->buffers.image[index];
         const unsigned  next_index = swap_buffers(&internal->buffers);
