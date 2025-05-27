@@ -71,7 +71,7 @@ namespace ex::gui::node::transform {
         const double time_now = ImGui::GetTime();
 
         lnt::config_t config;
-        if (const lnt::config_t *state = time_stack.retrieve_consume(node_id, time_now, .5))
+        if (const lnt::config_t *state = time_stack.retrieve_consume(node_id, time_now, 1.f))
             ::memcpy(&config, state, sizeof(lnt::config_t));
         else
             ::memcpy(&config, &trs_node->config, sizeof(lnt::config_t));
@@ -111,6 +111,7 @@ namespace ex::gui::node::transform {
         if (ImGui::CollapsingHeader(strings::node_component_transform_resize, ImGuiTreeNodeFlags_Framed)) {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
+
             { // w
                 static char buff[8] = "";
                 ::sprintf(buff, "%hu", config.resize.width > 0 ? config.resize.width : trs_node->get_input_w());
@@ -119,6 +120,8 @@ namespace ex::gui::node::transform {
                     time_stack.push(time_now, node_id, config);
                 }
             }
+
+            // TODO LOCK RATIO
 
             { // h
                 static char buff[8] = "";
@@ -141,6 +144,7 @@ namespace ex::gui::node::transform {
         if (ImGui::CollapsingHeader(strings::node_component_transform_region, ImGuiTreeNodeFlags_Framed)) {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
+
             { // x0
                 static char buff[8] = "";
                 ::sprintf(buff, "%hu", config.crop.start_x);
@@ -176,6 +180,7 @@ namespace ex::gui::node::transform {
                     time_stack.push(time_now, node_id, config);
                 }
             }
+
             ImGui::PopStyleColor();
             ImGui::PopStyleVar();
             ImGui::NewLine();
