@@ -204,7 +204,6 @@ namespace ex::logic::node::out {
         }
 
         bytes_t          image = internal->bytes;
-        const unsigned   index = internal->bytes.index;
         ocl::img_promise input = internal->workload.input;
 
         const bool has_diff = input.image.id != internal->prev_            ||
@@ -214,11 +213,14 @@ namespace ex::logic::node::out {
                               bytes_empty(&image);
 
         if (internal->workload.promise.completed() && !internal->workload.promise.empty()) {
-            internal->workload.promise.release();
+            const unsigned index = internal->bytes.index;
+
             if (internal->direct)
                 display::io.flush_bgra_8(internal->display.id);
-            else if (internal->bytes.data[index])
-                display::io.draw_bytes_bgra_8(internal->display.id, internal->bytes.data[index]);
+            else if (const void *data  = internal->bytes.data[index])
+                display::io.draw_bytes_bgra_8(internal->display.id, data);
+
+            internal->workload.promise.release();
         }
 
         if (input.image.header.fresh || has_diff)
@@ -229,8 +231,8 @@ namespace ex::logic::node::out {
 
         if (has_diff) {
             const unsigned channels = ocl::channel_count(input.image.header.channels);
-            const unsigned width = input.image.cols;
-            const unsigned height = input.image.rows;
+            const unsigned height   = input.image.rows;
+            const unsigned width    = input.image.cols;
 
             alloc_bytes(&internal->bytes, width, height, channels);
 
