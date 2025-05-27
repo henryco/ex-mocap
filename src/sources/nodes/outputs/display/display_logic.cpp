@@ -171,7 +171,7 @@ namespace ex::logic::node::out {
     }
 
     unsigned DisplayOutputNode::get_input_h() const {
-        return internal->bytes.width;
+        return internal->bytes.height;
     }
 
     void DisplayOutputNode::reset() {
@@ -219,18 +219,21 @@ namespace ex::logic::node::out {
         ocl::img_promise input = internal->workload.input;
         ocl::image2d_t   image = internal->buffers.image[index];
 
-        if (input.image.header.fresh || input.image.id != internal->prev_ || image.detached())
+        const bool has_diff = input.image.id != internal->prev_ ||
+                              input.image.size() != image.size() ||
+                              input.image.cols != image.cols ||
+                              input.image.rows != image.rows ||
+                              image.detached();
+
+        // TODO FLUSH PREV
+
+        if (input.image.header.fresh || has_diff)
             internal->updates_.refresh();
 
         if (!internal->updates_.update())
             return;
 
-        if (input.image.id != internal->prev_ ||
-            input.image.size() != image.size() ||
-            input.image.cols != image.cols ||
-            input.image.rows != image.rows ||
-            image.detached())
-        {
+        if (has_diff) {
             const unsigned channels = ocl::channel_count(input.image.header.channels);
             const unsigned width = input.image.cols;
             const unsigned height = input.image.rows;
