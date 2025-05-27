@@ -320,6 +320,9 @@ namespace ex::logic::node::transform {
         const unsigned im_w = get_input_w();
         const unsigned im_h = get_input_h();
 
+        // TODO LOCK RATIO
+        // TODO FIX REGION
+
         if (copy.resize.width == im_w)
             copy.resize.width = 0;
 

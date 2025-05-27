@@ -122,6 +122,7 @@ namespace ex::gui::node::transform {
             }
 
             // TODO LOCK RATIO
+            // TODO FIX REGION
 
             { // h
                 static char buff[8] = "";
