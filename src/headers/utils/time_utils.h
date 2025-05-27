@@ -61,6 +61,8 @@ namespace ex::time {
 
         bool step();
 
+        long remain();
+
         fps_guard &set_frame_duration(const unsigned int &frame_duration_ns);
 
         fps_guard &set_fps(const unsigned int &fps);

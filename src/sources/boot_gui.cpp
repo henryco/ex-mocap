@@ -138,6 +138,8 @@ namespace ex::boot {
         if (!fps_guard.step())
             return;
 
+        glfwPollEvents();
+
         static ex::time::measure_avg timing = { 10000, 100 };
         if (state.metrics.timing_enabled)
             timing.start();
@@ -176,16 +178,16 @@ namespace ex::boot {
 
         log->info("Initialization complete");
 
+        ex::time::fps_guard   fps_guard = ex::time::fps_guard::from_fps(10000);
+        ex::time::measure_avg timing    = { 10000, 100 };
         while (true) {
-            static ex::time::measure_avg timing = { 10000, 100 };
+
             if (state.metrics.timing_enabled)
                 timing.start();
             // ==========================================================
 
             if (gui.should_close())
                 break;
-
-            glfwPollEvents();
 
             if (ex::entity::is_dirty())
                 ex::gui::set_dirty(true);
@@ -195,6 +197,9 @@ namespace ex::boot {
             update_history(state);
             update_title(state);
             update_gui(gui, state, window);
+
+            if (const long t = fps_guard.remain())
+                ::usleep(t / 1000UL);
 
             // ==========================================================
             if (state.metrics.timing_enabled && timing.stop())

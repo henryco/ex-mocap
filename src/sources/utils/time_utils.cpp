@@ -47,6 +47,16 @@ namespace ex::time {
         return true;
     }
 
+    long fps_guard::remain() {
+        if (duration > 0) {
+            const auto t1 = std::chrono::high_resolution_clock::now();
+            if (const auto df = (frame_duration_ns - (t1 - t0)).count(); df > 0)
+                return df;
+            t0 = std::chrono::high_resolution_clock::now();
+        }
+        return 0;
+    }
+
     fps_guard &fps_guard::set_frame_duration(const unsigned int &duration_ns) {
         if (duration_ns == duration)
             return *this;
@@ -63,4 +73,4 @@ namespace ex::time {
         return fps_guard(static_cast<unsigned int>((fps > 0) ? (1000000000.0 / fps) : 0));
     }
 
-} // namespace ex::time
+}
