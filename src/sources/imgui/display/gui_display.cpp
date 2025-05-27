@@ -252,7 +252,7 @@ namespace ex::display::imp::imgui {
         lock_.lock();
         display_window_t &ref = display_map_.at(id);
 
-        if (ref.pbo.texture == 0) {
+        if (ref.pbo.texture == 0 || ref.state.to_clear || ref.state.to_prepare) {
             lock_.unlock();
             return false;
         }
@@ -268,7 +268,7 @@ namespace ex::display::imp::imgui {
         lock_.lock();
         display_window_t &ref = display_map_.at(id);
 
-        if (ref.pbo.texture == 0) {
+        if (ref.pbo.texture == 0 || ref.state.to_clear || ref.state.to_prepare) {
             lock_.unlock();
             return nullptr;
         }
@@ -281,7 +281,7 @@ namespace ex::display::imp::imgui {
         lock_.lock();
         display_window_t &ref = display_map_.at(id);
 
-        if (ref.pbo.texture == 0) {
+        if (ref.pbo.texture == 0 || ref.state.to_clear || ref.state.to_prepare) {
             lock_.unlock();
             return false;
         }
