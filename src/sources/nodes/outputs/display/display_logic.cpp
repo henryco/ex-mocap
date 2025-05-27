@@ -257,10 +257,10 @@ namespace ex::logic::node::out {
         else target_ptr = internal->bytes.data[next_index];
 
         // create wait marker on main image side
-        auto marker_main = ocl::ops::mark(input.queue);
+        ocl::NBPromise marker_main = ocl::ops::mark(input.queue);
 
         // depend start of copy on reaching main image side marker
-        auto marker_copy = ocl::ops::barrier(marker_main, internal->workload.queue);
+        ocl::NBPromise marker_copy = ocl::ops::barrier(marker_main, internal->workload.queue);
 
         // enqueue copy
         internal->workload.promise =
@@ -268,7 +268,7 @@ namespace ex::logic::node::out {
                         .non_blocking();
 
         // depend end of main image side queue on copy
-        auto marker_post = ocl::ops::barrier(internal->workload.promise, input.queue);
+        ocl::NBPromise marker_post = ocl::ops::barrier(internal->workload.promise, input.queue);
 
         // cleanup
         marker_copy.release();
