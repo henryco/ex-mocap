@@ -104,10 +104,29 @@ namespace ex::logic::node::transform {
             buff_l += sprintf(buff + buff_l, " -DUSE_FLIP_Y=1 ");
         }
 
-        unsigned int output_size_w = 0,
-                     output_size_h = 0;
+        float scale_w = 1.f,
+              scale_h = 1.f;
+
+        if (config->resize.width) {
+            kernel->enabled = true;
+            scale_w = static_cast<float>(internal->buffers.input.image.cols) / static_cast<float>(config->resize.width);
+        }
+
+        if (config->resize.height) {
+            kernel->enabled = true;
+            scale_h = static_cast<float>(internal->buffers.input.image.rows) / static_cast<float>(config->resize.height);
+        }
+
+        if (scale_w != 1.f || scale_h != 1.f) {
+            buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE=1 ");
+            if (config->resize.linear)
+                buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE_LIN=1 ");
+        }
 
         // TODO RESIZING
+
+        unsigned int output_size_w = 0,
+                     output_size_h = 0;
 
         if (config->crop.start_x > 0) {
             kernel->enabled = true;
@@ -296,17 +315,20 @@ namespace ex::logic::node::transform {
         config_t copy;
         ::memcpy(&copy, &conf, sizeof(config_t));
 
-        if (copy.resize.width == get_input_w())
+        const unsigned im_w = get_input_w();
+        const unsigned im_h = get_input_h();
+
+        if (copy.resize.width == im_w)
             copy.resize.width = 0;
 
-        if (copy.resize.height == get_input_h())
+        if (copy.resize.height == im_h)
             copy.resize.height = 0;
 
         if (copy.resize.width > 0) {
             if (copy.crop.end_x >= copy.resize.width)
                 copy.crop.end_x = 0;
         } else {
-            if (copy.crop.end_x >= get_input_w())
+            if (copy.crop.end_x >= im_w)
                 copy.crop.end_x = 0;
         }
 
@@ -314,7 +336,7 @@ namespace ex::logic::node::transform {
             if (copy.crop.end_y >= copy.resize.height)
                 copy.crop.end_y = 0;
         } else {
-            if (copy.crop.end_y >= get_input_h())
+            if (copy.crop.end_y >= im_h)
                 copy.crop.end_y = 0;
         }
 

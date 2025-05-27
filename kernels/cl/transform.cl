@@ -1,3 +1,5 @@
+// #define USE_RESIZE
+
 // MANDATORY PARAMETERS:
 // - USE_DIMENSION_X (ushort)
 // - USE_DIMENSION_Y (ushort)
@@ -13,6 +15,10 @@
 // - USE_TRANSLATE_X (optional)
 // - USE_TRANSLATE_Y (optional)
 
+// RESIZE PARAMETERS:
+// - USE_RESIZE
+// - USE_RESIZE_LIN
+
 // width of working image
 #ifndef USE_DIMENSION_X
 #define USE_DIMENSION_X (1U)
@@ -23,12 +29,20 @@
 #define USE_DIMENSION_Y (1U)
 #endif
 
+#ifdef USE_RESIZE
+__constant sampler_t sampler =
+    CLK_NORMALIZED_COORDS_TRUE |
+    CLK_ADDRESS_CLAMP_TO_EDGE |
+    #ifdef USE_RESIZE_LIN
+        CLK_FILTER_LINEAR;
+    #else
+        CLK_FILTER_NEAREST;
+    #endif
+#endif
+
 __kernel void kernel_transform(
     read_only  image2d_t input_bgra,
     write_only image2d_t output_bgra
-    #ifdef USE_RESIZE
-    ,          sampler_t sampler
-    #endif
 ) {
     int2       coord     = (int2) (get_global_id(0), get_global_id(1));
     const int2 dst_coord = (int2) (coord.x, coord.y);
