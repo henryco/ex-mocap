@@ -46,18 +46,14 @@ __kernel void kernel_transform(
     const int2 dst_coord = (int2) (coord.x, coord.y);
 
     #ifdef USE_ROTATE
-        #ifndef USE_RESIZE
-        if (coord.x >= USE_DIMENSION_Y || coord.y >= USE_DIMENSION_X)
-            return; // rotated dimension
-        #endif
+    if (coord.x >= USE_DIMENSION_Y || coord.y >= USE_DIMENSION_X)
+        return; // rotated dimension
     const uint tmp = coord.y;
     coord.y = USE_DIMENSION_Y - coord.x - 1;
     coord.x = tmp;
     #else
-        #ifndef USE_RESIZE
-        if (coord.x >= USE_DIMENSION_X || coord.y >= USE_DIMENSION_Y)
-            return;
-        #endif
+    if (coord.x >= USE_DIMENSION_X || coord.y >= USE_DIMENSION_Y)
+        return;
     #endif
 
     #ifdef USE_FLIP_X
