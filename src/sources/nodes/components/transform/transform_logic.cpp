@@ -26,6 +26,7 @@ namespace ex::logic::node::transform {
 
     struct kernels_t {
         cl_program program;
+        cl_sampler sampler;
         cl_kernel  kernel;
         ::size_t   size_l;
         bool       enabled;
@@ -55,6 +56,7 @@ namespace ex::logic::node::transform {
         log->debug("create transform cl kernels");
         kernel->kernel  = nullptr;
         kernel->program = nullptr;
+        kernel->sampler = nullptr;
         kernel->enabled = false;
         log->debug("transform cl kernels created");
     }
@@ -64,7 +66,7 @@ namespace ex::logic::node::transform {
         log->debug("update transform cl kernels");
 
         kernels_t *kernel = &internal->kernels;
-        config_t *config  = &internal->state;
+        config_t  *config = &internal->state;
 
         if (kernel->kernel != nullptr) {
             ::clReleaseKernel(kernel->kernel);
@@ -74,6 +76,11 @@ namespace ex::logic::node::transform {
         if (kernel->program != nullptr) {
             ::clReleaseProgram(kernel->program);
             kernel->program = nullptr;
+        }
+
+        if (kernel->sampler != nullptr) {
+            ::clReleaseSampler(kernel->sampler);
+            kernel->sampler = nullptr;
         }
 
         kernel->enabled = false;
@@ -205,6 +212,8 @@ namespace ex::logic::node::transform {
             ::clReleaseKernel(kernel->kernel);
         if (kernel->program != nullptr)
             ::clReleaseProgram(kernel->program);
+        if (kernel->sampler != nullptr)
+            ::clReleaseSampler(kernel->sampler);
         ::memset(kernel, 0, sizeof(kernels_t));
 
         log->debug("transform cl kernels released");
