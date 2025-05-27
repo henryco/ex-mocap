@@ -391,7 +391,9 @@ namespace ex::gui::display {
                 if (buff.fences[index]) {
                     GLenum result = glClientWaitSync(buff.fences[index], GL_SYNC_FLUSH_COMMANDS_BIT, PBO_TIMEOUT);
                     if (result == GL_TIMEOUT_EXPIRED) {
-                        // TODO: GPU SLOW?
+                        disp.state.to_draw = true;
+                        lock_.unlock();
+                        goto skip_point; // try again later
                     }
                     glDeleteSync(buff.fences[index]);
                     buff.fences[index] = 0;
