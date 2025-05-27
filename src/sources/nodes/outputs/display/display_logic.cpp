@@ -14,16 +14,12 @@ namespace ex::logic::node::out {
     using control_t = limbo::graph::UpdateState;
 
     #define buffers_n 2
-    struct buffers_t {
-        ocl::Image2D image[buffers_n];
-        unsigned     index;
-    };
-
     struct bytes_t {
         unsigned char *data[buffers_n];
-        unsigned int   size;
+        unsigned short index;
         unsigned short width;
         unsigned short height;
+        unsigned short channels;
     };
 
     struct display_t {
@@ -38,7 +34,6 @@ namespace ex::logic::node::out {
     };
 
     struct internal_t {
-        buffers_t  buffers;
         workload_t workload;
         display_t  display;
         bytes_t    bytes;
@@ -51,50 +46,45 @@ namespace ex::logic::node::out {
         bool       direct;
     };
 
-    static void init_buffers(buffers_t *b) {
-        for (int i = 0; i < buffers_n; ++i)
-            b->image[i] = ocl::Image2D::blank();
-        b->index = 0;
-    }
-
-    static void alloc_buffers(buffers_t *b, const ocl::Image2D *temp) {
-        const static ex::State &state = ex::logic::globals::state();
-        for (int i = 0; i < buffers_n; ++i) {
-            b->image[i].release();
-            b->image[i] = ocl::Image2D::allocate_like(*temp, state.cl.context);
-        }
-        b->index = 0;
-    }
-
     static void alloc_bytes(bytes_t *b, const unsigned w, const unsigned h, const unsigned c) {
-        b->size   = w * h * c;
-        b->width  = w;
-        b->height = h;
+        const unsigned size = w * h * c;
 
         for (int i = 0; i < buffers_n; ++i) {
             if (b->data[i] != nullptr)
                 ::free(b->data[i]);
-            b->data[i] = static_cast<unsigned char *>(::malloc(b->size));
+            b->data[i] = static_cast<unsigned char *>(::malloc(size));
         }
+
+        b->index    = 0;
+        b->width    = w;
+        b->height   = h;
+        b->channels = c;
     }
 
-    static unsigned swap_buffers(buffers_t *b) {
+    static unsigned bytes_size(const bytes_t *b) {
+        return ((unsigned) b->width * (unsigned) b->height * (unsigned) b->channels * 1U);
+    }
+
+    bool bytes_empty(const bytes_t *b) {
+        for (int i = 0; i < buffers_n; ++i) {
+            if (b->data[i] == nullptr)
+                return true;
+        }
+        return false;
+    }
+
+    static unsigned swap_buffers(bytes_t *b) {
         b->index = (b->index + 1) % buffers_n;
         return b->index;
     }
 
     static void reset_bytes(bytes_t *b) {
+        b->index = 0;
         for (int i = 0; i < buffers_n; ++i) {
             if (b->data[i] != nullptr)
                 ::free(b->data[i]);
             b->data[i] = nullptr;
         }
-    }
-
-    static void reset_buffers(buffers_t *b) {
-        for (int i = 0; i < buffers_n; ++i)
-            b->image[i].release();
-        b->index = 0;
     }
 
     static internal_t *create_internal() {
@@ -104,7 +94,6 @@ namespace ex::logic::node::out {
         ::memset(mem, 0, sizeof(internal_t));
 
         mem->workload.queue = xm::ocl::create_queue_device(state.cl.context, state.cl.device, true, false);
-        init_buffers(&mem->buffers);
         mem->enabled = true;
         mem->direct  = true;
 
@@ -112,7 +101,6 @@ namespace ex::logic::node::out {
     }
 
     static void release_internal(internal_t *ptr) {
-        reset_buffers(&ptr->buffers);
         reset_bytes(&ptr->bytes);
 
         ptr->workload.promise.release();
@@ -177,7 +165,7 @@ namespace ex::logic::node::out {
     void DisplayOutputNode::reset() {
         ex::display::io.clear(internal->display.id);
         internal->workload.promise.release();
-        reset_buffers(&internal->buffers);
+        reset_bytes(&internal->bytes);
         internal->updates_.refresh();
     }
 
@@ -215,15 +203,15 @@ namespace ex::logic::node::out {
             return;
         }
 
-        const unsigned   index = internal->buffers.index;
+        bytes_t          image = internal->bytes;
+        const unsigned   index = internal->bytes.index;
         ocl::img_promise input = internal->workload.input;
-        ocl::image2d_t   image = internal->buffers.image[index];
 
-        const bool has_diff = input.image.id != internal->prev_ ||
-                              input.image.size() != image.size() ||
-                              input.image.cols != image.cols ||
-                              input.image.rows != image.rows ||
-                              image.detached();
+        const bool has_diff = input.image.id != internal->prev_            ||
+                              input.image.size() != bytes_size(&image) ||
+                              input.image.cols != image.width              ||
+                              input.image.rows != image.height             ||
+                              bytes_empty(&image);
 
         if (internal->workload.promise.completed() && !internal->workload.promise.empty()) {
             internal->workload.promise.release();
@@ -245,7 +233,6 @@ namespace ex::logic::node::out {
             const unsigned height = input.image.rows;
 
             alloc_bytes(&internal->bytes, width, height, channels);
-            alloc_buffers(&internal->buffers, &input.image);
 
             internal->workload.promise.release();
             internal->prev_ = input.image.id;
@@ -258,9 +245,7 @@ namespace ex::logic::node::out {
             return;
         }
 
-        ocl::image2d_t &curr_image = internal->buffers.image[index];
-        const unsigned  next_index = swap_buffers(&internal->buffers);
-        ocl::image2d_t &next_image = internal->buffers.image[next_index];
+        const unsigned  next_index = swap_buffers(&internal->bytes);
         void           *target_ptr = nullptr;
 
         if (internal->direct) {
@@ -271,11 +256,23 @@ namespace ex::logic::node::out {
         }
         else target_ptr = internal->bytes.data[next_index];
 
-        ocl::ops::copy_data(input, next_image);
+        // create wait marker on main image side
+        auto marker_main = ocl::ops::mark(input.queue);
 
+        // depend start of copy on reaching main image side marker
+        auto marker_copy = ocl::ops::barrier(marker_main, internal->workload.queue);
+
+        // enqueue copy
         internal->workload.promise =
-                ocl::ops::to_bytes(curr_image, target_ptr, internal->workload.queue)
+                ocl::ops::to_bytes(input.image, target_ptr, internal->workload.queue)
                         .non_blocking();
+
+        // depend end of main image side queue on copy
+        auto marker_post = ocl::ops::barrier(internal->workload.promise, input.queue);
+
+        // cleanup
+        marker_copy.release();
+        marker_post.release();
     }
 
     void *DisplayOutputNode::on_output(const int in_idx, const int out_idx, const int clock_i) {

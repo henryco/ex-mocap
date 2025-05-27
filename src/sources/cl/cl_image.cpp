@@ -621,6 +621,20 @@ namespace ex::ocl {
 
             return NBPromise(queue, event);
         }
+
+        NBPromise mark(cl_command_queue queue) {
+            cl_event marker;
+
+            if (cl_int err = clEnqueueMarkerWithWaitList(queue,
+                                                  0,
+                                                  nullptr,
+                                                  &marker);
+                err != CL_SUCCESS) {
+                abort__("clEnqueueMarkerWithWaitList abort: %d", err);
+            }
+
+            return NBPromise(queue, marker);
+        }
     }
 
 }
