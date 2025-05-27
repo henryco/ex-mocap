@@ -86,8 +86,8 @@ namespace ex::logic::node::transform {
         kernel->enabled = false;
 
         int         buff_l = 0;
-        static char buff[1024];
-        ::memset(buff, 0, 1024);
+        static char buff[512];
+        ::memset(buff, 0, 512);
 
         if (config->rotate == rotate_e::CW_1) {
             kernel->enabled = true;
@@ -109,12 +109,12 @@ namespace ex::logic::node::transform {
 
         if (config->resize.width) {
             kernel->enabled = true;
-            scale_w = static_cast<float>(internal->buffers.input.image.cols) / static_cast<float>(config->resize.width);
+            scale_w = static_cast<float>(config->resize.width) / static_cast<float>(internal->buffers.input.image.cols);
         }
 
         if (config->resize.height) {
             kernel->enabled = true;
-            scale_h = static_cast<float>(internal->buffers.input.image.rows) / static_cast<float>(config->resize.height);
+            scale_h = static_cast<float>(config->resize.height) / static_cast<float>(internal->buffers.input.image.rows);
         }
 
         if (scale_w != 1.f || scale_h != 1.f) {
@@ -123,26 +123,28 @@ namespace ex::logic::node::transform {
                 buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE_LIN=1 ");
         }
 
-        // TODO RESIZING
-
         unsigned int output_size_w = 0,
                      output_size_h = 0;
 
         if (config->crop.start_x > 0) {
             kernel->enabled = true;
-            buff_l += sprintf(buff + buff_l, " -DUSE_TRANSLATE_X=%hu ", config->crop.start_x);
+
+            const unsigned short tx = ((float) config->crop.start_x * scale_w);
+            buff_l += sprintf(buff + buff_l, " -DUSE_TRANSLATE_X=%hu ", tx);
         }
 
         if (config->crop.start_y > 0) {
             kernel->enabled = true;
-            buff_l += sprintf(buff + buff_l, " -DUSE_TRANSLATE_Y=%hu ", config->crop.start_y);
+
+            const unsigned short ty = ((float) config->crop.start_x * scale_h);
+            buff_l += sprintf(buff + buff_l, " -DUSE_TRANSLATE_Y=%hu ", ty);
         }
 
         if (config->crop.end_x > 0) {
             kernel->enabled = true;
             const unsigned short tx = config->crop.start_x;
             const unsigned short dw = config->crop.end_x;
-            const unsigned short dd = dw - tx;
+            const unsigned short dd = (float) (dw - tx) * scale_w;
 
             if (config->rotate != rotate_e::CW_1)
                 output_size_w = dd;
@@ -154,7 +156,7 @@ namespace ex::logic::node::transform {
         else {
             const unsigned short tx = config->crop.start_x;
             const unsigned short dw = internal->buffers.input.image.cols;
-            const unsigned short dd = dw - tx;
+            const unsigned short dd = (float) (dw - tx) * scale_w;
 
             if (config->rotate != rotate_e::CW_1)
                 output_size_w = dd;
@@ -168,7 +170,7 @@ namespace ex::logic::node::transform {
             kernel->enabled = true;
             const unsigned short ty = config->crop.start_y;
             const unsigned short dh = config->crop.end_y;
-            const unsigned short dd = dh - ty;
+            const unsigned short dd = (float) (dh - ty) * scale_h;
 
             if (config->rotate == rotate_e::CW_1)
                 output_size_w = dd;
@@ -180,7 +182,7 @@ namespace ex::logic::node::transform {
         else {
             const unsigned short ty = config->crop.start_y;
             const unsigned short dh = internal->buffers.input.image.rows;
-            const unsigned short dd = dh - ty;
+            const unsigned short dd = (float) (dh - ty) * scale_h;
 
             if (config->rotate == rotate_e::CW_1)
                 output_size_w = dd;

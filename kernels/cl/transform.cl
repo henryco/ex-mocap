@@ -1,5 +1,3 @@
-// #define USE_RESIZE
-
 // MANDATORY PARAMETERS:
 // - USE_DIMENSION_X (ushort)
 // - USE_DIMENSION_Y (ushort)
@@ -79,9 +77,12 @@ __kernel void kernel_transform(
     #endif
 
     #ifdef USE_RESIZE
-    // TODO
+    const float2 pixel_c = convert_float2(coord) + (float2)(0.5f, 0.5f);
+    const float2 coord_f = pixel_c / (float2)((USE_DIMENSION_X), (USE_DIMENSION_Y));
+    const float4 pixel   = read_imagef(input_bgra, sampler, coord_f);
     #else
     const float4 pixel = read_imagef(input_bgra, coord);
-    write_imagef(output_bgra, dst_coord, pixel);
     #endif
+
+    write_imagef(output_bgra, dst_coord, pixel);
 }

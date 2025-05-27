@@ -228,7 +228,7 @@ namespace xm::ocl {
         if (profile)
             time = xm::ocl::measure_exec_time(kernel_event);
         clReleaseEvent(kernel_event);
-//        clFinish(command_queue);
+
         return time;
     }
 
