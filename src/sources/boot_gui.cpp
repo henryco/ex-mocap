@@ -138,8 +138,6 @@ namespace ex::boot {
         if (!fps_guard.step())
             return;
 
-        glfwPollEvents();
-
         static ex::time::measure_avg timing = { 10000, 100 };
         if (state.metrics.timing_enabled)
             timing.start();
@@ -185,6 +183,8 @@ namespace ex::boot {
             if (state.metrics.timing_enabled)
                 timing.start();
             // ==========================================================
+
+            glfwPollEvents();
 
             if (gui.should_close())
                 break;
