@@ -225,7 +225,13 @@ namespace ex::logic::node::out {
                               input.image.rows != image.rows ||
                               image.detached();
 
-        // TODO FLUSH PREV
+        if (internal->workload.promise.completed() && !internal->workload.promise.empty()) {
+            internal->workload.promise.release();
+            if (internal->direct)
+                display::io.flush_bgra_8(internal->display.id);
+            else if (internal->bytes.data[index])
+                display::io.draw_bytes_bgra_8(internal->display.id, internal->bytes.data[index]);
+        }
 
         if (input.image.header.fresh || has_diff)
             internal->updates_.refresh();
@@ -252,43 +258,24 @@ namespace ex::logic::node::out {
             return;
         }
 
-        if (internal->direct) {
-
-            if (!display::io.flush_bgra_8(internal->display.id)) {
-                internal->updates_.refresh(); // display not ready
-                return;
-            }
-
-            void *ptr = display::io.direct_bgra_8(internal->display.id);
-            if (ptr == nullptr)
-                abort_("shouldn't happen: direct_bgra_8 == NULL");
-
-            ocl::image2d_t &curr_image = internal->buffers.image[index];
-            const unsigned  next_index = swap_buffers(&internal->buffers);
-            ocl::image2d_t &next_image = internal->buffers.image[next_index];
-
-            ocl::ops::copy_data(input, next_image);
-
-            internal->workload.promise.release();
-            internal->workload.promise =
-                    ocl::ops::to_bytes(curr_image, ptr, internal->workload.queue)
-                            .non_blocking();
-
-            return;
-        }
-
         ocl::image2d_t &curr_image = internal->buffers.image[index];
         const unsigned  next_index = swap_buffers(&internal->buffers);
         ocl::image2d_t &next_image = internal->buffers.image[next_index];
+        void           *target_ptr = nullptr;
+
+        if (internal->direct) {
+            if (target_ptr = display::io.direct_bgra_8(internal->display.id); !target_ptr) {
+                internal->updates_.refresh(); // display not ready
+                return;
+            }
+        }
+        else target_ptr = internal->bytes.data[next_index];
 
         ocl::ops::copy_data(input, next_image);
 
         internal->workload.promise =
-                ocl::ops::to_bytes(curr_image, internal->bytes.data[next_index], internal->workload.queue)
+                ocl::ops::to_bytes(curr_image, target_ptr, internal->workload.queue)
                         .non_blocking();
-
-        if (internal->bytes.data[index])
-            display::io.draw_bytes_bgra_8(internal->display.id, internal->bytes.data[index]);
     }
 
     void *DisplayOutputNode::on_output(const int in_idx, const int out_idx, const int clock_i) {
