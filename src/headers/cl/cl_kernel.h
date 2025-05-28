@@ -111,6 +111,8 @@ kernel.run(2, g_size, l_size, true)
      * @return reference count for given memory object
      */
     cl_uint get_ref_count(cl_mem obj);
+
+    void query_image2d_max_size(cl_device_id device, size_t *max_w, size_t *max_h);
 }
 
 #endif //XMOTION_CL_KERNEL_H

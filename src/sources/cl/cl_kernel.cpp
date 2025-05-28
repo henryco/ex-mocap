@@ -364,4 +364,9 @@ namespace xm::ocl {
             return count;
         abort__("Cannot query reference count for cl_mem: %d", err);
     }
+
+    void query_image2d_max_size(cl_device_id device, size_t *max_w, size_t *max_h) {
+        clGetDeviceInfo(device, CL_DEVICE_IMAGE2D_MAX_WIDTH, sizeof(size_t), &max_w, NULL);
+        clGetDeviceInfo(device, CL_DEVICE_IMAGE2D_MAX_HEIGHT, sizeof(size_t), &max_h, NULL);
+    }
 }
