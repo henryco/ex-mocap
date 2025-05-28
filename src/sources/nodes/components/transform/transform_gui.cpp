@@ -108,40 +108,6 @@ namespace ex::gui::node::transform {
         }
 
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-        if (ImGui::CollapsingHeader(strings::node_component_transform_resize, ImGuiTreeNodeFlags_Framed)) {
-            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
-            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
-
-            { // w
-                static char buff[8] = "";
-                ::sprintf(buff, "%hu", config.resize.width > 0 ? config.resize.width : trs_node->get_input_w());
-                if (ImGui::InputText(strings::node_component_transform_resize_w, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
-                    config.resize.width = ::atoi(buff);
-                    time_stack.push(time_now, node_id, config);
-                }
-            }
-
-            // TODO LOCK RATIO
-            // TODO FIX REGION
-
-            { // h
-                static char buff[8] = "";
-                ::sprintf(buff, "%hu", config.resize.height > 0 ? config.resize.height : trs_node->get_input_h());
-                if (ImGui::InputText(strings::node_component_transform_resize_h, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
-                    config.resize.height = ::atoi(buff);
-                    time_stack.push(time_now, node_id, config);
-                }
-            }
-
-            if (ImGui::Checkbox(strings::node_component_transform_resize_l, &config.resize.linear))
-                time_stack.push(time_now, node_id, config);
-
-            ImGui::PopStyleColor();
-            ImGui::PopStyleVar();
-            ImGui::NewLine();
-        }
-
-        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
         if (ImGui::CollapsingHeader(strings::node_component_transform_region, ImGuiTreeNodeFlags_Framed)) {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
@@ -166,7 +132,7 @@ namespace ex::gui::node::transform {
 
             { // w
                 static char buff[8] = "";
-                ::sprintf(buff, "%hu", config.crop.end_x > 0 ? config.crop.end_x : (config.resize.width > 0 ? config.resize.width : trs_node->get_input_w()));
+                ::sprintf(buff, "%hu", config.crop.end_x > 0 ? config.crop.end_x : trs_node->get_input_w());
                 if (ImGui::InputText(strings::node_component_transform_region_x1, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
                     config.crop.end_x = ::atoi(buff);
                     time_stack.push(time_now, node_id, config);
@@ -175,12 +141,66 @@ namespace ex::gui::node::transform {
 
             { // h
                 static char buff[8] = "";
-                ::sprintf(buff, "%hu", config.crop.end_y > 0 ? config.crop.end_y : (config.resize.height > 0 ? config.resize.height : trs_node->get_input_h()));
+                ::sprintf(buff, "%hu", config.crop.end_y > 0 ? config.crop.end_y : trs_node->get_input_h());
                 if (ImGui::InputText(strings::node_component_transform_region_y1, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
                     config.crop.end_y = ::atoi(buff);
                     time_stack.push(time_now, node_id, config);
                 }
             }
+
+            ImGui::PopStyleColor();
+            ImGui::PopStyleVar();
+            ImGui::NewLine();
+        }
+
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        if (ImGui::CollapsingHeader(strings::node_component_transform_resize, ImGuiTreeNodeFlags_Framed)) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
+
+            { // w
+                static char buff[8] = "";
+                ::sprintf(buff, "%hu", config.resize.width > 0 ? config.resize.width : trs_node->get_input_w());
+                if (ImGui::InputText(strings::node_component_transform_resize_w, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+                    config.resize.width = ::atoi(buff);
+
+                    if (config.resize.fixed && config.resize.width) {
+                        const float ratio_w_to_h = static_cast<float>(trs_node->get_input_w()) / static_cast<float>(trs_node->get_input_h());
+                        config.resize.height = static_cast<float>(config.resize.width) / ratio_w_to_h;
+                    }
+
+                    else if (config.resize.fixed) {
+                        config.resize.height = 0;
+                    }
+
+                    time_stack.push(time_now, node_id, config);
+                }
+            }
+
+            { // h
+                static char buff[8] = "";
+                ::sprintf(buff, "%hu", config.resize.height > 0 ? config.resize.height : trs_node->get_input_h());
+                if (ImGui::InputText(strings::node_component_transform_resize_h, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+                    config.resize.height = ::atoi(buff);
+
+                    if (config.resize.fixed && config.resize.height) {
+                        const float ratio_w_to_h = static_cast<float>(trs_node->get_input_w()) / static_cast<float>(trs_node->get_input_h());
+                        config.resize.width = static_cast<float>(config.resize.height) * ratio_w_to_h;
+                    }
+
+                    else if (config.resize.fixed) {
+                        config.resize.width = 0;
+                    }
+
+                    time_stack.push(time_now, node_id, config);
+                }
+            }
+
+            if (ImGui::Checkbox(strings::node_component_transform_resize_p, &config.resize.fixed))
+                time_stack.push(time_now, node_id, config);
+
+            if (ImGui::Checkbox(strings::node_component_transform_resize_l, &config.resize.linear))
+                time_stack.push(time_now, node_id, config);
 
             ImGui::PopStyleColor();
             ImGui::PopStyleVar();

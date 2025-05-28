@@ -182,6 +182,7 @@ namespace ex::gui::strings {
     constexpr auto node_component_transform_resize_w  = "width##resize";
     constexpr auto node_component_transform_resize_h  = "height##resize";
     constexpr auto node_component_transform_resize_l  = "Linear interpolation";
+    constexpr auto node_component_transform_resize_p  = "Preserve proportions";
     constexpr auto node_component_transform_mirror    = "Mirror";
     constexpr auto node_component_transform_mirror_h  = "Horizontally";
     constexpr auto node_component_transform_mirror_v  = "Vertically";

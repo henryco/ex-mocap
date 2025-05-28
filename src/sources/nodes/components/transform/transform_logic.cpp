@@ -26,7 +26,6 @@ namespace ex::logic::node::transform {
 
     struct kernels_t {
         cl_program program;
-        cl_sampler sampler;
         cl_kernel  kernel;
         ::size_t   size_l;
         bool       enabled;
@@ -56,7 +55,6 @@ namespace ex::logic::node::transform {
         log->debug("create transform cl kernels");
         kernel->kernel  = nullptr;
         kernel->program = nullptr;
-        kernel->sampler = nullptr;
         kernel->enabled = false;
         log->debug("transform cl kernels created");
     }
@@ -76,11 +74,6 @@ namespace ex::logic::node::transform {
         if (kernel->program != nullptr) {
             ::clReleaseProgram(kernel->program);
             kernel->program = nullptr;
-        }
-
-        if (kernel->sampler != nullptr) {
-            ::clReleaseSampler(kernel->sampler);
-            kernel->sampler = nullptr;
         }
 
         kernel->enabled = false;
@@ -233,11 +226,13 @@ namespace ex::logic::node::transform {
             ::clReleaseKernel(kernel->kernel);
         if (kernel->program != nullptr)
             ::clReleaseProgram(kernel->program);
-        if (kernel->sampler != nullptr)
-            ::clReleaseSampler(kernel->sampler);
         ::memset(kernel, 0, sizeof(kernels_t));
 
         log->debug("transform cl kernels released");
+    }
+
+    static void init_config(config_t *config) {
+        config->resize.fixed = true;
     }
 
     static internal_t *create_internal() {
@@ -249,6 +244,7 @@ namespace ex::logic::node::transform {
 
         ::memset(instance, 0, sizeof(internal_t));
         create_kernels(&instance->kernels);
+        init_config(&instance->state);
 
         log->debug("transform node created");
         return instance;
@@ -320,30 +316,25 @@ namespace ex::logic::node::transform {
         const unsigned im_w = get_input_w();
         const unsigned im_h = get_input_h();
 
-        // TODO LOCK RATIO
-        // TODO FIX REGION
-
         if (copy.resize.width == im_w)
             copy.resize.width = 0;
 
         if (copy.resize.height == im_h)
             copy.resize.height = 0;
 
-        if (copy.resize.width > 0) {
-            if (copy.crop.end_x >= copy.resize.width)
-                copy.crop.end_x = 0;
-        } else {
-            if (copy.crop.end_x >= im_w)
-                copy.crop.end_x = 0;
+        if (copy.resize.fixed && (copy.resize.width || copy.resize.height)) {
+            const float ratio_w_to_h = static_cast<float>(im_w) / static_cast<float>(im_h);
+            if (copy.resize.width)
+                copy.resize.height = static_cast<float>(copy.resize.width) / ratio_w_to_h;
+            else if (copy.resize.height)
+                copy.resize.width = static_cast<float>(copy.resize.height) * ratio_w_to_h;
         }
 
-        if (copy.resize.height > 0) {
-            if (copy.crop.end_y >= copy.resize.height)
-                copy.crop.end_y = 0;
-        } else {
-            if (copy.crop.end_y >= im_h)
-                copy.crop.end_y = 0;
-        }
+        if (copy.crop.end_x >= im_w)
+            copy.crop.end_x = 0;
+
+        if (copy.crop.end_y >= im_h)
+            copy.crop.end_y = 0;
 
         if (0 == ::memcmp(&copy, &internal->state, sizeof(config_t)))
             return;

@@ -21,7 +21,7 @@ namespace ex::logic::node::transform {
         bool flip_v;
     };
 
-    struct crop_t {
+    struct region_t {
         unsigned start_x;
         unsigned start_y;
         unsigned end_x;
@@ -32,13 +32,14 @@ namespace ex::logic::node::transform {
         unsigned width;
         unsigned height;
         bool     linear;
+        bool     fixed;
     };
 
     struct config_t {
-        resize_t resize;
+        region_t crop;
         // │
         // V
-        crop_t   crop;
+        resize_t resize;
         // │
         // V
         flip_t   flip;
@@ -55,8 +56,8 @@ namespace ex::logic::node::transform {
     {
         // ---- exposed ----
 
-        //  resize ─┐
-        //   └─> crop ─┐
+        //  region ─┐
+        //   └─> resize ─┐
         //        └─> flip ─┐
         //             └─> rotate
         //
