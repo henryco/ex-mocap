@@ -326,9 +326,11 @@ namespace ex::gui::display {
 
     static bool switch_button(const char *label, bool *def_state = nullptr) {
         bool new_state = def_state != nullptr && *def_state;
+        const int v = new_state ? 255 : 0;
+        const int z = new_state ? 90 : 200;
 
-        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 255));
-        ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(200, 200, 200, 255));
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(v, v, v, 255));
+        ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(z, z, z, 255));
         ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(0, 0, 0, 255));
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
@@ -519,9 +521,9 @@ namespace ex::gui::display {
                 }
 
                 {
-                    ImGui::SetCursorPosX(window_width - 3 * ImGui::CalcTextSize(ICON_LC_SQUARE_EQUAL).x);
+                    ImGui::SetCursorPosX(window_width - 3 * ImGui::CalcTextSize(ICON_LC_SQUARE_SQUARE).x);
                     ImGui::SetCursorPosY(pos_y_0);
-                    switch_button(ICON_LC_SQUARE_EQUAL, &disp.meta.center);
+                    switch_button(ICON_LC_SQUARE_SQUARE, &disp.meta.center);
                     ex::gui::plain_tooltip(strings::gui_display_button_center);
                 }
 
