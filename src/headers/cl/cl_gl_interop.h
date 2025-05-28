@@ -25,6 +25,7 @@ namespace ex::cl::utils {
 
     void get_device_platforms(std::vector<device_platform> &platforms);
 
+    void query_image2d_max_size(cl_device_id device, unsigned *max_w, unsigned *max_h);
 }
 
 #endif // EX_MOTION_CL_GL_INTEROP_H

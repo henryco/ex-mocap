@@ -181,6 +181,18 @@ namespace ex::gui {
 
             if (ImGui::BeginMenu(strings::menu_top_help)) {
 
+                if (ImGui::MenuItem(strings::menu_top_help_cap_texture, nullptr, &gui.view.texture_cap)) {
+                    if (gui.view.texture_cap) {
+                        state.cl.tex_cap_w = EX_TEX_CAP_W;
+                        state.cl.tex_cap_h = EX_TEX_CAP_H;
+                    } else {
+                        state.cl.tex_cap_w = state.cl.tex_max_w;
+                        state.cl.tex_cap_h = state.cl.tex_max_w;
+                    }
+                }
+
+                ImGui::Separator();
+
                 if (ImGui::MenuItem(strings::menu_top_help_about)) {
                     actions::about_action();
                 }

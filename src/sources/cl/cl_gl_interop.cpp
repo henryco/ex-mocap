@@ -156,5 +156,13 @@ namespace ex::cl::utils {
             }
         }
     }
+
+    void query_image2d_max_size(cl_device_id device, unsigned int *max_w, unsigned int *max_h) {
+        size_t w, h;
+        clGetDeviceInfo(device, CL_DEVICE_IMAGE2D_MAX_WIDTH, sizeof(size_t), &w, NULL);
+        clGetDeviceInfo(device, CL_DEVICE_IMAGE2D_MAX_HEIGHT, sizeof(size_t), &h, NULL);
+        *max_w = w;
+        *max_h = h;
+    }
 }
 

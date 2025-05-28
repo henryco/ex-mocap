@@ -32,6 +32,7 @@ namespace ex::gui {
         bool show_menu  = true;
         bool show_fps   = true;
 
+        bool texture_cap    = true;
         bool highlight_logs = true;
         bool expanded_logs  = false;
         bool follow_logs    = false;

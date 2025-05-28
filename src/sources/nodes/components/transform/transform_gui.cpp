@@ -6,12 +6,12 @@
 #include "../../../../headers/nodes/components/transform/transform_gui.h"
 #include "../../../../headers/nodes/components/transform/transform_logic.h"
 #include "../../../../headers/imgui/strings/gui_strings.h"
+#include "../../../../headers/logic/logic_globals.h"
 #include "../../../../headers/logic/logic_mappers.h"
 #include "../../../../headers/logic/logic_state.h"
 #include "../../../../headers/utils/gui_utils.h"
 
 #include <IconsLucide.h>
-#include <simpfp.h>
 #include "imgui.h"
 
 namespace ex::gui::node::transform {
@@ -76,6 +76,9 @@ namespace ex::gui::node::transform {
         else
             ::memcpy(&config, &trs_node->config, sizeof(lnt::config_t));
 
+
+        static const ex::State &state = ex::logic::globals::state();
+
         {
             ImGui::SeparatorText(strings::node_component_transform_id);
 
@@ -116,7 +119,10 @@ namespace ex::gui::node::transform {
                 static char buff[8] = "";
                 ::sprintf(buff, "%hu", config.crop.start_x);
                 if (ImGui::InputText(strings::node_component_transform_region_x0, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
-                    config.crop.start_x = ::atoi(buff);
+                    const int value     = ::atoi(buff);
+                    config.crop.start_x = value;
+                    if (value < 0 || value >= trs_node->get_input_w())
+                        config.crop.start_x = 0;
                     time_stack.push(time_now, node_id, config);
                 }
             }
@@ -125,7 +131,10 @@ namespace ex::gui::node::transform {
                 static char buff[8] = "";
                 ::sprintf(buff, "%hu", config.crop.start_y);
                 if (ImGui::InputText(strings::node_component_transform_region_y0, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
-                    config.crop.start_y = ::atoi(buff);
+                    const int value     = ::atoi(buff);
+                    config.crop.start_y = value;
+                    if (value < 0 || trs_node->get_input_h())
+                        config.crop.start_y = 0;
                     time_stack.push(time_now, node_id, config);
                 }
             }
@@ -134,7 +143,16 @@ namespace ex::gui::node::transform {
                 static char buff[8] = "";
                 ::sprintf(buff, "%hu", config.crop.end_x > 0 ? config.crop.end_x : trs_node->get_input_w());
                 if (ImGui::InputText(strings::node_component_transform_region_x1, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
-                    config.crop.end_x = ::atoi(buff);
+
+                    const int value   = ::atoi(buff);
+                    config.crop.end_x = value;
+
+                    if (value < 0 || value < config.crop.start_x)
+                        config.crop.end_x = 0;
+
+                    if (config.crop.end_x > trs_node->get_input_w())
+                        config.crop.end_x = 0;
+
                     time_stack.push(time_now, node_id, config);
                 }
             }
@@ -143,7 +161,16 @@ namespace ex::gui::node::transform {
                 static char buff[8] = "";
                 ::sprintf(buff, "%hu", config.crop.end_y > 0 ? config.crop.end_y : trs_node->get_input_h());
                 if (ImGui::InputText(strings::node_component_transform_region_y1, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
-                    config.crop.end_y = ::atoi(buff);
+
+                    const int value   = ::atoi(buff);
+                    config.crop.end_y = value;
+
+                    if (value < 0 || value < config.crop.start_y)
+                        config.crop.end_y = 0;
+
+                    if (config.crop.end_y > trs_node->get_input_h())
+                        config.crop.end_y = 0;
+
                     time_stack.push(time_now, node_id, config);
                 }
             }
@@ -162,7 +189,15 @@ namespace ex::gui::node::transform {
                 static char buff[8] = "";
                 ::sprintf(buff, "%hu", config.resize.width > 0 ? config.resize.width : trs_node->get_input_w());
                 if (ImGui::InputText(strings::node_component_transform_resize_w, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
-                    config.resize.width = ::atoi(buff);
+
+                    const int value     = ::atoi(buff);
+                    config.resize.width = value;
+
+                    if (value < 0)
+                        config.resize.width = 0;
+
+                    if (config.resize.width > state.cl.tex_cap_w)
+                        config.resize.width = 0;
 
                     if (config.resize.fixed && config.resize.width) {
                         const float ratio_w_to_h = static_cast<float>(trs_node->get_input_w()) / static_cast<float>(trs_node->get_input_h());
@@ -181,7 +216,15 @@ namespace ex::gui::node::transform {
                 static char buff[8] = "";
                 ::sprintf(buff, "%hu", config.resize.height > 0 ? config.resize.height : trs_node->get_input_h());
                 if (ImGui::InputText(strings::node_component_transform_resize_h, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
-                    config.resize.height = ::atoi(buff);
+
+                    const int value      = ::atoi(buff);
+                    config.resize.height = value;
+
+                    if (value < 0)
+                        config.resize.height = 0;
+
+                    if (config.resize.height > state.cl.tex_cap_h)
+                        config.resize.height = 0;
 
                     if (config.resize.fixed && config.resize.height) {
                         const float ratio_w_to_h = static_cast<float>(trs_node->get_input_w()) / static_cast<float>(trs_node->get_input_h());

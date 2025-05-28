@@ -12,6 +12,9 @@
 
 namespace ex {
 
+#define EX_TEX_CAP_W (4096U)
+#define EX_TEX_CAP_H (4096U)
+
     struct project_state {
         const char *project_path  = nullptr;
         const char *title         = nullptr;
@@ -28,8 +31,12 @@ namespace ex {
     };
 
     struct cl_state {
-        cl_context   context = nullptr;
-        cl_device_id device  = nullptr;
+        cl_context   context   = nullptr;
+        cl_device_id device    = nullptr;
+        unsigned     tex_max_w = EX_TEX_CAP_W;
+        unsigned     tex_max_h = EX_TEX_CAP_W;
+        unsigned     tex_cap_w = EX_TEX_CAP_W;
+        unsigned     tex_cap_h = EX_TEX_CAP_H;
     };
 
     struct gl_state {
@@ -41,7 +48,6 @@ namespace ex {
     struct logic_state {
         uint32_t root_node   = -1;
         uint32_t active_node = -1;
-        int16_t  clock_freq  = -1;
     };
 
     struct metrics_state {

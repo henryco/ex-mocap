@@ -33,8 +33,9 @@ namespace ex::gui::strings {
     constexpr auto menu_top_view_fps           = "Frame rate";
     constexpr auto menu_top_view_reset_layout  = "Reset layout";
 
-    constexpr auto menu_top_help       = "Help";
-    constexpr auto menu_top_help_about = "About";
+    constexpr auto menu_top_help             = "Help";
+    constexpr auto menu_top_help_about       = "About";
+    constexpr auto menu_top_help_cap_texture = "Soft-cap texture size";
 
     constexpr auto logs_bot           = ICON_LC_LOGS " Log Output ";
     constexpr auto logs_bot_highlight = "Disable highlighting for warnings and errors";

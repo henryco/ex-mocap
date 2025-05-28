@@ -79,7 +79,7 @@ namespace ex::boot {
 
         cl_context ocl_context = nullptr;
         for (auto &[platform, device, gl_sharing] : cl_device_platforms) {
-            if (!gl_sharing)
+            if (!gl_sharing || !device || !platform)
                 continue;
             ocl_context = cl::utils::create_cl_gl_context(window, platform, device);
             if (ocl_context != nullptr) {
@@ -98,6 +98,9 @@ namespace ex::boot {
             state.cl.device = device;
             log->info("Default CL context created");
         }
+
+        ex::cl::utils::query_image2d_max_size(state.cl.device, &state.cl.tex_max_w, &state.cl.tex_max_h);
+        log->debug("CL max image2d_t dimension: {} x {}", state.cl.tex_max_w, state.cl.tex_max_h);
 
         state.cl.context = ocl_context;
     }
