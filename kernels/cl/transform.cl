@@ -15,7 +15,9 @@
 
 // RESIZE PARAMETERS:
 // - USE_RESIZE
-// - USE_RESIZE_LIN
+// - USE_RESIZE_W    (ushort)
+// - USE_RESIZE_H    (ushort)
+// - USE_RESIZE_LIN  (optional)
 
 // width of working image
 #ifndef USE_DIMENSION_X
@@ -26,6 +28,17 @@
 #ifndef USE_DIMENSION_Y
 #define USE_DIMENSION_Y (1U)
 #endif
+
+// width of resized output without offsets
+#ifndef USE_RESIZE_W
+#define USE_RESIZE_W (1U)
+#endif
+
+// height of resized output without offsets
+#ifndef USE_RESIZE_H
+#define USE_RESIZE_H (1U)
+#endif
+
 
 #ifdef USE_RESIZE
 __constant sampler_t sampler =
@@ -74,7 +87,7 @@ __kernel void kernel_transform(
 
     #ifdef USE_RESIZE
     const float2 pixel_c = convert_float2(coord) + (float2)(0.5f, 0.5f);
-    const float2 coord_f = pixel_c / (float2)((USE_DIMENSION_X), (USE_DIMENSION_Y));
+    const float2 coord_f = pixel_c / (float2)((USE_RESIZE_W), (USE_RESIZE_H));
     const float4 pixel   = read_imagef(input_bgra, sampler, coord_f);
     #else
     const float4 pixel = read_imagef(input_bgra, coord);

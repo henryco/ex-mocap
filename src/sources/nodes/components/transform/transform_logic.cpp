@@ -103,11 +103,13 @@ namespace ex::logic::node::transform {
         if (config->resize.width) {
             kernel->enabled = true;
             scale_w = static_cast<float>(config->resize.width) / static_cast<float>(internal->buffers.input.image.cols);
+            buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE_W=%hu ", config->resize.width);
         }
 
         if (config->resize.height) {
             kernel->enabled = true;
             scale_h = static_cast<float>(config->resize.height) / static_cast<float>(internal->buffers.input.image.rows);
+            buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE_H=%hu ", config->resize.height);
         }
 
         if (scale_w != 1.f || scale_h != 1.f) {
@@ -118,6 +120,8 @@ namespace ex::logic::node::transform {
 
         unsigned int output_size_w = 0,
                      output_size_h = 0;
+
+        // TODO FIXME
 
         if (config->crop.start_x > 0) {
             kernel->enabled = true;
