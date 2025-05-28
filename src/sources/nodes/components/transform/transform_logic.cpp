@@ -121,8 +121,6 @@ namespace ex::logic::node::transform {
         unsigned int output_size_w = 0,
                      output_size_h = 0;
 
-        // TODO FIXME
-
         if (config->crop.start_x > 0) {
             kernel->enabled = true;
 
@@ -133,7 +131,7 @@ namespace ex::logic::node::transform {
         if (config->crop.start_y > 0) {
             kernel->enabled = true;
 
-            const unsigned short ty = ((float) config->crop.start_x * scale_h);
+            const unsigned short ty = ((float) config->crop.start_y * scale_h);
             buff_l += sprintf(buff + buff_l, " -DUSE_TRANSLATE_Y=%hu ", ty);
         }
 
