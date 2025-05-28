@@ -66,6 +66,8 @@ namespace {
         const char *uuid;
         const char *name;
         char        bg_c;
+        bool        fit;
+        bool        center;
     };
 
     struct state_t {
@@ -142,8 +144,10 @@ namespace {
     display_window_t rv_display_window(const char *uuid, const char *name) {
         display_window_t window;
         ::memset(&window, 0, sizeof(display_window_t));
-        window.meta.name = name;
-        window.meta.uuid = uuid;
+        window.meta.name   = name;
+        window.meta.uuid   = uuid;
+        window.meta.center = true;
+        window.meta.fit    = true;
         return window;
     }
 
@@ -320,13 +324,13 @@ namespace ex::gui::display {
         return a > b ? b : a;
     }
 
-    static bool switch_button(const char *label, const bool def_state = false) {
-        bool new_state = def_state;
+    static bool switch_button(const char *label, bool *def_state = nullptr) {
+        bool new_state = def_state != nullptr && *def_state;
 
         ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 255));
         ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(200, 200, 200, 255));
         ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(0, 0, 0, 255));
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 11.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
 
         if (ImGui::Button(label)) {
@@ -336,6 +340,8 @@ namespace ex::gui::display {
         ImGui::PopStyleVar(2);
         ImGui::PopStyleColor(3);
 
+        if (def_state)
+            *def_state = new_state;
         return new_state;
     }
 
@@ -481,19 +487,16 @@ namespace ex::gui::display {
             const float window_height = ImGui::GetContentRegionAvail().y;
 
             if (disp.pbo.texture != 0) {
-                // TODO: MOVE TO SETTINGS
-                constexpr bool should_fit = true;
 
                 const ImVec2 img_size = img_size_(
                         disp.pbo.width,
                         disp.pbo.height,
                         window_width,
                         window_height,
-                        should_fit
+                        disp.meta.fit
                 );
 
-                {
-                    // TODO: MOVE TO SETTINGS
+                if (disp.meta.center) {
                     const float x_offset = (window_width - img_size.x) * 0.5f;
                     const float y_offset = (window_height - img_size.y) * 0.5f;
                     if (x_offset > 0.0f)
@@ -506,17 +509,28 @@ namespace ex::gui::display {
             }
 
             if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
-
-                ImGui::SetCursorPosX(window_width - ImGui::CalcTextSize(ICON_LC_PALETTE).x);
-                ImGui::SetCursorPosY(pos_y_0);
-                if (switch_button(ICON_LC_PALETTE)) {
-                    switch_bg_color_(&disp.meta.bg_c);
+                {
+                    ImGui::SetCursorPosX(window_width - ImGui::CalcTextSize(ICON_LC_PALETTE).x);
+                    ImGui::SetCursorPosY(pos_y_0);
+                    if (switch_button(ICON_LC_PALETTE)) {
+                        switch_bg_color_(&disp.meta.bg_c);
+                    }
+                    ex::gui::plain_tooltip(strings::gui_display_button_bg_change);
                 }
-                ex::gui::plain_tooltip(strings::gui_display_button_bg_change);
 
-                // TODO: BUTTON CENTER
+                {
+                    ImGui::SetCursorPosX(window_width - 3 * ImGui::CalcTextSize(ICON_LC_SQUARE_EQUAL).x);
+                    ImGui::SetCursorPosY(pos_y_0);
+                    switch_button(ICON_LC_SQUARE_EQUAL, &disp.meta.center);
+                    ex::gui::plain_tooltip(strings::gui_display_button_center);
+                }
 
-                // TODO: BUTTON FIT
+                {
+                    ImGui::SetCursorPosX(window_width - 5 * ImGui::CalcTextSize(ICON_LC_FULLSCREEN).x);
+                    ImGui::SetCursorPosY(pos_y_0);
+                    switch_button(ICON_LC_FULLSCREEN, &disp.meta.fit);
+                    ex::gui::plain_tooltip(strings::gui_display_button_fit);
+                }
             }
         }
 

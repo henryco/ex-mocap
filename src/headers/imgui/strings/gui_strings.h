@@ -44,6 +44,8 @@ namespace ex::gui::strings {
     constexpr auto logs_bot_clear_all = "Clear all";
 
     constexpr auto gui_display_button_bg_change = "Change background color";
+    constexpr auto gui_display_button_center    = "Center image";
+    constexpr auto gui_display_button_fit       = "Fit to screen";
 
     constexpr auto gui_tree_menu_general_add     = "Add new node";
     constexpr auto gui_tree_menu_general_new     = "New node";
