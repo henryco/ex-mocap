@@ -234,6 +234,11 @@ namespace ex::logic::node::out {
             const unsigned height   = input.image.rows;
             const unsigned width    = input.image.cols;
 
+            if ((width * height * channels) == 0) {
+                reset(); // shouldn't happen but anyway
+                return;
+            }
+
             alloc_bytes(&internal->bytes, width, height, channels);
 
             internal->workload.promise.release();

@@ -589,6 +589,8 @@ namespace ex::logic::node::camera {
     }
 
     CameraNode::~CameraNode() {
+        log->debug("Release camera node: {}", id_);
+
         internal->enabled = false;
         capture->camera.release();
 
@@ -610,6 +612,8 @@ namespace ex::logic::node::camera {
 
         internal = nullptr;
         capture  = nullptr;
+
+        log->debug("Camera node released: {}", id_);
     }
 
     CameraNode::CameraNode() :

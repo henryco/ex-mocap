@@ -373,7 +373,7 @@ namespace ex::ocl {
     }
 
     bool ImagePromise::empty() const {
-        return queue == nullptr && image.empty();
+        return queue == nullptr || image.empty();
     }
 
     Promise ImagePromise::raw_promise() const {
