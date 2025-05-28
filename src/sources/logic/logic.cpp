@@ -10,7 +10,6 @@
 #include "../../headers/logic/logic_state.h"
 #include "../../headers/utils/file_utils.h"
 #include "../../headers/utils/time_utils.h"
-#include "../../headers/utils/log_utils.h"
 
 #include <iostream>
 
@@ -81,6 +80,21 @@ namespace ex::main {
         Logic logic;
         logic.initialize();
         return logic;
+    }
+
+    Logic::~Logic() {
+        log->info("Release logic instance");
+
+        ex::logic::state::get_clock().reset();
+        for (auto &node : ex::logic::state::node_storage()) {
+            limbo::graph::BaseNode *base = node.val;
+            base->detach_all(); // TODO FIXME
+            ex::logic::node_mappers()[base->get_type_id()].destroy(nullptr, base);
+        }
+
+        ex::logic::state::reset_nodes();
+        ex::entity::reset_entities();
+        log->info("Logic instance released");
     }
 
     // == INTERNAL METHODS ==

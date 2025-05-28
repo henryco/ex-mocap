@@ -43,4 +43,11 @@ namespace ex::logic::state {
         store.remove(id);
     }
 
-} // namespace ex::logic::globals
+    void reset_nodes() {
+        static auto &store = node_store_();
+        static auto &clock = get_clock();
+        clock.reset();
+        store.clean();
+    }
+
+}

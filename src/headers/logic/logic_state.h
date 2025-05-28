@@ -25,6 +25,8 @@ namespace ex::logic::state {
 
     void remove_node(const id_local &);
 
+    void reset_nodes();
+
 }
 
 #endif //LOGIC_STATE_H

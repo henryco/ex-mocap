@@ -11,7 +11,7 @@ namespace ex::main {
 
         Logic() = default;
 
-        ~Logic() = default;
+        ~Logic();
 
         void initialize();
 

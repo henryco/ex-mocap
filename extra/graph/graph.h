@@ -252,11 +252,6 @@ namespace limbo::graph {
         unsigned short index_in;
     };
 
-    struct io_data {
-        void        *data_ptr;
-        unsigned int data_size;
-    };
-
     struct BaseNode : virtual NodeType, virtual io::IODescriptor {
 
 #define NODE_INIT_CAP 8
@@ -346,7 +341,7 @@ namespace limbo::graph {
             detach_all();
         }
 
-        void detach_all() {
+        void detach_all() { // TODO FIXME
             for (int i = 0; i < outputs_.size; ++i) {
                 const io_node &ref = outputs_[i];
                 auto &ref_outs = ref.node_ptr->inputs_;
