@@ -133,7 +133,7 @@ namespace ex::gui::node::transform {
                 if (ImGui::InputText(strings::node_component_transform_region_y0, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
                     const int value     = ::atoi(buff);
                     config.crop.start_y = value;
-                    if (value < 0 || trs_node->get_input_h())
+                    if (value < 0 || value >= trs_node->get_input_h())
                         config.crop.start_y = 0;
                     time_stack.push(time_now, node_id, config);
                 }
