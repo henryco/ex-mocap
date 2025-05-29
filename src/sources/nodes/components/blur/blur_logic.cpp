@@ -228,7 +228,19 @@ namespace ex::logic::node::blur {
         delete node;
     }
 
-    void BlurNode::set_config(const config_t &) {
+    void BlurNode::set_config(const config_t &conf) {
+        config_t copy;
+        ::memcpy(&copy, &conf, sizeof(config_t));
+
+        if (copy.kernel_size > 25)
+            copy.kernel_size = 25;
+
+        if (copy.kernel_size < 0)
+            copy.kernel_size = 0;
+
+        ::memcpy(&internal->state, &copy, sizeof(config_t));
+        ::memcpy(&config, &copy, sizeof(config_t));
+        reset(internal);
     }
 
     void BlurNode::set_image_id(id_type_16 id) {
