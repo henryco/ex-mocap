@@ -53,6 +53,10 @@ namespace ex::logic::node::blur {
         bool       on;
     };
 
+    static unsigned short mimp(const unsigned u) {
+        return u > 0 ? u : 1;
+    }
+
     static void create_g_kernel_1d(const unsigned size, const float sigma, float *out_kernel) {
         const int half = static_cast<int>(size / 2);
         float sum = 0.f;
@@ -132,8 +136,8 @@ namespace ex::logic::node::blur {
         const unsigned short image_w = internal->buffers.input.image.cols;
         const unsigned short image_h = internal->buffers.input.image.rows;
 
-        buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", image_w);
-        buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", image_h);
+        buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", mimp(image_w - 1));
+        buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", mimp(image_h - 1));
 
         kernel->single = config->single_pass;
 
