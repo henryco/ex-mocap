@@ -12,6 +12,9 @@
 namespace ex::logic::node::blur {
 
     struct config_t {
+        // standard deviation
+        float sigma;
+
         // single is faster for small kernels
         bool single_pass;
 

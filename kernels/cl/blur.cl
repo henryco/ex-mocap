@@ -11,22 +11,25 @@
 #endif
 
 __kernel void kernel_blur_horizontal(
-    read_only  image2d_t input_bgra,
-    write_only image2d_t output_bgra
+    __read_only  image2d_t input_bgra,
+    __write_only image2d_t output_bgra,
+    __constant   float    *gaussian_kernel
 ) {
     // TODO
 }
 
 __kernel void kernel_blur_vertical(
-    read_only  image2d_t input_bgra,
-    write_only image2d_t output_bgra
+    __read_only  image2d_t input_bgra,
+    __write_only image2d_t output_bgra,
+    __constant   float    *gaussian_kernel
 ) {
     // TODO
 }
 
 __kernel void kernel_blur_single(
-    read_only  image2d_t input_bgra,
-    write_only image2d_t output_bgra
+    __read_only  image2d_t input_bgra,
+    __write_only image2d_t output_bgra,
+    __constant   float    *gaussian_kernel
 ) {
     // TODO
 }
