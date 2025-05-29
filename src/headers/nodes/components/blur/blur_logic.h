@@ -18,7 +18,7 @@ namespace ex::logic::node::blur {
         // single is faster for small kernels
         bool single_pass;
 
-        // hard-clamped to [0,25]
+        // hard-clamped to [0,20]
         char kernel_size;
     };
 

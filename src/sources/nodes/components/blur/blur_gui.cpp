@@ -126,8 +126,8 @@ namespace ex::gui::node::blur {
                     config.kernel_size = value;
                     if (value < 0)
                         config.kernel_size = 0;
-                    if (value > 25)
-                        config.kernel_size = 25;
+                    if (value > 20)
+                        config.kernel_size = 20;
                     time_stack.push(time_now, node_id, config);
                 }
             }

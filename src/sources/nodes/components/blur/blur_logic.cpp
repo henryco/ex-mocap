@@ -10,6 +10,9 @@
 
 namespace ex::logic::node::blur {
 
+    #define HARD_CAP (20U)
+    #define CAP_SIZE ((HARD_CAP * 2) + 1)
+
     static const auto log = logs::get_logger("node_blur");
 
     struct updates_t {
@@ -49,6 +52,39 @@ namespace ex::logic::node::blur {
         id_type_16 id;
         bool       on;
     };
+
+    static void create_g_kernel_1d(const unsigned size, const float sigma, float *out_kernel) {
+        const int half = static_cast<int>(size / 2);
+        float sum = 0.f;
+
+        for (int i = -half; i <= half; ++i) {
+            const float e = -(i * i) / (2.f * sigma * sigma);
+            const float f = ::expf(e);
+            out_kernel[i + half] = f;
+            sum += f;
+        }
+
+        for (int i = 0; i < size; ++i)
+            out_kernel[i] /= sum;
+    }
+
+    static void create_g_kernel_2d(const unsigned size, const float sigma, float *out_kernel) {
+        const int half = static_cast<int>(size / 2);
+        float sum = 0.f;
+
+        for (int y = -half; y <= half; ++y) {
+            for (int x = -half; x <= half; ++x) {
+                const float e = -(x * x + y * y) / (2.f * sigma * sigma);
+                const float f = ::expf(e);
+                const int   i = ((y + half) * size) + (x + half);
+                out_kernel[i] = f;
+                sum += f;
+            }
+        }
+
+        for (int i = 0; i < size * size; ++i)
+            out_kernel[i] /= sum;
+    }
 
     static void create_kernels(kernels_t *kernel) {
         log->debug("create blur cl kernels");
@@ -106,12 +142,29 @@ namespace ex::logic::node::blur {
 
             buff_l += sprintf(buff + buff_l, " -DUSE_KERN_H_S=%hhu ", config->kernel_size);
 
+            static thread_local float ker_buff[CAP_SIZE * CAP_SIZE];
+
+            const unsigned int side_size = (config->kernel_size * 2) + 1;
+            const cl_mem_flags flags     = CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR;
+
             if (kernel->single) {
-                // TODO GENERATE KERNELS
+                const unsigned total_size = side_size;
+                create_g_kernel_1d(side_size, config->sigma, ker_buff);
+
+                cl_int err;
+                kernel->conv_k = ::clCreateBuffer(state.cl.context, flags, total_size, ker_buff, &err);
+                if (err != CL_SUCCESS)
+                    abort_("Cannot create kernel buffer: " << err);
             }
 
             else {
-                // TODO GENERATE KERNELS
+                const unsigned total_size = side_size * side_size;
+                create_g_kernel_2d(side_size, config->sigma, ker_buff);
+
+                cl_int err;
+                kernel->conv_k = ::clCreateBuffer(state.cl.context, flags, total_size, ker_buff, &err);
+                if (err != CL_SUCCESS)
+                    abort_("Cannot create kernel buffer: " << err);
             }
         }
 
@@ -251,8 +304,8 @@ namespace ex::logic::node::blur {
         config_t copy;
         ::memcpy(&copy, &conf, sizeof(config_t));
 
-        if (copy.kernel_size > 25)
-            copy.kernel_size = 25;
+        if (copy.kernel_size > HARD_CAP)
+            copy.kernel_size = HARD_CAP;
 
         if (copy.kernel_size < 0)
             copy.kernel_size = 0;
