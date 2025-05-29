@@ -15,7 +15,15 @@ __kernel void kernel_blur_horizontal(
     __write_only image2d_t output_bgra,
     __constant   float    *gaussian_kernel
 ) {
+    const int2 coord = (int2) (get_global_id(0), get_global_id(1));
+    if (coord.x >= USE_IMAGE_W || coord.y >= USE_IMAGE_H)
+        return;
+
+    const float4 pixel = read_imagef(input_bgra, coord);
+
     // TODO
+
+    write_imagef(output_bgra, coord, pixel);
 }
 
 __kernel void kernel_blur_vertical(
@@ -23,7 +31,15 @@ __kernel void kernel_blur_vertical(
     __write_only image2d_t output_bgra,
     __constant   float    *gaussian_kernel
 ) {
+    const int2 coord = (int2) (get_global_id(0), get_global_id(1));
+    if (coord.x >= USE_IMAGE_W || coord.y >= USE_IMAGE_H)
+        return;
+
+    const float4 pixel = read_imagef(input_bgra, coord);
+
     // TODO
+
+    write_imagef(output_bgra, coord, pixel);
 }
 
 __kernel void kernel_blur_single(
@@ -31,5 +47,13 @@ __kernel void kernel_blur_single(
     __write_only image2d_t output_bgra,
     __constant   float    *gaussian_kernel
 ) {
+    const int2 coord = (int2) (get_global_id(0), get_global_id(1));
+    if (coord.x >= USE_IMAGE_W || coord.y >= USE_IMAGE_H)
+        return;
+
+    const float4 pixel = read_imagef(input_bgra, coord);
+
     // TODO
+
+    write_imagef(output_bgra, coord, pixel);
 }
