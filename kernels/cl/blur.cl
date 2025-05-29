@@ -21,9 +21,14 @@ __kernel void kernel_blur_horizontal(
 
     const float4 pixel = read_imagef(input_bgra, coord);
 
+    float  weight_sum = 0.f;
+    float4 sum        = 0.f;
+
     // TODO
 
-    write_imagef(output_bgra, coord, pixel);
+    sum /= weight_sum;
+    sum.w = 1.;
+    write_imagef(output_bgra, coord, sum);
 }
 
 __kernel void kernel_blur_vertical(
@@ -37,9 +42,14 @@ __kernel void kernel_blur_vertical(
 
     const float4 pixel = read_imagef(input_bgra, coord);
 
+    float  weight_sum = 0.f;
+    float4 sum        = 0.f;
+
     // TODO
 
-    write_imagef(output_bgra, coord, pixel);
+    sum /= weight_sum;
+    sum.w = 1.;
+    write_imagef(output_bgra, coord, sum);
 }
 
 __kernel void kernel_blur_single(
@@ -53,7 +63,12 @@ __kernel void kernel_blur_single(
 
     const float4 pixel = read_imagef(input_bgra, coord);
 
+    float  weight_sum = 0.f;
+    float4 sum        = 0.f;
+
     // TODO
 
-    write_imagef(output_bgra, coord, pixel);
+    sum /= weight_sum;
+    sum.w = 1.;
+    write_imagef(output_bgra, coord, sum);
 }
