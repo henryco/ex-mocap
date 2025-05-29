@@ -27,7 +27,7 @@ __kernel void kernel_blur_horizontal(
 
     #pragma unroll
     for (int k = -(USE_KERN_H_S); k <= (USE_KERN_H_S); ++k) {
-        const float  weight  = gaussian_kernel[k + USE_KERN_H_S];
+        const float  weight  = gaussian_kernel[k + (int) USE_KERN_H_S];
         const int2   pos_pix = (int2) (clamp((int) coord.x + k, (int) 0, (int) USE_IMAGE_W), coord.y);
         const float4 pixel   = read_imagef(input_bgra, pos_pix);
 
@@ -53,7 +53,7 @@ __kernel void kernel_blur_vertical(
 
     #pragma unroll
     for (int k = -(USE_KERN_H_S); k <= (USE_KERN_H_S); ++k) {
-        const float  weight  = gaussian_kernel[k + USE_KERN_H_S];
+        const float  weight  = gaussian_kernel[k + (int) USE_KERN_H_S];
         const int2   pos_pix = (int2) (coord.x, clamp((int) coord.y + k, (int) 0, (int) USE_IMAGE_H));
         const float4 pixel   = read_imagef(input_bgra, pos_pix);
 

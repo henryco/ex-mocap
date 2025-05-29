@@ -58,13 +58,12 @@ namespace ex::logic::node::blur {
     }
 
     static void create_g_kernel_1d(const unsigned size, const float sigma, float *out_kernel) {
-        const int half = static_cast<int>(size / 2);
         float sum = 0.f;
 
-        for (int i = -half; i <= half; ++i) {
+        for (int i = 0; i <= size; ++i) {
             const float e = -(i * i) / (2.f * sigma * sigma);
             const float f = ::expf(e);
-            out_kernel[i + half] = f;
+            out_kernel[i] = f;
             sum += f;
         }
 
@@ -161,6 +160,7 @@ namespace ex::logic::node::blur {
             }
 
             else {
+                // todo fixme
                 const unsigned total_size = side_size;
                 create_g_kernel_1d(side_size, config->sigma, ker_buff);
 
