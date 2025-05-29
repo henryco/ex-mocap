@@ -76,12 +76,11 @@ namespace ex::logic::node::blur {
         const int half = static_cast<int>(size / 2);
         float sum = 0.f;
 
-        for (int y = -half; y <= half; ++y) {
+        for (int i = 0, y = -half; y <= half; ++y) {
             for (int x = -half; x <= half; ++x) {
                 const float e = -(x * x + y * y) / (2.f * sigma * sigma);
                 const float f = ::expf(e);
-                const int   i = ((y + half) * size) + (x + half);
-                out_kernel[i] = f;
+                out_kernel[i++] = f;
                 sum += f;
             }
         }
@@ -152,8 +151,8 @@ namespace ex::logic::node::blur {
             const cl_mem_flags flags     = CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR;
 
             if (kernel->single) {
-                const unsigned total_size = side_size;
-                create_g_kernel_1d(side_size, config->sigma, ker_buff);
+                const unsigned total_size = side_size * side_size;
+                create_g_kernel_2d(side_size, config->sigma, ker_buff);
 
                 cl_int err;
                 kernel->conv_k = ::clCreateBuffer(state.cl.context, flags, total_size, ker_buff, &err);
@@ -162,8 +161,8 @@ namespace ex::logic::node::blur {
             }
 
             else {
-                const unsigned total_size = side_size * side_size;
-                create_g_kernel_2d(side_size, config->sigma, ker_buff);
+                const unsigned total_size = side_size;
+                create_g_kernel_1d(side_size, config->sigma, ker_buff);
 
                 cl_int err;
                 kernel->conv_k = ::clCreateBuffer(state.cl.context, flags, total_size, ker_buff, &err);
