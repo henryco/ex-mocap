@@ -13,6 +13,8 @@
 #define USE_KERN_H_S (1U)
 #endif
 
+//__constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
+
 __kernel void kernel_blur_horizontal(
     __read_only  image2d_t input_bgra,
     __write_only image2d_t output_bgra,
@@ -25,6 +27,7 @@ __kernel void kernel_blur_horizontal(
     float  weight_sum = 0.f;
     float4 sum        = 0.f;
 
+//    #pragma unroll
     for (int k = -(USE_KERN_H_S); k <= (USE_KERN_H_S); ++k) {
         const float  weight  = gaussian_kernel[k + USE_KERN_H_S];
         const int2   pos_pix = (int2) (clamp((int) coord.x + k, (int) 0, (int) USE_IMAGE_W), coord.y);
@@ -51,6 +54,7 @@ __kernel void kernel_blur_vertical(
     float  weight_sum = 0.f;
     float4 sum        = 0.f;
 
+//    #pragma unroll
     for (int k = -(USE_KERN_H_S); k <= (USE_KERN_H_S); ++k) {
         const float  weight  = gaussian_kernel[k + USE_KERN_H_S];
         const int2   pos_pix = (int2) (coord.x, clamp((int) coord.y + k, (int) 0, (int) USE_IMAGE_H));
@@ -77,10 +81,13 @@ __kernel void kernel_blur_single(
     float  weight_sum = 0.f;
     float4 sum        = 0.f;
 
+//    #pragma unroll
     for (int i = 0, y = -(USE_KERN_H_S); y <= (USE_KERN_H_S); ++y) {
+//        #pragma unroll
         for (int x = -(USE_KERN_H_S); x <= (USE_KERN_H_S); ++x) {
-            const int2   pos_pix = (int2) (clamp((int) coord.x + x, (int) 0, (int) USE_IMAGE_W),
-                                           clamp((int) coord.y + y, (int) 0, (int) USE_IMAGE_H));
+//            const int2   pos_pix = (int2) (clamp((int) coord.x + x, (int) 0, (int) USE_IMAGE_W),
+//                                           clamp((int) coord.y + y, (int) 0, (int) USE_IMAGE_H));
+            int2         pos_pix = clamp(coord + ((int2) (x, y)), (int2) (0), (int2) (USE_IMAGE_W, USE_IMAGE_H));
             const float4 pixel   = read_imagef(input_bgra, pos_pix);
             const float  weight  = gaussian_kernel[i++];
 
