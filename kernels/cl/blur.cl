@@ -77,9 +77,7 @@ __kernel void kernel_blur_single(
     float  weight_sum = 0.f;
     float4 sum        = 0.f;
 
-    #pragma unroll
     for (int i = 0, y = -(USE_KERN_H_S); y <= (USE_KERN_H_S); ++y) {
-        #pragma unroll
         for (int x = -(USE_KERN_H_S); x <= (USE_KERN_H_S); ++x) {
             int2         pos_pix = clamp(coord + ((int2) (x, y)), (int2) (0), (int2) (USE_IMAGE_W, USE_IMAGE_H));
             const float4 pixel   = read_imagef(input_bgra, pos_pix);

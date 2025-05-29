@@ -68,8 +68,8 @@ namespace ex::logic::node::blur {
             sum += f;
         }
 
-        for (int i = 0; i < size; ++i)
-            out_kernel[i] /= sum;
+//        for (int i = 0; i < size; ++i)
+//            out_kernel[i] /= sum;
     }
 
     static void create_g_kernel_2d(const unsigned size, const float sigma, float *out_kernel) {
@@ -85,8 +85,8 @@ namespace ex::logic::node::blur {
             }
         }
 
-        for (int i = 0; i < size * size; ++i)
-            out_kernel[i] /= sum;
+//        for (int i = 0; i < size * size; ++i)
+//            out_kernel[i] /= sum;
     }
 
     static void create_kernels(kernels_t *kernel) {
@@ -246,7 +246,7 @@ namespace ex::logic::node::blur {
     static void init_config(config_t *c) {
         c->single_pass = true;
         c->kernel_size = 2;
-        c->sigma       = 1;
+        c->sigma       = 2;
     }
 
     static internal_t *create_internal() {
