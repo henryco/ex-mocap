@@ -140,6 +140,7 @@ set(KERNEL_FILES
         kernels/filter_conv.h
         kernels/letter_box.h
         kernels/transform.h
+        kernels/blur.h
 )
 
 set(HEADER_FILES

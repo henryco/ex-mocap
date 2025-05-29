@@ -12,7 +12,8 @@
 namespace ex::logic::node::blur {
 
     struct config_t {
-        // TODO
+        bool single_pass;
+        char kernel_size;
     };
 
     struct BlurNode final : limbo::graph::BaseNode,

@@ -2,7 +2,7 @@
 // Created by xd on 29/05/25.
 //
 
-#include "../../../../../kernels/filter_conv.h"
+#include "../../../../../kernels/blur.h"
 
 #include "../../../../headers/nodes/components/blur/blur_logic.h"
 #include "../../../../headers/logic/logic_globals.h"
@@ -21,14 +21,17 @@ namespace ex::logic::node::blur {
     struct buffers_t {
         ocl::img_promise input;   // managed outside
         ocl::img_promise output;  // managed by none
+
+        ocl::image2d_t   inter;   // managed by this
         ocl::image2d_t   image;   // managed by this
     };
 
     struct kernels_t {
         cl_program program;
-        cl_kernel  kernel;
+        cl_kernel  kernel[2];
         ::size_t   size_l;
         bool       enabled;
+        bool       single;
     };
 
     struct internal_t {
@@ -48,9 +51,10 @@ namespace ex::logic::node::blur {
 
     static void create_kernels(kernels_t *kernel) {
         log->debug("create blur cl kernels");
-        kernel->kernel  = nullptr;
-        kernel->program = nullptr;
-        kernel->enabled = false;
+        kernel->kernel[0] = nullptr;
+        kernel->kernel[1] = nullptr;
+        kernel->program   = nullptr;
+        kernel->enabled   = false;
         log->debug("blur cl kernels created");
     }
 
@@ -61,9 +65,14 @@ namespace ex::logic::node::blur {
         kernels_t *kernel = &internal->kernels;
         config_t  *config = &internal->state;
 
-        if (kernel->kernel != nullptr) {
-            ::clReleaseKernel(kernel->kernel);
-            kernel->kernel = nullptr;
+        if (kernel->kernel[0] != nullptr) {
+            ::clReleaseKernel(kernel->kernel[0]);
+            kernel->kernel[0] = nullptr;
+        }
+
+        if (kernel->kernel[1] != nullptr) {
+            ::clReleaseKernel(kernel->kernel[1]);
+            kernel->kernel[1] = nullptr;
         }
 
         if (kernel->program != nullptr) {
@@ -77,7 +86,18 @@ namespace ex::logic::node::blur {
         static char buff[512];
         ::memset(buff, 0, 512);
 
-        // TODO COMPILE-TIME PARAMS
+        const unsigned short image_w = internal->buffers.input.image.cols;
+        const unsigned short image_h = internal->buffers.input.image.rows;
+
+        buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", image_w);
+        buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", image_h);
+
+        kernel->single = config->single_pass;
+
+        if (config->kernel_size > 0) {
+            kernel->enabled = true;
+            buff_l += sprintf(buff + buff_l, " -DUSE_KERN_H_S=%hhu ", config->kernel_size);
+        }
 
         buff[buff_l + 1] = '\0';
 
@@ -85,27 +105,49 @@ namespace ex::logic::node::blur {
 
         ocl::image2d_t *image = &internal->buffers.image;
         image->release();
+
+        ocl::image2d_t *inter = &internal->buffers.inter;
+        inter->release();
+
         *image = ex::ocl::Image2D::allocate(
-                internal->buffers.input.image.cols,
-                internal->buffers.input.image.rows,
+                image_w,
+                image_h,
                 ocl::C_MODE::BGRA,
                 ocl::C_DEPT::UINT_N8,
                 state.cl.context);
+
+        if (!kernel->single) {
+            *inter = ex::ocl::Image2D::allocate(
+                    image_w,
+                    image_h,
+                    ocl::C_MODE::BGRA,
+                    ocl::C_DEPT::UINT_N8,
+                    state.cl.context);
+        }
 
         if (!kernel->enabled) {
             log->debug("blur cl kernels disabled (skip)");
             return;
         }
 
-//        kernel->program = xm::ocl::build_program(
-//                state.cl.context,
-//                state.cl.device,
-//                ocl_kernel_transform_data,
-//                ocl_kernel_transform_data_size,
-//                "transform.cl",
-//                buff);
-//        kernel->kernel = xm::ocl::build_kernel(kernel->program, "kernel_transform");
-//        kernel->size_l = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel);
+        kernel->program = xm::ocl::build_program(
+                state.cl.context,
+                state.cl.device,
+                ocl_kernel_blur_data,
+                ocl_kernel_blur_data_size,
+                "blur.cl",
+                buff);
+
+        if (kernel->single) {
+            kernel->kernel[0] = xm::ocl::build_kernel(kernel->program, "kernel_blur_single");
+            kernel->size_l    = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel[0]);
+            log->debug("blur cl kernels updated");
+            return;
+        }
+
+        kernel->kernel[0] = xm::ocl::build_kernel(kernel->program, "kernel_blur_horizontal");
+        kernel->kernel[1] = xm::ocl::build_kernel(kernel->program, "kernel_blur_vertical");
+        kernel->size_l    = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel[0]);
 
         log->debug("blur cl kernels updated");
     }
@@ -116,8 +158,10 @@ namespace ex::logic::node::blur {
 
         log->debug("release blur cl kernels");
 
-        if (kernel->kernel != nullptr)
-            ::clReleaseKernel(kernel->kernel);
+        if (kernel->kernel[0] != nullptr)
+            ::clReleaseKernel(kernel->kernel[0]);
+        if (kernel->kernel[1] != nullptr)
+            ::clReleaseKernel(kernel->kernel[1]);
         if (kernel->program != nullptr)
             ::clReleaseProgram(kernel->program);
         ::memset(kernel, 0, sizeof(kernels_t));
@@ -125,8 +169,9 @@ namespace ex::logic::node::blur {
         log->debug("blur cl kernels released");
     }
 
-    static void init_config(config_t *) {
-        // TODO
+    static void init_config(config_t *c) {
+        c->single_pass = true;
+        c->kernel_size = 2;
     }
 
     static internal_t *create_internal() {
@@ -150,6 +195,7 @@ namespace ex::logic::node::blur {
 
         log->debug("destroying blur node");
         ptr->buffers.output.finalize(true);
+        ptr->buffers.inter.release();
         ptr->buffers.image.release();
         release_kernels(&ptr->kernels);
         ::free(ptr);
@@ -157,6 +203,7 @@ namespace ex::logic::node::blur {
     }
 
     static void reset(internal_t *internal) {
+        internal->buffers.inter.release();
         internal->buffers.image.release();
         internal->updates.state.refresh();
         internal->buffers.output.image = internal->buffers.image;
@@ -291,6 +338,7 @@ namespace ex::logic::node::blur {
         static const ex::State &state = ex::logic::globals::state();
 
         ocl::img_promise *input = &internal->buffers.input;
+        ocl::image2d_t   *inter = &internal->buffers.inter;
         ocl::image2d_t   *image = &internal->buffers.image;
 
         if (input->image.header.fresh || image->detached())
@@ -321,13 +369,40 @@ namespace ex::logic::node::blur {
         cl_mem buffer_in  = input->image.handle;
         cl_mem buffer_out = image->handle;
 
-        xm::ocl::set_kernel_arg(internal->kernels.kernel, 0, sizeof(cl_mem), &buffer_in);
-        xm::ocl::set_kernel_arg(internal->kernels.kernel, 1, sizeof(cl_mem), &buffer_out);
+        if (internal->kernels.single) {
+            // single pass
+            xm::ocl::set_kernel_arg(internal->kernels.kernel[0], 0, sizeof(cl_mem), &buffer_in);
+            xm::ocl::set_kernel_arg(internal->kernels.kernel[0], 1, sizeof(cl_mem), &buffer_out);
 
-        // TODO RUNTIME PARAMETERS
+            xm::ocl::enqueue_kernel_fast(
+                    input->queue, internal->kernels.kernel[0],
+                    2,
+                    g_size,
+                    l_size);
+
+            internal->buffers.output = { *image, input->queue, false };
+            internal->buffers.output.image.header.fresh = true;
+            return;
+        }
+
+        cl_mem buffer_aux = inter->handle;
+
+        // horizontal pass
+        xm::ocl::set_kernel_arg(internal->kernels.kernel[0], 0, sizeof(cl_mem), &buffer_in);
+        xm::ocl::set_kernel_arg(internal->kernels.kernel[0], 1, sizeof(cl_mem), &buffer_aux);
+
+        // vertical pass
+        xm::ocl::set_kernel_arg(internal->kernels.kernel[1], 0, sizeof(cl_mem), &buffer_aux);
+        xm::ocl::set_kernel_arg(internal->kernels.kernel[1], 1, sizeof(cl_mem), &buffer_out);
 
         xm::ocl::enqueue_kernel_fast(
-                input->queue, internal->kernels.kernel,
+                input->queue, internal->kernels.kernel[0],
+                2,
+                g_size,
+                l_size);
+
+        xm::ocl::enqueue_kernel_fast(
+                input->queue, internal->kernels.kernel[1],
                 2,
                 g_size,
                 l_size);
