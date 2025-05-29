@@ -12,7 +12,10 @@
 namespace ex::logic::node::blur {
 
     struct config_t {
+        // single is faster for small kernels
         bool single_pass;
+
+        // hard-clamped to [0,25]
         char kernel_size;
     };
 
@@ -35,16 +38,16 @@ namespace ex::logic::node::blur {
 
         // ---- mapper properties ----
 
-        static limbo::graph::BaseNode *instance(TreeNode *from);
-        static limbo::graph::BaseNode *relocate(TreeNode *tree, limbo::graph::BaseNode *node);
-        static void                    destroy(TreeNode *tree, limbo::graph::BaseNode *node);
+        static limbo::graph::BaseNode *instance(TreeNode *);
+        static limbo::graph::BaseNode *relocate(TreeNode *, limbo::graph::BaseNode *);
+        static void                    destroy(TreeNode *, limbo::graph::BaseNode *);
 
 
         // ---- component properties ----
 
         void set_config(const config_t &);
 
-        void set_image_id(id_type_16 id);
+        void set_image_id(id_type_16);
 
         id_type_16 get_image_id() const;
 
