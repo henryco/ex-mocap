@@ -193,6 +193,8 @@ namespace ex::gui::strings {
     constexpr auto node_component_transform_rotate_0  = "None";
     constexpr auto node_component_transform_rotate_90 = "Clockwise 90º";
 
+    constexpr auto node_component_blur_id        = "Image ID";
+    constexpr auto node_component_blur_name      = "Blur";
 }
 
 #endif //GUI_STRINGS_H

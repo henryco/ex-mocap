@@ -191,6 +191,8 @@ set(HEADER_FILES
         src/headers/nodes/components/camera/camera_logic.h
         src/headers/nodes/components/transform/transform_logic.h
         src/headers/nodes/components/transform/transform_gui.h
+        src/headers/nodes/components/blur/blur_gui.h
+        src/headers/nodes/components/blur/blur_logic.h
 )
 
 set(SOURCE_FILES
@@ -244,6 +246,8 @@ set(SOURCE_FILES
         src/sources/nodes/components/camera/camera_logic.cpp
         src/sources/nodes/components/transform/transform_gui.cpp
         src/sources/nodes/components/transform/transform_logic.cpp
+        src/sources/nodes/components/blur/blur_gui.cpp
+        src/sources/nodes/components/blur/blur_logic.cpp
 )
 
 # =================== OpenCL kernels generation =====================

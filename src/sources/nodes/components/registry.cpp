@@ -13,6 +13,9 @@
 #include "../../../headers/nodes/components/transform/transform_gui.h"
 #include "../../../headers/nodes/components/transform/transform_logic.h"
 
+#include "../../../headers/nodes/components/blur/blur_gui.h"
+#include "../../../headers/nodes/components/blur/blur_logic.h"
+
 namespace ex::nodes::mappers {
 
     const data::array_map<id_type, Mapper> &cmp_registry_() {
@@ -52,6 +55,15 @@ namespace ex::nodes::mappers {
                 .gui = transform_node_n::gui_mappers,
                 .logic = logic_from_struct_<transform_node_t>()
             });
+        }
+
+        { // Blur component
+            namespace blur_node_n = ex::gui::node::blur;
+            using blur_node_t     = ex::logic::node::blur::BlurNode;
+            registry.put(id_from_struct_<blur_node_t>(), {
+                  .gui = blur_node_n::gui_mappers,
+                  .logic = logic_from_struct_<blur_node_t>()
+          });
         }
 
         return registry;
