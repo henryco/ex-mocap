@@ -113,7 +113,43 @@ namespace ex::gui::node::blur {
             ImGui::NewLine();
         }
 
-        // TODO
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        if (ImGui::CollapsingHeader(strings::node_component_blur_kernel, ImGuiTreeNodeFlags_Framed)) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
+
+            {// Kernel size
+                static char buff[8] = "";
+                ::sprintf(buff, "%hhu", config.kernel_size);
+                if (ImGui::InputText(strings::node_component_blur_kernel_size, buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+                    const int value    = ::atoi(buff);
+                    config.kernel_size = value;
+                    if (value < 0)
+                        config.kernel_size = 0;
+                    if (value > 25)
+                        config.kernel_size = 25;
+                    time_stack.push(time_now, node_id, config);
+                }
+            }
+
+            ImGui::PopStyleColor();
+            ImGui::PopStyleVar();
+            ImGui::NewLine();
+        }
+
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        if (ImGui::CollapsingHeader(strings::node_component_blur_mode, ImGuiTreeNodeFlags_Framed)) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
+
+            // Single pass
+            if (ImGui::Checkbox(strings::node_component_blur_mode_single, &config.single_pass))
+                time_stack.push(time_now, node_id, config);
+
+            ImGui::PopStyleColor();
+            ImGui::PopStyleVar();
+            ImGui::NewLine();
+        }
 
         return true;
     }
