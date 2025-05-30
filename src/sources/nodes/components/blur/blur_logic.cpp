@@ -158,6 +158,11 @@ namespace ex::logic::node::blur {
                 kernel->conv_k = ::clCreateBuffer(state.cl.context, flags, sizeof(float) * total_size, ker_buff, &err);
                 if (err != CL_SUCCESS)
                     abort_("Cannot create kernel buffer: " << err);
+
+                if (logs::get_level() < spdlog::level::info) {
+                    for (int i = 0; i < total_size; ++i)
+                        log->debug("kernel_item [{}]: {}", i, ker_buff[i]);
+                }
             }
 
             else {
@@ -168,6 +173,11 @@ namespace ex::logic::node::blur {
                 kernel->conv_k = ::clCreateBuffer(state.cl.context, flags,  sizeof(float) * total_size, ker_buff, &err);
                 if (err != CL_SUCCESS)
                     abort_("Cannot create kernel buffer: " << err);
+
+                if (logs::get_level() < spdlog::level::info) {
+                    for (int i = 0; i < total_size; ++i)
+                        log->debug("kernel_item [{}]: {}", i, ker_buff[i]);
+                }
             }
         }
 
@@ -245,8 +255,8 @@ namespace ex::logic::node::blur {
 
     static void init_config(config_t *c) {
         c->mode        = mode_e::DOUBLE;
+        c->sigma       = 3;
         c->kernel_size = 2;
-        c->sigma       = 2;
     }
 
     static internal_t *create_internal() {
@@ -315,6 +325,9 @@ namespace ex::logic::node::blur {
 
         if (copy.sigma <= 0)
             copy.sigma = 1.f;
+
+        if (copy.sigma > 100)
+            copy.sigma = 1.f; // sanity check, sigma 100, wtf???
 
         if (0 == ::memcmp(&copy, &internal->state, sizeof(config_t)))
             return;

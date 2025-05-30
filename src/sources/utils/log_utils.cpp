@@ -63,4 +63,8 @@ namespace ex::logs {
             log->set_level(level);
     }
 
+    spdlog::level::level_enum get_level() {
+        return global_level;
+    }
+
 } // namespace ex::logs

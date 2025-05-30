@@ -114,6 +114,8 @@ namespace ex::logs {
         using ringbuffer_sink_st = ringbuffer_sink<spdlog::details::null_mutex>;
     }
 
+    spdlog::level::level_enum get_level();
+
     spdlog::sink_ptr get_buffer_sink();
 
     ex::logs::logger get_logger(const std::string &name);

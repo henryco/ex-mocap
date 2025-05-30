@@ -134,11 +134,13 @@ namespace ex::gui::node::blur {
 
             {// Sigma
                 static char buff[9] = "";
-                ::sprintf(buff, "%f", config.sigma);
+                ::sprintf(buff, "%g", config.sigma);
                 if (ImGui::InputText(strings::node_component_blur_kernel_sigma, buff, 9, ImGuiInputTextFlags_CharsScientific)) {
                     const double value = ::atof(buff);
                     config.sigma = value;
                     if (value <= 0)
+                        config.sigma = 1.f;
+                    if (value > 100) // sanity check, sigma 100, wtf???
                         config.sigma = 1.f;
                     time_stack.push(time_now, node_id, config);
                 }
