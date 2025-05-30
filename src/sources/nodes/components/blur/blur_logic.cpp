@@ -155,18 +155,17 @@ namespace ex::logic::node::blur {
                 create_g_kernel_2d(side_size, config->sigma, ker_buff);
 
                 cl_int err;
-                kernel->conv_k = ::clCreateBuffer(state.cl.context, flags, total_size, ker_buff, &err);
+                kernel->conv_k = ::clCreateBuffer(state.cl.context, flags, sizeof(float) * total_size, ker_buff, &err);
                 if (err != CL_SUCCESS)
                     abort_("Cannot create kernel buffer: " << err);
             }
 
             else {
-                // todo fixme
                 const unsigned total_size = side_size;
                 create_g_kernel_1d(side_size, config->sigma, ker_buff);
 
                 cl_int err;
-                kernel->conv_k = ::clCreateBuffer(state.cl.context, flags, total_size, ker_buff, &err);
+                kernel->conv_k = ::clCreateBuffer(state.cl.context, flags,  sizeof(float) * total_size, ker_buff, &err);
                 if (err != CL_SUCCESS)
                     abort_("Cannot create kernel buffer: " << err);
             }

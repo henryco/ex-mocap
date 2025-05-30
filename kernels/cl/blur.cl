@@ -22,8 +22,7 @@ __kernel void kernel_blur_horizontal(
     if (coord.x > USE_IMAGE_W || coord.y > USE_IMAGE_H)
         return;
 
-    float  weight_sum = 0.f;
-    float4 sum        = 0.f;
+    float4 sum = 0.f;
 
     #pragma unroll
     for (int k = -(USE_KERN_H_S); k <= (USE_KERN_H_S); ++k) {
@@ -32,10 +31,8 @@ __kernel void kernel_blur_horizontal(
         const float4 pixel   = read_imagef(input_bgra, pos_pix);
 
         sum += (pixel * weight);
-        weight_sum += weight;
     }
 
-    sum /= weight_sum;
     write_imagef(output_bgra, coord, sum);
 }
 
@@ -48,8 +45,7 @@ __kernel void kernel_blur_vertical(
     if (coord.x > USE_IMAGE_W || coord.y > USE_IMAGE_H)
         return;
 
-    float  weight_sum = 0.f;
-    float4 sum        = 0.f;
+    float4 sum = 0.f;
 
     #pragma unroll
     for (int k = -(USE_KERN_H_S); k <= (USE_KERN_H_S); ++k) {
@@ -58,10 +54,8 @@ __kernel void kernel_blur_vertical(
         const float4 pixel   = read_imagef(input_bgra, pos_pix);
 
         sum += (pixel * weight);
-        weight_sum += weight;
     }
 
-    sum /= weight_sum;
     write_imagef(output_bgra, coord, sum);
 }
 
@@ -74,20 +68,18 @@ __kernel void kernel_blur_single(
     if (coord.x > USE_IMAGE_W || coord.y > USE_IMAGE_H)
         return;
 
-    float  weight_sum = 0.f;
-    float4 sum        = 0.f;
+    float4 sum = 0.f;
 
+    #pragma unroll
     for (int i = 0, y = -(USE_KERN_H_S); y <= (USE_KERN_H_S); ++y) {
+        #pragma unroll
         for (int x = -(USE_KERN_H_S); x <= (USE_KERN_H_S); ++x) {
             int2         pos_pix = clamp(coord + ((int2) (x, y)), (int2) (0), (int2) (USE_IMAGE_W, USE_IMAGE_H));
             const float4 pixel   = read_imagef(input_bgra, pos_pix);
             const float  weight  = gaussian_kernel[i++];
-
             sum += (pixel * weight);
-            weight_sum += weight;
         }
     }
 
-    sum /= weight_sum;
     write_imagef(output_bgra, coord, sum);
 }
