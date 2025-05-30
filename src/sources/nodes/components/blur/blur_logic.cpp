@@ -138,7 +138,7 @@ namespace ex::logic::node::blur {
         buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", mimp(image_w - 1));
         buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", mimp(image_h - 1));
 
-        kernel->single = (config->mode == mode_e::SINGLE) || (config->mode == mode_e::AUTO && config->kernel_size <= 5);
+        kernel->single = (config->mode == mode_e::SINGLE) || (config->mode == mode_e::AUTO && config->kernel_size <= 2);
 
         if (config->kernel_size > 0 && config->sigma > 0) {
             kernel->enabled = true;
@@ -244,7 +244,7 @@ namespace ex::logic::node::blur {
     }
 
     static void init_config(config_t *c) {
-        c->mode        = mode_e::AUTO;
+        c->mode        = mode_e::DOUBLE;
         c->kernel_size = 2;
         c->sigma       = 2;
     }
