@@ -154,9 +154,22 @@ namespace ex::gui::node::blur {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
 
-            // Single pass
-            if (ImGui::Checkbox(strings::node_component_blur_mode_single, &config.single_pass))
+            int op = static_cast<int>(config.mode);
+
+            if (ImGui::RadioButton(strings::node_component_blur_mode_auto, &op, static_cast<int>(lnb::mode_e::AUTO))) {
+                config.mode = static_cast<lnb::mode_e>(op);
                 time_stack.push(time_now, node_id, config);
+            }
+
+            if (ImGui::RadioButton(strings::node_component_blur_mode_single, &op, static_cast<int>(lnb::mode_e::SINGLE))) {
+                config.mode = static_cast<lnb::mode_e>(op);
+                time_stack.push(time_now, node_id, config);
+            }
+
+            if (ImGui::RadioButton(strings::node_component_blur_mode_double, &op, static_cast<int>(lnb::mode_e::DOUBLE))) {
+                config.mode = static_cast<lnb::mode_e>(op);
+                time_stack.push(time_now, node_id, config);
+            }
 
             ImGui::PopStyleColor();
             ImGui::PopStyleVar();

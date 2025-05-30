@@ -199,7 +199,9 @@ namespace ex::gui::strings {
     constexpr auto node_component_blur_kernel_size  = "Half size";
     constexpr auto node_component_blur_kernel_sigma = "Std. dev";
     constexpr auto node_component_blur_mode         = "Mode";
+    constexpr auto node_component_blur_mode_auto    = "Auto";
     constexpr auto node_component_blur_mode_single  = "Single pass";
+    constexpr auto node_component_blur_mode_double  = "Double pass";
 }
 
 #endif //GUI_STRINGS_H

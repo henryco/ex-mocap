@@ -11,12 +11,18 @@
 
 namespace ex::logic::node::blur {
 
+    enum class mode_e : unsigned char{
+        AUTO   = 0U,
+        SINGLE = 1U,
+        DOUBLE = 2U
+    };
+
     struct config_t {
         // standard deviation
         float sigma;
 
         // single is faster for small kernels
-        bool single_pass;
+        mode_e mode;
 
         // hard-clamped to [0,20]
         char kernel_size;
