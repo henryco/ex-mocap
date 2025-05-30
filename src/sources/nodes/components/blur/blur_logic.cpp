@@ -58,34 +58,35 @@ namespace ex::logic::node::blur {
     }
 
     static void create_g_kernel_1d(const unsigned size, const float sigma, float *out_kernel) {
-        float sum = 0.f;
+        const int half = static_cast<int>(size / 2);
+        double sum = 0.f;
 
-        for (int i = 0; i <= size; ++i) {
-            const float e = -(i * i) / (2.f * sigma * sigma);
-            const float f = ::expf(e);
+        for (int i = 0, x = -half; x <= half; ++x, ++i) {
+            const double e = -(x * x) / (2.f * sigma * sigma);
+            const double f = ::exp(e);
             out_kernel[i] = f;
             sum += f;
         }
 
-//        for (int i = 0; i < size; ++i)
-//            out_kernel[i] /= sum;
+        for (int i = 0; i < size; ++i)
+            out_kernel[i] /= sum;
     }
 
     static void create_g_kernel_2d(const unsigned size, const float sigma, float *out_kernel) {
         const int half = static_cast<int>(size / 2);
-        float sum = 0.f;
+        double sum = 0.f;
 
         for (int i = 0, y = -half; y <= half; ++y) {
             for (int x = -half; x <= half; ++x) {
-                const float e = -(x * x + y * y) / (2.f * sigma * sigma);
-                const float f = ::expf(e);
+                const double e = -(x * x + y * y) / (2.f * sigma * sigma);
+                const double f = ::exp(e);
                 out_kernel[i++] = f;
                 sum += f;
             }
         }
 
-//        for (int i = 0; i < size * size; ++i)
-//            out_kernel[i] /= sum;
+        for (int i = 0; i < size * size; ++i)
+            out_kernel[i] /= sum;
     }
 
     static void create_kernels(kernels_t *kernel) {
