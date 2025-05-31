@@ -8,11 +8,6 @@
 namespace ex::main {
 
     struct Logic {
-
-        Logic() = default;
-
-        ~Logic();
-
         void initialize();
 
         void run();
@@ -24,7 +19,9 @@ namespace ex::main {
         void create_new_();
     };
 
-    Logic create_logic();
+    Logic *create_logic();
+
+    void release_logic(Logic *ptr);
 
 }
 

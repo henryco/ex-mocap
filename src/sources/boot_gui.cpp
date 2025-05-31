@@ -175,7 +175,7 @@ namespace ex::boot {
         init_gui_display();
         log->info("Gui display implementation provided");
 
-        auto logic = main::create_logic();
+        main::Logic *logic = main::create_logic();
 
         log->info("Initialization complete");
 
@@ -195,7 +195,7 @@ namespace ex::boot {
             if (ex::entity::is_dirty())
                 ex::gui::set_dirty(true);
 
-            logic.run();
+            logic->run();
 
             update_history(state);
             update_title(state);
@@ -208,6 +208,8 @@ namespace ex::boot {
             if (state.metrics.timing_enabled && timing.stop())
                 state.metrics.total_duration_ns = timing.result();
         }
+
+        main::release_logic(logic);
 
         if (state.cl.context != nullptr)
             clReleaseContext(state.cl.context);

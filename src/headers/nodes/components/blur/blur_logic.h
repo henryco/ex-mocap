@@ -11,7 +11,7 @@
 
 namespace ex::logic::node::blur {
 
-    enum class mode_e : unsigned char{
+    enum class mode_e : unsigned char {
         AUTO   = 0U,
         SINGLE = 1U,
         DOUBLE = 2U

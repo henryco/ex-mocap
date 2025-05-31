@@ -76,13 +76,13 @@ namespace {
 
 namespace ex::main {
 
-    Logic create_logic() {
-        Logic logic;
-        logic.initialize();
-        return logic;
+    Logic *create_logic() {
+        static Logic logic_instance;
+        logic_instance.initialize();
+        return &logic_instance;
     }
 
-    Logic::~Logic() {
+    void release_logic(Logic *) {
         log->info("Release logic instance");
 
         ex::logic::state::get_clock().reset();
