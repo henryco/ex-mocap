@@ -23,6 +23,7 @@ namespace ex::main {
 
     void release_logic(Logic *ptr);
 
+    void run_logic(Logic *ptr);
 }
 
 #endif //EX_MO_LOGIC_H

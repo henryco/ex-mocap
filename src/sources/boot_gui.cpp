@@ -195,7 +195,7 @@ namespace ex::boot {
             if (ex::entity::is_dirty())
                 ex::gui::set_dirty(true);
 
-            logic->run();
+            main::run_logic(logic);
 
             update_history(state);
             update_title(state);

@@ -82,6 +82,10 @@ namespace ex::main {
         return &logic_instance;
     }
 
+    void run_logic(Logic *ptr) {
+        ptr->run();
+    }
+
     void release_logic(Logic *) {
         log->info("Release logic instance");
 
