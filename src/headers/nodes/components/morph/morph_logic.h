@@ -12,20 +12,18 @@
 namespace ex::logic::node::morph {
 
     enum class mode_e : unsigned char {
-        AUTO   = 0U,
-        SINGLE = 1U,
-        DOUBLE = 2U
+        ERODE  = 0U,
+        DILATE = 1U,
+        OPEN   = 2U, // erode  -> dilate
+        CLOSE  = 3U, // dilate -> erode
     };
 
     struct config_t {
-
-        // single is faster for small kernels
         mode_e mode;
-
-        // hard-clamped to [0,20]
-        char kernel_size;
-
-        // TODO
+        struct {
+            char dilate;
+            char erode;
+        } kernel_size;
     };
 
     struct MorphNode : limbo::graph::BaseNode,

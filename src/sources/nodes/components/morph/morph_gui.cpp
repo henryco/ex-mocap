@@ -116,16 +116,30 @@ namespace ex::gui::node::morph {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
 
-            {// Kernel half-size
+            {// Kernel erode half-size
                 static char buff[9] = "";
-                ::sprintf(buff, "%hhu", config.kernel_size);
-                if (ImGui::InputText(strings::node_component_morph_kernel_size, buff, 9, ImGuiInputTextFlags_CharsDecimal)) {
-                    const int value    = ::atoi(buff);
-                    config.kernel_size = value;
+                ::sprintf(buff, "%hhu", config.kernel_size.erode);
+                if (ImGui::InputText(strings::node_component_morph_kernel_size_e, buff, 9, ImGuiInputTextFlags_CharsDecimal)) {
+                    const int value          = ::atoi(buff);
+                    config.kernel_size.erode = value;
                     if (value < 0)
-                        config.kernel_size = 0;
+                        config.kernel_size.erode = 0;
                     if (value > 20)
-                        config.kernel_size = 20;
+                        config.kernel_size.erode = 20;
+                    time_stack.push(time_now, node_id, config);
+                }
+            }
+
+            {// Kernel erode half-size
+                static char buff[9] = "";
+                ::sprintf(buff, "%hhu", config.kernel_size.dilate);
+                if (ImGui::InputText(strings::node_component_morph_kernel_size_d, buff, 9, ImGuiInputTextFlags_CharsDecimal)) {
+                    const int value          = ::atoi(buff);
+                    config.kernel_size.dilate = value;
+                    if (value < 0)
+                        config.kernel_size.dilate = 0;
+                    if (value > 20)
+                        config.kernel_size.dilate = 20;
                     time_stack.push(time_now, node_id, config);
                 }
             }
@@ -142,17 +156,22 @@ namespace ex::gui::node::morph {
 
             int op = static_cast<int>(config.mode);
 
-            if (ImGui::RadioButton(strings::node_component_morph_mode_auto, &op, static_cast<int>(lnm::mode_e::AUTO))) {
+            if (ImGui::RadioButton(strings::node_component_morph_mode_e, &op, static_cast<int>(lnm::mode_e::ERODE))) {
                 config.mode = static_cast<lnm::mode_e>(op);
                 time_stack.push(time_now, node_id, config);
             }
 
-            if (ImGui::RadioButton(strings::node_component_morph_mode_single, &op, static_cast<int>(lnm::mode_e::SINGLE))) {
+            if (ImGui::RadioButton(strings::node_component_morph_mode_d, &op, static_cast<int>(lnm::mode_e::DILATE))) {
                 config.mode = static_cast<lnm::mode_e>(op);
                 time_stack.push(time_now, node_id, config);
             }
 
-            if (ImGui::RadioButton(strings::node_component_morph_mode_double, &op, static_cast<int>(lnm::mode_e::DOUBLE))) {
+            if (ImGui::RadioButton(strings::node_component_morph_mode_o, &op, static_cast<int>(lnm::mode_e::OPEN))) {
+                config.mode = static_cast<lnm::mode_e>(op);
+                time_stack.push(time_now, node_id, config);
+            }
+
+            if (ImGui::RadioButton(strings::node_component_morph_mode_c, &op, static_cast<int>(lnm::mode_e::CLOSE))) {
                 config.mode = static_cast<lnm::mode_e>(op);
                 time_stack.push(time_now, node_id, config);
             }

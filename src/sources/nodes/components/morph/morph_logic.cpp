@@ -31,11 +31,9 @@ namespace ex::logic::node::morph {
 
     struct kernels_t {
         cl_program program;
-        cl_kernel  kernel[2];
-        cl_mem     conv_k;
+        cl_kernel  kernel[4];
         ::size_t   size_l;
         bool       enabled;
-        bool       single;
     };
 
     struct internal_t {
@@ -61,8 +59,9 @@ namespace ex::logic::node::morph {
         log->debug("create morph cl kernels");
         kernel->kernel[0] = nullptr;
         kernel->kernel[1] = nullptr;
+        kernel->kernel[2] = nullptr;
+        kernel->kernel[3] = nullptr;
         kernel->program   = nullptr;
-        kernel->conv_k    = nullptr;
         kernel->enabled   = false;
         log->debug("morph cl kernels created");
     }
@@ -74,24 +73,16 @@ namespace ex::logic::node::morph {
         kernels_t *kernel = &internal->kernels;
         config_t  *config = &internal->state;
 
-        if (kernel->kernel[0] != nullptr) {
-            ::clReleaseKernel(kernel->kernel[0]);
-            kernel->kernel[0] = nullptr;
-        }
-
-        if (kernel->kernel[1] != nullptr) {
-            ::clReleaseKernel(kernel->kernel[1]);
-            kernel->kernel[1] = nullptr;
+        for (int i = 0; i < 4; ++i) {
+            if (kernel->kernel[i] != nullptr) {
+                ::clReleaseKernel(kernel->kernel[i]);
+                kernel->kernel[i] = nullptr;
+            }
         }
 
         if (kernel->program != nullptr) {
             ::clReleaseProgram(kernel->program);
             kernel->program = nullptr;
-        }
-
-        if (kernel->conv_k != nullptr) {
-            ::clReleaseMemObject(kernel->conv_k);
-            kernel->conv_k = nullptr;
         }
 
         kernel->enabled = false;
@@ -106,9 +97,15 @@ namespace ex::logic::node::morph {
         buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", mimp(image_w - 1));
         buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", mimp(image_h - 1));
 
-        kernel->single = (config->mode == mode_e::SINGLE) || (config->mode == mode_e::AUTO && config->kernel_size <= 2);
+        if (config->kernel_size.dilate && config->mode != mode_e::ERODE) {
+            kernel->enabled = true;
+            buff_l += sprintf(buff + buff_l, " -DUSE_KERN_H_S_D=%hhu ", config->kernel_size.dilate);
+        }
 
-        // TODO
+        if (config->kernel_size.erode && config->mode != mode_e::DILATE) {
+            kernel->enabled = true;
+            buff_l += sprintf(buff + buff_l, " -DUSE_KERN_H_S_E=%hhu ", config->kernel_size.erode);
+        }
 
         buff[buff_l + 1] = '\0';
 
@@ -127,14 +124,12 @@ namespace ex::logic::node::morph {
                 ocl::C_DEPT::UINT_N8,
                 state.cl.context);
 
-        if (!kernel->single) {
-            *inter = ex::ocl::Image2D::allocate(
-                    image_w,
-                    image_h,
-                    ocl::C_MODE::BGRA,
-                    ocl::C_DEPT::UINT_N8,
-                    state.cl.context);
-        }
+        *inter = ex::ocl::Image2D::allocate(
+                image_w,
+                image_h,
+                ocl::C_MODE::BGRA,
+                ocl::C_DEPT::UINT_N8,
+                state.cl.context);
 
         if (!kernel->enabled) {
             log->debug("morph cl kernels disabled (skip)");
@@ -149,15 +144,23 @@ namespace ex::logic::node::morph {
                 "morph.cl",
                 buff);
 
-        if (kernel->single) {
-            kernel->kernel[0] = xm::ocl::build_kernel(kernel->program, "kernel_morph_single");
-            kernel->size_l    = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel[0]);
-            log->debug("morph cl kernels updated");
-            return;
+        if (config->mode == mode_e::ERODE) {
+            kernel->kernel[0] = xm::ocl::build_kernel(kernel->program, "kernel_erode_horizontal");
+            kernel->kernel[1] = xm::ocl::build_kernel(kernel->program, "kernel_erode_vertical");
         }
 
-        kernel->kernel[0] = xm::ocl::build_kernel(kernel->program, "kernel_morph_horizontal");
-        kernel->kernel[1] = xm::ocl::build_kernel(kernel->program, "kernel_morph_vertical");
+        else if (config->mode == mode_e::DILATE) {
+            kernel->kernel[0] = xm::ocl::build_kernel(kernel->program, "kernel_dilate_horizontal");
+            kernel->kernel[1] = xm::ocl::build_kernel(kernel->program, "kernel_dilate_vertical");
+        }
+
+        else {
+            kernel->kernel[0] = xm::ocl::build_kernel(kernel->program, "kernel_erode_horizontal");
+            kernel->kernel[1] = xm::ocl::build_kernel(kernel->program, "kernel_erode_vertical");
+            kernel->kernel[2] = xm::ocl::build_kernel(kernel->program, "kernel_dilate_horizontal");
+            kernel->kernel[3] = xm::ocl::build_kernel(kernel->program, "kernel_dilate_vertical");
+        }
+
         kernel->size_l    = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel[0]);
 
         log->debug("morph cl kernels updated");
@@ -169,12 +172,12 @@ namespace ex::logic::node::morph {
 
         log->debug("release morph cl kernels");
 
-        if (kernel->conv_k != nullptr)
-            ::clReleaseMemObject(kernel->conv_k);
-        if (kernel->kernel[0] != nullptr)
-            ::clReleaseKernel(kernel->kernel[0]);
-        if (kernel->kernel[1] != nullptr)
-            ::clReleaseKernel(kernel->kernel[1]);
+        for (int i = 0; i < 4; ++i) {
+            if (kernel->kernel[i] != nullptr) {
+                ::clReleaseKernel(kernel->kernel[i]);
+                kernel->kernel[i] = nullptr;
+            }
+        }
         if (kernel->program != nullptr)
             ::clReleaseProgram(kernel->program);
         ::memset(kernel, 0, sizeof(kernels_t));
@@ -183,8 +186,9 @@ namespace ex::logic::node::morph {
     }
 
     static void init_config(config_t *c) {
-        c->mode        = mode_e::DOUBLE;
-        c->kernel_size = 2;
+        c->mode               = mode_e::ERODE;
+        c->kernel_size.erode  = 2;
+        c->kernel_size.dilate = 2;
     }
 
     static internal_t *create_internal() {
@@ -245,13 +249,17 @@ namespace ex::logic::node::morph {
         config_t copy;
         ::memcpy(&copy, &conf, sizeof(config_t));
 
-        if (copy.kernel_size > HARD_CAP)
-            copy.kernel_size = HARD_CAP;
+        if (copy.kernel_size.dilate > HARD_CAP)
+            copy.kernel_size.dilate = HARD_CAP;
 
-        if (copy.kernel_size < 0)
-            copy.kernel_size = 0;
+        if (copy.kernel_size.erode > HARD_CAP)
+            copy.kernel_size.erode = HARD_CAP;
 
-        // TODO
+        if (copy.kernel_size.dilate < 0)
+            copy.kernel_size.dilate = 0;
+
+        if (copy.kernel_size.erode < 0)
+            copy.kernel_size.erode = 0;
 
         if (0 == ::memcmp(&copy, &internal->state, sizeof(config_t)))
             return;
@@ -398,36 +406,17 @@ namespace ex::logic::node::morph {
 
         cl_mem buffer_in  = input->image.handle;
         cl_mem buffer_out = image->handle;
-        cl_mem buffer_ker = internal->kernels.conv_k;
-
-        if (internal->kernels.single) {
-            // single pass
-            xm::ocl::set_kernel_arg(internal->kernels.kernel[0], 0, sizeof(cl_mem), &buffer_in);
-            xm::ocl::set_kernel_arg(internal->kernels.kernel[0], 1, sizeof(cl_mem), &buffer_out);
-            xm::ocl::set_kernel_arg(internal->kernels.kernel[0], 2, sizeof(cl_mem), &buffer_ker);
-
-            xm::ocl::enqueue_kernel_fast(
-                    input->queue, internal->kernels.kernel[0],
-                    2,
-                    g_size,
-                    l_size);
-
-            internal->buffers.output = { *image, input->queue, false };
-            internal->buffers.output.image.header.fresh = true;
-            return;
-        }
-
         cl_mem buffer_aux = inter->handle;
+
+        // TODO
 
         // horizontal pass
         xm::ocl::set_kernel_arg(internal->kernels.kernel[0], 0, sizeof(cl_mem), &buffer_in);
         xm::ocl::set_kernel_arg(internal->kernels.kernel[0], 1, sizeof(cl_mem), &buffer_aux);
-        xm::ocl::set_kernel_arg(internal->kernels.kernel[0], 2, sizeof(cl_mem), &buffer_ker);
 
         // vertical pass
         xm::ocl::set_kernel_arg(internal->kernels.kernel[1], 0, sizeof(cl_mem), &buffer_aux);
         xm::ocl::set_kernel_arg(internal->kernels.kernel[1], 1, sizeof(cl_mem), &buffer_out);
-        xm::ocl::set_kernel_arg(internal->kernels.kernel[1], 2, sizeof(cl_mem), &buffer_ker);
 
         xm::ocl::enqueue_kernel_fast(
                 input->queue, internal->kernels.kernel[0],

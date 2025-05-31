@@ -18,7 +18,7 @@
 #define USE_KERN_H_S_D (1U)
 #endif
 
-__kernel void dilate_horizontal(
+__kernel void kernel_dilate_horizontal(
     __read_only  image2d_t input_bgra,
     __write_only image2d_t output_bgra
 ) {
@@ -38,7 +38,7 @@ __kernel void dilate_horizontal(
     write_imagef(output_bgra, coord, max_val);
 }
 
-__kernel void dilate_vertical(
+__kernel void kernel_dilate_vertical(
     __read_only  image2d_t input_bgra,
     __write_only image2d_t output_bgra
 ) {
@@ -58,7 +58,7 @@ __kernel void dilate_vertical(
     write_imagef(output_bgra, coord, max_val);
 }
 
-__kernel void erode_horizontal(
+__kernel void kernel_erode_horizontal(
     __read_only  image2d_t input_bgra,
     __write_only image2d_t output_bgra
 ) {
@@ -78,7 +78,7 @@ __kernel void erode_horizontal(
     write_imagef(output_bgra, coord, min_val);
 }
 
-__kernel void erode_vertical(
+__kernel void kernel_erode_vertical(
     __read_only  image2d_t input_bgra,
     __write_only image2d_t output_bgra
 ) {
