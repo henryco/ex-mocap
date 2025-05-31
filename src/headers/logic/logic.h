@@ -7,17 +7,7 @@
 
 namespace ex::main {
 
-    struct Logic {
-        void initialize();
-
-        void run();
-
-        void deserialize_();
-
-        void serialize_();
-
-        void create_new_();
-    };
+    struct Logic;
 
     Logic *create_logic();
 

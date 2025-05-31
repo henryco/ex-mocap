@@ -76,6 +76,21 @@ namespace {
 
 namespace ex::main {
 
+    // todo remove this oop shit later
+    struct Logic {
+
+        void initialize();
+
+        void run();
+
+        void deserialize_();
+
+        void serialize_();
+
+        void create_new_();
+
+    };
+
     Logic *create_logic() {
         static Logic logic_instance;
         logic_instance.initialize();
