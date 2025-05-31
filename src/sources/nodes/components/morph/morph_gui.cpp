@@ -92,7 +92,7 @@ namespace ex::gui::node::morph {
             const auto input_size = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
             ImGui::SetNextItemWidth(input_size.x);
             ImGui::BeginDisabled(true);
-            if (ImGui::InputText("###BlurId", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
+            if (ImGui::InputText("###MorphId", buff, 8, ImGuiInputTextFlags_CharsDecimal)) {
                 base->set_image_id(::atoi(buff));
             }
             ImGui::EndDisabled();
