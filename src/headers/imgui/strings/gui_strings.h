@@ -205,14 +205,15 @@ namespace ex::gui::strings {
 
     constexpr auto node_component_morph_id            = "Image ID";
     constexpr auto node_component_morph_name          = "Morph";
-    constexpr auto node_component_morph_kernel        = "Kernel";
-    constexpr auto node_component_morph_kernel_size_e = "Erode half size";
-    constexpr auto node_component_morph_kernel_size_d = "Dilate half size";
+    constexpr auto node_component_morph_kernel        = "Kernel size";
+    constexpr auto node_component_morph_kernel_size_e = "Erode ##size";
+    constexpr auto node_component_morph_kernel_size_d = "Dilate ##size";
     constexpr auto node_component_morph_mode          = "Mode";
-    constexpr auto node_component_morph_mode_e        = "Erode";
-    constexpr auto node_component_morph_mode_d        = "Dilate";
-    constexpr auto node_component_morph_mode_o        = "Open";
-    constexpr auto node_component_morph_mode_c        = "Close";
+    constexpr auto node_component_morph_mode_n        = "None ##mode";
+    constexpr auto node_component_morph_mode_e        = "Erode ##mode";
+    constexpr auto node_component_morph_mode_d        = "Dilate ##mode";
+    constexpr auto node_component_morph_mode_o        = "Open ##mode";
+    constexpr auto node_component_morph_mode_c        = "Close ##mode";
 }
 
 #endif //GUI_STRINGS_H

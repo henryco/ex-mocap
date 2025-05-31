@@ -12,10 +12,11 @@
 namespace ex::logic::node::morph {
 
     enum class mode_e : unsigned char {
-        ERODE  = 0U,
-        DILATE = 1U,
-        OPEN   = 2U, // erode  -> dilate
-        CLOSE  = 3U, // dilate -> erode
+        NONE   = 0U,
+        ERODE  = 1U,
+        DILATE = 2U,
+        OPEN   = 3U, // erode  -> dilate
+        CLOSE  = 4U, // dilate -> erode
     };
 
     struct config_t {

@@ -156,6 +156,11 @@ namespace ex::gui::node::morph {
 
             int op = static_cast<int>(config.mode);
 
+            if (ImGui::RadioButton(strings::node_component_morph_mode_n, &op, static_cast<int>(lnm::mode_e::NONE))) {
+                config.mode = static_cast<lnm::mode_e>(op);
+                time_stack.push(time_now, node_id, config);
+            }
+
             if (ImGui::RadioButton(strings::node_component_morph_mode_e, &op, static_cast<int>(lnm::mode_e::ERODE))) {
                 config.mode = static_cast<lnm::mode_e>(op);
                 time_stack.push(time_now, node_id, config);

@@ -98,14 +98,16 @@ namespace ex::logic::node::morph {
         buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", mimp(image_w - 1));
         buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", mimp(image_h - 1));
 
-        if (config->kernel_size.dilate && config->mode != mode_e::ERODE) {
-            kernel->enabled = true;
-            buff_l += sprintf(buff + buff_l, " -DUSE_KERN_H_S_D=%hhu ", config->kernel_size.dilate);
-        }
+        if (config->mode != mode_e::NONE) {
+            if (config->kernel_size.dilate && config->mode != mode_e::ERODE) {
+                kernel->enabled = true;
+                buff_l += sprintf(buff + buff_l, " -DUSE_KERN_H_S_D=%hhu ", config->kernel_size.dilate);
+            }
 
-        if (config->kernel_size.erode && config->mode != mode_e::DILATE) {
-            kernel->enabled = true;
-            buff_l += sprintf(buff + buff_l, " -DUSE_KERN_H_S_E=%hhu ", config->kernel_size.erode);
+            if (config->kernel_size.erode && config->mode != mode_e::DILATE) {
+                kernel->enabled = true;
+                buff_l += sprintf(buff + buff_l, " -DUSE_KERN_H_S_E=%hhu ", config->kernel_size.erode);
+            }
         }
 
         buff[buff_l + 1] = '\0';
