@@ -25,7 +25,8 @@ namespace ex::logic::node::morph {
         ocl::img_promise input;   // managed outside
         ocl::img_promise output;  // managed by none
 
-        ocl::image2d_t   inter;   // managed by this
+        ocl::image2d_t   aux_1;   // managed by this
+        ocl::image2d_t   aux_2;   // managed by this
         ocl::image2d_t   image;   // managed by this
     };
 
@@ -114,8 +115,11 @@ namespace ex::logic::node::morph {
         ocl::image2d_t *image = &internal->buffers.image;
         image->release();
 
-        ocl::image2d_t *inter = &internal->buffers.inter;
-        inter->release();
+        ocl::image2d_t *aux_1 = &internal->buffers.aux_1;
+        aux_1->release();
+
+        ocl::image2d_t *aux_2 = &internal->buffers.aux_2;
+        aux_2->release();
 
         *image = ex::ocl::Image2D::allocate(
                 image_w,
@@ -124,7 +128,14 @@ namespace ex::logic::node::morph {
                 ocl::C_DEPT::UINT_N8,
                 state.cl.context);
 
-        *inter = ex::ocl::Image2D::allocate(
+        *aux_1 = ex::ocl::Image2D::allocate(
+                image_w,
+                image_h,
+                ocl::C_MODE::BGRA,
+                ocl::C_DEPT::UINT_N8,
+                state.cl.context);
+
+        *aux_2 = ex::ocl::Image2D::allocate(
                 image_w,
                 image_h,
                 ocl::C_MODE::BGRA,
@@ -154,11 +165,26 @@ namespace ex::logic::node::morph {
             kernel->kernel[1] = xm::ocl::build_kernel(kernel->program, "kernel_dilate_vertical");
         }
 
-        else {
+        else if (config->mode == mode_e::OPEN) {
+            // erode
             kernel->kernel[0] = xm::ocl::build_kernel(kernel->program, "kernel_erode_horizontal");
             kernel->kernel[1] = xm::ocl::build_kernel(kernel->program, "kernel_erode_vertical");
+            // dilate
             kernel->kernel[2] = xm::ocl::build_kernel(kernel->program, "kernel_dilate_horizontal");
             kernel->kernel[3] = xm::ocl::build_kernel(kernel->program, "kernel_dilate_vertical");
+        }
+
+        else if (config->mode == mode_e::CLOSE) {
+            // dilate
+            kernel->kernel[0] = xm::ocl::build_kernel(kernel->program, "kernel_dilate_horizontal");
+            kernel->kernel[1] = xm::ocl::build_kernel(kernel->program, "kernel_dilate_vertical");
+            // erode
+            kernel->kernel[2] = xm::ocl::build_kernel(kernel->program, "kernel_erode_horizontal");
+            kernel->kernel[3] = xm::ocl::build_kernel(kernel->program, "kernel_erode_vertical");
+        }
+
+        else {
+            kernel->enabled = false;
         }
 
         kernel->size_l    = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel[0]);
@@ -212,7 +238,8 @@ namespace ex::logic::node::morph {
 
         log->debug("destroying morph node");
         ptr->buffers.output.finalize(true);
-        ptr->buffers.inter.release();
+        ptr->buffers.aux_1.release();
+        ptr->buffers.aux_2.release();
         ptr->buffers.image.release();
         release_kernels(&ptr->kernels);
         ::free(ptr);
@@ -220,7 +247,8 @@ namespace ex::logic::node::morph {
     }
 
     static void reset(internal_t *internal) {
-        internal->buffers.inter.release();
+        internal->buffers.aux_1.release();
+        internal->buffers.aux_2.release();
         internal->buffers.image.release();
         internal->updates.state.refresh();
         internal->buffers.output.image = internal->buffers.image;
@@ -376,7 +404,8 @@ namespace ex::logic::node::morph {
         static const ex::State &state = ex::logic::globals::state();
 
         ocl::img_promise *input = &internal->buffers.input;
-        ocl::image2d_t   *inter = &internal->buffers.inter;
+        ocl::image2d_t   *aux_1 = &internal->buffers.aux_1;
+        ocl::image2d_t   *aux_2 = &internal->buffers.aux_2;
         ocl::image2d_t   *image = &internal->buffers.image;
 
         if (input->image.header.fresh || image->detached())
@@ -406,17 +435,56 @@ namespace ex::logic::node::morph {
 
         cl_mem buffer_in  = input->image.handle;
         cl_mem buffer_out = image->handle;
-        cl_mem buffer_aux = inter->handle;
 
-        // TODO
+        // erode / dilate
+        if (internal->state.mode < mode_e::OPEN) {
+            cl_mem buffer_aux = aux_1->handle;
+
+            // horizontal pass
+            xm::ocl::set_kernel_arg(internal->kernels.kernel[0], 0, sizeof(cl_mem), &buffer_in);
+            xm::ocl::set_kernel_arg(internal->kernels.kernel[0], 1, sizeof(cl_mem), &buffer_aux);
+
+            // vertical pass
+            xm::ocl::set_kernel_arg(internal->kernels.kernel[1], 0, sizeof(cl_mem), &buffer_aux);
+            xm::ocl::set_kernel_arg(internal->kernels.kernel[1], 1, sizeof(cl_mem), &buffer_out);
+
+            xm::ocl::enqueue_kernel_fast(
+                    input->queue, internal->kernels.kernel[0],
+                    2,
+                    g_size,
+                    l_size);
+
+            xm::ocl::enqueue_kernel_fast(
+                    input->queue, internal->kernels.kernel[1],
+                    2,
+                    g_size,
+                    l_size);
+
+            internal->buffers.output = { *image, input->queue, false };
+            internal->buffers.output.image.header.fresh = true;
+            return;
+        }
+
+        // open / close
+
+        cl_mem buffer_aux1 = aux_1->handle;
+        cl_mem buffer_aux2 = aux_2->handle;
 
         // horizontal pass
         xm::ocl::set_kernel_arg(internal->kernels.kernel[0], 0, sizeof(cl_mem), &buffer_in);
-        xm::ocl::set_kernel_arg(internal->kernels.kernel[0], 1, sizeof(cl_mem), &buffer_aux);
+        xm::ocl::set_kernel_arg(internal->kernels.kernel[0], 1, sizeof(cl_mem), &buffer_aux1);
 
         // vertical pass
-        xm::ocl::set_kernel_arg(internal->kernels.kernel[1], 0, sizeof(cl_mem), &buffer_aux);
-        xm::ocl::set_kernel_arg(internal->kernels.kernel[1], 1, sizeof(cl_mem), &buffer_out);
+        xm::ocl::set_kernel_arg(internal->kernels.kernel[1], 0, sizeof(cl_mem), &buffer_aux1);
+        xm::ocl::set_kernel_arg(internal->kernels.kernel[1], 1, sizeof(cl_mem), &buffer_aux2);
+
+        // horizontal pass
+        xm::ocl::set_kernel_arg(internal->kernels.kernel[2], 0, sizeof(cl_mem), &buffer_aux2);
+        xm::ocl::set_kernel_arg(internal->kernels.kernel[2], 1, sizeof(cl_mem), &buffer_aux1);
+
+        // vertical pass
+        xm::ocl::set_kernel_arg(internal->kernels.kernel[3], 0, sizeof(cl_mem), &buffer_aux1);
+        xm::ocl::set_kernel_arg(internal->kernels.kernel[3], 1, sizeof(cl_mem), &buffer_out);
 
         xm::ocl::enqueue_kernel_fast(
                 input->queue, internal->kernels.kernel[0],
@@ -426,6 +494,18 @@ namespace ex::logic::node::morph {
 
         xm::ocl::enqueue_kernel_fast(
                 input->queue, internal->kernels.kernel[1],
+                2,
+                g_size,
+                l_size);
+
+        xm::ocl::enqueue_kernel_fast(
+                input->queue, internal->kernels.kernel[2],
+                2,
+                g_size,
+                l_size);
+
+        xm::ocl::enqueue_kernel_fast(
+                input->queue, internal->kernels.kernel[3],
                 2,
                 g_size,
                 l_size);
