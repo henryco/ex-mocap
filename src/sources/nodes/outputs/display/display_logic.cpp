@@ -108,7 +108,7 @@ namespace ex::logic::node::out {
         if (ptr->display.id != 0)
             ex::display::io.remove_output(ptr->display.id);
 
-        if (ptr->workload.queue != nullptr) { // TODO FIXME
+        if (ptr->workload.queue != nullptr) {
             clReleaseCommandQueue(ptr->workload.queue);
             ptr->workload.queue = nullptr;
         }

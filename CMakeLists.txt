@@ -137,7 +137,6 @@ set(KERNEL_FILES
         kernels/subsense.h
         kernels/chroma_key.h
         kernels/color_space.h
-        kernels/filter_conv.h
         kernels/letter_box.h
         kernels/transform.h
         kernels/blur.h
