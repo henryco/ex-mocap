@@ -1,3 +1,15 @@
+#if   defined(USE_C4)
+typedef float4 pix_t;
+#elif defined(USE_C3)
+typedef float3 pix_t;
+#elif defined(USE_C2)
+typedef float2 pix_t;
+#elif defined(USE_C1)
+typedef float  pix_t;
+#else
+typedef float4 pix_t;
+#endif
+
 // MANDATORY PARAMETERS:
 // - USE_DIMENSION_X (ushort)
 // - USE_DIMENSION_Y (ushort)
@@ -88,9 +100,9 @@ __kernel void kernel_transform(
     #ifdef USE_RESIZE
     const float2 pixel_c = convert_float2(coord) + (float2)(0.5f, 0.5f);
     const float2 coord_f = pixel_c / (float2)((USE_RESIZE_W), (USE_RESIZE_H));
-    const float4 pixel   = read_imagef(input_bgra, sampler, coord_f);
+    const pix_t  pixel   = read_imagef(input_bgra, sampler, coord_f);
     #else
-    const float4 pixel = read_imagef(input_bgra, coord);
+    const pix_t pixel = read_imagef(input_bgra, coord);
     #endif
 
     write_imagef(output_bgra, dst_coord, pixel);

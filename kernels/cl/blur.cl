@@ -1,3 +1,15 @@
+#if   defined(USE_C4)
+typedef float4 pix_t;
+#elif defined(USE_C3)
+typedef float3 pix_t;
+#elif defined(USE_C2)
+typedef float2 pix_t;
+#elif defined(USE_C1)
+typedef float  pix_t;
+#else
+typedef float4 pix_t;
+#endif
+
 // image_width - 1
 #ifndef USE_IMAGE_W
 #define USE_IMAGE_W (1U)
@@ -22,13 +34,13 @@ __kernel void kernel_blur_horizontal(
     if (coord.x > USE_IMAGE_W || coord.y > USE_IMAGE_H)
         return;
 
-    float4 sum = 0.f;
+    pix_t sum = 0.f;
 
     #pragma unroll
     for (int k = -(USE_KERN_H_S); k <= (USE_KERN_H_S); ++k) {
-        const float  weight  = gaussian_kernel[k + (int) USE_KERN_H_S];
-        const int2   pos_pix = (int2) (clamp((int) coord.x + k, (int) 0, (int) USE_IMAGE_W), coord.y);
-        const float4 pixel   = read_imagef(input_bgra, pos_pix);
+        const float weight  = gaussian_kernel[k + (int) USE_KERN_H_S];
+        const int2  pos_pix = (int2) (clamp((int) coord.x + k, (int) 0, (int) USE_IMAGE_W), coord.y);
+        const pix_t pixel   = read_imagef(input_bgra, pos_pix);
 
         sum += (pixel * weight);
     }
@@ -45,13 +57,13 @@ __kernel void kernel_blur_vertical(
     if (coord.x > USE_IMAGE_W || coord.y > USE_IMAGE_H)
         return;
 
-    float4 sum = 0.f;
+    pix_t sum = 0.f;
 
     #pragma unroll
     for (int k = -(USE_KERN_H_S); k <= (USE_KERN_H_S); ++k) {
-        const float  weight  = gaussian_kernel[k + (int) USE_KERN_H_S];
-        const int2   pos_pix = (int2) (coord.x, clamp((int) coord.y + k, (int) 0, (int) USE_IMAGE_H));
-        const float4 pixel   = read_imagef(input_bgra, pos_pix);
+        const float weight  = gaussian_kernel[k + (int) USE_KERN_H_S];
+        const int2  pos_pix = (int2) (coord.x, clamp((int) coord.y + k, (int) 0, (int) USE_IMAGE_H));
+        const pix_t pixel   = read_imagef(input_bgra, pos_pix);
 
         sum += (pixel * weight);
     }
@@ -68,15 +80,15 @@ __kernel void kernel_blur_single(
     if (coord.x > USE_IMAGE_W || coord.y > USE_IMAGE_H)
         return;
 
-    float4 sum = 0.f;
+    pix_t sum = 0.f;
 
     #pragma unroll
     for (int i = 0, y = -(USE_KERN_H_S); y <= (USE_KERN_H_S); ++y) {
         #pragma unroll
         for (int x = -(USE_KERN_H_S); x <= (USE_KERN_H_S); ++x) {
-            int2         pos_pix = clamp(coord + ((int2) (x, y)), (int2) (0), (int2) (USE_IMAGE_W, USE_IMAGE_H));
-            const float4 pixel   = read_imagef(input_bgra, pos_pix);
-            const float  weight  = gaussian_kernel[i++];
+            int2        pos_pix = clamp(coord + ((int2) (x, y)), (int2) (0), (int2) (USE_IMAGE_W, USE_IMAGE_H));
+            const pix_t pixel   = read_imagef(input_bgra, pos_pix);
+            const float weight  = gaussian_kernel[i++];
             sum += (pixel * weight);
         }
     }
