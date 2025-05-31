@@ -130,7 +130,7 @@ namespace ex::gui::node::morph {
                 }
             }
 
-            {// Kernel erode half-size
+            {// Kernel dilate half-size
                 static char buff[9] = "";
                 ::sprintf(buff, "%hhu", config.kernel_size.dilate);
                 if (ImGui::InputText(strings::node_component_morph_kernel_size_d, buff, 9, ImGuiInputTextFlags_CharsDecimal)) {
