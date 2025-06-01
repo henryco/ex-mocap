@@ -1,29 +1,37 @@
+// image_width
+#ifndef USE_IMAGE_W
+#define USE_IMAGE_W (1U)
+#endif
 
-// if (lower_h < upper_h) { // Dont wrap
-//        if (hls[0] >= lower_h &&
-//            hls[1] >= lower_l &&
-//            hls[2] >= lower_s &&
-//            hls[0] <= upper_h &&
-//            hls[1] <= upper_l &&
-//            hls[2] <= upper_s) {
-//            return 255;
-//        } else {
-//            return 0;
-//        }
-//    }
-//
-//    else { // WRAP !
-//        if ((hls[0] >= lower_h || hls[0] <= upper_h) &&
-//            hls[1] >= lower_l &&
-//            hls[2] >= lower_s &&
-//            hls[1] <= upper_l &&
-//            hls[2] <= upper_s) {
-//            return 255;
-//        } else {
-//            return 0;
-//        }
-//    }
+// image_height
+#ifndef USE_IMAGE_H
+#define USE_IMAGE_H (1U)
+#endif
 
+// mask width
+#ifndef USE_MASK_W
+#define USE_MASK_W (1U)
+#endif
+
+// mask height
+#ifndef USE_MASK_H
+#define USE_MASK_H (1U)
+#endif
+
+#if (USE_IMAGE_W != USE_MASK_W) || (USE_IMAGE_H != USE_MASK_H)
+#define USE_RESIZE
+#endif
+
+#ifdef USE_RESIZE
+__constant sampler_t sampler =
+        CLK_NORMALIZED_COORDS_TRUE |
+        CLK_ADDRESS_CLAMP_TO_EDGE |
+    #ifdef USE_RESIZE_LIN
+        CLK_FILTER_LINEAR;
+    #else
+        CLK_FILTER_NEAREST;
+    #endif
+#endif
 
 void bgr_to_hls(const float4 *in_bgra, float4 *out_hlsa) {
     const float r = in_bgra->x;
@@ -55,5 +63,44 @@ void bgr_to_hls(const float4 *in_bgra, float4 *out_hlsa) {
     *out_hlsa = (float4) (H / 360.f, L, S, 1.f);
 }
 
+__kernel void chroma_key_mask(
+    __read_only  image2d_t input_bgra,
+    __write_only image2d_t output_mask,   // possibly smaller then input
+    const        float4    hls_lo,
+    const        float4    hls_hi
+) {
+    const int2 coord = (int2) (get_global_id(0), get_global_id(1));
+    if (coord.x >= USE_MASK_W || coord.y >= USE_MASK_H)
+        return;
 
+    #ifdef USE_RESIZE
+    const float2 pixel_c = convert_float2(coord) + (float2) (0.5f, 0.5f);
+    const float2 coord_f = pixel_c / (float2)((USE_IMAGE_W), (USE_IMAGE_H));
+    const float4 pixel   = read_imagef(input_bgra, sampler, coord_f);
+    #else
+    const float4 pixel = read_imagef(input_bgra, coord);
+    #endif
 
+    float4 hlsa;
+    bgr_to_hls(&pixel, &hlsa);
+
+    // dont wrap hue
+    if (hls_lo.x < hls_hi.x) {
+        if (all(hlsa.xyz >= hls_lo.xyz) && all(hlsa.xyz <= hls_hi.xyz)) {
+            write_imagef(output_mask, coord, 1.f);
+            return;
+        }
+        write_imagef(output_mask, coord, 0.f);
+        return;
+    }
+
+    // wrap hue
+    if ((hlsa.x >= hls_lo.x || hlsa.x <= hls_hi.x) &&
+        all(hlsa.yz >= hls_lo.yz) &&
+        all(hlsa.yz <= hls_hi.yz)) {
+        write_imagef(output_mask, coord, 1.f);
+        return;
+    }
+
+    write_imagef(output_mask, coord, 0.f);
+}
