@@ -11,6 +11,14 @@
 
 namespace ex::logic::node::chromakey {
 
+    enum class mode_e : unsigned char {
+        NONE   = 0U,
+        ERODE  = 1U,
+        DILATE = 2U,
+        OPEN   = 3U, // erode  -> dilate
+        CLOSE  = 4U, // dilate -> erode
+    };
+
     struct hsl_t {
         unsigned char h;
         unsigned char s;
@@ -25,26 +33,26 @@ namespace ex::logic::node::chromakey {
     };
 
     struct key_t {
-        hsl_t lo;
-        hsl_t hi;
+        hsl_t lo;    // low range
+        hsl_t hi;    // hi  range
     };
 
     struct before_t {
-        float scale;
-        char  power;
-        bool  blur;
+        float scale; // downscale factor
+//        char  power; // half kernel size (blur)
+//        bool  blur;  // blur enable/disable
     };
 
-    struct after_t {
-        char power;
-        bool morph;
+    struct refine_t {
+        char   power;  // kernel half size (morph)
+        mode_e morph;  // morph mode
     };
 
     struct config_t {
         before_t before;
         key_t    key;
         bgra_t   replace;
-        after_t  after;
+        refine_t refine;
     };
 
     struct ChromakeyNode : limbo::graph::BaseNode,
