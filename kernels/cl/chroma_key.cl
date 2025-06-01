@@ -35,7 +35,7 @@ __constant sampler_t sampler =
 
 #define EPS (1e-10f)
 
-void bgr_to_hls(const float4 *in_bgra, float4 *out_hlsa) {
+inline void __attribute__((always_inline)) bgr_to_hls(const float4 *in_bgra, float4 *out_hlsa) {
     const float r = in_bgra->x;
     const float g = in_bgra->y;
     const float b = in_bgra->z;
@@ -64,6 +64,22 @@ void bgr_to_hls(const float4 *in_bgra, float4 *out_hlsa) {
     *out_hlsa = (float4) (H / 360.f, L, S, 1.f);
 }
 
+inline float __attribute__((always_inline)) hls_in_range(const float4 hlsa, const float4 hls_lo, const float4 hls_hi) {
+    // dont wrap hue
+    if (hls_lo.x < hls_hi.x) {
+        if (all(hlsa.xyz >= hls_lo.xyz) && all(hlsa.xyz <= hls_hi.xyz))
+            return 1.f;
+        return 0.f;
+    }
+    // wrap hue
+    if ((hlsa.x >= hls_lo.x || hlsa.x <= hls_hi.x) &&
+        all(hlsa.yz >= hls_lo.yz) &&
+        all(hlsa.yz <= hls_hi.yz)) {
+        return 1.f;
+    }
+    return 0.f;
+}
+
 __kernel void chroma_key_mask(
     __read_only  image2d_t input_bgra,
     __write_only image2d_t output_mask,   // possibly smaller then input
@@ -85,25 +101,8 @@ __kernel void chroma_key_mask(
     float4 hlsa;
     bgr_to_hls(&pixel, &hlsa);
 
-    // dont wrap hue
-    if (hls_lo.x < hls_hi.x) {
-        if (all(hlsa.xyz >= hls_lo.xyz) && all(hlsa.xyz <= hls_hi.xyz)) {
-            write_imagef(output_mask, coord, 1.f);
-            return;
-        }
-        write_imagef(output_mask, coord, 0.f);
-        return;
-    }
-
-    // wrap hue
-    if ((hlsa.x >= hls_lo.x || hlsa.x <= hls_hi.x) &&
-        all(hlsa.yz >= hls_lo.yz) &&
-        all(hlsa.yz <= hls_hi.yz)) {
-        write_imagef(output_mask, coord, 1.f);
-        return;
-    }
-
-    write_imagef(output_mask, coord, 0.f);
+    const float mask = hls_in_range(hlsa, hls_lo, hls_hi);
+    write_imagef(output_mask, coord, (float4) mask);
 }
 
 __kernel void chroma_mask_apply(
@@ -132,4 +131,29 @@ __kernel void chroma_mask_apply(
 
     const float4 color = read_imagef(input_bgra, coord);
     write_imagef(output_bgra, coord, color);
+}
+
+__kernel void chroma_mask_single(
+    __read_only  image2d_t input_bgra,  // should be the same size
+    __write_only image2d_t output_bgra, // should be the same size
+    const        float4    replace_bgra,
+    const        float4    hls_lo,
+    const        float4    hls_hi
+) {
+    const int2 coord = (int2) (get_global_id(0), get_global_id(1));
+    if (coord.x >= USE_IMAGE_W || coord.y >= USE_IMAGE_H)
+        return;
+
+    const float4 pixel = read_imagef(input_bgra, coord);
+
+    float4 hlsa;
+    bgr_to_hls(&pixel, &hlsa);
+
+    const float mask = hls_in_range(hlsa, hls_lo, hls_hi);
+    if (mask > 0) {
+        write_imagef(output_bgra, coord, replace_bgra);
+        return;
+    }
+
+    write_imagef(output_bgra, coord, pixel);
 }
