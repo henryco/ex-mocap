@@ -11,6 +11,12 @@
 
 namespace ex::logic::node::chromakey {
 
+    struct hsl_t {
+        unsigned char h;
+        unsigned char s;
+        unsigned char l;
+    };
+
     struct bgra_t {
         unsigned char b;
         unsigned char g;
@@ -19,8 +25,8 @@ namespace ex::logic::node::chromakey {
     };
 
     struct key_t {
-        bgra_t lo;
-        bgra_t hi;
+        hsl_t lo;
+        hsl_t hi;
     };
 
     struct before_t {
