@@ -214,6 +214,10 @@ namespace ex::gui::strings {
     constexpr auto node_component_morph_mode_d        = "Dilate ##mode";
     constexpr auto node_component_morph_mode_o        = "Open ##mode";
     constexpr auto node_component_morph_mode_c        = "Close ##mode";
+
+    constexpr auto node_component_chromakey_id            = "Image ID";
+    constexpr auto node_component_chromakey_name          = "Chroma-key";
+    constexpr auto node_component_chromakey_settings      = "Settings";
 }
 
 #endif //GUI_STRINGS_H

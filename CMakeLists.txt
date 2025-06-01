@@ -196,6 +196,8 @@ set(HEADER_FILES
         src/headers/nodes/components/blur/blur_logic.h
         src/headers/nodes/components/morph/morph_gui.h
         src/headers/nodes/components/morph/morph_logic.h
+        src/headers/nodes/components/chromakey/chromakey_gui.h
+        src/headers/nodes/components/chromakey/chromakey_logic.h
 )
 
 set(SOURCE_FILES
@@ -253,6 +255,8 @@ set(SOURCE_FILES
         src/sources/nodes/components/blur/blur_logic.cpp
         src/sources/nodes/components/morph/morph_logic.cpp
         src/sources/nodes/components/morph/morph_gui.cpp
+        src/sources/nodes/components/chromakey/chromakey_logic.cpp
+        src/sources/nodes/components/chromakey/chromakey_gui.cpp
 )
 
 # =================== OpenCL kernels generation =====================
