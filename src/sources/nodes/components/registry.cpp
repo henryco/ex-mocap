@@ -19,6 +19,9 @@
 #include "../../../headers/nodes/components/morph/morph_gui.h"
 #include "../../../headers/nodes/components/morph/morph_logic.h"
 
+#include "../../../headers/nodes/components/chromakey/chromakey_gui.h"
+#include "../../../headers/nodes/components/chromakey/chromakey_logic.h"
+
 namespace ex::nodes::mappers {
 
     const data::array_map<id_type, Mapper> &cmp_registry_() {
@@ -75,6 +78,15 @@ namespace ex::nodes::mappers {
             registry.put(id_from_struct_<morph_node_t>(), {
                     .gui = morph_node_n::gui_mappers,
                     .logic = logic_from_struct_<morph_node_t>()
+            });
+        }
+
+        { // Chroma-key component
+            namespace chk_node_n = ex::gui::node::chromakey;
+            using chk_node_t     = ex::logic::node::chromakey::ChromakeyNode;
+            registry.put(id_from_struct_<chk_node_t>(), {
+                    .gui = chk_node_n::gui_mappers,
+                    .logic = logic_from_struct_<chk_node_t>()
             });
         }
 
