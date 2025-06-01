@@ -3,6 +3,8 @@
 //
 
 #include "../../../../../kernels/chroma_key.h"
+#include "../../../../../kernels/morph.h"
+#include "../../../../../kernels/blur.h"
 
 #include "../../../../headers/nodes/components/chromakey/chromakey_logic.h"
 #include "../../../../headers/logic/logic_globals.h"
