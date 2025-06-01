@@ -22,6 +22,12 @@ namespace ex::ocl {
     using uint16 = u_int16_t;
     using uchar8 = u_int8_t;
 
+    struct container_t {
+        img_promise *promise;
+        const char **description;
+        unsigned     size;
+    };
+
     enum class C_MODE: uchar8 {
         A    = 0U,
         R    = 1U,
