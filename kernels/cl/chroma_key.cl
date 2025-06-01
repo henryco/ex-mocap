@@ -29,7 +29,6 @@ void bgr_to_hls(const float4 *in_bgra, float4 *out_hlsa) {
     const float r = in_bgra->x;
     const float g = in_bgra->y;
     const float b = in_bgra->z;
-    const float a = in_bgra->w;
 
     const float c_max = fmax(r, fmax(g, b));
     const float c_min = fmin(r, fmin(g, b));
@@ -53,7 +52,7 @@ void bgr_to_hls(const float4 *in_bgra, float4 *out_hlsa) {
         S = c_dif / fmax(denominator, eps);
     }
 
-    *out_hlsa = (float4) (H / 360.f, L, S, a);
+    *out_hlsa = (float4) (H / 360.f, L, S, 1.f);
 }
 
 
