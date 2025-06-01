@@ -33,6 +33,8 @@ __constant sampler_t sampler =
     #endif
 #endif
 
+#define EPS (1e-10f)
+
 void bgr_to_hls(const float4 *in_bgra, float4 *out_hlsa) {
     const float r = in_bgra->x;
     const float g = in_bgra->y;
@@ -43,8 +45,7 @@ void bgr_to_hls(const float4 *in_bgra, float4 *out_hlsa) {
     const float c_dif = c_max - c_min;
     const float c_sum = c_max + c_min;
 
-    const float eps      = 1e-10f;
-    const float safe_dif = fmax(c_dif, eps);
+    const float safe_dif = fmax(c_dif, EPS);
     const float L = 0.5f * c_sum;
 
     const float Hf = (c_max == r) * ((g - b) / safe_dif) +
@@ -57,7 +58,7 @@ void bgr_to_hls(const float4 *in_bgra, float4 *out_hlsa) {
     float S = 0.f;
     if (c_max != c_min) {
         const float denominator = (L < 0.5f) ? c_sum : (2.f - c_sum);
-        S = c_dif / fmax(denominator, eps);
+        S = c_dif / fmax(denominator, EPS);
     }
 
     *out_hlsa = (float4) (H / 360.f, L, S, 1.f);
@@ -75,7 +76,7 @@ __kernel void chroma_key_mask(
 
     #ifdef USE_RESIZE
     const float2 pixel_c = convert_float2(coord) + (float2) (0.5f, 0.5f);
-    const float2 coord_f = pixel_c / (float2)((USE_IMAGE_W), (USE_IMAGE_H));
+    const float2 coord_f = pixel_c / (float2)((USE_MASK_W), (USE_MASK_H));
     const float4 pixel   = read_imagef(input_bgra, sampler, coord_f);
     #else
     const float4 pixel = read_imagef(input_bgra, coord);
@@ -103,4 +104,32 @@ __kernel void chroma_key_mask(
     }
 
     write_imagef(output_mask, coord, 0.f);
+}
+
+__kernel void chroma_mask_apply(
+    __read_only  image2d_t input_bgra,
+    __read_only  image2d_t input_mask,
+    __write_only image2d_t output_bgra,
+    const        float4    replace_bgra
+) {
+    const int2 coord = (int2) (get_global_id(0), get_global_id(1));
+    if (coord.x >= USE_IMAGE_W || coord.y >= USE_IMAGE_H)
+        return;
+
+    #ifdef USE_RESIZE
+    const float2 pixel_c = convert_float2(coord) + (float2) (0.5f, 0.5f);
+    const float2 coord_f = pixel_c / (float2) ((USE_IMAGE_W), (USE_IMAGE_H));
+    if (read_imagef(input_mask, sampler, coord_f).x > 0) {
+        write_imagef(output_bgra, coord, replace_bgra);
+        return;
+    }
+    #else
+    if (read_imagef(input_mask, coord).x > 0) {
+        write_imagef(output_bgra, coord, replace_bgra);
+        return;
+    }
+    #endif
+
+    const float4 color = read_imagef(input_bgra, coord);
+    write_imagef(output_bgra, coord, color);
 }
