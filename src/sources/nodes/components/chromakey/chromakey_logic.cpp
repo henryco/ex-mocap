@@ -33,9 +33,18 @@ namespace ex::logic::node::chromakey {
     };
 
     struct kernels_t {
-        cl_program program;
-        cl_kernel  kernel[4];
-        ::size_t   size_l;
+        cl_program program_chroma;
+        cl_program program_morph;
+        cl_program program_blur;
+
+        cl_kernel  kernel_chroma[3];
+        cl_kernel  kernel_morph[2];
+        cl_kernel  kernel_blur[2];
+
+        ::size_t   size_l_chroma;
+        ::size_t   size_l_morph;
+        ::size_t   size_l_blur;
+
         bool       enabled;
     };
 
@@ -59,36 +68,57 @@ namespace ex::logic::node::chromakey {
     }
 
     static void create_kernels(kernels_t *kernel) {
-        log->debug("create morph cl kernels");
-        kernel->kernel[0] = nullptr;
-        kernel->kernel[1] = nullptr;
-        kernel->kernel[2] = nullptr;
-        kernel->kernel[3] = nullptr;
-        kernel->program   = nullptr;
-        kernel->enabled   = false;
-        log->debug("morph cl kernels created");
+        log->debug("create chromakey cl kernels");
+        kernel->enabled = false;
+        log->debug("chromakey cl kernels created");
+    }
+
+    static void release_kernels(kernels_t *kernel) {
+        if (kernel == nullptr)
+            return;
+
+        log->debug("release chromakey cl kernels");
+
+        for (int i = 0; i < 3; ++i) {
+            if (kernel->kernel_chroma[i] != nullptr)
+                ::clReleaseKernel(kernel->kernel_chroma[i]);
+        }
+
+        for (int i = 0; i < 2; ++i) {
+            if (kernel->kernel_morph[i] != nullptr)
+                ::clReleaseKernel(kernel->kernel_morph[i]);
+        }
+
+        for (int i = 0; i < 2; ++i) {
+            if (kernel->kernel_blur[i] != nullptr)
+                ::clReleaseKernel(kernel->kernel_blur[i]);
+        }
+
+        if (kernel->program_chroma != nullptr)
+            ::clReleaseProgram(kernel->program_chroma);
+
+
+        if (kernel->program_morph != nullptr)
+            ::clReleaseProgram(kernel->program_morph);
+
+
+        if (kernel->program_blur != nullptr)
+            ::clReleaseProgram(kernel->program_blur);
+
+
+        ::memset(kernel, 0, sizeof(kernels_t));
+
+        log->debug("chromakey cl kernels released");
     }
 
     static void update_kernels(internal_t *internal) {
         const ex::State &state = ex::logic::globals::state();
-        log->debug("update morph cl kernels");
+        log->debug("update chromakey cl kernels");
 
         kernels_t *kernel = &internal->kernels;
         config_t  *config = &internal->state;
 
-        for (int i = 0; i < 4; ++i) {
-            if (kernel->kernel[i] != nullptr) {
-                ::clReleaseKernel(kernel->kernel[i]);
-                kernel->kernel[i] = nullptr;
-            }
-        }
-
-        if (kernel->program != nullptr) {
-            ::clReleaseProgram(kernel->program);
-            kernel->program = nullptr;
-        }
-
-        kernel->enabled = false;
+        release_kernels(kernel);
 
         int         buff_l = 0;
         static char buff[512];
@@ -104,7 +134,7 @@ namespace ex::logic::node::chromakey {
 
         buff[buff_l + 1] = '\0';
 
-        log->debug("morph cl kernel parameters: {}", buff);
+        log->debug("chromakey cl kernel parameters: {}", buff);
 
         ocl::image2d_t *image = &internal->buffers.image;
         image->release();
@@ -137,42 +167,23 @@ namespace ex::logic::node::chromakey {
                 state.cl.context);
 
         if (!kernel->enabled) {
-            log->debug("morph cl kernels disabled (skip)");
+            log->debug("chromakey cl kernels disabled (skip)");
             return;
         }
 
-        kernel->program = xm::ocl::build_program(
-                state.cl.context,
-                state.cl.device,
-                ocl_kernel_chroma_key_data,
-                ocl_kernel_chroma_key_data_size,
-                "chroma_key.cl",
-                buff);
+//        kernel->program = xm::ocl::build_program(
+//                state.cl.context,
+//                state.cl.device,
+//                ocl_kernel_chroma_key_data,
+//                ocl_kernel_chroma_key_data_size,
+//                "chroma_key.cl",
+//                buff);
+//
+//        // TODO
+//
+//        kernel->size_l    = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel[0]);
 
-        // TODO
-
-        kernel->size_l    = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel[0]);
-
-        log->debug("morph cl kernels updated");
-    }
-
-    static void release_kernels(kernels_t *kernel) {
-        if (kernel == nullptr)
-            return;
-
-        log->debug("release morph cl kernels");
-
-        for (int i = 0; i < 4; ++i) {
-            if (kernel->kernel[i] != nullptr) {
-                ::clReleaseKernel(kernel->kernel[i]);
-                kernel->kernel[i] = nullptr;
-            }
-        }
-        if (kernel->program != nullptr)
-            ::clReleaseProgram(kernel->program);
-        ::memset(kernel, 0, sizeof(kernels_t));
-
-        log->debug("morph cl kernels released");
+        log->debug("chromakey cl kernels updated");
     }
 
     static void init_config(config_t *c) {
@@ -180,17 +191,17 @@ namespace ex::logic::node::chromakey {
     }
 
     static internal_t *create_internal() {
-        log->debug("create morph node");
+        log->debug("create chromakey node");
 
         internal_t *instance = static_cast<internal_t *>(::malloc(sizeof(internal_t)));
         if (instance == nullptr)
-            abort_("cannot create morph node instance, nullptr");
+            abort_("cannot create chromakey node instance, nullptr");
 
         ::memset(instance, 0, sizeof(internal_t));
         create_kernels(&instance->kernels);
         init_config(&instance->state);
 
-        log->debug("morph node created");
+        log->debug("chromakey node created");
         return instance;
     }
 
@@ -198,14 +209,14 @@ namespace ex::logic::node::chromakey {
         if (!ptr)
             return;
 
-        log->debug("destroying morph node");
+        log->debug("destroying chromakey node");
         ptr->buffers.output.finalize(true);
         ptr->buffers.aux_1.release();
         ptr->buffers.aux_2.release();
         ptr->buffers.image.release();
         release_kernels(&ptr->kernels);
         ::free(ptr);
-        log->debug("morph node destroyed");
+        log->debug("chromakey node destroyed");
     }
 
     static void reset(internal_t *internal) {
@@ -380,7 +391,7 @@ namespace ex::logic::node::chromakey {
             return;
         }
 
-        const ::size_t pref_size = internal->kernels.size_l;
+        const ::size_t pref_size = internal->kernels.size_l_chroma;
         ::size_t       l_size[2] = { pref_size, pref_size };
         ::size_t       g_size[2] = { xm::ocl::optimal_global_size(image->cols, pref_size),
                                      xm::ocl::optimal_global_size(image->rows, pref_size) };
