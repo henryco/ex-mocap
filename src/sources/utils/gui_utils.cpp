@@ -408,9 +408,8 @@ namespace ex::gui {
             }
             ImGui::EndGroup();
 
-            ImGui::Text("HSL"); // TODO
+//            ImGui::Text("HSL"); // TODO
 
-            // TODO HSL
             ImGui::EndPopup();
         }
 
