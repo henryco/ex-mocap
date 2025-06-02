@@ -68,6 +68,12 @@ namespace ex::logic::node::chromakey {
     {
         // ---- exposed ----
 
+        //  scale ─┐
+        //  └─> before ─┐
+        //      └─> mask  ─┐
+        //          └─> refine ─┐
+        //              └─> apply
+        //
         // read only, writes changes nothing
         config_t config;
 

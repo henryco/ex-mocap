@@ -145,8 +145,8 @@ namespace ex::logic::node::chromakey {
 
         const unsigned short image_w = internal->buffers.input.image.cols;
         const unsigned short image_h = internal->buffers.input.image.rows;
-        const unsigned short mask_w  = static_cast<float>(image_w) / config->upscale.scale;
-        const unsigned short mask_h  = static_cast<float>(image_h) / config->upscale.scale;
+        const unsigned short mask_w  = mimp(static_cast<float>(image_w) / config->upscale.scale);
+        const unsigned short mask_h  = mimp(static_cast<float>(image_h) / config->upscale.scale);
 
         ocl::image2d_t *image = &internal->buffers.image;
         image->release();
@@ -392,11 +392,23 @@ namespace ex::logic::node::chromakey {
         config_t copy;
         ::memcpy(&copy, &conf, sizeof(config_t));
 
-        // TODO
         if (copy.upscale.scale < 1.f)
             copy.upscale.scale = 1.f;
 
+        if (copy.upscale.scale > 100.f)
+            copy.upscale.scale = 1.f;
 
+        if (copy.before.power > HARD_CAP)
+            copy.before.power = HARD_CAP;
+
+        if (copy.refine.power > HARD_CAP)
+            copy.refine.power = HARD_CAP;
+
+        if (copy.before.power < 0)
+            copy.before.power = 0;
+
+        if (copy.refine.power < 0)
+            copy.refine.power = 0;
 
         if (0 == ::memcmp(&copy, &internal->state, sizeof(config_t)))
             return;
