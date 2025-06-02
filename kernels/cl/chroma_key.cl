@@ -18,7 +18,7 @@
 #define USE_MASK_H (1U)
 #endif
 
-#if defined(USE_RESIZE_MASK) || defined(USE_RESIZE_APPLY)
+#if defined(USE_RESIZE_MASK) || defined(USE_RESIZE_APPLY) || defined(USE_RESIZE_SINGLE)
 __constant sampler_t sampler =
         CLK_NORMALIZED_COORDS_TRUE |
         CLK_ADDRESS_CLAMP_TO_EDGE  |
@@ -131,8 +131,8 @@ __kernel void kernel_chroma_key_apply(
 }
 
 __kernel void kernel_chroma_mask_single(
-    __read_only  image2d_t input_bgra,  // should be the same size
-    __write_only image2d_t output_bgra, // should be the same size
+    __read_only  image2d_t input_bgra,
+    __write_only image2d_t output_bgra,
     const        float4    replace_bgra,
     const        float4    hls_lo,
     const        float4    hls_hi
@@ -141,13 +141,18 @@ __kernel void kernel_chroma_mask_single(
     if (coord.x >= USE_IMAGE_W || coord.y >= USE_IMAGE_H)
         return;
 
+    #ifdef USE_RESIZE_SINGLE
+    const float2 pixel_c = convert_float2(coord) + (float2) (0.5f, 0.5f);
+    const float2 coord_f = pixel_c / (float2) ((USE_IMAGE_W), (USE_IMAGE_H));
+    const float4 pixel = read_imagef(input_bgra, sampler, coord_f);
+    #else
     const float4 pixel = read_imagef(input_bgra, coord);
+    #endif
 
     float4 hlsa;
     bgr_to_hls(&pixel, &hlsa);
 
-    const float mask = hls_in_range(hlsa, hls_lo, hls_hi);
-    if (mask > 0) {
+    if (hls_in_range(hlsa, hls_lo, hls_hi) > 0) {
         write_imagef(output_bgra, coord, replace_bgra);
         return;
     }

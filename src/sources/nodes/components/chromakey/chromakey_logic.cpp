@@ -251,10 +251,17 @@ namespace ex::logic::node::chromakey {
             kernel->has_refine      = true;
         }
 
-        if (has_morph || has_blur) {
+        if (has_morph) {
             ::memset(buff, 0, 512);
             buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", image_w);
             buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", image_h);
+
+            // TODO
+
+            if (has_scale && !has_blur) {
+                // TODO
+            }
+
             buff[buff_l + 1] = '\0';
 
             log->debug("chromakey cl kernel parameters: {}", buff);
