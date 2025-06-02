@@ -176,6 +176,43 @@ namespace ex::logic::node::chromakey {
                 ocl::C_DEPT::UINT_N8,
                 state.cl.context);
 
+        // blur -> mask -> morph -> apply
+
+        const bool has_scale = config->upscale.scale > 1.f;
+        const bool has_blur  = config->before.blur && config->before.power > 0;
+        const bool has_morph = config->refine.morph != mode_e::NONE && config->refine.power > 0;
+
+        if (has_blur) {
+            ::memset(buff, 0, 512);
+
+            buff_l += sprintf(buff + buff_l, " -DUSE_KERN_H_S=%hhu ", config->before.power);
+            if (has_scale)
+                buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE=1 ");
+
+            static thread_local float ker_buff[CAP_SIZE * CAP_SIZE];
+
+            const unsigned int side_size = (config->before.power * 2) + 1;
+            const cl_mem_flags flags     = CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR;
+
+            create_g_kernel_1d(side_size, 5, ker_buff);
+
+            cl_int err;
+            kernel->conv_k = ::clCreateBuffer(state.cl.context, flags,  sizeof(float) * side_size, ker_buff, &err);
+            if (err != CL_SUCCESS)
+                abort_("Cannot create kernel buffer: " << err);
+
+            if (logs::get_level() < spdlog::level::info) {
+                for (int i = 0; i < side_size; ++i)
+                    log->debug("blur kernel_item [{}]: {}", i, ker_buff[i]);
+            }
+
+            buff[buff_l + 1] = '\0';
+        }
+
+        if (has_morph) {
+
+        }
+
         if (config->upscale.linear) {
             buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE_LIN=1 ");
         }

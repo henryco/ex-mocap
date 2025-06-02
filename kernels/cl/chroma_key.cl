@@ -18,11 +18,7 @@
 #define USE_MASK_H (1U)
 #endif
 
-#if (USE_IMAGE_W != USE_MASK_W) || (USE_IMAGE_H != USE_MASK_H)
-#define USE_RESIZE
-#endif
-
-#ifdef USE_RESIZE
+#if defined(USE_RESIZE_MASK) || defined(USE_RESIZE_APPLY)
 __constant sampler_t sampler =
         CLK_NORMALIZED_COORDS_TRUE |
         CLK_ADDRESS_CLAMP_TO_EDGE  |
@@ -91,7 +87,7 @@ __kernel void chroma_key_mask(
     if (coord.x >= USE_MASK_W || coord.y >= USE_MASK_H)
         return;
 
-    #ifdef USE_RESIZE
+    #ifdef USE_RESIZE_MASK
     const float2 pixel_c = convert_float2(coord) + (float2) (0.5f, 0.5f);
     const float2 coord_f = pixel_c / (float2)((USE_MASK_W), (USE_MASK_H));
     const float4 pixel   = read_imagef(input_bgra, sampler, coord_f);
@@ -116,7 +112,7 @@ __kernel void chroma_mask_apply(
     if (coord.x >= USE_IMAGE_W || coord.y >= USE_IMAGE_H)
         return;
 
-    #ifdef USE_RESIZE
+    #ifdef USE_RESIZE_APPLY
     const float2 pixel_c = convert_float2(coord) + (float2) (0.5f, 0.5f);
     const float2 coord_f = pixel_c / (float2) ((USE_IMAGE_W), (USE_IMAGE_H));
     if (read_imagef(input_mask, sampler, coord_f).x > 0) {
