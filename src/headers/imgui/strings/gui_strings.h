@@ -217,7 +217,15 @@ namespace ex::gui::strings {
 
     constexpr auto node_component_chromakey_id            = "Image ID";
     constexpr auto node_component_chromakey_name          = "Chroma-key";
-    constexpr auto node_component_chromakey_settings      = "Settings";
+    constexpr auto node_component_chromakey_downscale     = "Downscale";
+    constexpr auto node_component_chromakey_downscale_f   = "Scale by";
+    constexpr auto node_component_chromakey_downscale_l   = "Linear interpolation";
+    constexpr auto node_component_chromakey_preprocess    = "Preprocessing";
+    constexpr auto node_component_chromakey_preprocess_p  = "Blur power";
+    constexpr auto node_component_chromakey_preprocess_e  = "Enable blur";
+    constexpr auto node_component_chromakey_refinement    = "Mask refinement";
+    constexpr auto node_component_chromakey_refinement_p  = "Power";
+    constexpr auto node_component_chromakey_refinement_m  = "Mode";
 }
 
 #endif //GUI_STRINGS_H

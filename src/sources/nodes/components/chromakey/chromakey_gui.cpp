@@ -111,18 +111,118 @@ namespace ex::gui::node::chromakey {
             ImGui::NewLine();
         }
 
+        // TODO
+
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-        if (ImGui::CollapsingHeader(strings::node_component_chromakey_settings, ImGuiTreeNodeFlags_Framed)) {
+        if (ImGui::CollapsingHeader(strings::node_component_chromakey_downscale, ImGuiTreeNodeFlags_Framed)) {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
 
-            // TODO
+            {// Scale factor
+                static char buff[9] = "";
+                ::sprintf(buff, "%g", config.upscale.scale);
+                if (ImGui::InputText(strings::node_component_chromakey_downscale_f, buff, 9, ImGuiInputTextFlags_CharsScientific)) {
+                    const double value = ::atof(buff);
+                    config.upscale.scale = value;
+                    if (value <= 0)
+                        config.upscale.scale = 1.f;
+                    if (value > 10) // sanity check, downscale 100, wtf???
+                        config.upscale.scale = 1.f;
+                    time_stack.push(time_now, node_id, config);
+                }
+            }
+
+            // Linear interpolation
+            if (ImGui::Checkbox(strings::node_component_chromakey_downscale_l, &config.upscale.linear))
+                time_stack.push(time_now, node_id, config);
 
             ImGui::PopStyleColor();
             ImGui::PopStyleVar();
             ImGui::NewLine();
         }
 
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        if (ImGui::CollapsingHeader(strings::node_component_chromakey_preprocess, ImGuiTreeNodeFlags_Framed)) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
+
+            ImGui::BeginDisabled(!config.before.blur);
+            {// Blur kernel half-size
+                static char buff[9] = "";
+                ::sprintf(buff, "%hhu", config.before.power);
+                if (ImGui::InputText(strings::node_component_chromakey_preprocess_p, buff, 9, ImGuiInputTextFlags_CharsDecimal)) {
+                    const int value    = ::atoi(buff);
+                    config.before.power = value;
+                    if (value < 0)
+                        config.before.power = 0;
+                    if (value > 20)
+                        config.before.power = 20;
+                    time_stack.push(time_now, node_id, config);
+                }
+            }
+            ImGui::EndDisabled();
+
+            // Enable blur
+            if (ImGui::Checkbox(strings::node_component_chromakey_preprocess_e, &config.before.blur))
+                time_stack.push(time_now, node_id, config);
+
+            ImGui::PopStyleColor();
+            ImGui::PopStyleVar();
+            ImGui::NewLine();
+        }
+
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        if (ImGui::CollapsingHeader(strings::node_component_chromakey_refinement, ImGuiTreeNodeFlags_Framed)) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
+
+            ImGui::BeginDisabled(config.refine.morph == lnm::mode_e::NONE);
+            {// Morph kernel half-size
+                static char buff[9] = "";
+                ::sprintf(buff, "%hhu", config.refine.power);
+                if (ImGui::InputText(strings::node_component_chromakey_refinement_p, buff, 9, ImGuiInputTextFlags_CharsDecimal)) {
+                    const int value    = ::atoi(buff);
+                    config.refine.power = value;
+                    if (value < 0)
+                        config.refine.power = 0;
+                    if (value > 20)
+                        config.refine.power = 20;
+                    time_stack.push(time_now, node_id, config);
+                }
+            }
+            ImGui::EndDisabled();
+
+            int op = static_cast<int>(config.refine.morph);
+
+            if (ImGui::RadioButton(strings::node_component_morph_mode_n, &op, static_cast<int>(lnm::mode_e::NONE))) {
+                config.refine.morph = static_cast<lnm::mode_e>(op);
+                time_stack.push(time_now, node_id, config);
+            }
+
+            if (ImGui::RadioButton(strings::node_component_morph_mode_e, &op, static_cast<int>(lnm::mode_e::ERODE))) {
+                config.refine.morph = static_cast<lnm::mode_e>(op);
+                time_stack.push(time_now, node_id, config);
+            }
+
+            if (ImGui::RadioButton(strings::node_component_morph_mode_d, &op, static_cast<int>(lnm::mode_e::DILATE))) {
+                config.refine.morph = static_cast<lnm::mode_e>(op);
+                time_stack.push(time_now, node_id, config);
+            }
+
+            if (ImGui::RadioButton(strings::node_component_morph_mode_o, &op, static_cast<int>(lnm::mode_e::OPEN))) {
+                config.refine.morph = static_cast<lnm::mode_e>(op);
+                time_stack.push(time_now, node_id, config);
+            }
+
+            if (ImGui::RadioButton(strings::node_component_morph_mode_c, &op, static_cast<int>(lnm::mode_e::CLOSE))) {
+                config.refine.morph = static_cast<lnm::mode_e>(op);
+                time_stack.push(time_now, node_id, config);
+            }
+
+            ImGui::PopStyleColor();
+            ImGui::PopStyleVar();
+            ImGui::NewLine();
+        }
 
         return true;
     }
