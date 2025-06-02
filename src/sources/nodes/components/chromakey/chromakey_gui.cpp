@@ -111,7 +111,17 @@ namespace ex::gui::node::chromakey {
             ImGui::NewLine();
         }
 
-        // TODO
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        if (ImGui::CollapsingHeader(strings::node_component_chromakey_color, ImGuiTreeNodeFlags_Framed)) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
+
+            // TODO
+
+            ImGui::PopStyleColor();
+            ImGui::PopStyleVar();
+            ImGui::NewLine();
+        }
 
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
         if (ImGui::CollapsingHeader(strings::node_component_chromakey_downscale, ImGuiTreeNodeFlags_Framed)) {
