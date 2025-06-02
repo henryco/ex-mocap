@@ -367,6 +367,15 @@ namespace ex::gui {
 
         if (ImGui::BeginPopup("color_selector_picker")) {
             ImGui::Text("%s", label);
+
+            ImGui::SetWindowFontScale(.66f);
+            ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(ICON_LC_ECLIPSE).x);
+            ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0, 0, 0, 0));
+            if (ImGui::Button(ICON_LC_ECLIPSE))
+                type_idx = (type_idx + 1) % 2;
+            ImGui::PopStyleColor();
+            ImGui::SetWindowFontScale(1.0f);
+
             ImGui::Separator();
 
             if (ImGui::ColorPicker4("##picker", (float *) color,
@@ -398,6 +407,8 @@ namespace ex::gui {
                 }
             }
             ImGui::EndGroup();
+
+//            ImGui::Text("HSL"); // TODO
 
             // TODO HSL
             ImGui::EndPopup();
