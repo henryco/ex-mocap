@@ -441,12 +441,32 @@ namespace ex::logic::node::chromakey {
         if (copy.refine.power < 0)
             copy.refine.power = 0;
 
-        if (0 == ::memcmp(&copy, &internal->state, sizeof(config_t)))
+        unsigned char test_bit = 0;
+
+        const bool is_0 = 0 != ::memcmp(&copy.key, &internal->state.key ,sizeof(key_t));
+        const bool is_1 = 0 != ::memcmp(&copy.replace, &internal->state.replace ,sizeof(bgra_t));
+        const bool is_2 = 0 != ::memcmp(&copy.upscale, &internal->state.upscale ,sizeof(upscale_t));
+        const bool is_3 = 0 != ::memcmp(&copy.before, &internal->state.before ,sizeof(before_t));
+        const bool is_4 = 0 != ::memcmp(&copy.refine, &internal->state.refine ,sizeof(refine_t));
+
+        test_bit |= (is_0 << 0); //  1
+        test_bit |= (is_1 << 1); //  2
+        test_bit |= (is_2 << 2); //  4
+        test_bit |= (is_3 << 3); //  8
+        test_bit |= (is_4 << 4); // 16
+
+        if (test_bit == 0)
             return;
 
         ::memcpy(&internal->state, &copy, sizeof(config_t));
         ::memcpy(&config, &copy, sizeof(config_t));
-        reset(internal);
+
+        if (!internal->enabled || !internal->kernels.enabled || test_bit > 2)
+            reset(internal);
+        else {
+            internal->updates.state.refresh();
+            internal->updates.input.refresh();
+        }
     }
 
     void ChromakeyNode::set_image_id(id_type_16 id) {
