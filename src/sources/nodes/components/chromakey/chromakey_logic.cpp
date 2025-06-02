@@ -248,23 +248,23 @@ namespace ex::logic::node::chromakey {
             return;
         }
 
-//        kernel->program = xm::ocl::build_program(
-//                state.cl.context,
-//                state.cl.device,
-//                ocl_kernel_chroma_key_data,
-//                ocl_kernel_chroma_key_data_size,
-//                "chroma_key.cl",
-//                buff);
-//
-//        // TODO
-//
-//        kernel->size_l    = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel[0]);
-
         log->debug("chromakey cl kernels updated");
     }
 
     static void init_config(config_t *c) {
-        // TODO
+        c->upscale.linear = false;
+        c->upscale.scale  = 2.f;
+
+        c->before.blur  = false;
+        c->before.power = 2;
+
+        c->refine.morph = mode_e::NONE;
+        c->refine.power = 2;
+
+        c->replace = { 255, 0, 255, 255 };
+
+        c->key.lo = { 85, 225, 127 };
+        c->key.lo = { 85, 225, 190 };
     }
 
     static internal_t *create_internal() {
