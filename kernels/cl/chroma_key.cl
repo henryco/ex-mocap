@@ -25,7 +25,7 @@
 #ifdef USE_RESIZE
 __constant sampler_t sampler =
         CLK_NORMALIZED_COORDS_TRUE |
-        CLK_ADDRESS_CLAMP_TO_EDGE |
+        CLK_ADDRESS_CLAMP_TO_EDGE  |
     #ifdef USE_RESIZE_LIN
         CLK_FILTER_LINEAR;
     #else

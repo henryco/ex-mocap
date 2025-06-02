@@ -32,27 +32,32 @@ namespace ex::logic::node::chromakey {
         unsigned char a;
     };
 
+    struct upscale_t {
+        float scale;  // downscale factor
+        bool  linear;
+    };
+
     struct key_t {
-        hsl_t lo;    // low range
-        hsl_t hi;    // hi  range
+        hsl_t lo;     // low range
+        hsl_t hi;     // hi  range
     };
 
     struct before_t {
-        float scale; // downscale factor
-//        char  power; // half kernel size (blur)
-//        bool  blur;  // blur enable/disable
+        char  power;  // half kernel size (blur)
+        bool  blur;   // blur enable/disable
     };
 
     struct refine_t {
-        char   power;  // kernel half size (morph)
-        mode_e morph;  // morph mode
+        char   power; // kernel half size (morph)
+        mode_e morph; // morph mode
     };
 
     struct config_t {
-        before_t before;
-        key_t    key;
-        bgra_t   replace;
-        refine_t refine;
+        upscale_t upscale;
+        before_t  before;
+        key_t     key;
+        refine_t  refine;
+        bgra_t    replace;
     };
 
     struct ChromakeyNode : limbo::graph::BaseNode,
