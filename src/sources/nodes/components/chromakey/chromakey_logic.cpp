@@ -274,7 +274,7 @@ namespace ex::logic::node::chromakey {
             kernel->kernel_chroma[0] = xm::ocl::build_kernel(kernel->program_chroma, "kernel_chroma_mask_single");
             kernel->size_l_chroma    = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel_chroma[0]);
             kernel->enabled          = true;
-            log->debug("chromakey cl kernels updated");
+            log->debug("chromakey [single] cl kernels updated");
             return;
         }
 
