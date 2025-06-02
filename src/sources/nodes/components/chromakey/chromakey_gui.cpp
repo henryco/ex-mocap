@@ -152,7 +152,7 @@ namespace ex::gui::node::chromakey {
                 }
             }
 
-            {// Range color low
+            {// Range color high
                 float h, s, v;
                 ImVec4 col_hi;
                 hsl_to_hsv(config.key.hi.h, config.key.hi.s, config.key.hi.l, &h, &s, &v);
@@ -165,7 +165,7 @@ namespace ex::gui::node::chromakey {
                 }
             }
 
-            {// Range color high
+            {// Range color low
                 float h, s, v;
                 ImVec4 col_lo;
                 hsl_to_hsv(config.key.lo.h, config.key.lo.s, config.key.lo.l, &h, &s, &v);
