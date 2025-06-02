@@ -426,7 +426,7 @@ namespace ex::logic::node::chromakey {
         if (copy.upscale.scale < 1.f)
             copy.upscale.scale = 1.f;
 
-        if (copy.upscale.scale > 100.f)
+        if (copy.upscale.scale > 10.f)
             copy.upscale.scale = 1.f;
 
         if (copy.before.power > HARD_CAP)
