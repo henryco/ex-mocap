@@ -336,6 +336,13 @@ namespace ex::gui {
     }
 
     bool color_selector(const char *button, const char *label, ImVec4 *color, ImVec4 *backup_color, const bool alpha, const char *current, const char *previous) {
+
+        static unsigned char type_idx    = 0;
+        static constexpr int type_flag[] = {
+            ImGuiColorEditFlags_PickerHueBar,
+            ImGuiColorEditFlags_PickerHueWheel
+        };
+
         int misc_flags = ImGuiColorEditFlags_None;
         if (!alpha) misc_flags |= ImGuiColorEditFlags_NoAlpha;
         else misc_flags        |= ImGuiColorEditFlags_AlphaBar;
@@ -363,7 +370,9 @@ namespace ex::gui {
             ImGui::Separator();
 
             if (ImGui::ColorPicker4("##picker", (float *) color,
-                                    misc_flags | ImGuiColorEditFlags_NoSidePreview |
+                                    misc_flags |
+                                            type_flag[type_idx] |
+                                            ImGuiColorEditFlags_NoSidePreview |
                                             ImGuiColorEditFlags_NoOptions |
                                             ImGuiColorEditFlags_NoSmallPreview)) {
                 change = true;
