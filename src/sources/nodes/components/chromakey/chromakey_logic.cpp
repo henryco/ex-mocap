@@ -184,34 +184,32 @@ namespace ex::logic::node::chromakey {
 
         if (has_blur) {
             ::memset(buff, 0, 512);
-
             buff_l += sprintf(buff + buff_l, " -DUSE_KERN_H_S=%hhu ", config->before.power);
             if (has_scale) {
                 buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE=1 ");
                 if (config->upscale.linear)
                     buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE_LIN=1 ");
             }
-
-            static thread_local float ker_buff[CAP_SIZE * CAP_SIZE];
-
-            const unsigned int side_size = (config->before.power * 2) + 1;
-            const cl_mem_flags flags     = CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR;
-
-            create_g_kernel_1d(side_size, 5, ker_buff);
-
-            cl_int err;
-            kernel->conv_k = ::clCreateBuffer(state.cl.context, flags,  sizeof(float) * side_size, ker_buff, &err);
-            if (err != CL_SUCCESS)
-                abort_("Cannot create kernel buffer: " << err);
-
-            if (logs::get_level() < spdlog::level::info) {
-                for (int i = 0; i < side_size; ++i)
-                    log->debug("blur kernel_item [{}]: {}", i, ker_buff[i]);
-            }
-
             buff[buff_l + 1] = '\0';
 
             log->debug("chromakey(blur) cl kernel parameters: {}", buff);
+
+            {
+                static thread_local float ker_buff[CAP_SIZE * CAP_SIZE];
+                const unsigned int        side_size = (config->before.power * 2) + 1;
+                const cl_mem_flags        flags     = CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR;
+                create_g_kernel_1d(side_size, 5, ker_buff);
+
+                cl_int err;
+                kernel->conv_k = ::clCreateBuffer(state.cl.context, flags, sizeof(float) * side_size, ker_buff, &err);
+                if (err != CL_SUCCESS)
+                    abort_("Cannot create kernel buffer: " << err);
+
+                if (logs::get_level() < spdlog::level::info) {
+                    for (int i = 0; i < side_size; ++i)
+                        log->debug("blur kernel_item [{}]: {}", i, ker_buff[i]);
+                }
+            }
 
             kernel->program_blur = xm::ocl::build_program(
                     state.cl.context,
@@ -220,22 +218,42 @@ namespace ex::logic::node::chromakey {
                     ocl_kernel_blur_data_size,
                     "blur.cl",
                     buff);
-
             kernel->kernel_blur[0] = xm::ocl::build_kernel(kernel->program_blur, "kernel_blur_horizontal");
             kernel->kernel_blur[1] = xm::ocl::build_kernel(kernel->program_blur, "kernel_blur_vertical");
             kernel->size_l_blur    = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel_blur[0]);
         }
 
         if (has_morph) {
+            ::memset(buff, 0, 512);
+            buff_l += sprintf(buff + buff_l, " -DUSE_KERN_H_S_E=%hhu ", config->refine.power);
+            buff_l += sprintf(buff + buff_l, " -DUSE_KERN_H_S_D=%hhu ", config->refine.power);
+            buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", mimp(mask_w - 1));
+            buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", mimp(mask_h - 1));
+            buff[buff_l + 1] = '\0';
+
+            log->debug("chromakey(morph) cl kernel parameters: {}", buff);
+
+            kernel->program_morph = xm::ocl::build_program(
+                    state.cl.context,
+                    state.cl.device,
+                    ocl_kernel_morph_data,
+                    ocl_kernel_morph_data_size,
+                    "morph.cl",
+                    buff);
+            kernel->kernel_morph[0] = xm::ocl::build_kernel(kernel->program_morph, "kernel_morph_horizontal");
+            kernel->kernel_morph[1] = xm::ocl::build_kernel(kernel->program_morph, "kernel_morph_vertical");
+            kernel->size_l_morph    = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel_morph[0]);
+        }
+
+        if (has_morph || has_blur) {
+            ::memset(buff, 0, 512);
+            buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", mimp(image_w - 1));
+            buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", mimp(image_h - 1));
+            buff[buff_l + 1] = '\0';
 
         }
 
-        if (config->upscale.linear) {
-            buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE_LIN=1 ");
-        }
 
-        buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", mimp(image_w - 1));
-        buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", mimp(image_h - 1));
 
         // TODO
 
