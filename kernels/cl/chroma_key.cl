@@ -36,6 +36,7 @@ __constant sampler_t sampler =
 #define EPS (1e-10f)
 
 inline void __attribute__((always_inline)) bgr_to_hls(const float4 *in_bgra, float4 *out_hlsa) {
+    // https://docs.opencv.org/4.9.0/de/d25/imgproc_color_conversions.html
     const float r = in_bgra->x;
     const float g = in_bgra->y;
     const float b = in_bgra->z;
