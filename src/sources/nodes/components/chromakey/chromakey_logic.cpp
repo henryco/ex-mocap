@@ -186,8 +186,11 @@ namespace ex::logic::node::chromakey {
             ::memset(buff, 0, 512);
 
             buff_l += sprintf(buff + buff_l, " -DUSE_KERN_H_S=%hhu ", config->before.power);
-            if (has_scale)
+            if (has_scale) {
                 buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE=1 ");
+                if (config->upscale.linear)
+                    buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE_LIN=1 ");
+            }
 
             static thread_local float ker_buff[CAP_SIZE * CAP_SIZE];
 
@@ -207,6 +210,20 @@ namespace ex::logic::node::chromakey {
             }
 
             buff[buff_l + 1] = '\0';
+
+            log->debug("chromakey(blur) cl kernel parameters: {}", buff);
+
+            kernel->program_blur = xm::ocl::build_program(
+                    state.cl.context,
+                    state.cl.device,
+                    ocl_kernel_blur_data,
+                    ocl_kernel_blur_data_size,
+                    "blur.cl",
+                    buff);
+
+            kernel->kernel_blur[0] = xm::ocl::build_kernel(kernel->program_blur, "kernel_blur_horizontal");
+            kernel->kernel_blur[1] = xm::ocl::build_kernel(kernel->program_blur, "kernel_blur_vertical");
+            kernel->size_l_blur    = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel_blur[0]);
         }
 
         if (has_morph) {
