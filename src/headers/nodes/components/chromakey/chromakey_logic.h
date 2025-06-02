@@ -20,16 +20,16 @@ namespace ex::logic::node::chromakey {
     };
 
     struct hsl_t {
-        unsigned char h;
-        unsigned char s;
-        unsigned char l;
+        float h; // normalized
+        float s; // normalized
+        float l; // normalized
     };
 
     struct bgra_t {
-        unsigned char b;
-        unsigned char g;
-        unsigned char r;
-        unsigned char a;
+        float b; // normalized
+        float g; // normalized
+        float r; // normalized
+        float a; // normalized
     };
 
     struct upscale_t {

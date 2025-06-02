@@ -607,19 +607,19 @@ namespace ex::logic::node::chromakey {
         cl_float4 key_hi;
         cl_float4 key_lo;
 
-        color_replace.x = static_cast<float>(internal->state.replace.r) / 255.f;
-        color_replace.y = static_cast<float>(internal->state.replace.g) / 255.f;
-        color_replace.z = static_cast<float>(internal->state.replace.b) / 255.f;
-        color_replace.w = static_cast<float>(internal->state.replace.a) / 255.f;
+        color_replace.x = internal->state.replace.r;
+        color_replace.y = internal->state.replace.g;
+        color_replace.z = internal->state.replace.b;
+        color_replace.w = internal->state.replace.a;
 
-        key_lo.x = static_cast<float>(internal->state.key.lo.h) / 255.f;
-        key_lo.y = static_cast<float>(internal->state.key.lo.l) / 255.f;
-        key_lo.z = static_cast<float>(internal->state.key.lo.s) / 255.f;
+        key_lo.x = internal->state.key.lo.h;
+        key_lo.y = internal->state.key.lo.l;
+        key_lo.z = internal->state.key.lo.s;
         key_lo.w = 1.f;
 
-        key_hi.x = static_cast<float>(internal->state.key.hi.h) / 255.f;
-        key_hi.y = static_cast<float>(internal->state.key.hi.l) / 255.f;
-        key_hi.z = static_cast<float>(internal->state.key.hi.s) / 255.f;
+        key_hi.x = internal->state.key.hi.h;
+        key_hi.y = internal->state.key.hi.l;
+        key_hi.z = internal->state.key.hi.s;
         key_hi.w = 1.f;
 
         if (internal->kernels.single_pass) {

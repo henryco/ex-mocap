@@ -119,9 +119,17 @@ namespace ex::gui::node::chromakey {
             static ImVec4 prev_color;
 
             ImVec4 col_bg;
+            col_bg.x = config.replace.r;
+            col_bg.y = config.replace.g;
+            col_bg.z = config.replace.b;
+            col_bg.w = config.replace.a;
             if (color_selector(strings::node_component_chromakey_color_s, strings::node_component_chromakey_color_b,
                                &col_bg, &prev_color, true)) {
-
+                config.replace.r = col_bg.x;
+                config.replace.g = col_bg.y;
+                config.replace.b = col_bg.z;
+                config.replace.a = col_bg.w;
+                time_stack.force(node_id, config);
             }
 
             ImVec4 col_hi;

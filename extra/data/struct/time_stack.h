@@ -34,6 +34,16 @@ namespace ex::data {
             size           = (size > 0) ? (size - 1) : 0;
         }
 
+        void force(const key_t key, const val_t &val) {
+            fn(key, val);
+            for (int i = 0; i < size; ++i) {
+                if (keys[i] == key) {
+                    swap_remove(i);
+                    return;
+                }
+            }
+        }
+
         void push(const double dt, const key_t key, const val_t &val) {
             for (int i = 0; i < size; ++i) {
                 if (keys[i] == key) {
