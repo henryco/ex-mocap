@@ -38,7 +38,7 @@ namespace ex::logic::node::chromakey {
         cl_program program_blur;
 
         cl_kernel  kernel_chroma[2];
-        cl_kernel  kernel_morph[2];
+        cl_kernel  kernel_morph[4];
         cl_kernel  kernel_blur[2];
 
         ::size_t   size_l_chroma;
@@ -104,7 +104,7 @@ namespace ex::logic::node::chromakey {
                 ::clReleaseKernel(kernel->kernel_chroma[i]);
         }
 
-        for (int i = 0; i < 2; ++i) {
+        for (int i = 0; i < 4; ++i) {
             if (kernel->kernel_morph[i] != nullptr)
                 ::clReleaseKernel(kernel->kernel_morph[i]);
         }
@@ -250,8 +250,36 @@ namespace ex::logic::node::chromakey {
                     ocl_kernel_morph_data_size,
                     "morph.cl",
                     buff);
-            kernel->kernel_morph[0] = xm::ocl::build_kernel(kernel->program_morph, "kernel_morph_horizontal");
-            kernel->kernel_morph[1] = xm::ocl::build_kernel(kernel->program_morph, "kernel_morph_vertical");
+
+
+            if (config->refine.morph == mode_e::ERODE) {
+                kernel->kernel_morph[0] = xm::ocl::build_kernel(kernel->program_morph, "kernel_erode_horizontal");
+                kernel->kernel_morph[1] = xm::ocl::build_kernel(kernel->program_morph, "kernel_erode_vertical");
+            }
+
+            else if (config->refine.morph == mode_e::DILATE) {
+                kernel->kernel_morph[0] = xm::ocl::build_kernel(kernel->program_morph, "kernel_dilate_horizontal");
+                kernel->kernel_morph[1] = xm::ocl::build_kernel(kernel->program_morph, "kernel_dilate_vertical");
+            }
+
+            else if (config->refine.morph == mode_e::OPEN) {
+                // erode
+                kernel->kernel_morph[0] = xm::ocl::build_kernel(kernel->program_morph, "kernel_erode_horizontal");
+                kernel->kernel_morph[1] = xm::ocl::build_kernel(kernel->program_morph, "kernel_erode_vertical");
+                // dilate
+                kernel->kernel_morph[2] = xm::ocl::build_kernel(kernel->program_morph, "kernel_dilate_horizontal");
+                kernel->kernel_morph[3] = xm::ocl::build_kernel(kernel->program_morph, "kernel_dilate_vertical");
+            }
+
+            else if (config->refine.morph == mode_e::CLOSE) {
+                // dilate
+                kernel->kernel_morph[0] = xm::ocl::build_kernel(kernel->program_morph, "kernel_dilate_horizontal");
+                kernel->kernel_morph[1] = xm::ocl::build_kernel(kernel->program_morph, "kernel_dilate_vertical");
+                // erode
+                kernel->kernel_morph[2] = xm::ocl::build_kernel(kernel->program_morph, "kernel_erode_horizontal");
+                kernel->kernel_morph[3] = xm::ocl::build_kernel(kernel->program_morph, "kernel_erode_vertical");
+            }
+
             kernel->size_l_morph    = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel_morph[0]);
             kernel->has_refine      = true;
         }
@@ -633,6 +661,7 @@ namespace ex::logic::node::chromakey {
         }
 
         {
+            // Create mask
             const ::size_t pref_size = internal->kernels.size_l_chroma;
             ::size_t       l_size[2] = { pref_size, pref_size };
             ::size_t       g_size[2] = { xm::ocl::optimal_global_size(image->cols, pref_size),
@@ -651,17 +680,65 @@ namespace ex::logic::node::chromakey {
         }
 
         if (internal->kernels.has_refine) {
-            // TODO
+            // Refine mask
+
+            const ::size_t pref_size = internal->kernels.size_l_morph;
+            ::size_t       l_size[2] = { pref_size, pref_size };
+            ::size_t       g_size[2] = { xm::ocl::optimal_global_size(image->cols, pref_size),
+                                         xm::ocl::optimal_global_size(image->rows, pref_size) };
+
+            // horizontal pass
+            xm::ocl::set_kernel_arg(internal->kernels.kernel_morph[0], 0, sizeof(cl_mem), &buffer_aux_1);
+            xm::ocl::set_kernel_arg(internal->kernels.kernel_morph[0], 1, sizeof(cl_mem), &buffer_aux_2);
+
+            // vertical pass
+            xm::ocl::set_kernel_arg(internal->kernels.kernel_morph[1], 0, sizeof(cl_mem), &buffer_aux_2);
+            xm::ocl::set_kernel_arg(internal->kernels.kernel_morph[1], 1, sizeof(cl_mem), &buffer_aux_1);
+
+            xm::ocl::enqueue_kernel_fast(
+                    input->queue, internal->kernels.kernel_morph[0],
+                    2,
+                    g_size,
+                    l_size);
+
+            xm::ocl::enqueue_kernel_fast(
+                    input->queue, internal->kernels.kernel_morph[1],
+                    2,
+                    g_size,
+                    l_size);
+
+            if (internal->state.refine.morph >= mode_e::OPEN) {
+                // horizontal pass
+                xm::ocl::set_kernel_arg(internal->kernels.kernel_morph[2], 0, sizeof(cl_mem), &buffer_aux_1);
+                xm::ocl::set_kernel_arg(internal->kernels.kernel_morph[2], 1, sizeof(cl_mem), &buffer_aux_2);
+
+                // vertical pass
+                xm::ocl::set_kernel_arg(internal->kernels.kernel_morph[3], 0, sizeof(cl_mem), &buffer_aux_2);
+                xm::ocl::set_kernel_arg(internal->kernels.kernel_morph[3], 1, sizeof(cl_mem), &buffer_aux_1);
+
+                xm::ocl::enqueue_kernel_fast(
+                        input->queue, internal->kernels.kernel_morph[2],
+                        2,
+                        g_size,
+                        l_size);
+
+                xm::ocl::enqueue_kernel_fast(
+                        input->queue, internal->kernels.kernel_morph[3],
+                        2,
+                        g_size,
+                        l_size);
+            }
         }
 
         {
+            // Apply mask
             const ::size_t pref_size = internal->kernels.size_l_chroma;
             ::size_t       l_size[2] = { pref_size, pref_size };
             ::size_t       g_size[2] = { xm::ocl::optimal_global_size(image->cols, pref_size),
                                          xm::ocl::optimal_global_size(image->rows, pref_size) };
 
             xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[1], 0, sizeof(cl_mem), &buffer_in);
-            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[1], 1, sizeof(cl_mem), &buffer_aux_1); // TODO
+            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[1], 1, sizeof(cl_mem), &buffer_aux_1);
             xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[1], 2, sizeof(cl_mem), &buffer_out);
             xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[1], 3, sizeof(cl_float4), &color_replace);
 
