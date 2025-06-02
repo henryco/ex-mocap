@@ -118,20 +118,21 @@ namespace ex::gui::node::chromakey {
 
             static ImVec4 prev_color;
 
-            // TODO
-            ImVec4 col_lo;
-
-            if (color_selector(" Color lo ", "", &col_lo, &prev_color)) {
+            ImVec4 col_bg;
+            if (color_selector(strings::node_component_chromakey_color_s, strings::node_component_chromakey_color_b,
+                               &col_bg, &prev_color, true)) {
 
             }
 
             ImVec4 col_hi;
-            if (color_selector(" Color hi ", "", &col_hi, &prev_color)) {
+            if (color_selector(strings::node_component_chromakey_color_s, strings::node_component_chromakey_color_h,
+                               &col_hi, &prev_color)) {
 
             }
 
-            ImVec4 col_bg;
-            if (color_selector(" Background ", "", &col_bg, &prev_color, true)) {
+            ImVec4 col_lo;
+            if (color_selector(strings::node_component_chromakey_color_s, strings::node_component_chromakey_color_l,
+                               &col_lo, &prev_color)) {
 
             }
 

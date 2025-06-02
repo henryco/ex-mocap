@@ -218,6 +218,10 @@ namespace ex::gui::strings {
     constexpr auto node_component_chromakey_id            = "Image ID";
     constexpr auto node_component_chromakey_name          = "Chroma-key";
     constexpr auto node_component_chromakey_color         = "Color";
+    constexpr auto node_component_chromakey_color_s       = " Select ";
+    constexpr auto node_component_chromakey_color_b       = " Background ";
+    constexpr auto node_component_chromakey_color_h       = " Range high ";
+    constexpr auto node_component_chromakey_color_l       = " Range low ";
     constexpr auto node_component_chromakey_downscale     = "Downscale";
     constexpr auto node_component_chromakey_downscale_f   = "Scale by";
     constexpr auto node_component_chromakey_downscale_l   = "Linear interpolation";

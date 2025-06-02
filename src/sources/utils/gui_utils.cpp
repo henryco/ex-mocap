@@ -345,11 +345,13 @@ namespace ex::gui {
 
         bool change = false;
 
-        ImGui::PushID(button);
+        ImGui::PushID(label);
 
         bool open_popup = ImGui::ColorButton("##3b", *color, misc_flags | small_flags);
         ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
         open_popup |= ImGui::Button(button);
+        ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+        ImGui::TextWrapped("%s", label);
 
         if (open_popup) {
             ImGui::OpenPopup("color_selector_picker");
