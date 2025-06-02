@@ -77,7 +77,7 @@ inline float __attribute__((always_inline)) hls_in_range(const float4 hlsa, cons
     return 0.f;
 }
 
-__kernel void chroma_key_mask(
+__kernel void kernel_chroma_key_mask(
     __read_only  image2d_t input_bgra,
     __write_only image2d_t output_mask,   // possibly smaller then input
     const        float4    hls_lo,
@@ -102,7 +102,7 @@ __kernel void chroma_key_mask(
     write_imagef(output_mask, coord, (float4) mask);
 }
 
-__kernel void chroma_mask_apply(
+__kernel void kernel_chroma_key_apply(
     __read_only  image2d_t input_bgra,
     __read_only  image2d_t input_mask,
     __write_only image2d_t output_bgra,
@@ -130,7 +130,7 @@ __kernel void chroma_mask_apply(
     write_imagef(output_bgra, coord, color);
 }
 
-__kernel void chroma_mask_single(
+__kernel void kernel_chroma_mask_single(
     __read_only  image2d_t input_bgra,  // should be the same size
     __write_only image2d_t output_bgra, // should be the same size
     const        float4    replace_bgra,

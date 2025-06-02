@@ -37,7 +37,7 @@ namespace ex::logic::node::chromakey {
         cl_program program_morph;
         cl_program program_blur;
 
-        cl_kernel  kernel_chroma[3];
+        cl_kernel  kernel_chroma[2];
         cl_kernel  kernel_morph[2];
         cl_kernel  kernel_blur[2];
 
@@ -48,6 +48,8 @@ namespace ex::logic::node::chromakey {
         cl_mem     conv_k;
 
         bool       enabled;
+        bool       has_blur;
+        bool       has_refine;
     };
 
     struct internal_t {
@@ -96,7 +98,7 @@ namespace ex::logic::node::chromakey {
 
         log->debug("release chromakey cl kernels");
 
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 2; ++i) {
             if (kernel->kernel_chroma[i] != nullptr)
                 ::clReleaseKernel(kernel->kernel_chroma[i]);
         }
@@ -184,12 +186,14 @@ namespace ex::logic::node::chromakey {
 
         if (has_blur) {
             ::memset(buff, 0, 512);
-            buff_l += sprintf(buff + buff_l, " -DUSE_KERN_H_S=%hhu ", config->before.power);
             if (has_scale) {
                 buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE=1 ");
                 if (config->upscale.linear)
                     buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE_LIN=1 ");
             }
+            buff_l += sprintf(buff + buff_l, " -DUSE_KERN_H_S=%hhu ", config->before.power);
+            buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", mimp(mask_w - 1));
+            buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", mimp(mask_h - 1));
             buff[buff_l + 1] = '\0';
 
             log->debug("chromakey(blur) cl kernel parameters: {}", buff);
@@ -221,6 +225,7 @@ namespace ex::logic::node::chromakey {
             kernel->kernel_blur[0] = xm::ocl::build_kernel(kernel->program_blur, "kernel_blur_horizontal");
             kernel->kernel_blur[1] = xm::ocl::build_kernel(kernel->program_blur, "kernel_blur_vertical");
             kernel->size_l_blur    = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel_blur[0]);
+            kernel->has_blur       = true;
         }
 
         if (has_morph) {
@@ -243,29 +248,53 @@ namespace ex::logic::node::chromakey {
             kernel->kernel_morph[0] = xm::ocl::build_kernel(kernel->program_morph, "kernel_morph_horizontal");
             kernel->kernel_morph[1] = xm::ocl::build_kernel(kernel->program_morph, "kernel_morph_vertical");
             kernel->size_l_morph    = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel_morph[0]);
+            kernel->has_refine      = true;
         }
 
         if (has_morph || has_blur) {
             ::memset(buff, 0, 512);
-            buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", mimp(image_w - 1));
-            buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", mimp(image_h - 1));
+            buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", image_w);
+            buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", image_h);
             buff[buff_l + 1] = '\0';
 
+            log->debug("chromakey cl kernel parameters: {}", buff);
+
+            kernel->program_chroma = xm::ocl::build_program(
+                    state.cl.context,
+                    state.cl.device,
+                    ocl_kernel_chroma_key_data,
+                    ocl_kernel_chroma_key_data_size,
+                    "chroma_key.cl",
+                    buff);
+            kernel->kernel_chroma[0] = xm::ocl::build_kernel(kernel->program_chroma, "kernel_chroma_mask_single");
+            kernel->size_l_chroma    = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel_chroma[0]);
+            kernel->enabled          = true;
+            log->debug("chromakey cl kernels updated");
+            return;
         }
 
-
+        ::memset(buff, 0, 512);
+        buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", image_w);
+        buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", image_h);
+        buff_l += sprintf(buff + buff_l, " -DUSE_MASK_W=%hu ", mask_w);
+        buff_l += sprintf(buff + buff_l, " -DUSE_MASK_H=%hu ", mask_h);
 
         // TODO
-
         buff[buff_l + 1] = '\0';
 
         log->debug("chromakey cl kernel parameters: {}", buff);
 
-        if (!kernel->enabled) {
-            log->debug("chromakey cl kernels disabled (skip)");
-            return;
-        }
-
+        kernel->program_chroma = xm::ocl::build_program(
+                state.cl.context,
+                state.cl.device,
+                ocl_kernel_chroma_key_data,
+                ocl_kernel_chroma_key_data_size,
+                "chroma_key.cl",
+                buff);
+        kernel->kernel_chroma[0] = xm::ocl::build_kernel(kernel->program_chroma, "kernel_chroma_key_mask");
+        kernel->kernel_chroma[1] = xm::ocl::build_kernel(kernel->program_chroma, "kernel_chroma_key_apply");
+        kernel->size_l_chroma    = xm::ocl::optimal_local_size(state.cl.device, kernel->kernel_chroma[0]);
+        kernel->enabled          = true;
         log->debug("chromakey cl kernels updated");
     }
 
