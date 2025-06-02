@@ -34,7 +34,7 @@ namespace ex::logic::node::chromakey {
 
     struct upscale_t {
         float scale;  // downscale factor
-        bool  linear;
+        bool  linear; // filtering
     };
 
     struct key_t {
