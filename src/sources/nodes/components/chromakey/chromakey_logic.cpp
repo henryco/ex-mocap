@@ -357,10 +357,10 @@ namespace ex::logic::node::chromakey {
         c->refine.morph = mode_e::NONE;
         c->refine.power = 2;
 
-        c->replace = { 255, 0, 255, 255 };
+        c->replace = { 1.f, 0.f, 1.f, 1.f };
 
-        c->key.lo = { 85, 225, 127 };
-        c->key.lo = { 85, 225, 190 };
+        c->key.lo  = { .33f, 0.88f, .51f };
+        c->key.lo  = { .33f, 0.88f, .75f };
     }
 
     static internal_t *create_internal() {
