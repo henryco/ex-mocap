@@ -25,6 +25,30 @@ typedef float4 pix_t;
 #define USE_KERN_H_S (1U)
 #endif
 
+#ifdef USE_RESIZE
+__constant sampler_t sampler =
+        CLK_NORMALIZED_COORDS_TRUE |
+        CLK_ADDRESS_CLAMP_TO_EDGE  |
+    #ifdef USE_RESIZE_LIN
+        CLK_FILTER_LINEAR;
+    #else
+        CLK_FILTER_NEAREST;
+    #endif
+#endif
+
+inline pix_t __attribute__((always_inline)) sample_pix(
+    __read_only image2d_t input_bgra,
+    const       int2      pos_pix
+) {
+    #ifdef USE_RESIZE
+    const float2 pixel_c = convert_float2(pos_pix) + (float2) (0.5f, 0.5f);
+    const float2 coord_f = pixel_c / (float2) ((USE_IMAGE_W + 1), (USE_IMAGE_H + 1));
+    return read_imagef(input_bgra, sampler, pos_pix);
+    #else
+    return read_imagef(input_bgra, pos_pix);
+    #endif
+}
+
 __kernel void kernel_blur_horizontal(
     __read_only  image2d_t input_bgra,
     __write_only image2d_t output_bgra,
@@ -40,7 +64,7 @@ __kernel void kernel_blur_horizontal(
     for (int k = -(USE_KERN_H_S); k <= (USE_KERN_H_S); ++k) {
         const float weight  = gaussian_kernel[k + (int) USE_KERN_H_S];
         const int2  pos_pix = (int2) (clamp((int) coord.x + k, (int) 0, (int) USE_IMAGE_W), coord.y);
-        const pix_t pixel   = read_imagef(input_bgra, pos_pix);
+        const pix_t pixel   = sample_pix(input_bgra, pos_pix);
 
         sum += (pixel * weight);
     }
@@ -63,7 +87,7 @@ __kernel void kernel_blur_vertical(
     for (int k = -(USE_KERN_H_S); k <= (USE_KERN_H_S); ++k) {
         const float weight  = gaussian_kernel[k + (int) USE_KERN_H_S];
         const int2  pos_pix = (int2) (coord.x, clamp((int) coord.y + k, (int) 0, (int) USE_IMAGE_H));
-        const pix_t pixel   = read_imagef(input_bgra, pos_pix);
+        const pix_t pixel   = sample_pix(input_bgra, pos_pix);
 
         sum += (pixel * weight);
     }
@@ -87,7 +111,7 @@ __kernel void kernel_blur_single(
         #pragma unroll
         for (int x = -(USE_KERN_H_S); x <= (USE_KERN_H_S); ++x) {
             int2        pos_pix = clamp(coord + ((int2) (x, y)), (int2) (0), (int2) (USE_IMAGE_W, USE_IMAGE_H));
-            const pix_t pixel   = read_imagef(input_bgra, pos_pix);
+            const pix_t pixel   = sample_pix(input_bgra, pos_pix);
             const float weight  = gaussian_kernel[i++];
             sum += (pixel * weight);
         }
