@@ -45,6 +45,8 @@ namespace ex::logic::node::chromakey {
         ::size_t   size_l_morph;
         ::size_t   size_l_blur;
 
+        cl_mem     conv_k;
+
         bool       enabled;
     };
 
@@ -65,6 +67,21 @@ namespace ex::logic::node::chromakey {
 
     static unsigned short mimp(const unsigned u) {
         return u > 0 ? u : 1;
+    }
+
+    static void create_g_kernel_1d(const unsigned size, const float sigma, float *out_kernel) {
+        const int half = static_cast<int>(size / 2);
+        double sum = 0.f;
+
+        for (int i = 0, x = -half; x <= half; ++x, ++i) {
+            const double e = -(x * x) / (2.f * sigma * sigma);
+            const double f = ::exp(e);
+            out_kernel[i] = f;
+            sum += f;
+        }
+
+        for (int i = 0; i < size; ++i)
+            out_kernel[i] /= sum;
     }
 
     static void create_kernels(kernels_t *kernel) {
@@ -97,14 +114,14 @@ namespace ex::logic::node::chromakey {
         if (kernel->program_chroma != nullptr)
             ::clReleaseProgram(kernel->program_chroma);
 
-
         if (kernel->program_morph != nullptr)
             ::clReleaseProgram(kernel->program_morph);
-
 
         if (kernel->program_blur != nullptr)
             ::clReleaseProgram(kernel->program_blur);
 
+        if (kernel->conv_k != nullptr)
+            ::clReleaseMemObject(kernel->conv_k);
 
         ::memset(kernel, 0, sizeof(kernels_t));
 
@@ -126,15 +143,8 @@ namespace ex::logic::node::chromakey {
 
         const unsigned short image_w = internal->buffers.input.image.cols;
         const unsigned short image_h = internal->buffers.input.image.rows;
-
-        buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", mimp(image_w - 1));
-        buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", mimp(image_h - 1));
-
-        // TODO
-
-        buff[buff_l + 1] = '\0';
-
-        log->debug("chromakey cl kernel parameters: {}", buff);
+        const unsigned short mask_w  = static_cast<float>(image_w) / config->upscale.scale;
+        const unsigned short mask_h  = static_cast<float>(image_h) / config->upscale.scale;
 
         ocl::image2d_t *image = &internal->buffers.image;
         image->release();
@@ -153,18 +163,31 @@ namespace ex::logic::node::chromakey {
                 state.cl.context);
 
         *aux_1 = ex::ocl::Image2D::allocate(
-                image_w,
-                image_h,
+                mask_w,
+                mask_h,
                 ocl::C_MODE::BGRA,
                 ocl::C_DEPT::UINT_N8,
                 state.cl.context);
 
         *aux_2 = ex::ocl::Image2D::allocate(
-                image_w,
-                image_h,
+                mask_w,
+                mask_h,
                 ocl::C_MODE::BGRA,
                 ocl::C_DEPT::UINT_N8,
                 state.cl.context);
+
+        if (config->upscale.linear) {
+            buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE_LIN=1 ");
+        }
+
+        buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", mimp(image_w - 1));
+        buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", mimp(image_h - 1));
+
+        // TODO
+
+        buff[buff_l + 1] = '\0';
+
+        log->debug("chromakey cl kernel parameters: {}", buff);
 
         if (!kernel->enabled) {
             log->debug("chromakey cl kernels disabled (skip)");
