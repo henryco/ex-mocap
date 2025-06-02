@@ -393,6 +393,10 @@ namespace ex::logic::node::chromakey {
         ::memcpy(&copy, &conf, sizeof(config_t));
 
         // TODO
+        if (copy.upscale.scale < 1.f)
+            copy.upscale.scale = 1.f;
+
+
 
         if (0 == ::memcmp(&copy, &internal->state, sizeof(config_t)))
             return;
