@@ -53,6 +53,10 @@ namespace ex::gui {
     bool show_yes_no_dialog(const char *title, const char *msg, const char *yes, const char *no);
 
     bool show_alert_dialog(const char *title, const char *msg, const char *ok);
+
+    bool color_selector(const char *button, const char *label, ImVec4 *color, ImVec4 *backup_color, bool alpha = false,
+                        const char *current = "Current",
+                        const char *previous = "Previous");
 }
 
 #endif // EX_MOTION_GUI_UTILS_H

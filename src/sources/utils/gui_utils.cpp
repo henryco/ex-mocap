@@ -335,4 +335,66 @@ namespace ex::gui {
         return result;
     }
 
-} // namespace ex::gui
+    bool color_selector(const char *button, const char *label, ImVec4 *color, ImVec4 *backup_color, const bool alpha, const char *current, const char *previous) {
+        int misc_flags = ImGuiColorEditFlags_None;
+        if (!alpha) misc_flags |= ImGuiColorEditFlags_NoAlpha;
+        else misc_flags        |= ImGuiColorEditFlags_AlphaBar;
+
+        int small_flags = ImGuiColorEditFlags_NoPicker;
+        if (!alpha) small_flags |= ImGuiColorEditFlags_AlphaNoBg | ImGuiColorEditFlags_AlphaOpaque;
+
+        bool change = false;
+
+        ImGui::PushID(button);
+
+        bool open_popup = ImGui::ColorButton("##3b", *color, misc_flags | small_flags);
+        ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+        open_popup |= ImGui::Button(button);
+
+        if (open_popup) {
+            ImGui::OpenPopup("color_selector_picker");
+            *backup_color = *color;
+        }
+
+        if (ImGui::BeginPopup("color_selector_picker")) {
+            ImGui::Text("%s", label);
+            ImGui::Separator();
+
+            if (ImGui::ColorPicker4("##picker", (float *) color,
+                                    misc_flags | ImGuiColorEditFlags_NoSidePreview |
+                                            ImGuiColorEditFlags_NoOptions |
+                                            ImGuiColorEditFlags_NoSmallPreview)) {
+                change = true;
+            }
+
+            ImGui::SameLine();
+
+            ImGui::BeginGroup(); // Lock X position
+            {
+                int button_flags = ImGuiColorEditFlags_NoPicker;
+                if (alpha)
+                    button_flags |= ImGuiColorEditFlags_AlphaPreviewHalf;
+                else
+                    button_flags |= ImGuiColorEditFlags_AlphaNoBg | ImGuiColorEditFlags_AlphaOpaque;
+
+                ImGui::Text("%s", current);
+                ImGui::ColorButton("##current", *color, button_flags, ImVec2(60, 40));
+
+                ImGui::Text("%s", previous);
+                if (ImGui::ColorButton("##previous", *backup_color, button_flags, ImVec2(60, 40))) {
+                    *color = *backup_color;
+                    change = true;
+                }
+            }
+            ImGui::EndGroup();
+
+            // TODO HSL
+            ImGui::EndPopup();
+        }
+
+        ImGui::PopID();
+
+        return change;
+    }
+
+}

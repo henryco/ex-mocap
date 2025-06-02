@@ -116,7 +116,24 @@ namespace ex::gui::node::chromakey {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0.35));
 
+            static ImVec4 prev_color;
+
             // TODO
+            ImVec4 col_lo;
+
+            if (color_selector(" Color lo ", "", &col_lo, &prev_color)) {
+
+            }
+
+            ImVec4 col_hi;
+            if (color_selector(" Color hi ", "", &col_hi, &prev_color)) {
+
+            }
+
+            ImVec4 col_bg;
+            if (color_selector(" Background ", "", &col_bg, &prev_color, true)) {
+
+            }
 
             ImGui::PopStyleColor();
             ImGui::PopStyleVar();
