@@ -184,6 +184,8 @@ namespace ex::logic::node::chromakey {
         const bool has_blur  = config->before.blur && config->before.power > 0;
         const bool has_morph = config->refine.morph != mode_e::NONE && config->refine.power > 0;
 
+
+        // BLUR KERNELS
         if (has_blur) {
             ::memset(buff, 0, 512);
             if (has_scale) {
@@ -228,6 +230,8 @@ namespace ex::logic::node::chromakey {
             kernel->has_blur       = true;
         }
 
+
+        // REFINE KERNELS
         if (has_morph) {
             ::memset(buff, 0, 512);
             buff_l += sprintf(buff + buff_l, " -DUSE_KERN_H_S_E=%hhu ", config->refine.power);
@@ -251,6 +255,8 @@ namespace ex::logic::node::chromakey {
             kernel->has_refine      = true;
         }
 
+
+        // SINGLE PASS CHROMA ONLY
         if (!has_morph && (!has_scale || has_blur)) {
             ::memset(buff, 0, 512);
             if (has_scale) {
@@ -278,13 +284,20 @@ namespace ex::logic::node::chromakey {
             return;
         }
 
+
+        // MULTI PASS CHROMA
         ::memset(buff, 0, 512);
         buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", image_w);
         buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", image_h);
         buff_l += sprintf(buff + buff_l, " -DUSE_MASK_W=%hu ", mask_w);
         buff_l += sprintf(buff + buff_l, " -DUSE_MASK_H=%hu ", mask_h);
-
-        // TODO
+        if (has_scale) {
+            if (!has_blur)
+                buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE_MASK=1 ");
+            if (config->upscale.linear)
+                buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE_LIN=1 ");
+            buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE_APPLY=1 ");
+        }
         buff[buff_l + 1] = '\0';
 
         log->debug("chromakey cl kernel parameters: {}", buff);
