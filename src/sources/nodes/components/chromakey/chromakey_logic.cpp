@@ -360,7 +360,7 @@ namespace ex::logic::node::chromakey {
         c->replace = { 1.f, 0.f, 1.f, 1.f };
 
         c->key.lo  = { .33f, 0.88f, .51f };
-        c->key.lo  = { .33f, 0.88f, .75f };
+        c->key.hi  = { .33f, 0.88f, .75f };
     }
 
     static internal_t *create_internal() {

@@ -43,6 +43,28 @@ namespace ex::gui::node::chromakey {
                 ::free(parcel->data);
             ::free(parcel);
         }
+
+        void hsv_to_hsl(float h, float s_v, float v, float *h_out, float *s_l_out, float *l_out) {
+            const float l = v * (1.0f - s_v * 0.5f);
+            float s_l = 0.0f;
+            if (l > 0.0f && l < 1.0f) {
+                float min_l = (l < 1.0f - l) ? l : (1.0f - l);
+                s_l = (v - l) / min_l;
+            }
+            *h_out   = h;
+            *s_l_out = s_l;
+            *l_out   = l;
+        }
+
+        void hsl_to_hsv(float h, float s_l, float l, float *h_out, float *s_v_out, float *v_out) {
+            const float v = l + s_l * ((l < 0.5f) ? l : (1.0f - l));
+            float s_v = 0.0f;
+            if (v > 0.0f)
+                s_v = 2.0f * (1.0f - l / v);
+            *h_out   = h;
+            *s_v_out = s_v;
+            *v_out   = v;
+        }
     }
 
     unsigned long int get_node_type_id() {
@@ -131,16 +153,28 @@ namespace ex::gui::node::chromakey {
             }
 
             {// Range color low
+                float h, s, v;
                 ImVec4 col_hi;
+                hsl_to_hsv(config.key.hi.h, config.key.hi.s, config.key.hi.l, &h, &s, &v);
+                ImGui::ColorConvertHSVtoRGB(h, s, v, col_hi.x, col_hi.y, col_hi.z);
                 if (color_selector(strings::node_component_chromakey_color_s, strings::node_component_chromakey_color_h,
                                    &col_hi, &prev_color)) {
+                    ImGui::ColorConvertRGBtoHSV(col_hi.x, col_hi.y, col_hi.z, h, s, v);
+                    hsv_to_hsl(h, s, v, &config.key.hi.h, &config.key.hi.s, &config.key.hi.l);
+                    time_stack.force(node_id, config);
                 }
             }
 
             {// Range color high
+                float h, s, v;
                 ImVec4 col_lo;
+                hsl_to_hsv(config.key.lo.h, config.key.lo.s, config.key.lo.l, &h, &s, &v);
+                ImGui::ColorConvertHSVtoRGB(h, s, v, col_lo.x, col_lo.y, col_lo.z);
                 if (color_selector(strings::node_component_chromakey_color_s, strings::node_component_chromakey_color_l,
                                    &col_lo, &prev_color)) {
+                    ImGui::ColorConvertRGBtoHSV(col_lo.x, col_lo.y, col_lo.z, h, s, v);
+                    hsv_to_hsl(h, s, v, &config.key.lo.h, &config.key.lo.s, &config.key.lo.l);
+                    time_stack.force(node_id, config);
                 }
             }
 
