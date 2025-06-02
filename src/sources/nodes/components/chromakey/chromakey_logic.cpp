@@ -251,17 +251,15 @@ namespace ex::logic::node::chromakey {
             kernel->has_refine      = true;
         }
 
-        if (has_morph) {
+        if (!has_morph && (!has_scale || has_blur)) {
             ::memset(buff, 0, 512);
+            if (has_scale) {
+                buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE_SINGLE=1 ");
+                if (config->upscale.linear)
+                    buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE_LIN=1 ");
+            }
             buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", image_w);
             buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", image_h);
-
-            // TODO
-
-            if (has_scale && !has_blur) {
-                // TODO
-            }
-
             buff[buff_l + 1] = '\0';
 
             log->debug("chromakey cl kernel parameters: {}", buff);
