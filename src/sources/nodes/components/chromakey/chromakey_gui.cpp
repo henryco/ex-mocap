@@ -118,30 +118,30 @@ namespace ex::gui::node::chromakey {
 
             static ImVec4 prev_color;
 
-            ImVec4 col_bg;
-            col_bg.x = config.replace.r;
-            col_bg.y = config.replace.g;
-            col_bg.z = config.replace.b;
-            col_bg.w = config.replace.a;
-            if (color_selector(strings::node_component_chromakey_color_s, strings::node_component_chromakey_color_b,
-                               &col_bg, &prev_color, true)) {
-                config.replace.r = col_bg.x;
-                config.replace.g = col_bg.y;
-                config.replace.b = col_bg.z;
-                config.replace.a = col_bg.w;
-                time_stack.force(node_id, config);
+            {// Background color
+                ImVec4 col_bg = { config.replace.r, config.replace.g, config.replace.b, config.replace.a };
+                if (color_selector(strings::node_component_chromakey_color_s, strings::node_component_chromakey_color_b,
+                                   &col_bg, &prev_color, true)) {
+                    config.replace.r = col_bg.x;
+                    config.replace.g = col_bg.y;
+                    config.replace.b = col_bg.z;
+                    config.replace.a = col_bg.w;
+                    time_stack.force(node_id, config);
+                }
             }
 
-            ImVec4 col_hi;
-            if (color_selector(strings::node_component_chromakey_color_s, strings::node_component_chromakey_color_h,
-                               &col_hi, &prev_color)) {
-
+            {// Range color low
+                ImVec4 col_hi;
+                if (color_selector(strings::node_component_chromakey_color_s, strings::node_component_chromakey_color_h,
+                                   &col_hi, &prev_color)) {
+                }
             }
 
-            ImVec4 col_lo;
-            if (color_selector(strings::node_component_chromakey_color_s, strings::node_component_chromakey_color_l,
-                               &col_lo, &prev_color)) {
-
+            {// Range color high
+                ImVec4 col_lo;
+                if (color_selector(strings::node_component_chromakey_color_s, strings::node_component_chromakey_color_l,
+                                   &col_lo, &prev_color)) {
+                }
             }
 
             ImGui::PopStyleColor();
