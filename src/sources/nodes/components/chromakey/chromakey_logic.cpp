@@ -68,6 +68,14 @@ namespace ex::logic::node::chromakey {
         bool       on;
     };
 
+    static float fold_0(const float v) {
+        if (v < 0)
+            return 1.f - v;
+        if (v > 1)
+            return v - 1.f;
+        return v;
+    }
+
     static unsigned short mimp(const unsigned u) {
         return u > 0 ? u : 1;
     }
@@ -363,8 +371,11 @@ namespace ex::logic::node::chromakey {
 
         c->replace = { 1.f, 0.f, 1.f, 1.f };
 
-        c->key.lo  = { .33f, 0.88f, .3f };
-        c->key.hi  = { .33f, 0.88f, .5f };
+        c->key.key = { .33f, 1.f, .5f };
+        c->key.h_a = 0.15f;
+        c->key.s_t = 0.4f;
+        c->key.l_l = 0.15f;
+        c->key.l_h = 0.95f;
     }
 
     static internal_t *create_internal() {
@@ -616,13 +627,15 @@ namespace ex::logic::node::chromakey {
         color_replace.z = internal->state.replace.b;
         color_replace.w = internal->state.replace.a;
 
-        key_lo.x = internal->state.key.lo.h;
-        key_lo.y = internal->state.key.lo.l;
-        key_lo.z = internal->state.key.lo.s;
+        const hsl_t key = internal->state.key.key;
 
-        key_hi.x = internal->state.key.hi.h;
-        key_hi.y = internal->state.key.hi.l;
-        key_hi.z = internal->state.key.hi.s;
+        key_lo.x = fold_0(key.h - (internal->state.key.h_a / 2.f));
+        key_lo.y = internal->state.key.s_t;
+        key_lo.z = internal->state.key.l_l;
+
+        key_hi.x = fold_0(key.h + (internal->state.key.h_a / 2.f));
+        key_hi.y = 1.f;
+        key_hi.z = internal->state.key.l_h;
 
         if (internal->kernels.single_pass) {
             const ::size_t pref_size = internal->kernels.size_l_chroma;

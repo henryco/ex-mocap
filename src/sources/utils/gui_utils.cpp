@@ -418,4 +418,50 @@ namespace ex::gui {
         return change;
     }
 
+    bool slider_range_f(const char *label, float *c_min, float *c_max, float min, float max, const char *format_lo, const char *format_hi) {
+
+        bool value_changed = false;
+        ImGui::BeginGroup();
+
+        {
+            ImGui::PushID(label);
+            ImGui::PushMultiItemsWidths(2, ImGui::CalcItemWidth());
+
+            {
+                ImGui::PushID(0);
+                if (ImGui::SliderFloat("##l_lo", c_min, min, max, format_lo, ImGuiSliderFlags_ClampOnInput)) {
+                    if (*c_min >= *c_max)
+                        *c_min = *c_max;
+                   value_changed = true;
+                }
+                ImGui::PopID();
+                ImGui::PopItemWidth();
+            }
+
+            ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+
+            {
+                ImGui::PushID(1);
+                if (ImGui::SliderFloat("##l_hi", c_max, min, max, format_hi, ImGuiSliderFlags_ClampOnInput)) {
+                    if (*c_max <= *c_min)
+                        *c_max = *c_min;
+                    value_changed = true;
+                }
+                ImGui::PopID();
+                ImGui::PopItemWidth();
+            }
+
+            ImGui::PopID();
+        }
+
+        const char* label_end = ImGui::FindRenderedTextEnd(label);
+        if (label != label_end) {
+            ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+            ImGui::TextEx(label, label_end);
+        }
+
+        ImGui::EndGroup();
+        return value_changed;
+    }
+
 }

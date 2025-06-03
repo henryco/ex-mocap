@@ -38,8 +38,11 @@ namespace ex::logic::node::chromakey {
     };
 
     struct key_t {
-        hsl_t lo;     // low range
-        hsl_t hi;     // hi  range
+        hsl_t key;
+        float h_a;    // hue angle
+        float s_t;    // saturation threshold
+        float l_l;    // lightness low
+        float l_h;    // lightness high
     };
 
     struct before_t {

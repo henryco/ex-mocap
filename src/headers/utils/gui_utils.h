@@ -57,6 +57,9 @@ namespace ex::gui {
     bool color_selector(const char *button, const char *label, ImVec4 *color, ImVec4 *backup_color, bool alpha = false,
                         const char *current = "Current",
                         const char *previous = "Previous");
+
+    bool slider_range_f(const char *label, float *c_min, float *c_max, float min, float max,
+                        const char *format_lo = "Min: %.3f", const char *format_hi = "Max: %.3f");
 }
 
 #endif // EX_MOTION_GUI_UTILS_H

@@ -152,28 +152,43 @@ namespace ex::gui::node::chromakey {
                 }
             }
 
-            {// Range color high
+            {// Key color
                 float h, s, v;
                 ImVec4 col_hi;
-                hsl_to_hsv(config.key.hi.h, config.key.hi.s, config.key.hi.l, &h, &s, &v);
+                hsl_to_hsv(config.key.key.h, config.key.key.s, config.key.key.l, &h, &s, &v);
                 ImGui::ColorConvertHSVtoRGB(h, s, v, col_hi.x, col_hi.y, col_hi.z);
-                if (color_selector(strings::node_component_chromakey_color_s, strings::node_component_chromakey_color_h,
+                if (color_selector(strings::node_component_chromakey_color_s, strings::node_component_chromakey_color_k,
                                    &col_hi, &prev_color)) {
                     ImGui::ColorConvertRGBtoHSV(col_hi.x, col_hi.y, col_hi.z, h, s, v);
-                    hsv_to_hsl(h, s, v, &config.key.hi.h, &config.key.hi.s, &config.key.hi.l);
+                    hsv_to_hsl(h, s, v, &config.key.key.h, &config.key.key.s, &config.key.key.l);
                     time_stack.force(node_id, config);
                 }
             }
 
-            {// Range color low
-                float h, s, v;
-                ImVec4 col_lo;
-                hsl_to_hsv(config.key.lo.h, config.key.lo.s, config.key.lo.l, &h, &s, &v);
-                ImGui::ColorConvertHSVtoRGB(h, s, v, col_lo.x, col_lo.y, col_lo.z);
-                if (color_selector(strings::node_component_chromakey_color_s, strings::node_component_chromakey_color_l,
-                                   &col_lo, &prev_color)) {
-                    ImGui::ColorConvertRGBtoHSV(col_lo.x, col_lo.y, col_lo.z, h, s, v);
-                    hsv_to_hsl(h, s, v, &config.key.lo.h, &config.key.lo.s, &config.key.lo.l);
+            ImGui::NewLine();
+
+            {
+                float h_a = config.key.h_a;
+                if (ImGui::SliderFloat(strings::node_component_chromakey_color_a, &h_a, 0.f, 1.f, "%.3f")) {
+                    config.key.h_a = h_a;
+                    time_stack.force(node_id, config);
+                }
+            }
+
+            {
+                float s_t = config.key.s_t;
+                if (ImGui::SliderFloat(strings::node_component_chromakey_color_t, &s_t, 0.f, 1.f, "%.3f")) {
+                    config.key.s_t = s_t;
+                    time_stack.force(node_id, config);
+                }
+            }
+
+            {
+                float l_lo = config.key.l_l;
+                float l_hi = config.key.l_h;
+                if (slider_range_f(strings::node_component_chromakey_color_l, &l_lo, &l_hi, 0.f, 1.f, "Min: %.3f", "Max: %.3f")) {
+                    config.key.l_l = l_lo;
+                    config.key.l_h = l_hi;
                     time_stack.force(node_id, config);
                 }
             }
