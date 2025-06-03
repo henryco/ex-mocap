@@ -637,29 +637,6 @@ namespace ex::logic::node::chromakey {
         key_hi.y = 1.f;
         key_hi.z = internal->state.key.l_h;
 
-        if (internal->kernels.single_pass) {
-            const ::size_t pref_size = internal->kernels.size_l_chroma;
-            ::size_t       l_size[2] = { pref_size, pref_size };
-            ::size_t       g_size[2] = { xm::ocl::optimal_global_size(image->cols, pref_size),
-                                         xm::ocl::optimal_global_size(image->rows, pref_size) };
-
-            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[0], 0, sizeof(cl_mem), &buffer_in);
-            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[0], 1, sizeof(cl_mem), &buffer_out);
-            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[0], 2, sizeof(cl_float4), &color_replace);
-            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[0], 3, sizeof(cl_float4), &key_lo);
-            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[0], 4, sizeof(cl_float4), &key_hi);
-
-            xm::ocl::enqueue_kernel_fast(
-                    input->queue, internal->kernels.kernel_chroma[0],
-                    2,
-                    g_size,
-                    l_size);
-
-            internal->buffers.output = { *image, input->queue, false };
-            internal->buffers.output.image.header.fresh = true;
-            return;
-        }
-
         cl_mem buffer_aux_1 = aux_1->handle;
         cl_mem buffer_aux_2 = aux_2->handle;
 
@@ -693,6 +670,31 @@ namespace ex::logic::node::chromakey {
                     l_size);
 
             buffer_in = buffer_aux_2;
+        }
+
+        if (internal->kernels.single_pass) {
+            cl_mem         buffer_og = input->image.handle;
+            const ::size_t pref_size = internal->kernels.size_l_chroma;
+            ::size_t       l_size[2] = { pref_size, pref_size };
+            ::size_t       g_size[2] = { xm::ocl::optimal_global_size(image->cols, pref_size),
+                                         xm::ocl::optimal_global_size(image->rows, pref_size) };
+
+            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[0], 0, sizeof(cl_mem), &buffer_og);
+            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[0], 1, sizeof(cl_mem), &buffer_in);
+            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[0], 2, sizeof(cl_mem), &buffer_out);
+            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[0], 3, sizeof(cl_float4), &color_replace);
+            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[0], 4, sizeof(cl_float4), &key_lo);
+            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[0], 5, sizeof(cl_float4), &key_hi);
+
+            xm::ocl::enqueue_kernel_fast(
+                    input->queue, internal->kernels.kernel_chroma[0],
+                    2,
+                    g_size,
+                    l_size);
+
+            internal->buffers.output = { *image, input->queue, false };
+            internal->buffers.output.image.header.fresh = true;
+            return;
         }
 
         {

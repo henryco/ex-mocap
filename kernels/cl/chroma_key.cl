@@ -61,6 +61,7 @@ inline void __attribute__((always_inline)) bgr_to_hls(const float4 *in_bgra, flo
     *out_hlsa = (float4) (H / 360.f, L, S, 1.f);
 }
 
+// mask, 0 - not in range, 1 - in range
 inline float __attribute__((always_inline)) hls_in_range(const float4 hlsa, const float4 hls_lo, const float4 hls_hi) {
     // dont wrap hue
     if (hls_lo.x < hls_hi.x) {
@@ -131,8 +132,9 @@ __kernel void kernel_chroma_key_apply(
 }
 
 __kernel void kernel_chroma_mask_single(
-    __read_only  image2d_t input_bgra,
-    __write_only image2d_t output_bgra,
+    __read_only  image2d_t original_bgra,  // not processed input
+    __read_only  image2d_t input_bgra,     // could be processed (or could be the copy of original_bgra)
+    __write_only image2d_t output_bgra,    // output
     const        float4    replace_bgra,
     const        float4    hls_lo,
     const        float4    hls_hi
@@ -157,5 +159,6 @@ __kernel void kernel_chroma_mask_single(
         return;
     }
 
-    write_imagef(output_bgra, coord, pixel);
+    const float4 color = read_imagef(original_bgra, coord);
+    write_imagef(output_bgra, coord, color);
 }

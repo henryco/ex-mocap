@@ -43,7 +43,7 @@ inline pix_t __attribute__((always_inline)) sample_pix(
     #ifdef USE_RESIZE
     const float2 pixel_c = convert_float2(pos_pix) + (float2) (0.5f, 0.5f);
     const float2 coord_f = pixel_c / (float2) ((USE_IMAGE_W + 1), (USE_IMAGE_H + 1));
-    return read_imagef(input_bgra, sampler, pos_pix);
+    return read_imagef(input_bgra, sampler, coord_f);
     #else
     return read_imagef(input_bgra, pos_pix);
     #endif
