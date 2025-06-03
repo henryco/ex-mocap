@@ -639,6 +639,7 @@ namespace ex::logic::node::chromakey {
 
         cl_mem buffer_aux_1 = aux_1->handle;
         cl_mem buffer_aux_2 = aux_2->handle;
+        cl_mem buffer_orig  = input->image.handle;
 
         if (internal->kernels.has_blur) {
             cl_mem         buffer_ker = internal->kernels.conv_k;
@@ -673,13 +674,12 @@ namespace ex::logic::node::chromakey {
         }
 
         if (internal->kernels.single_pass) {
-            cl_mem         buffer_og = input->image.handle;
             const ::size_t pref_size = internal->kernels.size_l_chroma;
             ::size_t       l_size[2] = { pref_size, pref_size };
             ::size_t       g_size[2] = { xm::ocl::optimal_global_size(image->cols, pref_size),
                                          xm::ocl::optimal_global_size(image->rows, pref_size) };
 
-            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[0], 0, sizeof(cl_mem), &buffer_og);
+            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[0], 0, sizeof(cl_mem), &buffer_orig);
             xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[0], 1, sizeof(cl_mem), &buffer_in);
             xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[0], 2, sizeof(cl_mem), &buffer_out);
             xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[0], 3, sizeof(cl_float4), &color_replace);
@@ -774,7 +774,7 @@ namespace ex::logic::node::chromakey {
         ::size_t       g_size[2] = { xm::ocl::optimal_global_size(image->cols, pref_size),
                                      xm::ocl::optimal_global_size(image->rows, pref_size) };
 
-        xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[1], 0, sizeof(cl_mem), &buffer_in);
+        xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[1], 0, sizeof(cl_mem), &buffer_orig);
         xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[1], 1, sizeof(cl_mem), &buffer_aux_1);
         xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[1], 2, sizeof(cl_mem), &buffer_out);
         xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[1], 3, sizeof(cl_float4), &color_replace);
@@ -784,7 +784,6 @@ namespace ex::logic::node::chromakey {
                 2,
                 g_size,
                 l_size);
-
 
         internal->buffers.output = { *image, input->queue, false };
         internal->buffers.output.image.header.fresh = true;
