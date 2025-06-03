@@ -189,6 +189,7 @@ namespace ex::logic::node::chromakey {
         // BLUR KERNELS
         if (has_blur) {
             ::memset(buff, 0, 512);
+            buff_l = 0;
             if (has_scale) {
                 buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE=1 ");
                 if (config->upscale.linear)
@@ -235,6 +236,7 @@ namespace ex::logic::node::chromakey {
         // REFINE KERNELS
         if (has_morph) {
             ::memset(buff, 0, 512);
+            buff_l = 0;
             buff_l += sprintf(buff + buff_l, " -DUSE_KERN_H_S_E=%hhu ", config->refine.power);
             buff_l += sprintf(buff + buff_l, " -DUSE_KERN_H_S_D=%hhu ", config->refine.power);
             buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", mimp(mask_w - 1));
@@ -288,6 +290,7 @@ namespace ex::logic::node::chromakey {
         // SINGLE PASS CHROMA ONLY
         if (!has_morph && (!has_scale || has_blur)) {
             ::memset(buff, 0, 512);
+            buff_l = 0;
             if (has_scale) {
                 buff_l += sprintf(buff + buff_l, " -DUSE_RESIZE_SINGLE=1 ");
                 if (config->upscale.linear)
@@ -317,6 +320,7 @@ namespace ex::logic::node::chromakey {
 
         // MULTI PASS CHROMA
         ::memset(buff, 0, 512);
+        buff_l = 0;
         buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_W=%hu ", image_w);
         buff_l += sprintf(buff + buff_l, " -DUSE_IMAGE_H=%hu ", image_h);
         buff_l += sprintf(buff + buff_l, " -DUSE_MASK_W=%hu ", mask_w);
@@ -615,12 +619,10 @@ namespace ex::logic::node::chromakey {
         key_lo.x = internal->state.key.lo.h;
         key_lo.y = internal->state.key.lo.l;
         key_lo.z = internal->state.key.lo.s;
-        key_lo.w = 1.f;
 
         key_hi.x = internal->state.key.hi.h;
         key_hi.y = internal->state.key.hi.l;
         key_hi.z = internal->state.key.hi.s;
-        key_hi.w = 1.f;
 
         if (internal->kernels.single_pass) {
             const ::size_t pref_size = internal->kernels.size_l_chroma;
@@ -652,8 +654,8 @@ namespace ex::logic::node::chromakey {
             cl_mem         buffer_ker = internal->kernels.conv_k;
             const ::size_t pref_size  = internal->kernels.size_l_blur;
             ::size_t       l_size[2]  = { pref_size, pref_size };
-            ::size_t       g_size[2]  = { xm::ocl::optimal_global_size(image->cols, pref_size),
-                                          xm::ocl::optimal_global_size(image->rows, pref_size) };
+            ::size_t       g_size[2]  = { xm::ocl::optimal_global_size(aux_1->cols, pref_size),
+                                          xm::ocl::optimal_global_size(aux_1->rows, pref_size) };
 
             // horizontal pass
             xm::ocl::set_kernel_arg(internal->kernels.kernel_blur[0], 0, sizeof(cl_mem), &buffer_in);
@@ -684,8 +686,8 @@ namespace ex::logic::node::chromakey {
             // Create mask
             const ::size_t pref_size = internal->kernels.size_l_chroma;
             ::size_t       l_size[2] = { pref_size, pref_size };
-            ::size_t       g_size[2] = { xm::ocl::optimal_global_size(image->cols, pref_size),
-                                         xm::ocl::optimal_global_size(image->rows, pref_size) };
+            ::size_t       g_size[2] = { xm::ocl::optimal_global_size(aux_1->cols, pref_size),
+                                         xm::ocl::optimal_global_size(aux_1->rows, pref_size) };
 
             xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[0], 0, sizeof(cl_mem), &buffer_in);
             xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[0], 1, sizeof(cl_mem), &buffer_aux_1);
@@ -704,8 +706,8 @@ namespace ex::logic::node::chromakey {
 
             const ::size_t pref_size = internal->kernels.size_l_morph;
             ::size_t       l_size[2] = { pref_size, pref_size };
-            ::size_t       g_size[2] = { xm::ocl::optimal_global_size(image->cols, pref_size),
-                                         xm::ocl::optimal_global_size(image->rows, pref_size) };
+            ::size_t       g_size[2] = { xm::ocl::optimal_global_size(aux_1->cols, pref_size),
+                                         xm::ocl::optimal_global_size(aux_1->rows, pref_size) };
 
             // horizontal pass
             xm::ocl::set_kernel_arg(internal->kernels.kernel_morph[0], 0, sizeof(cl_mem), &buffer_aux_1);
@@ -750,24 +752,24 @@ namespace ex::logic::node::chromakey {
             }
         }
 
-        {
-            // Apply mask
-            const ::size_t pref_size = internal->kernels.size_l_chroma;
-            ::size_t       l_size[2] = { pref_size, pref_size };
-            ::size_t       g_size[2] = { xm::ocl::optimal_global_size(image->cols, pref_size),
-                                         xm::ocl::optimal_global_size(image->rows, pref_size) };
 
-            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[1], 0, sizeof(cl_mem), &buffer_in);
-            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[1], 1, sizeof(cl_mem), &buffer_aux_1);
-            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[1], 2, sizeof(cl_mem), &buffer_out);
-            xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[1], 3, sizeof(cl_float4), &color_replace);
+        // Apply mask
+        const ::size_t pref_size = internal->kernels.size_l_chroma;
+        ::size_t       l_size[2] = { pref_size, pref_size };
+        ::size_t       g_size[2] = { xm::ocl::optimal_global_size(image->cols, pref_size),
+                                     xm::ocl::optimal_global_size(image->rows, pref_size) };
 
-            xm::ocl::enqueue_kernel_fast(
-                    input->queue, internal->kernels.kernel_chroma[1],
-                    2,
-                    g_size,
-                    l_size);
-        }
+        xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[1], 0, sizeof(cl_mem), &buffer_in);
+        xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[1], 1, sizeof(cl_mem), &buffer_aux_1);
+        xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[1], 2, sizeof(cl_mem), &buffer_out);
+        xm::ocl::set_kernel_arg(internal->kernels.kernel_chroma[1], 3, sizeof(cl_float4), &color_replace);
+
+        xm::ocl::enqueue_kernel_fast(
+                input->queue, internal->kernels.kernel_chroma[1],
+                2,
+                g_size,
+                l_size);
+
 
         internal->buffers.output = { *image, input->queue, false };
         internal->buffers.output.image.header.fresh = true;
