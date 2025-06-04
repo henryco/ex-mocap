@@ -1,9 +1,14 @@
 //
 // Created by xd on 04/06/25.
 //
+#include <opencv2/videoio.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/calib3d.hpp>
 
 #include "../../../../headers/nodes/components/calibration/calibration_logic.h"
 #include "../../../../headers/logic/logic_globals.h"
+
+#include "../../../../../extra/worker/worker.h"
 
 namespace ex::logic::node::calibration {
 
