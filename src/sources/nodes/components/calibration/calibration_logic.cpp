@@ -9,6 +9,10 @@ namespace ex::logic::node::calibration {
 
     static const auto log = logs::get_logger("node_calibration");
 
+    // 1. Need worker thread
+    // 2. Need double buffering for draws (call draw_bytes_bgra_8)
+    // 3. Unload -> gray -> points -> refresh_t -> accumulate -> draw -> calibrate
+
     struct updates_t {
         id_type_16                prev_h;
         limbo::graph::UpdateState input;
