@@ -233,6 +233,9 @@ namespace ex::gui::strings {
     constexpr auto node_component_chromakey_refinement    = "Mask refinement";
     constexpr auto node_component_chromakey_refinement_p  = "Power";
     constexpr auto node_component_chromakey_refinement_m  = "Mode";
+
+    constexpr auto node_component_calibration_id           = "Calibration ID";
+    constexpr auto node_component_calibration_name         = "Calibration (single)";
 }
 
 #endif //GUI_STRINGS_H

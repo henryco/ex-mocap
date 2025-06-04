@@ -22,6 +22,9 @@
 #include "../../../headers/nodes/components/chromakey/chromakey_gui.h"
 #include "../../../headers/nodes/components/chromakey/chromakey_logic.h"
 
+#include "../../../headers/nodes/components/calibration/calibration_gui.h"
+#include "../../../headers/nodes/components/calibration/calibration_logic.h"
+
 namespace ex::nodes::mappers {
 
     const data::array_map<id_type, Mapper> &cmp_registry_() {
@@ -87,6 +90,15 @@ namespace ex::nodes::mappers {
             registry.put(id_from_struct_<chk_node_t>(), {
                     .gui = chk_node_n::gui_mappers,
                     .logic = logic_from_struct_<chk_node_t>()
+            });
+        }
+
+        { // Calibration (single) component
+            namespace node_n = ex::gui::node::calibration;
+            using node_t     = ex::logic::node::calibration::CalibNode;
+            registry.put(id_from_struct_<node_t>(), {
+                    .gui = node_n::gui_mappers,
+                    .logic = logic_from_struct_<node_t>()
             });
         }
 

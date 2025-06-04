@@ -197,6 +197,9 @@ set(HEADER_FILES
         src/headers/nodes/components/morph/morph_logic.h
         src/headers/nodes/components/chromakey/chromakey_gui.h
         src/headers/nodes/components/chromakey/chromakey_logic.h
+        src/headers/nodes/components/calibration/calibration_gui.h
+        src/headers/nodes/components/calibration/calibration_logic.h
+        src/headers/cv/calibration.h
 )
 
 set(SOURCE_FILES
@@ -256,6 +259,8 @@ set(SOURCE_FILES
         src/sources/nodes/components/morph/morph_gui.cpp
         src/sources/nodes/components/chromakey/chromakey_logic.cpp
         src/sources/nodes/components/chromakey/chromakey_gui.cpp
+        src/sources/nodes/components/calibration/calibration_gui.cpp
+        src/sources/nodes/components/calibration/calibration_logic.cpp
 )
 
 # =================== OpenCL kernels generation =====================
