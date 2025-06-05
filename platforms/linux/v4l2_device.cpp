@@ -11,7 +11,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
-#include <stdarg.h>
+#include <cstdarg>
 
 namespace ex::platform::dev {
 
@@ -28,6 +28,20 @@ namespace ex::platform::dev {
                 --size;
             }
             return hash;
+        }
+
+        bool starts_with(const char *str, const char *tst) {
+            for (int i = 0; ; ++i) {
+                const char *s = str + i;
+                const char *t = tst + i;
+                if (t == nullptr)
+                    return true;
+                if (s == nullptr)
+                    return false;
+                if (*s != *t)
+                    return false;
+            }
+            return false;
         }
 
         int8_t compare_caps(const DeviceCapability *a, const DeviceCapability *b) {
@@ -255,7 +269,7 @@ namespace ex::platform::dev {
 
         const char *get_device_id(const char *device_uuid_) {
             const std::string device_uuid = device_uuid_;
-            if (device_uuid.starts_with("/dev/video")) {
+            if (starts_with(device_uuid.c_str(), "/dev/video")) {
                 return device_uuid_;
             }
 
@@ -381,7 +395,7 @@ namespace ex::platform::dev {
 
     int get_device_index(const char *id_) {
         const std::string id = id_;
-        if (id.starts_with("/dev/video")) {
+        if (starts_with(id.c_str(), "/dev/video")) {
             return std::stoi(id.substr(10));
         }
 

@@ -11,10 +11,7 @@ if (ENABLE_TESTS)
     add_subdirectory(external/doctest)
 endif ()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(ABSL_PROPAGATE_CXX_STD ON)
@@ -33,6 +30,12 @@ add_subdirectory(external/glm)
 
 set(CMAKE_C_COMPILER "clang-18")
 set(CMAKE_CXX_COMPILER "clang++-18")
+
+# == WHATEVER
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${LIBSTDCPP_LIB_DIR} -lstdc++")
+# == WHATEVER
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
