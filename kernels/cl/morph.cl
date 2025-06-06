@@ -12,29 +12,29 @@ typedef float4 pix_t;
 
 // image_width - 1
 #ifndef USE_IMAGE_W
-#define USE_IMAGE_W (1U)
+#define USE_IMAGE_W (1)
 #endif
 
 // image_height - 1
 #ifndef USE_IMAGE_H
-#define USE_IMAGE_H (1U)
+#define USE_IMAGE_H (1)
 #endif
 
 // erode. kernel half size
 #ifndef USE_KERN_H_S_E
-#define USE_KERN_H_S_E (1U)
+#define USE_KERN_H_S_E (1)
 #endif
 
 // dilate. kernel half size
 #ifndef USE_KERN_H_S_D
-#define USE_KERN_H_S_D (1U)
+#define USE_KERN_H_S_D (1)
 #endif
 
 __kernel void kernel_dilate_horizontal(
     __read_only  image2d_t input_bgra,
     __write_only image2d_t output_bgra
 ) {
-    const int2 coord = (int2) (get_global_id(0), get_global_id(1));
+    const int2 coord = (int2) ((int) get_global_id(0), (int) get_global_id(1));
     if (coord.x > USE_IMAGE_W || coord.y > USE_IMAGE_H)
         return;
 
@@ -54,7 +54,7 @@ __kernel void kernel_dilate_vertical(
     __read_only  image2d_t input_bgra,
     __write_only image2d_t output_bgra
 ) {
-    const int2 coord = (int2) (get_global_id(0), get_global_id(1));
+    const int2 coord = (int2) ((int) get_global_id(0), (int) get_global_id(1));
     if (coord.x > USE_IMAGE_W || coord.y > USE_IMAGE_H)
         return;
 
@@ -74,7 +74,7 @@ __kernel void kernel_erode_horizontal(
     __read_only  image2d_t input_bgra,
     __write_only image2d_t output_bgra
 ) {
-    const int2 coord = (int2) (get_global_id(0), get_global_id(1));
+    const int2 coord = (int2) ((int) get_global_id(0), (int) get_global_id(1));
     if (coord.x > USE_IMAGE_W || coord.y > USE_IMAGE_H)
         return;
 
@@ -94,7 +94,7 @@ __kernel void kernel_erode_vertical(
     __read_only  image2d_t input_bgra,
     __write_only image2d_t output_bgra
 ) {
-    const int2 coord = (int2) (get_global_id(0), get_global_id(1));
+    const int2 coord = (int2) ((int) get_global_id(0), (int) get_global_id(1));
     if (coord.x > USE_IMAGE_W || coord.y > USE_IMAGE_H)
         return;
 

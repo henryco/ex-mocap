@@ -33,22 +33,22 @@ typedef float4 pix_t;
 
 // width of working image
 #ifndef USE_DIMENSION_X
-#define USE_DIMENSION_X (1U)
+#define USE_DIMENSION_X (1)
 #endif
 
 // height of working image
 #ifndef USE_DIMENSION_Y
-#define USE_DIMENSION_Y (1U)
+#define USE_DIMENSION_Y (1)
 #endif
 
 // width of resized output without offsets
 #ifndef USE_RESIZE_W
-#define USE_RESIZE_W (1U)
+#define USE_RESIZE_W (1)
 #endif
 
 // height of resized output without offsets
 #ifndef USE_RESIZE_H
-#define USE_RESIZE_H (1U)
+#define USE_RESIZE_H (1)
 #endif
 
 
@@ -67,7 +67,7 @@ __kernel void kernel_transform(
     read_only  image2d_t input_bgra,
     write_only image2d_t output_bgra
 ) {
-    int2       coord     = (int2) (get_global_id(0), get_global_id(1));
+    int2       coord     = (int2) ((int) get_global_id(0), (int) get_global_id(1));
     const int2 dst_coord = (int2) (coord.x, coord.y);
 
     #ifdef USE_ROTATE

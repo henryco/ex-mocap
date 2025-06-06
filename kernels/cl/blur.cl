@@ -12,17 +12,17 @@ typedef float4 pix_t;
 
 // image_width - 1
 #ifndef USE_IMAGE_W
-#define USE_IMAGE_W (1U)
+#define USE_IMAGE_W (1)
 #endif
 
 // image_height - 1
 #ifndef USE_IMAGE_H
-#define USE_IMAGE_H (1U)
+#define USE_IMAGE_H (1)
 #endif
 
 // conv. kernel half size
 #ifndef USE_KERN_H_S
-#define USE_KERN_H_S (1U)
+#define USE_KERN_H_S (1)
 #endif
 
 #ifdef USE_RESIZE
@@ -54,7 +54,7 @@ __kernel void kernel_blur_horizontal(
     __write_only image2d_t output_bgra,
     __constant   float    *gaussian_kernel
 ) {
-    const int2 coord = (int2) (get_global_id(0), get_global_id(1));
+    const int2 coord = (int2) ((int) get_global_id(0), (int) get_global_id(1));
     if (coord.x > USE_IMAGE_W || coord.y > USE_IMAGE_H)
         return;
 
@@ -77,7 +77,7 @@ __kernel void kernel_blur_vertical(
     __write_only image2d_t output_bgra,
     __constant   float    *gaussian_kernel
 ) {
-    const int2 coord = (int2) (get_global_id(0), get_global_id(1));
+    const int2 coord = (int2) ((int) get_global_id(0), (int) get_global_id(1));
     if (coord.x > USE_IMAGE_W || coord.y > USE_IMAGE_H)
         return;
 
@@ -100,7 +100,7 @@ __kernel void kernel_blur_single(
     __write_only image2d_t output_bgra,
     __constant   float    *gaussian_kernel
 ) {
-    const int2 coord = (int2) (get_global_id(0), get_global_id(1));
+    const int2 coord = (int2) ((int) get_global_id(0), (int) get_global_id(1));
     if (coord.x > USE_IMAGE_W || coord.y > USE_IMAGE_H)
         return;
 
