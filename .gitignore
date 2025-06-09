@@ -107,3 +107,4 @@ logs
 .logs
 /logs
 /.logs
+.clangd
