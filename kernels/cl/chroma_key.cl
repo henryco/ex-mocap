@@ -45,9 +45,9 @@ inline void __attribute__((always_inline)) bgr_to_hls(const float4 *in_bgra, flo
     const float safe_dif = fmax(c_dif, EPS);
     const float L = 0.5f * c_sum;
 
-    const float Hf = (c_max == r) * ((g - b) / safe_dif) +
-                     (c_max == g) * ((b - r) / safe_dif + 2.f) +
-                     (c_max == b) * ((r - g) / safe_dif + 4.f);
+    const float Hf = (float) (c_max == r) * ((g - b) / safe_dif) +
+                     (float) (c_max == g) * ((b - r) / safe_dif + 2.f) +
+                     (float) (c_max == b) * ((r - g) / safe_dif + 4.f);
 
     float H = 60.f * Hf;
     if (H < 0.f) H += 360.f;
@@ -84,7 +84,7 @@ __kernel void kernel_chroma_key_mask(
     const        float4    hls_lo,
     const        float4    hls_hi
 ) {
-    const int2 coord = (int2) (get_global_id(0), get_global_id(1));
+    const int2 coord = (int2) ((int) get_global_id(0), (int) get_global_id(1));
     if (coord.x >= USE_MASK_W || coord.y >= USE_MASK_H)
         return;
 
@@ -109,7 +109,7 @@ __kernel void kernel_chroma_key_apply(
     __write_only image2d_t output_bgra,
     const        float4    replace_bgra
 ) {
-    const int2 coord = (int2) (get_global_id(0), get_global_id(1));
+    const int2 coord = (int2) ((int) get_global_id(0), (int) get_global_id(1));
     if (coord.x >= USE_IMAGE_W || coord.y >= USE_IMAGE_H)
         return;
 
@@ -139,7 +139,7 @@ __kernel void kernel_chroma_mask_single(
     const        float4    hls_lo,
     const        float4    hls_hi
 ) {
-    const int2 coord = (int2) (get_global_id(0), get_global_id(1));
+    const int2 coord = (int2) ((int) get_global_id(0), (int) get_global_id(1));
     if (coord.x >= USE_IMAGE_W || coord.y >= USE_IMAGE_H)
         return;
 

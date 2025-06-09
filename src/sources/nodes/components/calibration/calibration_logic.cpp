@@ -1,12 +1,12 @@
 //
 // Created by xd on 04/06/25.
 //
-#include <opencv2/videoio.hpp>
-#include <opencv2/imgproc.hpp>
 #include <opencv2/calib3d.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/videoio.hpp>
 
-#include "../../../../headers/nodes/components/calibration/calibration_logic.h"
 #include "../../../../headers/logic/logic_globals.h"
+#include "../../../../headers/nodes/components/calibration/calibration_logic.h"
 
 #include "../../../../../extra/worker/worker.h"
 
@@ -25,7 +25,7 @@ namespace ex::logic::node::calibration {
     };
 
     struct buffers_t {
-        ocl::img_promise input;   // managed outside
+        ocl::img_promise input; // managed outside
     };
 
     struct internal_t {
@@ -170,8 +170,8 @@ namespace ex::logic::node::calibration {
             internal->buffers.input.image.rows != promise->image.rows ||
             internal->updates.prev_h != promise->image.id) {
 
-            internal->updates.prev_h  = promise->image.id;
-            internal->buffers.input = *promise;
+            internal->updates.prev_h = promise->image.id;
+            internal->buffers.input  = *promise;
 
             if (!promise->empty()) {
                 internal->updates.input.refresh();
@@ -207,10 +207,9 @@ namespace ex::logic::node::calibration {
         internal = nullptr;
     }
 
-    CalibNode::CalibNode() :
-        internal(create_internal()) {
+    CalibNode::CalibNode() : internal(create_internal()) {
         ::memcpy(&config, &internal->state, sizeof(config_t));
         reset(internal);
     }
 
-}
+} // namespace ex::logic::node::calibration
