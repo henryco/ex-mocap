@@ -17,7 +17,7 @@ fi
 
 echo "ParentDIR: $PARENT_DIR"
 
-cmake -S "$PARENT_DIR" -B "cmake-build-$PROFILE" -G Ninja || exit 3
+cmake -S "$PARENT_DIR" -B "$PARENT_DIR/cmake-build-$PROFILE" -G Ninja || exit 3
 
 ln -sfn "$SCRIPT_DIR/profile_$PROFILE" "$PARENT_DIR/.clangd"
 ln -sfn "$PARENT_DIR/cmake-build-$PROFILE" "$PARENT_DIR/cmake-build"
