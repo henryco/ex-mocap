@@ -22,9 +22,9 @@ done
 shopt -u nullglob
 
 
-if [ ! -z "$PROFILE" ]; then
+if [ -z "$PROFILE" ]; then
     echo "Proile not specified, using current active one"
-    if [ ! -f "$PARENT_DIR/cmake-build" ]; then
+    if [ ! -d "$PARENT_DIR/cmake-build" ]; then
         echo "Cannot locate file $PARENT_DIR/cmake-build"
         exit 1
     fi
@@ -33,7 +33,7 @@ if [ ! -z "$PROFILE" ]; then
 fi
 
 CURRENT_ONE="$PARENT_DIR/cmake-build-$PROFILE"
-if [ ! -f "$CURRENT_ONE" ]; then
+if [ ! -d "$CURRENT_ONE" ]; then
     echo "Cannot locate file $CURRENT_ONE"
     exit 1
 fi
