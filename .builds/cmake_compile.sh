@@ -8,7 +8,7 @@ PARENT_DIR="$(dirname "$SCRIPT_DIR")"
 echo "ParentDIR: $PARENT_DIR"
 
 # UPDATE ALL BUILDS
-shopt -s nullglob
+# shopt -s nullglob
 for file in "$SCRIPT_DIR"/profile_*; do
     if [ -f "$file" ]; then
         basename=$(basename "$file")
@@ -19,7 +19,7 @@ for file in "$SCRIPT_DIR"/profile_*; do
         cmake -S "$PARENT_DIR" -B "$PARENT_DIR/cmake-build-$profile" -G Ninja || exit 3
     fi
 done
-shopt -u nullglob
+# shopt -u nullglob
 
 
 if [ -z "$PROFILE" ]; then
