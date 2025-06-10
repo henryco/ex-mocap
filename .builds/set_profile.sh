@@ -10,6 +10,11 @@ if [ -z "$PROFILE" ]; then
     exit 1
 fi
 
+if [ ! -f "$SCRIPT_DIR/profile_$PROFILE" ]; then
+    echo "Profile $PROFILE not found, cant locate $SCRIPT_DIR/profile_$PROFILE"
+    exit 1
+fi
+
 echo "ParentDIR: $PARENT_DIR"
 
 cmake -S "$PARENT_DIR" -B "cmake-build-$PROFILE" -G Ninja || exit 3
