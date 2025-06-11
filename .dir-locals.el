@@ -1,7 +1,11 @@
 (
- (setq vc-follow-symlinks t)
- (nil . ((xd/run-command . "hello")
-
+ (nil . (
+         (vc-follow-symlinks . t)
+         (xd/command-compile . "")
+         (xd/command-profile . "")
+         (xd/command-update  . "")
+         (xd/command-debug   . "")
+         (xd/command-mode    . "")
+         (xd/command-run     . "")
          ))
-
  )
