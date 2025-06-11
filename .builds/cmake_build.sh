@@ -47,7 +47,7 @@ for file in "$SCRIPT_DIR"/profile_*; do
         echo "Build type: $BUILD_TYPE"
         echo "Build args: $BUILD_ARGS"
 
-        cmake -S "$PARENT_DIR" -B "$PARENT_DIR/cmake-build-$profile"  "$BUILD_ARGS" \
+        cmake -S "$PARENT_DIR" -B "$PARENT_DIR/cmake-build-$profile" "$BUILD_ARGS" \
               -G Ninja \
               -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
             || exit 3
