@@ -19,7 +19,7 @@ else
     bash "$SCRIPT_DIR/cmake_compile.sh" "$PROFILE"
 fi
 
-
+# read metadata
 declare -A meta
 while IFS= read -r line; do
     if [[ "$line" =~ ^#([a-zA-Z0-9_]+):[[:space:]]*(.*) ]]; then
@@ -31,9 +31,11 @@ done < "$META_FILE"
 
 # Read build metadata
 BUILD_EXEC="${meta[build_exec]}"
-unset meta
-
 EXEC_PATH="$CURRENT_ONE/$BUILD_EXEC"
 
+# cleanup mtadata
+unset meta
+
+# Start process
 echo "Starting executable: $EXEC_PATH"
-env -C "$CURRENT_ONE" $EXEC_PATH
+env -C "$CURRENT_ONE" "$EXEC_PATH" "$EXEC_ARGS"
