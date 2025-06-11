@@ -27,4 +27,5 @@ if [ ! -d "$CURRENT_ONE" ]; then
     exit 1
 fi
 
+echo "Compile profile: $CURRENT_ONE"
 cmake --build "$CURRENT_ONE"
