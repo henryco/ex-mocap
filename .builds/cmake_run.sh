@@ -36,3 +36,4 @@ unset meta
 EXEC_PATH="$CURRENT_ONE/$BUILD_EXEC"
 
 echo "Starting executable: $EXEC_PATH"
+env -C "$CURRENT_ONE" $EXEC_PATH
