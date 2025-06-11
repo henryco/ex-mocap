@@ -9,6 +9,7 @@
 
          (xd/command-build   . "./.builds/cmake_build.sh")
          (xd/command-mode    . "./.builds/cmake_profile.sh")
+         (xd/command-test    . "./.builds/cmake_test.sh")
          (xd/command-run     . "./.builds/cmake_run.sh")
          ))
  )
