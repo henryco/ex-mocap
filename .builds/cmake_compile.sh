@@ -28,7 +28,7 @@ if [ -z "$PROFILE" ]; then
         echo "Cannot locate file $PARENT_DIR/cmake-build"
         exit 1
     fi
-    # ninja -C "$PARENT_DIR/cmake-build"
+
     cmake --build "$PARENT_DIR/cmake-build"
     exit 0
 fi
@@ -39,5 +39,4 @@ if [ ! -d "$CURRENT_ONE" ]; then
     exit 1
 fi
 
-# ninja -C "$CURRENT_ONE"
 cmake --build "$CURRENT_ONE"
