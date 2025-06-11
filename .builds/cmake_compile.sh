@@ -5,23 +5,10 @@ SCRIPT_PATH="$(readlink -f "$0")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 PARENT_DIR="$(dirname "$SCRIPT_DIR")"
 
-echo "ParentDIR: $PARENT_DIR"
+# Update all cmake profiles
+bash "$SCRIPT_DIR/cmake_build.sh"
 
-# UPDATE ALL BUILDS
-# shopt -s nullglob
-for file in "$SCRIPT_DIR"/profile_*; do
-    if [ -f "$file" ]; then
-        basename=$(basename "$file")
-        profile="${basename#profile_*}"
-
-        echo "Update cmake profile: $profile"
-
-        cmake -S "$PARENT_DIR" -B "$PARENT_DIR/cmake-build-$profile" -G Ninja || exit 3
-    fi
-done
-# shopt -u nullglob
-
-
+# Compile current profile
 if [ -z "$PROFILE" ]; then
     echo "Proile not specified, using current active one"
     if [ ! -d "$PARENT_DIR/cmake-build" ]; then
@@ -33,6 +20,7 @@ if [ -z "$PROFILE" ]; then
     exit 0
 fi
 
+# Compile given profile
 CURRENT_ONE="$PARENT_DIR/cmake-build-$PROFILE"
 if [ ! -d "$CURRENT_ONE" ]; then
     echo "Cannot locate file $CURRENT_ONE"

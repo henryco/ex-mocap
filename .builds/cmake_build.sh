@@ -19,11 +19,6 @@ SCRIPT_PATH="$(readlink -f "$0")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 PARENT_DIR="$(dirname "$SCRIPT_DIR")"
 
-echo ""
-echo "================================================================"
-echo ""
-echo "ParentDIR: $PARENT_DIR"
-
 # shopt -s nullglob
 for file in "$SCRIPT_DIR"/profile_*; do
     if [ -f "$file" ]; then
@@ -41,8 +36,10 @@ for file in "$SCRIPT_DIR"/profile_*; do
             fi
         done < "$file"
 
+        # Read build metadata
         BUILD_ARGS="${meta[build_args]}"
         BUILD_TYPE="${meta[build_type]}"
+
         unset meta
         # ================================================================
 
@@ -62,11 +59,13 @@ for file in "$SCRIPT_DIR"/profile_*; do
 done
 # shopt -u nullglob
 
+# Use current profile
 if [ -L "$PARENT_DIR/cmake-build" ]; then
     echo "Symlink to a profile exists, skip"
     exit 0
 fi
 
+# Find default profile
 profile=""
 for f in "$SCRIPT_DIR"/profile_*; do
     if [ -f "$f" ]; then
@@ -76,6 +75,7 @@ for f in "$SCRIPT_DIR"/profile_*; do
     fi
 done
 
+# Set active profile
 if [ -n "$profile" ]; then
     echo "Default cmake profile: $profile"
     ln -sfn "$SCRIPT_DIR/profile_$profile" "$PARENT_DIR/.clangd"

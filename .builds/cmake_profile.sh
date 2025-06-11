@@ -15,9 +15,10 @@ if [ ! -f "$SCRIPT_DIR/profile_$PROFILE" ]; then
     exit 1
 fi
 
-echo "ParentDIR: $PARENT_DIR"
-
-cmake -S "$PARENT_DIR" -B "$PARENT_DIR/cmake-build-$PROFILE" -G Ninja || exit 3
+if [ ! -d "$PARENT_DIR/cmake-build-$PROFILE" ]; then
+    echo "Cannot locate profile build dir"
+    bash "$SCRIPT_DIR/cmake_build.sh"
+fi
 
 ln -sfn "$SCRIPT_DIR/profile_$PROFILE" "$PARENT_DIR/.clangd"
 ln -sfn "$PARENT_DIR/cmake-build-$PROFILE" "$PARENT_DIR/cmake-build"
