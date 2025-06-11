@@ -1,6 +1,5 @@
-_build_:
-  executable: ex_motion
-  build_type: Release
+#executable: ex_motion
+#build_type: Release
 
 CompileFlags:
   CompilationDatabase: cmake-build-release

@@ -1,6 +1,5 @@
-_build_:
-  executable: ex_motion
-  build_type: Debug
+#executable: ex_motion
+#build_type: Debug
 
 CompileFlags:
   CompilationDatabase: cmake-build-debug
