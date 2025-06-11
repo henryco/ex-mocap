@@ -1,9 +1,27 @@
 #!/bin/bash
 
+# This build script expects 'profile_$PROFILE$' files located in a same directory.
+#
+# Each profile file is effectivelly '.clangd' file that should have specified:
+# ---
+#   CompileFlags:
+#     CompilationDatabase: cmake-build-$PROFILE$
+# ---
+#
+# Also each file should have provided build metadata in a form of Key-Value comments:
+# ---
+#   #build_exec: $exec_name$
+#   #build_type: Debug|Release|etc...
+#   #build_args: -DArg1=Val1 -DArg2=Val2 ...
+# ---
+
 SCRIPT_PATH="$(readlink -f "$0")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 PARENT_DIR="$(dirname "$SCRIPT_DIR")"
 
+echo ""
+echo "================================================================"
+echo ""
 echo "ParentDIR: $PARENT_DIR"
 
 # shopt -s nullglob
@@ -12,9 +30,34 @@ for file in "$SCRIPT_DIR"/profile_*; do
         basename=$(basename "$file")
         profile="${basename#profile_*}"
 
-        echo "Update cmake profile: $profile"
+        # ================================================================
+        declare -A meta
 
-        cmake -S "$PARENT_DIR" -B "$PARENT_DIR/cmake-build-$profile" -G Ninja || exit 3
+        while IFS= read -r line; do
+            if [[ "$line" =~ ^#([a-zA-Z0-9_]+):[[:space:]]*(.*) ]]; then
+                key="${BASH_REMATCH[1]}"
+                value="${BASH_REMATCH[2]}"
+                meta["$key"]="$value"
+            fi
+        done < "$file"
+
+        BUILD_ARGS="${meta[build_args]}"
+        BUILD_TYPE="${meta[build_type]}"
+        unset meta
+        # ================================================================
+
+        echo "Update cmake profile: $profile"
+        echo "Build type: $BUILD_TYPE"
+        echo "Build args: $BUILD_ARGS"
+
+        cmake -S "$PARENT_DIR" -B "$PARENT_DIR/cmake-build-$profile"  "$BUILD_ARGS" \
+              -G Ninja \
+              -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+            || exit 3
+
+        echo ""
+        echo "================================================================"
+        echo ""
     fi
 done
 # shopt -u nullglob

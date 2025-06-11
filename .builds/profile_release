@@ -1,5 +1,6 @@
-#executable: ex_motion
+#build_exec: ex_motion
 #build_type: Release
+#build_args: -DENABLE_TESTS=OFF -DENABLE_VALGRIND=OFF
 
 CompileFlags:
   CompilationDatabase: cmake-build-release

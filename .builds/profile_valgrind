@@ -1,5 +1,6 @@
-#executable: ex_motion
+#build_exec: ex_motion
 #build_type: Debug
+#build_args: -DENABLE_TESTS=ON -DENABLE_VALGRIND=ON
 
 CompileFlags:
   CompilationDatabase: cmake-build-valgrind
