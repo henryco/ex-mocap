@@ -14,6 +14,7 @@
 #   #build_type: Debug|Release|etc...
 #   #build_args: -DArg1=Val1 -DArg2=Val2 ...
 # ---
+PROFILE=$1
 
 SCRIPT_PATH="$(readlink -f "$0")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
@@ -59,27 +60,28 @@ for file in "$SCRIPT_DIR"/profile_*; do
 done
 # shopt -u nullglob
 
-# Use current profile
-if [ -L "$PARENT_DIR/cmake-build" ]; then
-    echo "Symlink to a profile exists, skip"
-    exit 0
+if [ -z "$PROFILE" ]; then
+    # Use current profile
+    if [ -L "$PARENT_DIR/cmake-build" ]; then
+        echo "Symlink to a profile exists, skip"
+        exit 0
+    fi
+
+    # Find default profile
+    for f in "$SCRIPT_DIR"/profile_*; do
+        if [ -f "$f" ]; then
+            profb=$(basename "$f")
+            PROFILE="${BASENAME#profile_*}"
+            break
+        fi
+    done
 fi
 
-# Find default profile
-profile=""
-for f in "$SCRIPT_DIR"/profile_*; do
-    if [ -f "$f" ]; then
-        profb=$(basename "$f")
-        profile="${basename#profile_*}"
-        break
-    fi
-done
-
 # Set active profile
-if [ -n "$profile" ]; then
-    echo "Default cmake profile: $profile"
-    ln -sfn "$SCRIPT_DIR/profile_$profile" "$PARENT_DIR/.clangd"
-    ln -sfn "$PARENT_DIR/cmake-build-$profile" "$PARENT_DIR/cmake-build"
+if [ -n "$PROFILE" ]; then
+    echo "Default cmake profile: $PROFILE"
+    ln -sfn "$SCRIPT_DIR/profile_$PROFILE" "$PARENT_DIR/.clangd"
+    ln -sfn "$PARENT_DIR/cmake-build-$PROFILE" "$PARENT_DIR/cmake-build"
 else
     echo "No cmake profiles found"
 fi
