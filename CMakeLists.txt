@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.28)
 project(ex_motion VERSION 0.2.2 LANGUAGES CXX C)
 
-#set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto -funroll-loops -DNDEBUG" CACHE STRING "Release flags" FORCE)
-#set(CMAKE_C_FLAGS_RELEASE   "-O3 -flto -funroll-loops -DNDEBUG" CACHE STRING "Release flags" FORCE)
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto -funroll-loops -DNDEBUG" CACHE STRING "Release flags" FORCE)
+set(CMAKE_C_FLAGS_RELEASE   "-O3 -flto -funroll-loops -DNDEBUG" CACHE STRING "Release flags" FORCE)
 
 option(ENABLE_TESTS "Build with unit tests" OFF)
 option(ENABLE_VALGRIND "Build with valgrind" OFF)
